@@ -335,3 +335,58 @@ export const timeRecordsRelations = relations(timeRecords, ({ one }) => ({
     references: [staff.id],
   }),
 }));
+
+// Email Marketing Campaigns
+export const campaigns = pgTable("campaigns", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  subject: text("subject").notNull(),
+  content: text("content").notNull(),
+  audience: text("audience").notNull(), // all_clients, recent_clients, vip_clients, uploaded_leads
+  status: text("status").notNull().default("draft"), // draft, scheduled, sent, cancelled
+  scheduledDate: timestamp("scheduled_date"),
+  sentDate: timestamp("sent_date"),
+  recipientCount: integer("recipient_count").default(0),
+  openCount: integer("open_count").default(0),
+  clickCount: integer("click_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type Campaign = typeof campaigns.$inferSelect;
+
+export const insertCampaignSchema = createInsertSchema(campaigns).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  recipientCount: true,
+  openCount: true,
+  clickCount: true,
+  sentDate: true,
+});
+
+export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
+
+// Email Leads (from CSV uploads)
+export const emailLeads = pgTable("email_leads", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  email: text("email").notNull().unique(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  phone: text("phone"),
+  source: text("source").default("csv_upload"), // csv_upload, manual, integration
+  tags: text("tags").array(),
+  subscribed: boolean("subscribed").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type EmailLead = typeof emailLeads.$inferSelect;
+
+export const insertEmailLeadSchema = createInsertSchema(emailLeads).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertEmailLead = z.infer<typeof insertEmailLeadSchema>;

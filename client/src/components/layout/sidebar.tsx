@@ -9,6 +9,7 @@ import {
   Package,
   CreditCard,
   Clock,
+  Mail,
   BarChart3,
   Settings, 
   LogOut,
@@ -30,6 +31,7 @@ const navigation = [
   { name: "Inventory", href: "/inventory", icon: Package },
   { name: "POS", href: "/pos", icon: CreditCard },
   { name: "Timesheet", href: "/timesheet", icon: Clock },
+  { name: "Marketing", href: "/marketing", icon: Mail },
   { name: "Reports", href: "/reports", icon: BarChart3 },
   { name: "Settings", href: "/settings", icon: Settings },
 ];

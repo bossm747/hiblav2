@@ -872,6 +872,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Email Marketing Campaign routes
+  app.get("/api/marketing/campaigns", async (req, res) => {
+    try {
+      const campaigns = await storage.getCampaigns();
+      res.json(campaigns);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch campaigns" });
+    }
+  });
+
+  app.post("/api/marketing/campaigns", async (req, res) => {
+    try {
+      const campaignData = req.body;
+      const campaign = await storage.createCampaign(campaignData);
+      res.status(201).json(campaign);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create campaign" });
+    }
+  });
+
+  app.post("/api/marketing/campaigns/:id/send", async (req, res) => {
+    try {
+      const campaign = await storage.sendCampaign(req.params.id);
+      res.json(campaign);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to send campaign" });
+    }
+  });
+
+  app.delete("/api/marketing/campaigns/:id", async (req, res) => {
+    try {
+      await storage.deleteCampaign(req.params.id);
+      res.json({ message: "Campaign deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete campaign" });
+    }
+  });
+
+  // Email Leads routes
+  app.get("/api/marketing/leads", async (req, res) => {
+    try {
+      const leads = await storage.getEmailLeads();
+      res.json(leads);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch leads" });
+    }
+  });
+
+  const csvUpload = multer({ 
+    dest: './uploads/',
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype === 'text/csv') {
+        cb(null, true);
+      } else {
+        cb(null, false);
+      }
+    },
+    limits: {
+      fileSize: 10 * 1024 * 1024 // 10MB limit
+    }
+  });
+
+  app.post("/api/marketing/leads/upload", csvUpload.single('csv'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No CSV file uploaded" });
+      }
+
+      const csvContent = await fs.readFile(req.file.path, 'utf-8');
+      const lines = csvContent.trim().split('\n');
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      
+      const emailIndex = headers.indexOf('email');
+      const firstNameIndex = headers.indexOf('firstname') !== -1 ? headers.indexOf('firstname') : headers.indexOf('first_name');
+      const lastNameIndex = headers.indexOf('lastname') !== -1 ? headers.indexOf('lastname') : headers.indexOf('last_name');
+      const phoneIndex = headers.indexOf('phone');
+
+      if (emailIndex === -1) {
+        return res.status(400).json({ message: "CSV must contain an 'email' column" });
+      }
+
+      const leads = [];
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(',').map(v => v.trim().replace(/^"(.*)"$/, '$1'));
+        if (values[emailIndex] && values[emailIndex].includes('@')) {
+          leads.push({
+            email: values[emailIndex],
+            firstName: firstNameIndex !== -1 ? values[firstNameIndex] : null,
+            lastName: lastNameIndex !== -1 ? values[lastNameIndex] : null,
+            phone: phoneIndex !== -1 ? values[phoneIndex] : null,
+            source: 'csv_upload'
+          });
+        }
+      }
+
+      let successCount = 0;
+      for (const lead of leads) {
+        try {
+          await storage.createEmailLead(lead);
+          successCount++;
+        } catch (error) {
+          // Skip duplicate emails
+        }
+      }
+
+      // Clean up uploaded file
+      await fs.unlink(req.file.path);
+
+      res.json({ 
+        message: "Leads uploaded successfully",
+        count: successCount,
+        total: leads.length
+      });
+    } catch (error) {
+      console.error('CSV upload error:', error);
+      res.status(500).json({ message: "Failed to process CSV file" });
+    }
+  });
+
+  // Marketing stats
+  app.get("/api/marketing/stats", async (req, res) => {
+    try {
+      const stats = await storage.getMarketingStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch marketing stats" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

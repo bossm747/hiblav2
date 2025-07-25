@@ -90,12 +90,14 @@ export default function Landing({ onEnter }: LandingProps) {
   return (
     <div className="min-h-screen text-slate-800">
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-pink-50 via-white to-rose-50">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-pink-100 via-orange-50 via-yellow-50 to-rose-100">
         {/* Animated Background */}
         <div className="absolute inset-0">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
-          <div className="absolute bottom-10 right-10 w-40 h-40 bg-rose-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" style={{ animationDelay: '2s' }}></div>
-          <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" style={{ animationDelay: '4s' }}></div>
+          <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-r from-pink-300 to-orange-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
+          <div className="absolute bottom-10 right-10 w-40 h-40 bg-gradient-to-r from-orange-300 to-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-gradient-to-r from-yellow-300 to-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse" style={{ animationDelay: '4s' }}></div>
+          <div className="absolute top-20 right-1/4 w-28 h-28 bg-gradient-to-r from-pink-400 to-orange-400 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-pulse" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute bottom-1/4 left-1/3 w-36 h-36 bg-gradient-to-r from-orange-400 to-yellow-400 rounded-full mix-blend-multiply filter blur-xl opacity-60 animate-pulse" style={{ animationDelay: '3s' }}></div>
         </div>
 
         <div className="relative z-10 max-w-6xl mx-auto px-4 text-center">
@@ -107,7 +109,7 @@ export default function Landing({ onEnter }: LandingProps) {
             {/* Logo */}
             <div className="mb-8">
               <motion.h1
-                className="text-7xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-rose-500 to-purple-600 mb-4"
+                className="text-7xl md:text-8xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-orange-500 to-yellow-500 mb-4"
                 style={{ fontFamily: "'Dancing Script', cursive" }}
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
@@ -176,7 +178,7 @@ export default function Landing({ onEnter }: LandingProps) {
               <Button
                 onClick={onEnter}
                 size="lg"
-                className="px-8 py-4 text-lg font-semibold bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                className="px-8 py-4 text-lg font-semibold bg-gradient-to-r from-pink-500 via-orange-500 to-yellow-500 hover:from-pink-600 hover:via-orange-600 hover:to-yellow-600 transform hover:scale-105 transition-all duration-200 shadow-lg"
               >
                 Enter Dashboard
                 <ArrowRight className="h-5 w-5 ml-2" />

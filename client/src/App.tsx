@@ -13,6 +13,7 @@ import Staff from "@/pages/staff";
 import Inventory from "@/pages/inventory";
 import POS from "@/pages/pos";
 import Timesheet from "@/pages/timesheet";
+import Marketing from "@/pages/marketing";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
 import Documentation from "@/pages/documentation";
@@ -36,6 +37,7 @@ function Router({ showDocs, setShowDocs }: { showDocs: boolean; setShowDocs: (sh
       <Route path="/inventory" component={Inventory} />
       <Route path="/pos" component={POS} />
       <Route path="/timesheet" component={Timesheet} />
+      <Route path="/marketing" component={Marketing} />
       <Route path="/reports" component={Reports} />
       <Route path="/settings" component={Settings} />
       <Route component={NotFound} />

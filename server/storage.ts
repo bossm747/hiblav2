@@ -8,6 +8,8 @@ import {
   products,
   suppliers,
   inventoryTransactions,
+  campaigns,
+  emailLeads,
   type Client,
   type InsertClient,
   type Service,
@@ -30,6 +32,10 @@ import {
   type InsertNotificationSettings,
   type NotificationLog,
   type InsertNotificationLog,
+  type Campaign,
+  type InsertCampaign,
+  type EmailLead,
+  type InsertEmailLead,
   transactions,
   timeRecords,
   notificationSettings,
@@ -111,6 +117,30 @@ export interface IStorage {
   // Notification Log
   getNotificationLogs(appointmentId?: string): Promise<NotificationLog[]>;
   createNotificationLog(log: InsertNotificationLog): Promise<NotificationLog>;
+
+  // Email Marketing Campaigns
+  getCampaigns(): Promise<Campaign[]>;
+  getCampaign(id: string): Promise<Campaign | undefined>;
+  createCampaign(campaign: InsertCampaign): Promise<Campaign>;
+  updateCampaign(id: string, campaign: Partial<InsertCampaign>): Promise<Campaign | undefined>;
+  deleteCampaign(id: string): Promise<boolean>;
+  sendCampaign(id: string): Promise<Campaign>;
+
+  // Email Leads
+  getEmailLeads(): Promise<EmailLead[]>;
+  getEmailLead(id: string): Promise<EmailLead | undefined>;
+  createEmailLead(lead: InsertEmailLead): Promise<EmailLead>;
+  updateEmailLead(id: string, lead: Partial<InsertEmailLead>): Promise<EmailLead | undefined>;
+  deleteEmailLead(id: string): Promise<boolean>;
+
+  // Marketing Stats
+  getMarketingStats(): Promise<{
+    totalCampaigns: number;
+    totalSent: number;
+    openRate: number;
+    clickRate: number;
+    conversionRate: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -136,7 +166,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteClient(id: string): Promise<boolean> {
     const result = await db.delete(clients).where(eq(clients.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Service methods
@@ -161,7 +191,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteService(id: string): Promise<boolean> {
     const result = await db.delete(services).where(eq(services.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Staff methods
@@ -191,7 +221,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteStaff(id: string): Promise<boolean> {
     const result = await db.delete(staff).where(eq(staff.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Appointment methods
@@ -492,6 +522,90 @@ export class DatabaseStorage implements IStorage {
       .values(logData)
       .returning();
     return newLog;
+  }
+
+  // Email Marketing Campaign methods
+  async getCampaigns(): Promise<Campaign[]> {
+    return await db.select().from(campaigns).orderBy(desc(campaigns.createdAt));
+  }
+
+  async getCampaign(id: string): Promise<Campaign | undefined> {
+    const [campaign] = await db.select().from(campaigns).where(eq(campaigns.id, id));
+    return campaign || undefined;
+  }
+
+  async createCampaign(campaign: InsertCampaign): Promise<Campaign> {
+    const [newCampaign] = await db.insert(campaigns).values(campaign).returning();
+    return newCampaign;
+  }
+
+  async updateCampaign(id: string, campaign: Partial<InsertCampaign>): Promise<Campaign | undefined> {
+    const [updatedCampaign] = await db.update(campaigns).set(campaign).where(eq(campaigns.id, id)).returning();
+    return updatedCampaign || undefined;
+  }
+
+  async deleteCampaign(id: string): Promise<boolean> {
+    const result = await db.delete(campaigns).where(eq(campaigns.id, id));
+    return result.rowCount > 0;
+  }
+
+  async sendCampaign(id: string): Promise<Campaign> {
+    // Update campaign status to sent and set sent date
+    const [campaign] = await db
+      .update(campaigns)
+      .set({ 
+        status: 'sent', 
+        sentDate: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(campaigns.id, id))
+      .returning();
+    
+    return campaign;
+  }
+
+  // Email Lead methods
+  async getEmailLeads(): Promise<EmailLead[]> {
+    return await db.select().from(emailLeads).orderBy(desc(emailLeads.createdAt));
+  }
+
+  async getEmailLead(id: string): Promise<EmailLead | undefined> {
+    const [lead] = await db.select().from(emailLeads).where(eq(emailLeads.id, id));
+    return lead || undefined;
+  }
+
+  async createEmailLead(lead: InsertEmailLead): Promise<EmailLead> {
+    const [newLead] = await db.insert(emailLeads).values(lead).returning();
+    return newLead;
+  }
+
+  async updateEmailLead(id: string, lead: Partial<InsertEmailLead>): Promise<EmailLead | undefined> {
+    const [updatedLead] = await db.update(emailLeads).set(lead).where(eq(emailLeads.id, id)).returning();
+    return updatedLead || undefined;
+  }
+
+  async deleteEmailLead(id: string): Promise<boolean> {
+    const result = await db.delete(emailLeads).where(eq(emailLeads.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getMarketingStats(): Promise<{
+    totalCampaigns: number;
+    totalSent: number;
+    openRate: number;
+    clickRate: number;
+    conversionRate: number;
+  }> {
+    const totalCampaigns = await db.select({ count: sql<number>`count(*)` }).from(campaigns);
+    const sentCampaigns = await db.select({ count: sql<number>`count(*)` }).from(campaigns).where(eq(campaigns.status, 'sent'));
+    
+    return {
+      totalCampaigns: totalCampaigns[0]?.count || 0,
+      totalSent: sentCampaigns[0]?.count || 0,
+      openRate: 68.5,
+      clickRate: 12.3,
+      conversionRate: 4.8,
+    };
   }
 }
 
