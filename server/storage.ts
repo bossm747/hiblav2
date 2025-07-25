@@ -7,6 +7,12 @@ import {
   type InsertStaff,
   type Appointment,
   type InsertAppointment,
+  type Product,
+  type InsertProduct,
+  type Supplier,
+  type InsertSupplier,
+  type InventoryTransaction,
+  type InsertInventoryTransaction,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -39,6 +45,30 @@ export interface IStorage {
   createAppointment(appointment: InsertAppointment): Promise<Appointment>;
   updateAppointment(id: string, appointment: Partial<InsertAppointment>): Promise<Appointment | undefined>;
   deleteAppointment(id: string): Promise<boolean>;
+
+  // Products
+  getProduct(id: string): Promise<Product | undefined>;
+  getProducts(): Promise<Product[]>;
+  getProductsByCategory(category: string): Promise<Product[]>;
+  getLowStockProducts(): Promise<Product[]>;
+  createProduct(product: InsertProduct): Promise<Product>;
+  updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined>;
+  deleteProduct(id: string): Promise<boolean>;
+
+  // Suppliers
+  getSupplier(id: string): Promise<Supplier | undefined>;
+  getSuppliers(): Promise<Supplier[]>;
+  createSupplier(supplier: InsertSupplier): Promise<Supplier>;
+  updateSupplier(id: string, supplier: Partial<InsertSupplier>): Promise<Supplier | undefined>;
+  deleteSupplier(id: string): Promise<boolean>;
+
+  // Inventory Transactions
+  getInventoryTransaction(id: string): Promise<InventoryTransaction | undefined>;
+  getInventoryTransactions(): Promise<InventoryTransaction[]>;
+  getInventoryTransactionsByProduct(productId: string): Promise<InventoryTransaction[]>;
+  createInventoryTransaction(transaction: InsertInventoryTransaction): Promise<InventoryTransaction>;
+  updateInventoryTransaction(id: string, transaction: Partial<InsertInventoryTransaction>): Promise<InventoryTransaction | undefined>;
+  deleteInventoryTransaction(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -46,12 +76,18 @@ export class MemStorage implements IStorage {
   private services: Map<string, Service>;
   private staff: Map<string, Staff>;
   private appointments: Map<string, Appointment>;
+  private products: Map<string, Product>;
+  private suppliers: Map<string, Supplier>;
+  private inventoryTransactions: Map<string, InventoryTransaction>;
 
   constructor() {
     this.clients = new Map();
     this.services = new Map();
     this.staff = new Map();
     this.appointments = new Map();
+    this.products = new Map();
+    this.suppliers = new Map();
+    this.inventoryTransactions = new Map();
   }
 
   // Clients
@@ -218,6 +254,164 @@ export class MemStorage implements IStorage {
 
   async deleteAppointment(id: string): Promise<boolean> {
     return this.appointments.delete(id);
+  }
+
+  // Products
+  async getProduct(id: string): Promise<Product | undefined> {
+    return this.products.get(id);
+  }
+
+  async getProducts(): Promise<Product[]> {
+    return Array.from(this.products.values());
+  }
+
+  async getProductsByCategory(category: string): Promise<Product[]> {
+    return Array.from(this.products.values()).filter(
+      (product) => product.category === category
+    );
+  }
+
+  async getLowStockProducts(): Promise<Product[]> {
+    return Array.from(this.products.values()).filter(
+      (product) => product.currentStock !== null && product.minStockLevel !== null && 
+      product.currentStock <= product.minStockLevel
+    );
+  }
+
+  async createProduct(insertProduct: InsertProduct): Promise<Product> {
+    const id = randomUUID();
+    const product: Product = {
+      id,
+      name: insertProduct.name,
+      description: insertProduct.description || null,
+      category: insertProduct.category,
+      brand: insertProduct.brand || null,
+      sku: insertProduct.sku || null,
+      barcode: insertProduct.barcode || null,
+      costPrice: insertProduct.costPrice,
+      retailPrice: insertProduct.retailPrice || null,
+      currentStock: insertProduct.currentStock || 0,
+      minStockLevel: insertProduct.minStockLevel || 10,
+      maxStockLevel: insertProduct.maxStockLevel || null,
+      unit: insertProduct.unit || "pcs",
+      supplierId: insertProduct.supplierId || null,
+      isActive: insertProduct.isActive !== undefined ? insertProduct.isActive : true,
+      createdAt: new Date(),
+    };
+    this.products.set(id, product);
+    return product;
+  }
+
+  async updateProduct(id: string, productUpdate: Partial<InsertProduct>): Promise<Product | undefined> {
+    const product = this.products.get(id);
+    if (!product) return undefined;
+
+    const updatedProduct = { ...product, ...productUpdate };
+    this.products.set(id, updatedProduct);
+    return updatedProduct;
+  }
+
+  async deleteProduct(id: string): Promise<boolean> {
+    return this.products.delete(id);
+  }
+
+  // Suppliers
+  async getSupplier(id: string): Promise<Supplier | undefined> {
+    return this.suppliers.get(id);
+  }
+
+  async getSuppliers(): Promise<Supplier[]> {
+    return Array.from(this.suppliers.values());
+  }
+
+  async createSupplier(insertSupplier: InsertSupplier): Promise<Supplier> {
+    const id = randomUUID();
+    const supplier: Supplier = {
+      id,
+      name: insertSupplier.name,
+      contactPerson: insertSupplier.contactPerson || null,
+      email: insertSupplier.email || null,
+      phone: insertSupplier.phone || null,
+      address: insertSupplier.address || null,
+      notes: insertSupplier.notes || null,
+      isActive: insertSupplier.isActive !== undefined ? insertSupplier.isActive : true,
+      createdAt: new Date(),
+    };
+    this.suppliers.set(id, supplier);
+    return supplier;
+  }
+
+  async updateSupplier(id: string, supplierUpdate: Partial<InsertSupplier>): Promise<Supplier | undefined> {
+    const supplier = this.suppliers.get(id);
+    if (!supplier) return undefined;
+
+    const updatedSupplier = { ...supplier, ...supplierUpdate };
+    this.suppliers.set(id, updatedSupplier);
+    return updatedSupplier;
+  }
+
+  async deleteSupplier(id: string): Promise<boolean> {
+    return this.suppliers.delete(id);
+  }
+
+  // Inventory Transactions
+  async getInventoryTransaction(id: string): Promise<InventoryTransaction | undefined> {
+    return this.inventoryTransactions.get(id);
+  }
+
+  async getInventoryTransactions(): Promise<InventoryTransaction[]> {
+    return Array.from(this.inventoryTransactions.values());
+  }
+
+  async getInventoryTransactionsByProduct(productId: string): Promise<InventoryTransaction[]> {
+    return Array.from(this.inventoryTransactions.values()).filter(
+      (transaction) => transaction.productId === productId
+    );
+  }
+
+  async createInventoryTransaction(insertTransaction: InsertInventoryTransaction): Promise<InventoryTransaction> {
+    const id = randomUUID();
+    const transaction: InventoryTransaction = {
+      id,
+      productId: insertTransaction.productId,
+      type: insertTransaction.type,
+      quantity: insertTransaction.quantity,
+      unitCost: insertTransaction.unitCost || null,
+      totalCost: insertTransaction.totalCost || null,
+      reason: insertTransaction.reason || null,
+      reference: insertTransaction.reference || null,
+      staffId: insertTransaction.staffId || null,
+      createdAt: new Date(),
+    };
+    this.inventoryTransactions.set(id, transaction);
+
+    // Update product stock based on transaction type
+    const product = this.products.get(insertTransaction.productId);
+    if (product) {
+      let newStock = product.currentStock || 0;
+      if (insertTransaction.type === 'purchase' || insertTransaction.type === 'adjustment') {
+        newStock += insertTransaction.quantity;
+      } else if (insertTransaction.type === 'sale' || insertTransaction.type === 'waste') {
+        newStock -= insertTransaction.quantity;
+      }
+      const updatedProduct = { ...product, currentStock: Math.max(0, newStock) };
+      this.products.set(insertTransaction.productId, updatedProduct);
+    }
+
+    return transaction;
+  }
+
+  async updateInventoryTransaction(id: string, transactionUpdate: Partial<InsertInventoryTransaction>): Promise<InventoryTransaction | undefined> {
+    const transaction = this.inventoryTransactions.get(id);
+    if (!transaction) return undefined;
+
+    const updatedTransaction = { ...transaction, ...transactionUpdate };
+    this.inventoryTransactions.set(id, updatedTransaction);
+    return updatedTransaction;
+  }
+
+  async deleteInventoryTransaction(id: string): Promise<boolean> {
+    return this.inventoryTransactions.delete(id);
   }
 }
 

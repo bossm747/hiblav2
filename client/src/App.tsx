@@ -10,6 +10,7 @@ import Appointments from "@/pages/appointments";
 import Clients from "@/pages/clients";
 import Services from "@/pages/services";
 import Staff from "@/pages/staff";
+import Inventory from "@/pages/inventory";
 import Reports from "@/pages/reports";
 import Sidebar from "@/components/layout/sidebar";
 import Header from "@/components/layout/header";
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/clients" component={Clients} />
       <Route path="/services" component={Services} />
       <Route path="/staff" component={Staff} />
+      <Route path="/inventory" component={Inventory} />
       <Route path="/reports" component={Reports} />
       <Route component={NotFound} />
     </Switch>

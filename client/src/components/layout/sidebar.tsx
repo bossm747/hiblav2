@@ -10,7 +10,8 @@ import {
   Settings, 
   LogOut,
   Waves,
-  X
+  X,
+  Package
 } from "lucide-react";
 
 interface SidebarProps {
@@ -24,6 +25,7 @@ const navigation = [
   { name: "Clients", href: "/clients", icon: Users },
   { name: "Services", href: "/services", icon: Scissors },
   { name: "Staff", href: "/staff", icon: Bus },
+  { name: "Inventory", href: "/inventory", icon: Package },
   { name: "Reports", href: "/reports", icon: BarChart3 },
 ];
 
