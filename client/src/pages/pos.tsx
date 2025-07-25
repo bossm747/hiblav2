@@ -42,7 +42,22 @@ import {
   Banknote,
   Receipt,
   X,
+  User,
+  Phone,
+  Mail,
+  Calendar,
+  Clock,
+  UserPlus,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 const checkoutSchema = z.object({
   clientId: z.string().optional(),
@@ -51,6 +66,16 @@ const checkoutSchema = z.object({
   paymentReference: z.string().optional(),
   discount: z.string().default("0"),
   notes: z.string().optional(),
+  amountPaid: z.string().optional(),
+  customerName: z.string().optional(),
+  customerPhone: z.string().optional(),
+});
+
+const quickCustomerSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  phone: z.string().min(10, "Valid phone number required"),
+  email: z.string().email().optional().or(z.literal("")),
 });
 
 interface CartItem {
@@ -66,6 +91,10 @@ export default function POS() {
   const { toast } = useToast();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [showQuickCustomer, setShowQuickCustomer] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [lastTransaction, setLastTransaction] = useState<any>(null);
 
   const { data: services = [] } = useQuery({
     queryKey: ["/api/services"],
@@ -92,6 +121,19 @@ export default function POS() {
       paymentReference: "",
       discount: "0",
       notes: "",
+      amountPaid: "",
+      customerName: "",
+      customerPhone: "",
+    },
+  });
+
+  const customerForm = useForm<z.infer<typeof quickCustomerSchema>>({
+    resolver: zodResolver(quickCustomerSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      phone: "",
+      email: "",
     },
   });
 
@@ -120,9 +162,12 @@ export default function POS() {
         title: "Transaction Complete",
         description: `Transaction ${data.transactionNumber} processed successfully`,
       });
+      setLastTransaction(data);
+      setShowReceipt(true);
       setCart([]);
       form.reset();
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
     },
     onError: (error: any) => {
       toast({
@@ -180,10 +225,51 @@ export default function POS() {
     setCart(cart.filter(item => !(item.id === id && item.type === type)));
   };
 
+  const createQuickCustomerMutation = useMutation({
+    mutationFn: async (data: z.infer<typeof quickCustomerSchema>) => {
+      const response = await apiRequest("POST", "/api/clients", data);
+      return response.json();
+    },
+    onSuccess: (newClient) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+      form.setValue("clientId", newClient.id);
+      setShowQuickCustomer(false);
+      customerForm.reset();
+      toast({
+        title: "Customer Added",
+        description: `${newClient.firstName} ${newClient.lastName} added successfully`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add customer",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const serviceCategories = [
+    { value: "all", label: "All Services" },
+    { value: "facial", label: "Facial" },
+    { value: "massage", label: "Massage" },
+    { value: "hair", label: "Hair" },
+    { value: "nails", label: "Nails" },
+    { value: "body", label: "Body Treatment" },
+  ];
+
+  const filteredServices = selectedCategory === "all" 
+    ? (services as any[])
+    : (services as any[]).filter((service: any) => 
+        service.category?.toLowerCase().includes(selectedCategory.toLowerCase())
+      );
+
   const subtotal = cart.reduce((sum, item) => sum + parseFloat(item.total), 0);
   const discount = parseFloat(form.watch('discount') || "0");
   const tax = 0; // No tax for now
   const total = subtotal - discount + tax;
+  const amountPaid = parseFloat(form.watch("amountPaid") || "0");
+  const changeAmount = Math.max(0, amountPaid - total);
 
   const onSubmit = (data: z.infer<typeof checkoutSchema>) => {
     if (cart.length === 0) {
@@ -220,12 +306,34 @@ export default function POS() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Products and Services */}
         <div className="space-y-6">
+          {/* Service Categories */}
+          <Card className="spa-card-shadow">
+            <CardHeader>
+              <CardTitle>Service Categories</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {serviceCategories.map((category) => (
+                  <Button
+                    key={category.value}
+                    variant={selectedCategory === category.value ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(category.value)}
+                    className="text-xs"
+                  >
+                    {category.label}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Services */}
           <Card className="spa-card-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ShoppingCart className="h-5 w-5" />
-                Services
+                Services ({filteredServices.length})
               </CardTitle>
               <CardDescription>
                 Available spa and salon services
@@ -233,7 +341,7 @@ export default function POS() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {(services as any[]).map((service: any) => (
+                {filteredServices.map((service: any) => (
                   <div
                     key={service.id}
                     className="p-4 border rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
@@ -389,7 +497,18 @@ export default function POS() {
                     name="clientId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Customer (Optional)</FormLabel>
+                        <FormLabel className="flex items-center justify-between">
+                          Customer (Optional)
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowQuickCustomer(true)}
+                            className="text-xs"
+                          >
+                            + Add New
+                          </Button>
+                        </FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
@@ -479,25 +598,54 @@ export default function POS() {
                     />
                   )}
 
-                  <FormField
-                    control={form.control}
-                    name="discount"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Discount (₱)</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="0.00"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="discount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Discount (₱)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder="0.00"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {form.watch("paymentMethod") === "cash" && (
+                      <FormField
+                        control={form.control}
+                        name="amountPaid"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Amount Paid (₱)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder={total.toFixed(2)}
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                            {changeAmount > 0 && (
+                              <p className="text-sm text-green-600 font-medium">
+                                Change: ₱{changeAmount.toFixed(2)}
+                              </p>
+                            )}
+                          </FormItem>
+                        )}
+                      />
                     )}
-                  />
+                  </div>
 
                   <FormField
                     control={form.control}
@@ -527,6 +675,187 @@ export default function POS() {
           </Card>
         </div>
       </div>
+
+      {/* Quick Customer Registration Modal */}
+      <Dialog open={showQuickCustomer} onOpenChange={setShowQuickCustomer}>
+        <DialogContent className="spa-modal-shadow">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5" />
+              Add New Customer
+            </DialogTitle>
+            <DialogDescription>
+              Quickly register a new customer for this transaction
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...customerForm}>
+            <form onSubmit={customerForm.handleSubmit((data) => createQuickCustomerMutation.mutate(data))} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={customerForm.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Juan" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={customerForm.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Dela Cruz" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={customerForm.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="09171234567" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={customerForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email (Optional)</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="juan@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowQuickCustomer(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createQuickCustomerMutation.isPending}
+                >
+                  {createQuickCustomerMutation.isPending ? "Adding..." : "Add Customer"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Receipt Modal */}
+      <Dialog open={showReceipt} onOpenChange={setShowReceipt}>
+        <DialogContent className="spa-modal-shadow max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="h-5 w-5" />
+              Transaction Receipt
+            </DialogTitle>
+          </DialogHeader>
+          
+          {lastTransaction && (
+            <div className="space-y-4">
+              <div className="text-center border-b pb-4">
+                <h3 className="font-bold text-lg">Serenity Spa & Salon</h3>
+                <p className="text-sm text-muted-foreground">
+                  Transaction #{lastTransaction.transactionNumber}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date().toLocaleDateString()} • {new Date().toLocaleTimeString()}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-medium">Items:</h4>
+                {lastTransaction.items?.map((item: any, index: number) => (
+                  <div key={index} className="flex justify-between text-sm">
+                    <span>{item.name} x{item.quantity}</span>
+                    <span>₱{item.total}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t pt-4 space-y-2">
+                <div className="flex justify-between">
+                  <span>Subtotal:</span>
+                  <span>₱{lastTransaction.subtotal}</span>
+                </div>
+                {parseFloat(lastTransaction.discount) > 0 && (
+                  <div className="flex justify-between">
+                    <span>Discount:</span>
+                    <span>-₱{lastTransaction.discount}</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-bold">
+                  <span>Total:</span>
+                  <span>₱{lastTransaction.total}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Payment Method:</span>
+                  <span className="capitalize">{lastTransaction.paymentMethod}</span>
+                </div>
+                {lastTransaction.paymentMethod === 'cash' && changeAmount > 0 && (
+                  <div className="flex justify-between">
+                    <span>Change:</span>
+                    <span>₱{changeAmount.toFixed(2)}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="text-center pt-4 border-t">
+                <p className="text-sm text-muted-foreground">
+                  Thank you for visiting!
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Visit us again soon
+                </p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => window.print()}
+              className="flex-1"
+            >
+              Print Receipt
+            </Button>
+            <Button
+              onClick={() => setShowReceipt(false)}
+              className="flex-1"
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
