@@ -68,11 +68,16 @@ export default function StaffModal({ open, onOpenChange }: StaffModalProps) {
   });
 
   const onSubmit = (data: z.infer<typeof insertStaffSchema>) => {
-    // Convert specialties string to array
-    if (typeof data.specialties === 'string') {
-      data.specialties = data.specialties.split(',').map(s => s.trim()).filter(s => s);
-    }
-    createStaffMutation.mutate(data);
+    // Convert specialties string to array if needed
+    const formattedData = {
+      ...data,
+      specialties: Array.isArray(data.specialties) 
+        ? data.specialties
+        : data.specialties 
+          ? String(data.specialties).split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0)
+          : []
+    };
+    createStaffMutation.mutate(formattedData);
   };
 
   return (
@@ -119,7 +124,7 @@ export default function StaffModal({ open, onOpenChange }: StaffModalProps) {
                 <FormItem>
                   <FormLabel>Phone Number</FormLabel>
                   <FormControl>
-                    <Input placeholder="(555) 123-4567" {...field} />
+                    <Input placeholder="(555) 123-4567" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -152,6 +157,7 @@ export default function StaffModal({ open, onOpenChange }: StaffModalProps) {
                       min="0" 
                       placeholder="0"
                       {...field}
+                      value={field.value || 0}
                       onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                     />
                   </FormControl>
@@ -170,7 +176,7 @@ export default function StaffModal({ open, onOpenChange }: StaffModalProps) {
                     <Input 
                       placeholder="e.g. Deep Tissue, Hot Stone (comma separated)"
                       {...field}
-                      value={Array.isArray(field.value) ? field.value.join(', ') : field.value}
+                      value={Array.isArray(field.value) ? field.value.join(', ') : field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />
