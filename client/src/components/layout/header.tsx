@@ -1,4 +1,4 @@
-import { Search, Bell, Menu } from "lucide-react";
+import { Search, Bell, Menu, Book } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -6,9 +6,10 @@ import SalonLogo from "@/components/salon-logo";
 
 interface HeaderProps {
   onMenuClick: () => void;
+  onDocsClick?: () => void;
 }
 
-export default function Header({ onMenuClick }: HeaderProps) {
+export default function Header({ onMenuClick, onDocsClick }: HeaderProps) {
   return (
     <div className="sticky top-0 z-40 bg-white border-b border-pink-200 spa-container-shadow">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -45,6 +46,12 @@ export default function Header({ onMenuClick }: HeaderProps) {
                 />
               </div>
             </div>
+            
+            {onDocsClick && (
+              <Button variant="ghost" size="sm" onClick={onDocsClick} className="text-slate-400 hover:text-slate-700">
+                <Book className="h-5 w-5" />
+              </Button>
+            )}
             
             <Button variant="ghost" size="sm" className="relative">
               <Bell className="h-5 w-5 text-slate-400" />
