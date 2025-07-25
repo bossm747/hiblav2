@@ -42,7 +42,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="min-h-screen bg-gradient-to-br from-pink-50 via-rose-25 to-pink-100">
+        <div className="min-h-screen spa-background">
           {/* Mobile menu overlay */}
           {sidebarOpen && (
             <div 
