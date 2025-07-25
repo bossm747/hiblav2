@@ -20,6 +20,7 @@ import {
 import EnhancedProductModal from "@/components/modals/enhanced-product-modal";
 import SupplierModal from "@/components/modals/supplier-modal";
 import StockAdjustmentModal from "@/components/modals/stock-adjustment-modal";
+import type { Product, Supplier } from "@shared/schema";
 
 const productCategories = [
   { id: "all", name: "All Products", count: 0 },
@@ -38,19 +39,19 @@ export default function Inventory() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
-  const { data: products, isLoading: productsLoading } = useQuery({
+  const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
   });
 
-  const { data: suppliers, isLoading: suppliersLoading } = useQuery({
+  const { data: suppliers = [], isLoading: suppliersLoading } = useQuery<Supplier[]>({
     queryKey: ["/api/suppliers"],
   });
 
-  const { data: lowStockProducts } = useQuery({
+  const { data: lowStockProducts = [] } = useQuery<Product[]>({
     queryKey: ["/api/products/low-stock"],
   });
 
-  const { data: transactions } = useQuery({
+  const { data: transactions = [] } = useQuery<any[]>({
     queryKey: ["/api/inventory-transactions"],
   });
 

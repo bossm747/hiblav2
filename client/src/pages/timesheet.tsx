@@ -50,6 +50,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import type { Staff, TimeRecord } from "@shared/schema";
 
 const clockActionSchema = z.object({
   staffId: z.string().min(1, "Staff member is required"),
@@ -69,21 +70,21 @@ export default function Timesheet() {
     return () => clearInterval(interval);
   }, []);
 
-  const { data: staff = [] } = useQuery({
+  const { data: staff = [] } = useQuery<Staff[]>({
     queryKey: ["/api/staff"],
   });
 
-  const { data: timeRecords = [] } = useQuery({
+  const { data: timeRecords = [] } = useQuery<TimeRecord[]>({
     queryKey: ["/api/time-records"],
   });
 
-  const { data: attendanceReport = [] } = useQuery({
+  const { data: attendanceReport = [] } = useQuery<any[]>({
     queryKey: ["/api/time-records/report"],
   });
 
   // Get active time record for selected staff
   const getActiveRecord = (staffId: string) => {
-    return timeRecords.find((record: any) => 
+    return timeRecords.find((record: TimeRecord) => 
       record.staffId === staffId && record.status === 'active'
     );
   };
@@ -114,10 +115,7 @@ export default function Timesheet() {
   // Mutations for time tracking actions
   const clockInMutation = useMutation({
     mutationFn: async (data: { staffId: string; notes?: string }) => {
-      return apiRequest('/api/time-records/clock-in', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      return apiRequest('POST', '/api/time-records/clock-in', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/time-records"] });
@@ -131,10 +129,7 @@ export default function Timesheet() {
 
   const clockOutMutation = useMutation({
     mutationFn: async (data: { id: string; notes?: string }) => {
-      return apiRequest(`/api/time-records/${data.id}/clock-out`, {
-        method: 'POST',
-        body: JSON.stringify({ notes: data.notes }),
-      });
+      return apiRequest('POST', `/api/time-records/${data.id}/clock-out`, { notes: data.notes });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/time-records"] });
@@ -149,10 +144,7 @@ export default function Timesheet() {
 
   const startBreakMutation = useMutation({
     mutationFn: async (data: { id: string; notes?: string }) => {
-      return apiRequest(`/api/time-records/${data.id}/start-break`, {
-        method: 'POST',
-        body: JSON.stringify({ notes: data.notes }),
-      });
+      return apiRequest('POST', `/api/time-records/${data.id}/start-break`, { notes: data.notes });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/time-records"] });
@@ -166,10 +158,7 @@ export default function Timesheet() {
 
   const endBreakMutation = useMutation({
     mutationFn: async (data: { id: string; notes?: string }) => {
-      return apiRequest(`/api/time-records/${data.id}/end-break`, {
-        method: 'POST',
-        body: JSON.stringify({ notes: data.notes }),
-      });
+      return apiRequest('POST', `/api/time-records/${data.id}/end-break`, { notes: data.notes });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/time-records"] });

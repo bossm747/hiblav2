@@ -104,10 +104,7 @@ export default function EnhancedProductModal({ open, onOpenChange }: EnhancedPro
 
   const createProductMutation = useMutation({
     mutationFn: async (data: z.infer<typeof insertProductSchema>) => {
-      const response = await apiRequest("/api/products", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("POST", "/api/products", data);
       return response;
     },
     onSuccess: () => {
@@ -443,7 +440,7 @@ export default function EnhancedProductModal({ open, onOpenChange }: EnhancedPro
                       <FormItem>
                         <FormLabel>Brand</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter brand name" {...field} />
+                          <Input placeholder="Enter brand name" {...field} value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -486,7 +483,8 @@ export default function EnhancedProductModal({ open, onOpenChange }: EnhancedPro
                         <Textarea 
                           placeholder="Enter product description" 
                           rows={3}
-                          {...field} 
+                          {...field}
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -517,7 +515,7 @@ export default function EnhancedProductModal({ open, onOpenChange }: EnhancedPro
                       </Button>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter SKU" {...field} />
+                      <Input placeholder="Enter SKU" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -543,7 +541,7 @@ export default function EnhancedProductModal({ open, onOpenChange }: EnhancedPro
                       </Button>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter barcode" {...field} />
+                      <Input placeholder="Enter barcode" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
