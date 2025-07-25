@@ -6,7 +6,7 @@ import {
   Users, 
   Scissors, 
   Bus, 
-  BarChart3, 
+  BarChart3,
   Settings, 
   LogOut,
   Waves,
@@ -27,6 +27,7 @@ const navigation = [
   { name: "Staff", href: "/staff", icon: Bus },
   { name: "Inventory", href: "/inventory", icon: Package },
   { name: "Reports", href: "/reports", icon: BarChart3 },
+  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 const secondaryNavigation = [
