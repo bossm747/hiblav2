@@ -6,12 +6,14 @@ import {
   Users, 
   Scissors, 
   Bus, 
+  Package,
+  CreditCard,
+  Clock,
   BarChart3,
   Settings, 
   LogOut,
   Waves,
-  X,
-  Package
+  X
 } from "lucide-react";
 
 interface SidebarProps {
@@ -26,6 +28,8 @@ const navigation = [
   { name: "Services", href: "/services", icon: Scissors },
   { name: "Staff", href: "/staff", icon: Bus },
   { name: "Inventory", href: "/inventory", icon: Package },
+  { name: "POS", href: "/pos", icon: CreditCard },
+  { name: "Timesheet", href: "/timesheet", icon: Clock },
   { name: "Reports", href: "/reports", icon: BarChart3 },
   { name: "Settings", href: "/settings", icon: Settings },
 ];

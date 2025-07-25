@@ -706,6 +706,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POS Transactions endpoints
+  app.get("/api/transactions", async (req, res) => {
+    try {
+      const transactions = await storage.getTransactions();
+      res.json(transactions);
+    } catch (error) {
+      console.error('Get Transactions Error:', error);
+      res.status(500).json({ message: "Failed to fetch transactions" });
+    }
+  });
+
+  app.post("/api/transactions", async (req, res) => {
+    try {
+      const transaction = await storage.createTransaction(req.body);
+      res.status(201).json(transaction);
+    } catch (error) {
+      console.error('Create Transaction Error:', error);
+      res.status(500).json({ message: "Failed to create transaction" });
+    }
+  });
+
+  app.get("/api/transactions/:id", async (req, res) => {
+    try {
+      const transaction = await storage.getTransaction(req.params.id);
+      if (!transaction) {
+        return res.status(404).json({ message: "Transaction not found" });
+      }
+      res.json(transaction);
+    } catch (error) {
+      console.error('Get Transaction Error:', error);
+      res.status(500).json({ message: "Failed to fetch transaction" });
+    }
+  });
+
+  // Time Records endpoints
+  app.get("/api/time-records", async (req, res) => {
+    try {
+      const timeRecords = await storage.getTimeRecords();
+      res.json(timeRecords);
+    } catch (error) {
+      console.error('Get Time Records Error:', error);
+      res.status(500).json({ message: "Failed to fetch time records" });
+    }
+  });
+
+  app.get("/api/time-records/active/:staffId", async (req, res) => {
+    try {
+      const activeRecord = await storage.getActiveTimeRecord(req.params.staffId);
+      res.json(activeRecord);
+    } catch (error) {
+      console.error('Get Active Time Record Error:', error);
+      res.status(500).json({ message: "Failed to fetch active time record" });
+    }
+  });
+
+  app.post("/api/time-records/clock-in", async (req, res) => {
+    try {
+      const timeRecord = await storage.clockIn(req.body);
+      res.status(201).json(timeRecord);
+    } catch (error) {
+      console.error('Clock In Error:', error);
+      res.status(500).json({ message: "Failed to clock in" });
+    }
+  });
+
+  app.post("/api/time-records/clock-out/:id", async (req, res) => {
+    try {
+      const timeRecord = await storage.clockOut(req.params.id, req.body);
+      res.json(timeRecord);
+    } catch (error) {
+      console.error('Clock Out Error:', error);
+      res.status(500).json({ message: "Failed to clock out" });
+    }
+  });
+
+  app.post("/api/time-records/break-start/:id", async (req, res) => {
+    try {
+      const timeRecord = await storage.startBreak(req.params.id, req.body);
+      res.json(timeRecord);
+    } catch (error) {
+      console.error('Start Break Error:', error);
+      res.status(500).json({ message: "Failed to start break" });
+    }
+  });
+
+  app.post("/api/time-records/break-end/:id", async (req, res) => {
+    try {
+      const timeRecord = await storage.endBreak(req.params.id, req.body);
+      res.json(timeRecord);
+    } catch (error) {
+      console.error('End Break Error:', error);
+      res.status(500).json({ message: "Failed to end break" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

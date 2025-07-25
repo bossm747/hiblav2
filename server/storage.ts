@@ -22,6 +22,12 @@ import {
   type InsertSupplier,
   type InventoryTransaction,
   type InsertInventoryTransaction,
+  type Transaction,
+  type InsertTransaction,
+  type TimeRecord,
+  type InsertTimeRecord,
+  transactions,
+  timeRecords,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -78,6 +84,19 @@ export interface IStorage {
   createInventoryTransaction(transaction: InsertInventoryTransaction): Promise<InventoryTransaction>;
   updateInventoryTransaction(id: string, transaction: Partial<InsertInventoryTransaction>): Promise<InventoryTransaction | undefined>;
   deleteInventoryTransaction(id: string): Promise<boolean>;
+
+  // POS Transactions
+  getTransactions(): Promise<Transaction[]>;
+  getTransaction(id: string): Promise<Transaction | undefined>;
+  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+
+  // Time Records
+  getTimeRecords(): Promise<TimeRecord[]>;
+  getActiveTimeRecord(staffId: string): Promise<TimeRecord | undefined>;
+  clockIn(data: { staffId: string; notes?: string }): Promise<TimeRecord>;
+  clockOut(id: string, data: { notes?: string }): Promise<TimeRecord>;
+  startBreak(id: string, data: { notes?: string }): Promise<TimeRecord>;
+  endBreak(id: string, data: { notes?: string }): Promise<TimeRecord>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -294,6 +313,118 @@ export class DatabaseStorage implements IStorage {
   async deleteInventoryTransaction(id: string): Promise<boolean> {
     const result = await db.delete(inventoryTransactions).where(eq(inventoryTransactions.id, id));
     return result.rowCount > 0;
+  }
+  // POS Transactions methods
+  async getTransactions(): Promise<Transaction[]> {
+    return await db.select().from(transactions).orderBy(desc(transactions.createdAt));
+  }
+
+  async getTransaction(id: string): Promise<Transaction | undefined> {
+    const [transaction] = await db.select().from(transactions).where(eq(transactions.id, id));
+    return transaction || undefined;
+  }
+
+  async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
+    const transactionNumber = `TXN-${Date.now()}`;
+    const [newTransaction] = await db
+      .insert(transactions)
+      .values({ ...transaction, transactionNumber })
+      .returning();
+    return newTransaction;
+  }
+
+  // Time Records methods
+  async getTimeRecords(): Promise<TimeRecord[]> {
+    return await db.select().from(timeRecords).orderBy(desc(timeRecords.createdAt));
+  }
+
+  async getActiveTimeRecord(staffId: string): Promise<TimeRecord | undefined> {
+    const [record] = await db
+      .select()
+      .from(timeRecords)
+      .where(and(eq(timeRecords.staffId, staffId), eq(timeRecords.status, "active")));
+    return record || undefined;
+  }
+
+  async clockIn(data: { staffId: string; notes?: string }): Promise<TimeRecord> {
+    const [timeRecord] = await db
+      .insert(timeRecords)
+      .values({
+        staffId: data.staffId,
+        clockIn: new Date(),
+        notes: data.notes,
+        status: "active",
+      })
+      .returning();
+    return timeRecord;
+  }
+
+  async clockOut(id: string, data: { notes?: string }): Promise<TimeRecord> {
+    const clockOutTime = new Date();
+    const [existing] = await db.select().from(timeRecords).where(eq(timeRecords.id, id));
+    
+    if (!existing) {
+      throw new Error("Time record not found");
+    }
+
+    const clockInTime = new Date(existing.clockIn);
+    const totalMs = clockOutTime.getTime() - clockInTime.getTime();
+    const totalHours = (totalMs / (1000 * 60 * 60)).toFixed(2);
+
+    // Calculate break duration if applicable
+    let breakDuration = "0";
+    if (existing.breakStart && existing.breakEnd) {
+      const breakMs = new Date(existing.breakEnd).getTime() - new Date(existing.breakStart).getTime();
+      breakDuration = (breakMs / (1000 * 60 * 60)).toFixed(2);
+    }
+
+    const regularHours = Math.max(0, parseFloat(totalHours) - parseFloat(breakDuration)).toFixed(2);
+    const overtimeHours = Math.max(0, parseFloat(regularHours) - 8).toFixed(2);
+
+    const [updatedRecord] = await db
+      .update(timeRecords)
+      .set({
+        clockOut: clockOutTime,
+        totalHours,
+        regularHours,
+        overtimeHours,
+        breakDuration,
+        status: "completed",
+        notes: data.notes || existing.notes,
+        updatedAt: new Date(),
+      })
+      .where(eq(timeRecords.id, id))
+      .returning();
+
+    return updatedRecord;
+  }
+
+  async startBreak(id: string, data: { notes?: string }): Promise<TimeRecord> {
+    const [updatedRecord] = await db
+      .update(timeRecords)
+      .set({
+        breakStart: new Date(),
+        status: "on-break",
+        updatedAt: new Date(),
+      })
+      .where(eq(timeRecords.id, id))
+      .returning();
+
+    return updatedRecord;
+  }
+
+  async endBreak(id: string, data: { notes?: string }): Promise<TimeRecord> {
+    const [updatedRecord] = await db
+      .update(timeRecords)
+      .set({
+        breakEnd: new Date(),
+        status: "active",
+        updatedAt: new Date(),
+      })
+      .where(eq(timeRecords.id, id))
+      .returning();
+
+    return updatedRecord;
   }
 }
 

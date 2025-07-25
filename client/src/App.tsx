@@ -11,6 +11,8 @@ import Clients from "@/pages/clients";
 import Services from "@/pages/services";
 import Staff from "@/pages/staff";
 import Inventory from "@/pages/inventory";
+import POS from "@/pages/pos";
+import Timesheet from "@/pages/timesheet";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
 import Sidebar from "@/components/layout/sidebar";
@@ -25,6 +27,8 @@ function Router() {
       <Route path="/services" component={Services} />
       <Route path="/staff" component={Staff} />
       <Route path="/inventory" component={Inventory} />
+      <Route path="/pos" component={POS} />
+      <Route path="/timesheet" component={Timesheet} />
       <Route path="/reports" component={Reports} />
       <Route path="/settings" component={Settings} />
       <Route component={NotFound} />

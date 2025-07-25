@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, timestamp, boolean, serial } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, timestamp, boolean, serial, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -107,6 +107,50 @@ export const inventoryTransactions = pgTable("inventory_transactions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// POS Transactions
+export const transactions = pgTable("transactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  transactionNumber: text("transaction_number").notNull().unique(),
+  clientId: varchar("client_id").references(() => clients.id),
+  staffId: varchar("staff_id").references(() => staff.id).notNull(),
+  items: jsonb("items").notNull().$type<{
+    type: 'service' | 'product';
+    id: string;
+    name: string;
+    price: string;
+    quantity: number;
+    total: string;
+  }[]>(),
+  subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
+  discount: decimal("discount", { precision: 10, scale: 2 }).notNull().default("0"),
+  tax: decimal("tax", { precision: 10, scale: 2 }).notNull().default("0"),
+  total: decimal("total", { precision: 10, scale: 2 }).notNull(),
+  paymentMethod: text("payment_method").notNull(), // cash, gcash, maya, qrph, card
+  paymentReference: text("payment_reference"), // reference number for digital payments
+  paymentStatus: text("payment_status").notNull().default("completed"), // pending, completed, failed, refunded
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Staff Time Records
+export const timeRecords = pgTable("time_records", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  staffId: varchar("staff_id").references(() => staff.id).notNull(),
+  clockIn: timestamp("clock_in").notNull(),
+  clockOut: timestamp("clock_out"),
+  breakStart: timestamp("break_start"),
+  breakEnd: timestamp("break_end"),
+  totalHours: decimal("total_hours", { precision: 5, scale: 2 }),
+  regularHours: decimal("regular_hours", { precision: 5, scale: 2 }),
+  overtimeHours: decimal("overtime_hours", { precision: 5, scale: 2 }),
+  breakDuration: decimal("break_duration", { precision: 5, scale: 2 }),
+  notes: text("notes"),
+  status: text("status").notNull().default("active"), // active, completed, cancelled
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
   totalVisits: true,
@@ -145,6 +189,19 @@ export const insertInventoryTransactionSchema = createInsertSchema(inventoryTran
   createdAt: true,
 });
 
+export const insertTransactionSchema = createInsertSchema(transactions).omit({
+  id: true,
+  transactionNumber: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTimeRecordSchema = createInsertSchema(timeRecords).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
 export type Service = typeof services.$inferSelect;
@@ -159,10 +216,15 @@ export type Supplier = typeof suppliers.$inferSelect;
 export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
 export type InventoryTransaction = typeof inventoryTransactions.$inferSelect;
 export type InsertInventoryTransaction = z.infer<typeof insertInventoryTransactionSchema>;
+export type Transaction = typeof transactions.$inferSelect;
+export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type TimeRecord = typeof timeRecords.$inferSelect;
+export type InsertTimeRecord = z.infer<typeof insertTimeRecordSchema>;
 
 // Relations
 export const clientsRelations = relations(clients, ({ many }) => ({
   appointments: many(appointments),
+  transactions: many(transactions),
 }));
 
 export const servicesRelations = relations(services, ({ many }) => ({
@@ -172,6 +234,8 @@ export const servicesRelations = relations(services, ({ many }) => ({
 export const staffRelations = relations(staff, ({ many }) => ({
   appointments: many(appointments),
   inventoryTransactions: many(inventoryTransactions),
+  transactions: many(transactions),
+  timeRecords: many(timeRecords),
 }));
 
 export const appointmentsRelations = relations(appointments, ({ one }) => ({
@@ -208,6 +272,24 @@ export const inventoryTransactionsRelations = relations(inventoryTransactions, (
   }),
   staff: one(staff, {
     fields: [inventoryTransactions.staffId],
+    references: [staff.id],
+  }),
+}));
+
+export const transactionsRelations = relations(transactions, ({ one }) => ({
+  client: one(clients, {
+    fields: [transactions.clientId],
+    references: [clients.id],
+  }),
+  staff: one(staff, {
+    fields: [transactions.staffId],
+    references: [staff.id],
+  }),
+}));
+
+export const timeRecordsRelations = relations(timeRecords, ({ one }) => ({
+  staff: one(staff, {
+    fields: [timeRecords.staffId],
     references: [staff.id],
   }),
 }));
