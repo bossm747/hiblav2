@@ -771,6 +771,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/time-records/report", async (req, res) => {
+    try {
+      const report = await storage.getAttendanceReport();
+      res.json(report);
+    } catch (error) {
+      console.error('Get Attendance Report Error:', error);
+      res.status(500).json({ message: "Failed to fetch attendance report" });
+    }
+  });
+
   app.post("/api/time-records/clock-in", async (req, res) => {
     try {
       const timeRecord = await storage.clockIn(req.body);

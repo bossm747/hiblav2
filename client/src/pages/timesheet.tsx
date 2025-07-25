@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format, differenceInMinutes, differenceInHours, parseISO } from "date-fns";
 import {
   Card,
   CardContent,
@@ -31,32 +31,37 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
   Clock,
   LogIn,
   LogOut,
   Coffee,
-  Calendar,
   User,
   Timer,
+  Play,
+  TrendingUp,
 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
-const clockInSchema = z.object({
+const clockActionSchema = z.object({
   staffId: z.string().min(1, "Staff member is required"),
-  notes: z.string().optional(),
-});
-
-const clockOutSchema = z.object({
-  notes: z.string().optional(),
-});
-
-const breakSchema = z.object({
   notes: z.string().optional(),
 });
 
 export default function Timesheet() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [selectedStaff, setSelectedStaff] = useState<string>("");
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [activeTab, setActiveTab] = useState("clock");
 
   // Update current time every second
   useEffect(() => {
@@ -68,185 +73,218 @@ export default function Timesheet() {
     queryKey: ["/api/staff"],
   });
 
-  // Mock time records data since API endpoints don't exist yet
-  const timeRecords = [
-    {
-      id: 1,
-      staffId: "1",
-      staffName: "Maria Santos",
-      date: new Date().toISOString().split('T')[0],
-      clockIn: "08:00",
-      clockOut: "17:00",
-      breakStart: "12:00",
-      breakEnd: "13:00",
-      totalHours: 8,
-      status: "completed"
-    },
-    {
-      id: 2,
-      staffId: "2", 
-      staffName: "Juan Dela Cruz",
-      date: new Date().toISOString().split('T')[0],
-      clockIn: "09:00",
-      clockOut: null,
-      breakStart: null,
-      breakEnd: null,
-      totalHours: 0,
-      status: "active"
-    }
-  ];
+  const { data: timeRecords = [] } = useQuery({
+    queryKey: ["/api/time-records"],
+  });
 
-  const activeTimeRecord = timeRecords.find(record => 
-    record.staffId === selectedStaff && record.status === "active"
-  );
+  const { data: attendanceReport = [] } = useQuery({
+    queryKey: ["/api/time-records/report"],
+  });
 
-  const clockInForm = useForm<z.infer<typeof clockInSchema>>({
-    resolver: zodResolver(clockInSchema),
+  // Get active time record for selected staff
+  const getActiveRecord = (staffId: string) => {
+    return timeRecords.find((record: any) => 
+      record.staffId === staffId && record.status === 'active'
+    );
+  };
+
+  // Forms for different actions
+  const clockInForm = useForm({
+    resolver: zodResolver(clockActionSchema),
     defaultValues: {
       staffId: "",
       notes: "",
     },
   });
 
-  const clockOutForm = useForm<z.infer<typeof clockOutSchema>>({
-    resolver: zodResolver(clockOutSchema),
+  const clockOutForm = useForm({
+    resolver: zodResolver(clockActionSchema.omit({ staffId: true })),
     defaultValues: {
       notes: "",
     },
   });
 
-  const breakForm = useForm<z.infer<typeof breakSchema>>({
-    resolver: zodResolver(breakSchema),
+  const breakForm = useForm({
+    resolver: zodResolver(clockActionSchema.omit({ staffId: true })),
     defaultValues: {
       notes: "",
     },
   });
 
+  // Mutations for time tracking actions
   const clockInMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof clockInSchema>) => {
-      // Mock API call - in real implementation would call actual endpoint
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true };
+    mutationFn: async (data: { staffId: string; notes?: string }) => {
+      return apiRequest('/api/time-records/clock-in', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
     },
     onSuccess: () => {
-      toast({
-        title: "Clocked In Successfully",
-        description: "Time tracking started",
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/time-records"] });
+      toast({ title: "Clocked in successfully" });
       clockInForm.reset();
+    },
+    onError: () => {
+      toast({ title: "Failed to clock in", variant: "destructive" });
     },
   });
 
   const clockOutMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof clockOutSchema>) => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true };
+    mutationFn: async (data: { id: string; notes?: string }) => {
+      return apiRequest(`/api/time-records/${data.id}/clock-out`, {
+        method: 'POST',
+        body: JSON.stringify({ notes: data.notes }),
+      });
     },
     onSuccess: () => {
-      toast({
-        title: "Clocked Out Successfully",
-        description: "Time tracking stopped",
-      });
+      queryClient.invalidateQueries({ queryKey: ["/api/time-records"] });
+      toast({ title: "Clocked out successfully" });
       clockOutForm.reset();
       setSelectedStaff("");
     },
+    onError: () => {
+      toast({ title: "Failed to clock out", variant: "destructive" });
+    },
   });
 
-  const breakMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof breakSchema> & { action: 'start' | 'end' }) => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return { success: true };
-    },
-    onSuccess: (_, variables) => {
-      toast({
-        title: variables.action === 'start' ? "Break Started" : "Break Ended",
-        description: variables.action === 'start' ? "Enjoy your break!" : "Welcome back!",
+  const startBreakMutation = useMutation({
+    mutationFn: async (data: { id: string; notes?: string }) => {
+      return apiRequest(`/api/time-records/${data.id}/start-break`, {
+        method: 'POST',
+        body: JSON.stringify({ notes: data.notes }),
       });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/time-records"] });
+      toast({ title: "Break started" });
       breakForm.reset();
     },
+    onError: () => {
+      toast({ title: "Failed to start break", variant: "destructive" });
+    },
   });
 
-  const onClockIn = (data: z.infer<typeof clockInSchema>) => {
-    setSelectedStaff(data.staffId);
+  const endBreakMutation = useMutation({
+    mutationFn: async (data: { id: string; notes?: string }) => {
+      return apiRequest(`/api/time-records/${data.id}/end-break`, {
+        method: 'POST',
+        body: JSON.stringify({ notes: data.notes }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/time-records"] });
+      toast({ title: "Break ended" });
+      breakForm.reset();
+    },
+    onError: () => {
+      toast({ title: "Failed to end break", variant: "destructive" });
+    },
+  });
+
+  // Handle form submissions
+  const handleClockIn = (data: any) => {
     clockInMutation.mutate(data);
   };
 
-  const onClockOut = (data: z.infer<typeof clockOutSchema>) => {
-    clockOutMutation.mutate(data);
+  const handleClockOut = (data: any) => {
+    const activeRecord = getActiveRecord(selectedStaff);
+    if (activeRecord) {
+      clockOutMutation.mutate({ id: activeRecord.id, notes: data.notes });
+    }
   };
 
-  const onStartBreak = (data: z.infer<typeof breakSchema>) => {
-    breakMutation.mutate({ ...data, action: 'start' });
+  const handleStartBreak = (data: any) => {
+    const activeRecord = getActiveRecord(selectedStaff);
+    if (activeRecord) {
+      startBreakMutation.mutate({ id: activeRecord.id, notes: data.notes });
+    }
   };
 
-  const onEndBreak = (data: z.infer<typeof breakSchema>) => {
-    breakMutation.mutate({ ...data, action: 'end' });
+  const handleEndBreak = (data: any) => {
+    const activeRecord = getActiveRecord(selectedStaff);
+    if (activeRecord) {
+      endBreakMutation.mutate({ id: activeRecord.id, notes: data.notes });
+    }
+  };
+
+  // Calculate total hours worked
+  const calculateHours = (startTime: string, endTime?: string) => {
+    const start = parseISO(startTime);
+    const end = endTime ? parseISO(endTime) : new Date();
+    return differenceInHours(end, start);
+  };
+
+  const formatDuration = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-800">Staff Timesheet</h1>
-        <p className="text-slate-600 mt-2">
-          Track staff working hours and break times
-        </p>
+    <div className="container mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Staff Timesheet</h1>
+          <p className="text-muted-foreground">
+            Track staff attendance and working hours
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground">Current Time</p>
+            <p className="text-lg font-mono">
+              {format(currentTime, "MMM dd, yyyy HH:mm:ss")}
+            </p>
+          </div>
+          <Clock className="h-6 w-6 text-primary" />
+        </div>
       </div>
 
-      {/* Current Time Display */}
-      <Card className="spa-card-shadow">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-center">
-            <div className="text-center">
-              <div className="flex items-center justify-center mb-2">
-                <Clock className="h-8 w-8 text-pink-500 mr-3" />
-                <div>
-                  <div className="text-3xl font-bold text-slate-800">
-                    {format(currentTime, "HH:mm:ss")}
-                  </div>
-                  <div className="text-sm text-slate-500">
-                    {format(currentTime, "EEEE, MMMM d, yyyy")}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="clock">Clock In/Out</TabsTrigger>
+          <TabsTrigger value="history">Live History</TabsTrigger>
+          <TabsTrigger value="reports">Attendance Reports</TabsTrigger>
+        </TabsList>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Clock In/Out Controls */}
-        <div className="space-y-6">
-          {/* Clock In */}
-          {!activeTimeRecord && (
-            <Card className="spa-card-shadow">
+        <TabsContent value="clock" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Clock In Section */}
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <LogIn className="h-5 w-5" />
+                  <LogIn className="h-5 w-5 text-green-600" />
                   Clock In
                 </CardTitle>
                 <CardDescription>
-                  Start your work day
+                  Start your work shift
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <Form {...clockInForm}>
-                  <form onSubmit={clockInForm.handleSubmit(onClockIn)} className="space-y-4">
+                  <form onSubmit={clockInForm.handleSubmit(handleClockIn)} className="space-y-4">
                     <FormField
                       control={clockInForm.control}
                       name="staffId"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Staff Member *</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <FormLabel>Staff Member</FormLabel>
+                          <Select 
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              setSelectedStaff(value);
+                            }} 
+                            value={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select staff member" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {(staff as any[]).map((member: any) => (
-                                <SelectItem key={member.id} value={member.id.toString()}>
-                                  {member.name}
+                              {staff.map((member: any) => (
+                                <SelectItem key={member.id} value={member.id}>
+                                  {member.name} - {member.position}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -255,7 +293,6 @@ export default function Timesheet() {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={clockInForm.control}
                       name="notes"
@@ -263,17 +300,16 @@ export default function Timesheet() {
                         <FormItem>
                           <FormLabel>Notes (Optional)</FormLabel>
                           <FormControl>
-                            <Input placeholder="Any notes for today..." {...field} />
+                            <Input placeholder="Add any notes..." {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-
                     <Button 
                       type="submit" 
-                      className="w-full" 
-                      disabled={clockInMutation.isPending}
+                      className="w-full bg-green-600 hover:bg-green-700"
+                      disabled={clockInMutation.isPending || !selectedStaff || getActiveRecord(selectedStaff)}
                     >
                       {clockInMutation.isPending ? "Clocking In..." : "Clock In"}
                     </Button>
@@ -281,108 +317,344 @@ export default function Timesheet() {
                 </Form>
               </CardContent>
             </Card>
-          )}
 
-          {/* Clock Out & Break Controls */}
-          {activeTimeRecord && (
-            <Card className="spa-card-shadow">
+            {/* Clock Out / Break Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <LogOut className="h-5 w-5 text-red-600" />
+                  Clock Out & Breaks
+                </CardTitle>
+                <CardDescription>
+                  End shift or manage breaks
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {selectedStaff && getActiveRecord(selectedStaff) ? (
+                  <>
+                    <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Timer className="h-4 w-4 text-green-600" />
+                        <span className="font-medium text-green-800 dark:text-green-200">
+                          Currently Working
+                        </span>
+                      </div>
+                      <p className="text-sm text-green-700 dark:text-green-300">
+                        {staff.find((s: any) => s.id === selectedStaff)?.name} is currently clocked in
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <Form {...breakForm}>
+                        <form onSubmit={breakForm.handleSubmit(handleStartBreak)}>
+                          <FormField
+                            control={breakForm.control}
+                            name="notes"
+                            render={({ field }) => (
+                              <FormItem className="mb-3">
+                                <FormControl>
+                                  <Input placeholder="Break notes..." {...field} />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <Button 
+                            type="submit" 
+                            variant="outline" 
+                            size="sm" 
+                            className="w-full"
+                            disabled={startBreakMutation.isPending}
+                          >
+                            <Coffee className="h-4 w-4 mr-2" />
+                            Start Break
+                          </Button>
+                        </form>
+                      </Form>
+
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => endBreakMutation.mutate({ id: getActiveRecord(selectedStaff)?.id, notes: "" })}
+                        disabled={endBreakMutation.isPending}
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        End Break
+                      </Button>
+                    </div>
+
+                    <Form {...clockOutForm}>
+                      <form onSubmit={clockOutForm.handleSubmit(handleClockOut)}>
+                        <FormField
+                          control={clockOutForm.control}
+                          name="notes"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input placeholder="Clock out notes..." {...field} />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        <Button 
+                          type="submit" 
+                          className="w-full mt-3 bg-red-600 hover:bg-red-700"
+                          disabled={clockOutMutation.isPending}
+                        >
+                          <LogOut className="h-4 w-4 mr-2" />
+                          {clockOutMutation.isPending ? "Clocking Out..." : "Clock Out"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </>
+                ) : (
+                  <div className="p-4 bg-muted rounded-lg text-center">
+                    <Timer className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      {selectedStaff ? "Staff member is not clocked in" : "Select a staff member to manage their time"}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Active Staff Status */}
+          {timeRecords.filter((record: any) => record.status === 'active').length > 0 && (
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
-                  Currently Working
+                  Currently Active Staff
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                    <div>
-                      <div className="font-medium text-green-800">
-                        {activeTimeRecord.staffName}
-                      </div>
-                      <div className="text-sm text-green-600">
-                        Started at {activeTimeRecord.clockIn}
-                      </div>
-                    </div>
-                    <Badge className="bg-green-500">Active</Badge>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="flex items-center gap-2"
-                      onClick={() => onStartBreak({})}
-                      disabled={breakMutation.isPending}
-                    >
-                      <Coffee className="h-4 w-4" />
-                      Start Break
-                    </Button>
-
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      className="flex items-center gap-2"
-                      onClick={() => onClockOut({})}
-                      disabled={clockOutMutation.isPending}
-                    >
-                      <LogOut className="h-4 w-4" />
-                      Clock Out
-                    </Button>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {timeRecords
+                    .filter((record: any) => record.status === 'active')
+                    .map((record: any) => {
+                      const staffMember = staff.find((s: any) => s.id === record.staffId);
+                      const duration = differenceInMinutes(new Date(), parseISO(record.clockInTime));
+                      
+                      return (
+                        <div key={record.id} className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium">{staffMember?.name}</h4>
+                            <Badge variant="outline" className="text-green-600 border-green-600">
+                              Active
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-1">
+                            Started: {format(parseISO(record.clockInTime), "HH:mm")}
+                          </p>
+                          <p className="text-sm font-medium">
+                            Duration: {formatDuration(duration)}
+                          </p>
+                        </div>
+                      );
+                    })}
                 </div>
               </CardContent>
             </Card>
           )}
-        </div>
+        </TabsContent>
 
-        {/* Today's Records */}
-        <Card className="spa-card-shadow">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Today's Time Records
-            </CardTitle>
-            <CardDescription>
-              {format(new Date(), "MMMM d, yyyy")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {timeRecords.length === 0 ? (
-              <div className="text-center py-8 text-slate-500">
-                <Timer className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No time records for today</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {timeRecords.map((record: any) => (
-                  <div key={record.id} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="font-medium">{record.staffName}</div>
-                      <Badge variant={record.status === 'active' ? 'default' : 'secondary'}>
-                        {record.status}
-                      </Badge>
+        <TabsContent value="history" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Real-time Time Records
+              </CardTitle>
+              <CardDescription>
+                Live view of all staff time tracking activity
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Staff Member</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Clock In</TableHead>
+                    <TableHead>Clock Out</TableHead>
+                    <TableHead>Break Time</TableHead>
+                    <TableHead>Total Hours</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {timeRecords.map((record: any) => {
+                    const staffMember = staff.find((s: any) => s.id === record.staffId);
+                    const totalHours = record.clockOutTime 
+                      ? calculateHours(record.clockInTime, record.clockOutTime)
+                      : calculateHours(record.clockInTime);
+                    
+                    return (
+                      <TableRow key={record.id}>
+                        <TableCell className="font-medium">
+                          {staffMember?.name || 'Unknown Staff'}
+                        </TableCell>
+                        <TableCell>
+                          {format(parseISO(record.clockInTime), "MMM dd, yyyy")}
+                        </TableCell>
+                        <TableCell>
+                          {format(parseISO(record.clockInTime), "HH:mm")}
+                        </TableCell>
+                        <TableCell>
+                          {record.clockOutTime 
+                            ? format(parseISO(record.clockOutTime), "HH:mm")
+                            : "-"
+                          }
+                        </TableCell>
+                        <TableCell>
+                          {record.breakMinutes ? `${record.breakMinutes}m` : "-"}
+                        </TableCell>
+                        <TableCell>
+                          {totalHours}h
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={record.status === 'active' ? 'default' : 'secondary'}
+                            className={record.status === 'active' ? 'bg-green-600' : ''}
+                          >
+                            {record.status === 'active' ? 'Working' : 'Completed'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              {timeRecords.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  No time records found
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="reports" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Staff Attendance Report
+              </CardTitle>
+              <CardDescription>
+                Comprehensive attendance analytics and performance metrics
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold">
+                      {attendanceReport.reduce((sum: number, staff: any) => sum + (staff.totalHours || 0), 0)}h
                     </div>
-                    <div className="grid grid-cols-2 gap-4 text-sm text-slate-600">
-                      <div>
-                        <span className="font-medium">Clock In:</span> {record.clockIn}
-                      </div>
-                      <div>
-                        <span className="font-medium">Clock Out:</span> {record.clockOut || "---"}
-                      </div>
-                      <div>
-                        <span className="font-medium">Break:</span> {record.breakStart || "---"}
-                      </div>
-                      <div>
-                        <span className="font-medium">Total Hours:</span> {record.totalHours}h
-                      </div>
+                    <p className="text-sm text-muted-foreground">Total Hours This Week</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold">
+                      {attendanceReport.reduce((sum: number, staff: any) => sum + (staff.daysWorked || 0), 0)}
                     </div>
-                  </div>
-                ))}
+                    <p className="text-sm text-muted-foreground">Total Days Worked</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold">
+                      {attendanceReport.length > 0 
+                        ? (attendanceReport.reduce((sum: number, staff: any) => sum + (staff.attendanceRate || 0), 0) / attendanceReport.length).toFixed(1)
+                        : 0}%
+                    </div>
+                    <p className="text-sm text-muted-foreground">Average Attendance</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-2xl font-bold">
+                      {staff.length}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Total Staff</p>
+                  </CardContent>
+                </Card>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Staff Member</TableHead>
+                    <TableHead>Position</TableHead>
+                    <TableHead>Days Worked</TableHead>
+                    <TableHead>Total Hours</TableHead>
+                    <TableHead>Average Daily Hours</TableHead>
+                    <TableHead>Attendance Rate</TableHead>
+                    <TableHead>Punctuality</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {attendanceReport.map((staffReport: any) => {
+                    const staffMember = staff.find((s: any) => s.id === staffReport.staffId);
+                    
+                    return (
+                      <TableRow key={staffReport.staffId}>
+                        <TableCell className="font-medium">
+                          {staffMember?.name || 'Unknown Staff'}
+                        </TableCell>
+                        <TableCell>
+                          {staffMember?.position || '-'}
+                        </TableCell>
+                        <TableCell>
+                          {staffReport.daysWorked || 0}
+                        </TableCell>
+                        <TableCell>
+                          {staffReport.totalHours || 0}h
+                        </TableCell>
+                        <TableCell>
+                          {(staffReport.daysWorked || 0) > 0 
+                            ? ((staffReport.totalHours || 0) / (staffReport.daysWorked || 1)).toFixed(1)
+                            : 0}h
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-full bg-muted rounded-full h-2">
+                              <div 
+                                className="bg-primary h-2 rounded-full" 
+                                style={{ width: `${Math.min(staffReport.attendanceRate || 0, 100)}%` }}
+                              />
+                            </div>
+                            <span className="text-sm font-medium min-w-[3rem]">
+                              {staffReport.attendanceRate || 0}%
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={(staffReport.punctualityScore || 0) >= 90 ? 'default' : 
+                                   (staffReport.punctualityScore || 0) >= 70 ? 'secondary' : 'destructive'}
+                          >
+                            {(staffReport.punctualityScore || 0) >= 90 ? 'Excellent' :
+                             (staffReport.punctualityScore || 0) >= 70 ? 'Good' : 'Needs Improvement'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              {attendanceReport.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  No attendance data available
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

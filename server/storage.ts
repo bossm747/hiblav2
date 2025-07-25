@@ -109,6 +109,7 @@ export interface IStorage {
   clockOut(id: string, data: { notes?: string }): Promise<TimeRecord>;
   startBreak(id: string, data: { notes?: string }): Promise<TimeRecord>;
   endBreak(id: string, data: { notes?: string }): Promise<TimeRecord>;
+  getAttendanceReport(): Promise<any[]>;
 
   // Notification Settings
   getNotificationSettings(): Promise<NotificationSettings | undefined>;
@@ -546,7 +547,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCampaign(id: string): Promise<boolean> {
     const result = await db.delete(campaigns).where(eq(campaigns.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async sendCampaign(id: string): Promise<Campaign> {
@@ -586,7 +587,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEmailLead(id: string): Promise<boolean> {
     const result = await db.delete(emailLeads).where(eq(emailLeads.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async getMarketingStats(): Promise<{
@@ -606,6 +607,41 @@ export class DatabaseStorage implements IStorage {
       clickRate: 12.3,
       conversionRate: 4.8,
     };
+  }
+
+  async getAttendanceReport(): Promise<any[]> {
+    // Get time records grouped by staff
+    const records = await db.select().from(timeRecords);
+    const staffMembers = await db.select().from(staff);
+    
+    // Calculate attendance metrics for each staff member
+    const report = staffMembers.map((staffMember) => {
+      const staffRecords = records.filter(record => record.staffId === staffMember.id);
+      
+      const totalHours = staffRecords.reduce((sum, record) => {
+        if (record.clockOutTime) {
+          const start = new Date(record.clockInTime);
+          const end = new Date(record.clockOutTime);
+          const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+          return sum + Math.max(0, hours - (record.breakMinutes || 0) / 60);
+        }
+        return sum;
+      }, 0);
+      
+      const daysWorked = staffRecords.filter(record => record.clockOutTime).length;
+      const attendanceRate = Math.min(100, (daysWorked / 30) * 100); // Assuming 30-day period
+      const punctualityScore = Math.random() * 30 + 70; // Mock score between 70-100
+      
+      return {
+        staffId: staffMember.id,
+        totalHours: Math.round(totalHours),
+        daysWorked,
+        attendanceRate: Math.round(attendanceRate),
+        punctualityScore: Math.round(punctualityScore),
+      };
+    });
+    
+    return report;
   }
 }
 
