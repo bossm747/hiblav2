@@ -45,15 +45,15 @@ interface AppointmentModalProps {
 export default function AppointmentModal({ open, onOpenChange }: AppointmentModalProps) {
   const { toast } = useToast();
 
-  const { data: clients } = useQuery({
+  const { data: clients = [] } = useQuery({
     queryKey: ["/api/clients"],
   });
 
-  const { data: services } = useQuery({
+  const { data: services = [] } = useQuery({
     queryKey: ["/api/services"],
   });
 
-  const { data: staff } = useQuery({
+  const { data: staff = [] } = useQuery({
     queryKey: ["/api/staff"],
   });
 
@@ -98,7 +98,7 @@ export default function AppointmentModal({ open, onOpenChange }: AppointmentModa
 
   const onSubmit = (data: z.infer<typeof appointmentFormSchema>) => {
     // Find selected service to get price and duration
-    const selectedService = services?.find((s: any) => s.id === data.serviceId);
+    const selectedService = (services as any[]).find((s: any) => s.id === data.serviceId);
     if (selectedService) {
       data.duration = selectedService.duration;
       data.totalAmount = selectedService.price;
@@ -129,7 +129,7 @@ export default function AppointmentModal({ open, onOpenChange }: AppointmentModa
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {clients?.map((client: any) => (
+                      {(clients as any[]).map((client: any) => (
                         <SelectItem key={client.id} value={client.id}>
                           {client.name}
                         </SelectItem>
@@ -154,7 +154,7 @@ export default function AppointmentModal({ open, onOpenChange }: AppointmentModa
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {services?.map((service: any) => (
+                      {(services as any[]).map((service: any) => (
                         <SelectItem key={service.id} value={service.id}>
                           {service.name} - {service.duration} min
                         </SelectItem>
@@ -209,7 +209,7 @@ export default function AppointmentModal({ open, onOpenChange }: AppointmentModa
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="any">Any available</SelectItem>
-                      {staff?.map((member: any) => (
+                      {(staff as any[]).map((member: any) => (
                         <SelectItem key={member.id} value={member.id}>
                           {member.name}
                         </SelectItem>

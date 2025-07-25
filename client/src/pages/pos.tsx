@@ -86,7 +86,7 @@ export default function POS() {
   const form = useForm<z.infer<typeof checkoutSchema>>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
-      clientId: "",
+      clientId: "walk-in",
       staffId: "",
       paymentMethod: "cash",
       paymentReference: "",
@@ -397,7 +397,7 @@ export default function POS() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">Walk-in customer</SelectItem>
+                            <SelectItem value="walk-in">Walk-in customer</SelectItem>
                             {(clients as any[]).map((client: any) => (
                               <SelectItem key={client.id} value={client.id}>
                                 {client.firstName} {client.lastName}
