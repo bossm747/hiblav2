@@ -126,3 +126,10 @@ RESTful API with the following endpoints:
 - Support for platforms like Replit with specialized configuration
 
 The architecture prioritizes developer experience with hot reloading, type safety across the full stack, and a component-based UI system that scales well for business applications.
+
+## Recent Changes
+- **Database Migration (Jan 25, 2025)**: Replaced in-memory storage with PostgreSQL database using Drizzle ORM
+- **AI Integration**: Added OpenRouter API integration for Philippine market research and product data generation
+- **Enhanced Product Management**: Implemented AI-powered product form filling with dynamic SKU/barcode generation
+- **File Upload System**: Added multer-based image upload for product photos
+- **Production Database Layer**: Complete database relations and CRUD operations with proper data persistence

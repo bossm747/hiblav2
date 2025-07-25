@@ -17,7 +17,7 @@ import {
   Trash2,
   BarChart3
 } from "lucide-react";
-import ProductModal from "@/components/modals/product-modal";
+import EnhancedProductModal from "@/components/modals/enhanced-product-modal";
 import SupplierModal from "@/components/modals/supplier-modal";
 import StockAdjustmentModal from "@/components/modals/stock-adjustment-modal";
 
@@ -384,7 +384,7 @@ export default function Inventory() {
         </Tabs>
       </div>
 
-      <ProductModal 
+      <EnhancedProductModal 
         open={productModalOpen} 
         onOpenChange={setProductModalOpen} 
       />

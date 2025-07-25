@@ -1,6 +1,7 @@
-import type { Express } from "express";
+import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { aiService } from "./ai-service";
 import {
   insertClientSchema,
   insertServiceSchema,
@@ -10,6 +11,9 @@ import {
   insertSupplierSchema,
   insertInventoryTransactionSchema,
 } from "@shared/schema";
+import multer from "multer";
+import path from "path";
+import { promises as fs } from "fs";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -408,6 +412,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid transaction data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to create inventory transaction" });
+    }
+  });
+
+  // Configure multer for file uploads
+  const storage_multer = multer.diskStorage({
+    destination: async (req, file, cb) => {
+      const uploadDir = 'uploads/products';
+      await fs.mkdir(uploadDir, { recursive: true });
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+  });
+
+  const upload = multer({ 
+    storage: storage_multer,
+    limits: {
+      fileSize: 5 * 1024 * 1024 // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = /jpeg|jpg|png|gif|webp/;
+      const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+      const mimetype = allowedTypes.test(file.mimetype);
+      
+      if (mimetype && extname) {
+        return cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only image files are allowed.'));
+      }
+    }
+  });
+
+  // AI Product Generation endpoint
+  app.post("/api/ai/generate-product", async (req, res) => {
+    try {
+      const { category, productType } = req.body;
+      
+      if (!category) {
+        return res.status(400).json({ message: "Category is required" });
+      }
+
+      const aiData = await aiService.generateProductData(category, productType);
+      const sku = aiService.generateSKU(category, aiData.brand, aiData.name);
+      const barcode = aiService.generateBarcode();
+
+      const productData = {
+        ...aiData,
+        sku,
+        barcode,
+        category,
+        aiGenerated: true,
+        aiPrompt: `Generate ${productType || 'product'} for ${category} category in Philippine spa/salon market`
+      };
+
+      res.json(productData);
+    } catch (error) {
+      console.error('AI Product Generation Error:', error);
+      res.status(500).json({ 
+        message: "Failed to generate product data",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // File upload endpoint for product images
+  app.post("/api/upload/product-image", upload.single('image'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const imageUrl = `/uploads/products/${req.file.filename}`;
+      
+      res.json({
+        imageUrl,
+        imageName: req.file.originalname,
+        fileName: req.file.filename,
+        size: req.file.size
+      });
+    } catch (error) {
+      console.error('File Upload Error:', error);
+      res.status(500).json({ 
+        message: "Failed to upload image",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Serve uploaded files
+  app.use('/uploads', express.static('uploads'));
+
+  // Generate SKU endpoint
+  app.post("/api/ai/generate-sku", async (req, res) => {
+    try {
+      const { category, brand, name } = req.body;
+      
+      if (!category || !brand || !name) {
+        return res.status(400).json({ message: "Category, brand, and name are required" });
+      }
+
+      const sku = aiService.generateSKU(category, brand, name);
+      res.json({ sku });
+    } catch (error) {
+      console.error('SKU Generation Error:', error);
+      res.status(500).json({ 
+        message: "Failed to generate SKU",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Generate Barcode endpoint
+  app.post("/api/ai/generate-barcode", async (req, res) => {
+    try {
+      const barcode = aiService.generateBarcode();
+      res.json({ barcode });
+    } catch (error) {
+      console.error('Barcode Generation Error:', error);
+      res.status(500).json({ 
+        message: "Failed to generate barcode",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 

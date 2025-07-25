@@ -1,7 +1,8 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, decimal, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, decimal, timestamp, boolean, serial } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 export const clients = pgTable("clients", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -70,6 +71,13 @@ export const products = pgTable("products", {
   maxStockLevel: integer("max_stock_level"),
   unit: text("unit").default("pcs"), // pcs, ml, g, kg, etc.
   supplierId: varchar("supplier_id").references(() => suppliers.id),
+  imageUrl: text("image_url"),
+  imageName: text("image_name"),
+  aiGenerated: boolean("ai_generated").default(false),
+  aiPrompt: text("ai_prompt"), // stores the AI prompt used for generation
+  marketPrice: decimal("market_price", { precision: 10, scale: 2 }), // AI-researched market price
+  competitors: text("competitors").array(), // competitor products found by AI
+  tags: text("tags").array(), // AI-generated tags
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -151,3 +159,55 @@ export type Supplier = typeof suppliers.$inferSelect;
 export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
 export type InventoryTransaction = typeof inventoryTransactions.$inferSelect;
 export type InsertInventoryTransaction = z.infer<typeof insertInventoryTransactionSchema>;
+
+// Relations
+export const clientsRelations = relations(clients, ({ many }) => ({
+  appointments: many(appointments),
+}));
+
+export const servicesRelations = relations(services, ({ many }) => ({
+  appointments: many(appointments),
+}));
+
+export const staffRelations = relations(staff, ({ many }) => ({
+  appointments: many(appointments),
+  inventoryTransactions: many(inventoryTransactions),
+}));
+
+export const appointmentsRelations = relations(appointments, ({ one }) => ({
+  client: one(clients, {
+    fields: [appointments.clientId],
+    references: [clients.id],
+  }),
+  service: one(services, {
+    fields: [appointments.serviceId],
+    references: [services.id],
+  }),
+  staff: one(staff, {
+    fields: [appointments.staffId],
+    references: [staff.id],
+  }),
+}));
+
+export const productsRelations = relations(products, ({ one, many }) => ({
+  supplier: one(suppliers, {
+    fields: [products.supplierId],
+    references: [suppliers.id],
+  }),
+  inventoryTransactions: many(inventoryTransactions),
+}));
+
+export const suppliersRelations = relations(suppliers, ({ many }) => ({
+  products: many(products),
+}));
+
+export const inventoryTransactionsRelations = relations(inventoryTransactions, ({ one }) => ({
+  product: one(products, {
+    fields: [inventoryTransactions.productId],
+    references: [products.id],
+  }),
+  staff: one(staff, {
+    fields: [inventoryTransactions.staffId],
+    references: [staff.id],
+  }),
+}));
