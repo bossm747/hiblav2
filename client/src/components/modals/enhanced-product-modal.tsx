@@ -96,16 +96,19 @@ export default function EnhancedProductModal({ open, onOpenChange }: EnhancedPro
       aiGenerated: false,
       aiPrompt: "",
       marketPrice: "0",
-      competitors: [],
-      tags: [],
+      competitors: "",
+      tags: "",
       isActive: true,
     },
   });
 
   const createProductMutation = useMutation({
     mutationFn: async (data: z.infer<typeof insertProductSchema>) => {
-      const response = await apiRequest("POST", "/api/products", data);
-      return response.json();
+      const response = await apiRequest("/api/products", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+      return response;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
@@ -234,8 +237,8 @@ export default function EnhancedProductModal({ open, onOpenChange }: EnhancedPro
       }
       
       // Always update these research-based fields
-      form.setValue('competitors', aiData.competitors || []);
-      form.setValue('tags', aiData.tags || []);
+      form.setValue('competitors', Array.isArray(aiData.competitors) ? aiData.competitors.join(', ') : '');
+      form.setValue('tags', Array.isArray(aiData.tags) ? aiData.tags.join(', ') : '');
       form.setValue('aiGenerated', true);
       form.setValue('aiPrompt', aiData.aiPrompt);
 
@@ -715,26 +718,26 @@ export default function EnhancedProductModal({ open, onOpenChange }: EnhancedPro
                   <span className="text-sm font-medium">AI-Generated Market Data</span>
                 </div>
                 
-                {form.watch('tags')?.length > 0 && (
+                {form.watch('tags') && (
                   <div>
                     <FormLabel className="text-sm">Tags</FormLabel>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {form.watch('tags')?.map((tag, index) => (
+                      {form.watch('tags')?.split(',').filter(Boolean).map((tag, index) => (
                         <Badge key={index} variant="secondary" className="text-xs">
-                          {tag}
+                          {tag.trim()}
                         </Badge>
                       ))}
                     </div>
                   </div>
                 )}
 
-                {form.watch('competitors')?.length > 0 && (
+                {form.watch('competitors') && (
                   <div>
                     <FormLabel className="text-sm">Competitors</FormLabel>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {form.watch('competitors')?.map((competitor, index) => (
+                      {form.watch('competitors')?.split(',').filter(Boolean).map((competitor, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
-                          {competitor}
+                          {competitor.trim()}
                         </Badge>
                       ))}
                     </div>

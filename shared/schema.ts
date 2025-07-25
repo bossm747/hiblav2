@@ -204,6 +204,13 @@ export const insertAppointmentSchema = createInsertSchema(appointments).omit({
 export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
   createdAt: true,
+}).extend({
+  competitors: z.union([z.string(), z.array(z.string())]).optional().transform(val => 
+    typeof val === 'string' ? val : val?.join(',') || ''
+  ),
+  tags: z.union([z.string(), z.array(z.string())]).optional().transform(val => 
+    typeof val === 'string' ? val : val?.join(',') || ''
+  ),
 });
 
 export const insertSupplierSchema = createInsertSchema(suppliers).omit({
