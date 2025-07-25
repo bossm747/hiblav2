@@ -55,6 +55,23 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+
+  /* Responsive typography */
+  html {
+    font-size: 16px;
+  }
+
+  @media (max-width: 768px) {
+    html {
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    html {
+      font-size: 13px;
+    }
+  }
 }
 
 /* Custom styles for spa theme */
@@ -72,6 +89,53 @@
 
 .spa-button-primary {
   @apply bg-primary hover:bg-blue-600 text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors;
+}
+
+/* Mobile-first responsive utilities */
+@layer utilities {
+  .container-responsive {
+    @apply w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .grid-responsive-cards {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
+  }
+
+  .grid-responsive-2 {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6;
+  }
+
+  .grid-responsive-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+  }
+
+  .flex-responsive {
+    @apply flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4;
+  }
+
+  .text-responsive-lg {
+    @apply text-lg sm:text-xl lg:text-2xl;
+  }
+
+  .text-responsive-base {
+    @apply text-sm sm:text-base;
+  }
+
+  .p-responsive {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+
+  .modal-responsive {
+    @apply w-full max-w-[95vw] sm:max-w-lg md:max-w-2xl lg:max-w-4xl;
+  }
+
+  .form-responsive {
+    @apply space-y-4 sm:space-y-6;
+  }
+
+  .button-responsive {
+    @apply w-full sm:w-auto px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base;
+  }
 }
 
 .spa-button-secondary {

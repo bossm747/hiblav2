@@ -209,14 +209,12 @@ export default function POS() {
   ];
 
   return (
-    <div className="flex-1 space-y-6 p-8 pt-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Point of Sale</h2>
-          <p className="text-muted-foreground">
-            Process transactions for services and products
-          </p>
-        </div>
+    <div className="space-y-6 sm:space-y-8">
+      <div>
+        <h2 className="text-responsive-lg font-bold text-slate-900">Point of Sale</h2>
+        <p className="mt-2 text-responsive-base text-slate-600">
+          Process transactions for services and products
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

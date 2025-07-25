@@ -31,28 +31,27 @@ export default function Dashboard() {
 
   if (statsLoading || appointmentsLoading) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <div className="animate-pulse space-y-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-24 bg-slate-200 rounded-xl"></div>
-            ))}
-          </div>
+      <div className="animate-pulse space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-24 bg-slate-200 rounded-xl"></div>
+          ))}
         </div>
+        <div className="h-64 bg-slate-200 rounded-xl"></div>
       </div>
     );
   }
 
   return (
     <>
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-slate-900">Dashboard</h2>
-          <p className="mt-2 text-sm text-slate-600">Welcome back! Here's what's happening today.</p>
+      <div className="space-y-6 sm:space-y-8">
+        <div>
+          <h2 className="text-responsive-lg font-bold text-slate-900">Dashboard</h2>
+          <p className="mt-2 text-responsive-base text-slate-600">Welcome back! Here's what's happening today.</p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">

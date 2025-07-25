@@ -109,13 +109,13 @@ export default function AppointmentModal({ open, onOpenChange }: AppointmentModa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="modal-responsive max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>New Appointment</DialogTitle>
+          <DialogTitle className="text-responsive-lg">New Appointment</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="form-responsive">
             <FormField
               control={form.control}
               name="clientId"
@@ -166,7 +166,7 @@ export default function AppointmentModal({ open, onOpenChange }: AppointmentModa
               )}
             />
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="date"
@@ -208,7 +208,7 @@ export default function AppointmentModal({ open, onOpenChange }: AppointmentModa
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Any available</SelectItem>
+                      <SelectItem value="any">Any available</SelectItem>
                       {staff?.map((member: any) => (
                         <SelectItem key={member.id} value={member.id}>
                           {member.name}
@@ -239,18 +239,18 @@ export default function AppointmentModal({ open, onOpenChange }: AppointmentModa
               )}
             />
             
-            <div className="flex space-x-3 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button 
                 type="button" 
-                variant="outline" 
-                className="flex-1"
+                variant="outline"
+                className="button-responsive"
                 onClick={() => onOpenChange(false)}
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                className="flex-1"
+                className="button-responsive"
                 disabled={createAppointmentMutation.isPending}
               >
                 {createAppointmentMutation.isPending ? "Booking..." : "Book Appointment"}

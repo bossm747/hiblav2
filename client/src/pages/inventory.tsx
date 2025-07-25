@@ -56,16 +56,14 @@ export default function Inventory() {
 
   if (productsLoading || suppliersLoading) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <div className="animate-pulse space-y-8">
-          <div className="h-8 bg-slate-200 rounded w-64"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 bg-slate-200 rounded-xl"></div>
-            ))}
-          </div>
-          <div className="h-96 bg-slate-200 rounded-xl"></div>
+      <div className="animate-pulse space-y-6 sm:space-y-8">
+        <div className="h-8 bg-slate-200 rounded w-64"></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-32 bg-slate-200 rounded-xl"></div>
+          ))}
         </div>
+        <div className="h-96 bg-slate-200 rounded-xl"></div>
       </div>
     );
   }
@@ -92,21 +90,25 @@ export default function Inventory() {
 
   return (
     <>
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+      <div className="space-y-6 sm:space-y-8">
+        <div className="flex-responsive justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Inventory Management</h2>
-            <p className="mt-2 text-sm text-slate-600">Manage products, suppliers, and stock levels</p>
+            <h2 className="text-responsive-lg font-bold text-slate-900">Inventory Management</h2>
+            <p className="mt-2 text-responsive-base text-slate-600">Manage products, suppliers, and stock levels</p>
           </div>
-          <div className="flex gap-2 mt-4 sm:mt-0">
+          <div className="flex flex-col sm:flex-row gap-2">
             <Button 
               variant="outline"
+              className="button-responsive"
               onClick={() => setSupplierModalOpen(true)}
             >
               <Truck className="mr-2 h-4 w-4" />
               Add Supplier
             </Button>
-            <Button onClick={() => setProductModalOpen(true)}>
+            <Button 
+              className="button-responsive"
+              onClick={() => setProductModalOpen(true)}
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add Product
             </Button>
@@ -114,7 +116,7 @@ export default function Inventory() {
         </div>
 
         {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center">

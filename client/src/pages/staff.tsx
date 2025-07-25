@@ -16,14 +16,12 @@ export default function Staff() {
 
   if (isLoading) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <div className="animate-pulse space-y-8">
-          <div className="h-8 bg-slate-200 rounded w-64"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-96 bg-slate-200 rounded-xl"></div>
-            ))}
-          </div>
+      <div className="animate-pulse space-y-6 sm:space-y-8">
+        <div className="h-8 bg-slate-200 rounded w-64"></div>
+        <div className="grid-responsive-cards">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-96 bg-slate-200 rounded-xl"></div>
+          ))}
         </div>
       </div>
     );
@@ -31,14 +29,14 @@ export default function Staff() {
 
   return (
     <>
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+      <div className="space-y-6 sm:space-y-8">
+        <div className="flex-responsive justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Staff</h2>
-            <p className="mt-2 text-sm text-slate-600">Manage staff members and schedules</p>
+            <h2 className="text-responsive-lg font-bold text-slate-900">Staff</h2>
+            <p className="mt-2 text-responsive-base text-slate-600">Manage staff members and schedules</p>
           </div>
           <Button 
-            className="mt-4 sm:mt-0"
+            className="button-responsive"
             onClick={() => setStaffModalOpen(true)}
           >
             <UserPlus className="mr-2 h-4 w-4" />

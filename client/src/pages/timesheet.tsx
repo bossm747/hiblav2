@@ -231,14 +231,12 @@ export default function Timesheet() {
   });
 
   return (
-    <div className="flex-1 space-y-6 p-8 pt-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Staff Timesheet</h2>
-          <p className="text-muted-foreground">
-            Track staff clock in/out times and manage work hours
-          </p>
-        </div>
+    <div className="space-y-6 sm:space-y-8">
+      <div>
+        <h2 className="text-responsive-lg font-bold text-slate-900">Staff Timesheet</h2>
+        <p className="mt-2 text-responsive-base text-slate-600">
+          Track staff clock in/out times and manage work hours
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

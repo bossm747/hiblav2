@@ -82,13 +82,13 @@ export default function ClientModal({ open, onOpenChange }: ClientModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="modal-responsive max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Client</DialogTitle>
+          <DialogTitle className="text-responsive-lg">Add New Client</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="form-responsive">
             <FormField
               control={form.control}
               name="name"
@@ -204,18 +204,18 @@ export default function ClientModal({ open, onOpenChange }: ClientModalProps) {
               )}
             />
             
-            <div className="flex space-x-3 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <Button 
                 type="button" 
                 variant="outline" 
-                className="flex-1"
+                className="button-responsive"
                 onClick={() => onOpenChange(false)}
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
-                className="flex-1"
+                className="button-responsive"
                 disabled={createClientMutation.isPending}
               >
                 {createClientMutation.isPending ? "Adding..." : "Add Client"}

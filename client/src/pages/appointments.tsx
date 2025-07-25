@@ -20,12 +20,10 @@ export default function Appointments() {
 
   if (isLoading) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <div className="animate-pulse space-y-8">
-          <div className="h-8 bg-slate-200 rounded w-64"></div>
-          <div className="h-64 bg-slate-200 rounded-xl"></div>
-          <div className="h-96 bg-slate-200 rounded-xl"></div>
-        </div>
+      <div className="animate-pulse space-y-6 sm:space-y-8">
+        <div className="h-8 bg-slate-200 rounded w-64"></div>
+        <div className="h-64 bg-slate-200 rounded-xl"></div>
+        <div className="h-96 bg-slate-200 rounded-xl"></div>
       </div>
     );
   }
@@ -51,14 +49,14 @@ export default function Appointments() {
 
   return (
     <>
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+      <div className="space-y-6 sm:space-y-8">
+        <div className="flex-responsive justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Appointments</h2>
-            <p className="mt-2 text-sm text-slate-600">Manage bookings and schedule appointments</p>
+            <h2 className="text-responsive-lg font-bold text-slate-900">Appointments</h2>
+            <p className="mt-2 text-responsive-base text-slate-600">Manage bookings and schedule appointments</p>
           </div>
           <Button 
-            className="mt-4 sm:mt-0"
+            className="button-responsive"
             onClick={() => setAppointmentModalOpen(true)}
           >
             <Plus className="mr-2 h-4 w-4" />

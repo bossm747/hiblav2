@@ -88,13 +88,13 @@ export default function ServiceModal({ open, onOpenChange }: ServiceModalProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="modal-responsive max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Service</DialogTitle>
+          <DialogTitle className="text-responsive-lg">Add New Service</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="form-responsive">
             <FormField
               control={form.control}
               name="name"

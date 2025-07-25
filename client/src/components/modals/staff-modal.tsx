@@ -77,13 +77,13 @@ export default function StaffModal({ open, onOpenChange }: StaffModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="modal-responsive max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Staff Member</DialogTitle>
+          <DialogTitle className="text-responsive-lg">Add Staff Member</DialogTitle>
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="form-responsive">
             <FormField
               control={form.control}
               name="name"

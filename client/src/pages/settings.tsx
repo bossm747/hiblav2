@@ -284,29 +284,30 @@ export default function Settings() {
   };
 
   return (
-    <div className="flex-1 space-y-6 p-8 pt-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
-          <p className="text-muted-foreground">
-            Manage your business profile and AI configuration
-          </p>
-        </div>
+    <div className="space-y-6 sm:space-y-8">
+      <div>
+        <h2 className="text-responsive-lg font-bold text-slate-900">Settings</h2>
+        <p className="mt-2 text-responsive-base text-slate-600">
+          Manage your business profile and AI configuration
+        </p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="profile" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto sm:h-10">
+          <TabsTrigger value="profile" className="flex items-center gap-2 text-responsive-sm">
             <User className="h-4 w-4" />
-            Business Profile
+            <span className="hidden sm:inline">Business Profile</span>
+            <span className="sm:hidden">Profile</span>
           </TabsTrigger>
-          <TabsTrigger value="ai" className="flex items-center gap-2">
+          <TabsTrigger value="ai" className="flex items-center gap-2 text-responsive-sm">
             <Bot className="h-4 w-4" />
-            AI Management
+            <span className="hidden sm:inline">AI Management</span>
+            <span className="sm:hidden">AI</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-2">
+          <TabsTrigger value="notifications" className="flex items-center gap-2 text-responsive-sm">
             <Bell className="h-4 w-4" />
-            Notifications
+            <span className="hidden sm:inline">Notifications</span>
+            <span className="sm:hidden">Alerts</span>
           </TabsTrigger>
         </TabsList>
 
@@ -324,8 +325,8 @@ export default function Settings() {
             </CardHeader>
             <CardContent>
               <Form {...profileForm}>
-                <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="form-responsive">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <FormField
                       control={profileForm.control}
                       name="businessName"

@@ -46,7 +46,7 @@ function App() {
           {/* Mobile menu overlay */}
           {sidebarOpen && (
             <div 
-              className="sidebar-overlay lg:hidden" 
+              className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden" 
               onClick={() => setSidebarOpen(false)}
             />
           )}
@@ -60,8 +60,10 @@ function App() {
             <Header onMenuClick={() => setSidebarOpen(true)} />
             
             {/* Page content */}
-            <main className="flex-1">
-              <Router />
+            <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-full overflow-x-hidden">
+              <div className="container-responsive">
+                <Router />
+              </div>
             </main>
           </div>
         </div>
