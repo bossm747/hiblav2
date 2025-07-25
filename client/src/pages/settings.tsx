@@ -46,6 +46,7 @@ import {
   Bot,
   Shield,
   Zap,
+  Bell,
   Globe,
   Upload,
   Eye,
@@ -55,6 +56,7 @@ import {
   AlertCircle,
   Sparkles,
 } from "lucide-react";
+import NotificationSettings from "@/components/notification-settings";
 
 // Profile schema
 const profileSchema = z.object({
@@ -293,7 +295,7 @@ export default function Settings() {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             Business Profile
@@ -301,6 +303,10 @@ export default function Settings() {
           <TabsTrigger value="ai" className="flex items-center gap-2">
             <Bot className="h-4 w-4" />
             AI Management
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            Notifications
           </TabsTrigger>
         </TabsList>
 
@@ -852,6 +858,10 @@ export default function Settings() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="notifications">
+          <NotificationSettings />
         </TabsContent>
       </Tabs>
     </div>

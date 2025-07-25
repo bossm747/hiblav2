@@ -151,6 +151,33 @@ export const timeRecords = pgTable("time_records", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Notification Settings
+export const notificationSettings = pgTable("notification_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  spaName: text("spa_name").notNull().default("Serenity Spa"),
+  spaEmail: text("spa_email").notNull(),
+  spaPhone: text("spa_phone"),
+  emailEnabled: boolean("email_enabled").default(true),
+  smsEnabled: boolean("sms_enabled").default(false),
+  confirmationEnabled: boolean("confirmation_enabled").default(true),
+  reminderEnabled: boolean("reminder_enabled").default(true),
+  reminderHours: integer("reminder_hours").default(24), // hours before appointment
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Notification Log
+export const notificationLog = pgTable("notification_log", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  appointmentId: varchar("appointment_id").references(() => appointments.id).notNull(),
+  type: text("type").notNull(), // confirmation, reminder
+  method: text("method").notNull(), // email, sms
+  status: text("status").notNull(), // sent, failed, pending
+  sentAt: timestamp("sent_at"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
   totalVisits: true,
@@ -202,6 +229,17 @@ export const insertTimeRecordSchema = createInsertSchema(timeRecords).omit({
   updatedAt: true,
 });
 
+export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNotificationLogSchema = createInsertSchema(notificationLog).omit({
+  id: true,
+  createdAt: true,
+});
+
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
 export type Service = typeof services.$inferSelect;
@@ -220,6 +258,10 @@ export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type TimeRecord = typeof timeRecords.$inferSelect;
 export type InsertTimeRecord = z.infer<typeof insertTimeRecordSchema>;
+export type NotificationSettings = typeof notificationSettings.$inferSelect;
+export type InsertNotificationSettings = z.infer<typeof insertNotificationSettingsSchema>;
+export type NotificationLog = typeof notificationLog.$inferSelect;
+export type InsertNotificationLog = z.infer<typeof insertNotificationLogSchema>;
 
 // Relations
 export const clientsRelations = relations(clients, ({ many }) => ({

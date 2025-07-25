@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { eq, lt, sql } from "drizzle-orm";
+import { eq, lt, sql, desc } from "drizzle-orm";
 import {
   clients,
   services,
@@ -26,8 +26,14 @@ import {
   type InsertTransaction,
   type TimeRecord,
   type InsertTimeRecord,
+  type NotificationSettings,
+  type InsertNotificationSettings,
+  type NotificationLog,
+  type InsertNotificationLog,
   transactions,
   timeRecords,
+  notificationSettings,
+  notificationLog,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -97,6 +103,14 @@ export interface IStorage {
   clockOut(id: string, data: { notes?: string }): Promise<TimeRecord>;
   startBreak(id: string, data: { notes?: string }): Promise<TimeRecord>;
   endBreak(id: string, data: { notes?: string }): Promise<TimeRecord>;
+
+  // Notification Settings
+  getNotificationSettings(): Promise<NotificationSettings | undefined>;
+  createOrUpdateNotificationSettings(settings: InsertNotificationSettings): Promise<NotificationSettings>;
+
+  // Notification Log
+  getNotificationLogs(appointmentId?: string): Promise<NotificationLog[]>;
+  createNotificationLog(log: InsertNotificationLog): Promise<NotificationLog>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -425,6 +439,59 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return updatedRecord;
+  }
+
+  // Notification Settings methods
+  async getNotificationSettings(): Promise<NotificationSettings | undefined> {
+    const [settings] = await db.select().from(notificationSettings).limit(1);
+    return settings || undefined;
+  }
+
+  async createOrUpdateNotificationSettings(settingsData: InsertNotificationSettings): Promise<NotificationSettings> {
+    // Check if settings already exist
+    const existing = await this.getNotificationSettings();
+    
+    if (existing) {
+      // Update existing settings
+      const [updatedSettings] = await db
+        .update(notificationSettings)
+        .set({ ...settingsData, updatedAt: new Date() })
+        .where(eq(notificationSettings.id, existing.id))
+        .returning();
+      return updatedSettings;
+    } else {
+      // Create new settings
+      const [newSettings] = await db
+        .insert(notificationSettings)
+        .values(settingsData)
+        .returning();
+      return newSettings;
+    }
+  }
+
+  // Notification Log methods
+  async getNotificationLogs(appointmentId?: string): Promise<NotificationLog[]> {
+    if (appointmentId) {
+      return await db
+        .select()
+        .from(notificationLog)
+        .where(eq(notificationLog.appointmentId, appointmentId))
+        .orderBy(desc(notificationLog.createdAt));
+    } else {
+      return await db
+        .select()
+        .from(notificationLog)
+        .orderBy(desc(notificationLog.createdAt))
+        .limit(100);
+    }
+  }
+
+  async createNotificationLog(logData: InsertNotificationLog): Promise<NotificationLog> {
+    const [newLog] = await db
+      .insert(notificationLog)
+      .values(logData)
+      .returning();
+    return newLog;
   }
 }
 

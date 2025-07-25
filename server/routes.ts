@@ -10,7 +10,11 @@ import {
   insertProductSchema,
   insertSupplierSchema,
   insertInventoryTransactionSchema,
+  insertTransactionSchema,
+  insertTimeRecordSchema,
+  insertNotificationSettingsSchema
 } from "@shared/schema";
+import { sendAppointmentNotification } from "./notification-service";
 import multer from "multer";
 import path from "path";
 import { promises as fs } from "fs";
@@ -202,6 +206,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const appointmentData = insertAppointmentSchema.parse(req.body);
       const appointment = await storage.createAppointment(appointmentData);
+      
+      // Send confirmation email in the background
+      sendAppointmentNotification(appointment.id, 'confirmation').catch(error => {
+        console.error('Failed to send appointment confirmation:', error);
+      });
+      
       res.status(201).json(appointment);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -798,6 +808,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('End Break Error:', error);
       res.status(500).json({ message: "Failed to end break" });
+    }
+  });
+
+  // Notification Settings routes
+  app.get("/api/notification-settings", async (req, res) => {
+    try {
+      const settings = await storage.getNotificationSettings();
+      res.json(settings);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notification settings" });
+    }
+  });
+
+  app.post("/api/notification-settings", async (req, res) => {
+    try {
+      const settingsData = insertNotificationSettingsSchema.parse(req.body);
+      const settings = await storage.createOrUpdateNotificationSettings(settingsData);
+      res.json(settings);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid settings data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to save notification settings" });
+    }
+  });
+
+  // Notification Log routes
+  app.get("/api/notification-log", async (req, res) => {
+    try {
+      const { appointmentId } = req.query;
+      const logs = await storage.getNotificationLogs(appointmentId as string);
+      res.json(logs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notification logs" });
+    }
+  });
+
+  // Manual notification triggers
+  app.post("/api/notifications/send-confirmation/:appointmentId", async (req, res) => {
+    try {
+      const success = await sendAppointmentNotification(req.params.appointmentId, 'confirmation');
+      if (success) {
+        res.json({ message: "Confirmation email sent successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to send confirmation email" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to send confirmation email" });
+    }
+  });
+
+  app.post("/api/notifications/send-reminder/:appointmentId", async (req, res) => {
+    try {
+      const success = await sendAppointmentNotification(req.params.appointmentId, 'reminder');
+      if (success) {
+        res.json({ message: "Reminder email sent successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to send reminder email" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to send reminder email" });
     }
   });
 
