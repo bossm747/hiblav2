@@ -114,7 +114,7 @@ export default function Services() {
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-semibold text-slate-900">{service.name}</h3>
-                    <span className="text-lg font-bold text-primary">${service.price}</span>
+                    <span className="text-lg font-bold text-primary">₱{service.price}</span>
                   </div>
                   
                   <div className="flex items-center space-x-4 text-sm text-slate-500 mb-3">

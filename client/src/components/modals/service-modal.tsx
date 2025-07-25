@@ -159,7 +159,7 @@ export default function ServiceModal({ open, onOpenChange }: ServiceModalProps) 
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Price ($)</FormLabel>
+                    <FormLabel>Price (₱)</FormLabel>
                     <FormControl>
                       <Input 
                         type="number" 

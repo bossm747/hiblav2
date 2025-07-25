@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   CalendarCheck, 
-  DollarSign, 
+  Banknote, 
   Users, 
   Star,
   Plus,
@@ -73,12 +73,12 @@ export default function Dashboard() {
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="p-3 bg-secondary/10 rounded-lg">
-                  <DollarSign className="h-6 w-6 text-secondary" />
+                  <Banknote className="h-6 w-6 text-secondary" />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-slate-600">Daily Revenue</p>
                   <p className="text-2xl font-semibold text-slate-900">
-                    ${(stats as any)?.dailyRevenue || "0.00"}
+                    ₱{(stats as any)?.dailyRevenue || "0.00"}
                   </p>
                 </div>
               </div>

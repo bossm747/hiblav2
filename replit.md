@@ -2,11 +2,14 @@
 
 ## Overview
 
-This is a comprehensive spa/salon management system built with a modern React frontend and Express.js backend. The application manages clients, staff, services, and appointments for spa/salon businesses. It features a clean, professional interface using ShadCN UI components and follows a full-stack TypeScript architecture.
+This is a comprehensive spa/salon management system built with a modern React frontend and Express.js backend, specifically localized for the Philippine market. The application manages clients, staff, services, and appointments for spa/salon businesses. It features a clean, professional interface using ShadCN UI components with Philippine Peso (₱) currency support and follows a full-stack TypeScript architecture.
 
 ## User Preferences
 
-Preferred communication style: Simple, everyday language.
+- Preferred communication style: Simple, everyday language
+- Market focus: Philippine spa/salon businesses
+- Currency: Philippine Peso (₱) instead of USD ($)
+- Features requested: Comprehensive feature suggestions for Filipino market
 
 ## System Architecture
 
