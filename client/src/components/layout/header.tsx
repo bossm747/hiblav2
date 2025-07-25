@@ -10,7 +10,7 @@ interface HeaderProps {
 
 export default function Header({ onMenuClick }: HeaderProps) {
   return (
-    <div className="sticky top-0 z-40 bg-white border-b border-slate-200">
+    <div className="sticky top-0 z-40 bg-white border-b border-pink-200 spa-container-shadow">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 relative">
           <div className="flex items-center lg:hidden">

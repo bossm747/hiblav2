@@ -52,7 +52,7 @@ export default function Dashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <Card>
+          <Card className="spa-card-shadow">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="p-3 bg-primary/10 rounded-lg">
@@ -68,7 +68,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="spa-card-shadow">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="p-3 bg-secondary/10 rounded-lg">
@@ -84,7 +84,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="spa-card-shadow">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="p-3 bg-accent/10 rounded-lg">
@@ -100,7 +100,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="spa-card-shadow">
             <CardContent className="p-6">
               <div className="flex items-center">
                 <div className="p-3 bg-orange-100 rounded-lg">
@@ -119,7 +119,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Quick Actions */}
           <div className="lg:col-span-1">
-            <Card>
+            <Card className="spa-card-shadow">
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
               </CardHeader>
@@ -163,7 +163,7 @@ export default function Dashboard() {
 
           {/* Today's Schedule */}
           <div className="lg:col-span-2">
-            <Card>
+            <Card className="spa-card-shadow">
               <CardHeader>
                 <CardTitle>Today's Schedule</CardTitle>
               </CardHeader>

@@ -43,10 +43,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <div className={cn(
-      "sidebar-mobile bg-white shadow-lg lg:translate-x-0 lg:static lg:inset-0",
+      "sidebar-mobile bg-white spa-container-shadow lg:translate-x-0 lg:static lg:inset-0",
       isOpen ? "" : "closed"
     )}>
-      <div className="flex items-center justify-between h-16 px-6 border-b border-slate-200">
+      <div className="flex items-center justify-between h-16 px-6 border-b border-pink-200">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 spa-gradient rounded-lg flex items-center justify-center">
             <Waves className="h-5 w-5 text-white" />

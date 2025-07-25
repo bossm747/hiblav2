@@ -109,7 +109,7 @@ export default function AppointmentModal({ open, onOpenChange }: AppointmentModa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="modal-responsive max-h-[90vh] overflow-y-auto">
+      <DialogContent className="modal-responsive max-h-[90vh] overflow-y-auto spa-modal-shadow">
         <DialogHeader>
           <DialogTitle className="text-responsive-lg">New Appointment</DialogTitle>
         </DialogHeader>
