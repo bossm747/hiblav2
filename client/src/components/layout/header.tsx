@@ -2,6 +2,7 @@ import { Search, Bell, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import SalonLogo from "@/components/salon-logo";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -11,7 +12,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
   return (
     <div className="sticky top-0 z-40 bg-white border-b border-slate-200">
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between items-center h-16 relative">
           <div className="flex items-center lg:hidden">
             <Button
               variant="ghost"
@@ -21,6 +22,16 @@ export default function Header({ onMenuClick }: HeaderProps) {
             >
               <Menu className="h-5 w-5" />
             </Button>
+          </div>
+          
+          {/* Centered Logo */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 hidden lg:block">
+            <SalonLogo className="float-animation" showSubtext />
+          </div>
+          
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex-1 flex justify-center">
+            <SalonLogo className="float-animation" />
           </div>
           
           <div className="flex items-center space-x-4">
