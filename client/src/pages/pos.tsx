@@ -221,7 +221,7 @@ export default function POS() {
         {/* Products and Services */}
         <div className="space-y-6">
           {/* Services */}
-          <Card>
+          <Card className="spa-card-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ShoppingCart className="h-5 w-5" />
@@ -233,7 +233,7 @@ export default function POS() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {services.map((service: any) => (
+                {(services as any[]).map((service: any) => (
                   <div
                     key={service.id}
                     className="p-4 border rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
@@ -257,7 +257,7 @@ export default function POS() {
           </Card>
 
           {/* Products */}
-          <Card>
+          <Card className="spa-card-shadow">
             <CardHeader>
               <CardTitle>Products</CardTitle>
               <CardDescription>
@@ -266,7 +266,7 @@ export default function POS() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {products.filter((product: any) => product.currentStock > 0).map((product: any) => (
+                {(products as any[]).filter((product: any) => product.currentStock > 0).map((product: any) => (
                   <div
                     key={product.id}
                     className="p-4 border rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
@@ -293,7 +293,7 @@ export default function POS() {
         {/* Cart and Checkout */}
         <div className="space-y-6">
           {/* Cart */}
-          <Card>
+          <Card className="spa-card-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <ShoppingCart className="h-5 w-5" />
@@ -374,7 +374,7 @@ export default function POS() {
           </Card>
 
           {/* Checkout Form */}
-          <Card>
+          <Card className="spa-card-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Receipt className="h-5 w-5" />
@@ -398,7 +398,7 @@ export default function POS() {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="">Walk-in customer</SelectItem>
-                            {clients.map((client: any) => (
+                            {(clients as any[]).map((client: any) => (
                               <SelectItem key={client.id} value={client.id}>
                                 {client.firstName} {client.lastName}
                               </SelectItem>
@@ -423,7 +423,7 @@ export default function POS() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {staff.map((member: any) => (
+                            {(staff as any[]).map((member: any) => (
                               <SelectItem key={member.id} value={member.id}>
                                 {member.firstName} {member.lastName}
                               </SelectItem>
