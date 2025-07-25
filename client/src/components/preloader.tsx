@@ -18,24 +18,33 @@ export default function Preloader({ onComplete }: PreloaderProps) {
   ];
 
   useEffect(() => {
+    // Run for exactly 5 seconds
+    const startTime = Date.now();
+    const duration = 5000; // 5 seconds
+    
     const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progressPercent = Math.min((elapsed / duration) * 100, 100);
+      
       setProgress((prev) => {
-        const newProgress = prev + Math.random() * 15 + 5;
+        const newProgress = Math.min(progressPercent + Math.random() * 5, 100);
         
         // Update loading text based on progress
         if (newProgress > 20) setCurrentText(loadingTexts[1]);
         if (newProgress > 40) setCurrentText(loadingTexts[2]);
         if (newProgress > 60) setCurrentText(loadingTexts[3]);
         if (newProgress > 80) setCurrentText(loadingTexts[4]);
-
-        if (newProgress >= 100) {
+        
+        // Complete after 5 seconds
+        if (elapsed >= duration) {
           clearInterval(interval);
           setTimeout(onComplete, 800);
           return 100;
         }
+
         return newProgress;
       });
-    }, 200);
+    }, 100);
 
     return () => clearInterval(interval);
   }, [onComplete]);
