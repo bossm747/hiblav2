@@ -123,7 +123,7 @@ export default function Settings() {
   // Profile form
   const profileForm = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
-    defaultValues: profileData || {
+    defaultValues: {
       businessName: "Serenity Spa & Salon",
       ownerName: "",
       email: "",
@@ -144,23 +144,10 @@ export default function Settings() {
     },
   });
 
-  // Update form when data loads
-  useEffect(() => {
-    if (profileData) {
-      profileForm.reset(profileData);
-    }
-  }, [profileData, profileForm]);
-
-  useEffect(() => {
-    if (aiSettingsData) {
-      aiForm.reset(aiSettingsData);
-    }
-  }, [aiSettingsData, aiForm]);
-
   // AI settings form
   const aiForm = useForm<z.infer<typeof aiSettingsSchema>>({
     resolver: zodResolver(aiSettingsSchema),
-    defaultValues: aiSettingsData || {
+    defaultValues: {
       enabled: true,
       provider: "openrouter",
       model: "anthropic/claude-3.5-sonnet",
@@ -179,6 +166,19 @@ export default function Settings() {
       },
     },
   });
+
+  // Update form when data loads
+  useEffect(() => {
+    if (profileData) {
+      profileForm.reset(profileData);
+    }
+  }, [profileData, profileForm]);
+
+  useEffect(() => {
+    if (aiSettingsData) {
+      aiForm.reset(aiSettingsData);
+    }
+  }, [aiSettingsData, aiForm]);
 
   const saveProfileMutation = useMutation({
     mutationFn: async (data: z.infer<typeof profileSchema>) => {

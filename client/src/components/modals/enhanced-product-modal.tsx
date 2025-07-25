@@ -173,6 +173,21 @@ export default function EnhancedProductModal({ open, onOpenChange }: EnhancedPro
       return;
     }
 
+    // Get existing form data to enhance rather than replace
+    const existingData = {
+      name: form.getValues('name'),
+      description: form.getValues('description'),
+      brand: form.getValues('brand'),
+      sku: form.getValues('sku'),
+      barcode: form.getValues('barcode'),
+      costPrice: form.getValues('costPrice'),
+      retailPrice: form.getValues('retailPrice'),
+      marketPrice: form.getValues('marketPrice'),
+      minStockLevel: form.getValues('minStockLevel'),
+      maxStockLevel: form.getValues('maxStockLevel'),
+      unit: form.getValues('unit'),
+    };
+
     setIsGeneratingAI(true);
     try {
       const response = await fetch('/api/ai/generate-product', {
@@ -180,7 +195,7 @@ export default function EnhancedProductModal({ open, onOpenChange }: EnhancedPro
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ category }),
+        body: JSON.stringify({ category, existingData }),
       });
 
       if (!response.ok) {
@@ -189,26 +204,48 @@ export default function EnhancedProductModal({ open, onOpenChange }: EnhancedPro
 
       const aiData = await response.json();
       
-      // Fill form with AI-generated data
-      form.setValue('name', aiData.name);
-      form.setValue('description', aiData.description);
-      form.setValue('brand', aiData.brand);
-      form.setValue('sku', aiData.sku);
-      form.setValue('barcode', aiData.barcode);
-      form.setValue('costPrice', aiData.costPrice);
-      form.setValue('retailPrice', aiData.retailPrice);
-      form.setValue('marketPrice', aiData.marketPrice);
-      form.setValue('minStockLevel', aiData.minStockLevel);
-      form.setValue('maxStockLevel', aiData.maxStockLevel);
-      form.setValue('unit', aiData.unit);
-      form.setValue('competitors', aiData.competitors);
-      form.setValue('tags', aiData.tags);
+      // Only update fields that are empty or need enhancement
+      if (!existingData.name || existingData.name === "") {
+        form.setValue('name', aiData.name);
+      }
+      if (!existingData.description || existingData.description === "") {
+        form.setValue('description', aiData.description);
+      }
+      if (!existingData.brand || existingData.brand === "") {
+        form.setValue('brand', aiData.brand);
+      }
+      if (!existingData.sku || existingData.sku === "") {
+        form.setValue('sku', aiData.sku);
+      }
+      if (!existingData.barcode || existingData.barcode === "") {
+        form.setValue('barcode', aiData.barcode);
+      }
+      if (!existingData.costPrice || existingData.costPrice === "0") {
+        form.setValue('costPrice', aiData.costPrice);
+      }
+      if (!existingData.retailPrice || existingData.retailPrice === "0") {
+        form.setValue('retailPrice', aiData.retailPrice);
+      }
+      if (!existingData.marketPrice || existingData.marketPrice === "0") {
+        form.setValue('marketPrice', aiData.marketPrice);
+      }
+      if (!existingData.unit || existingData.unit === "pcs") {
+        form.setValue('unit', aiData.unit);
+      }
+      
+      // Always update these research-based fields
+      form.setValue('competitors', aiData.competitors || []);
+      form.setValue('tags', aiData.tags || []);
       form.setValue('aiGenerated', true);
       form.setValue('aiPrompt', aiData.aiPrompt);
 
+      const hasExistingData = Object.values(existingData).some(value => value && value !== "" && value !== "0");
+      
       toast({
-        title: "AI Generated!",
-        description: "Product data generated successfully from Philippine market research",
+        title: hasExistingData ? "AI Enhanced!" : "AI Generated!",
+        description: hasExistingData 
+          ? "Your product data has been enhanced with Philippine market research"
+          : "Product data generated successfully from Philippine market research",
       });
     } catch (error) {
       toast({

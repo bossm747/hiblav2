@@ -449,15 +449,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI Product Generation endpoint
   app.post("/api/ai/generate-product", async (req, res) => {
     try {
-      const { category, productType } = req.body;
+      const { category, productType, existingData } = req.body;
       
       if (!category) {
         return res.status(400).json({ message: "Category is required" });
       }
 
-      const aiData = await aiService.generateProductData(category, productType);
-      const sku = aiService.generateSKU(category, aiData.brand, aiData.name);
-      const barcode = aiService.generateBarcode();
+      const aiData = await aiService.generateProductData(category, productType, existingData);
+      const sku = existingData?.sku || aiService.generateSKU(category, aiData.brand, aiData.name);
+      const barcode = existingData?.barcode || aiService.generateBarcode();
+
+      const hasExistingData = existingData && Object.keys(existingData).some(key => existingData[key] && existingData[key] !== "" && existingData[key] !== "0");
 
       const productData = {
         ...aiData,
@@ -465,7 +467,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         barcode,
         category,
         aiGenerated: true,
-        aiPrompt: `Generate ${productType || 'product'} for ${category} category in Philippine spa/salon market`
+        aiPrompt: hasExistingData 
+          ? `Enhanced user input with Philippine market research for ${category} category`
+          : `Generated for ${category} category using Philippine market research`
       };
 
       res.json(productData);

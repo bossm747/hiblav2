@@ -33,8 +33,8 @@ export class AIService {
     }
   }
 
-  async generateProductData(category: string, productType?: string): Promise<AIProductData> {
-    const prompt = this.buildPrompt(category, productType);
+  async generateProductData(category: string, productType?: string, existingData?: any): Promise<AIProductData> {
+    const prompt = this.buildPrompt(category, productType, existingData);
     
     try {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
@@ -77,10 +77,31 @@ export class AIService {
     }
   }
 
-  private buildPrompt(category: string, productType?: string): string {
+  private buildPrompt(category: string, productType?: string, existingData?: any): string {
     const categoryInfo = this.getCategoryInfo(category);
     
-    return `You are a spa/salon inventory management expert specializing in the Philippine market. Generate realistic product data for a ${productType || categoryInfo.defaultProduct} in the ${categoryInfo.name} category.
+    let basePrompt = `You are a spa/salon inventory management expert specializing in the Philippine market. `;
+    
+    if (existingData && Object.keys(existingData).some(key => existingData[key] && existingData[key] !== "")) {
+      // Enhancement mode - build upon existing user input
+      basePrompt += `The user has already started filling out product information. ENHANCE and complete their input based on Philippine market research, keeping their existing data where provided.
+
+USER'S EXISTING INPUT:
+${JSON.stringify(existingData, null, 2)}
+
+INSTRUCTIONS:
+- Keep ALL user-provided data exactly as they entered it
+- Only fill in missing fields or enhance empty fields
+- If user provided a name, keep it exactly as-is
+- If user provided a description, enhance it but keep their core message
+- If user provided prices, use them as reference points for market research
+- Research Philippine market data to complete missing information`;
+    } else {
+      // Generation mode - create new product
+      basePrompt += `Generate realistic product data for a ${productType || categoryInfo.defaultProduct} in the ${categoryInfo.name} category.`;
+    }
+
+    return `${basePrompt}
 
 IMPORTANT: Respond ONLY with a valid JSON object in this exact format:
 

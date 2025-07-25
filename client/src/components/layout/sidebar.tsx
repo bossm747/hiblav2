@@ -31,7 +31,6 @@ const navigation = [
 ];
 
 const secondaryNavigation = [
-  { name: "Settings", href: "/settings", icon: Settings },
   { name: "Sign out", href: "/logout", icon: LogOut },
 ];
 
