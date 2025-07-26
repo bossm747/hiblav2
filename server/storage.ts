@@ -137,7 +137,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCustomer(id: string): Promise<boolean> {
     const result = await db.delete(customers).where(eq(customers.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Category methods
@@ -162,7 +162,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCategory(id: string): Promise<boolean> {
     const result = await db.delete(categories).where(eq(categories.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Staff methods
@@ -187,7 +187,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteStaff(id: string): Promise<boolean> {
     const result = await db.delete(staff).where(eq(staff.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Product methods
@@ -227,13 +227,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined> {
-    const [updated] = await db.update(products).set({ ...product, updatedAt: new Date() }).where(eq(products.id, id)).returning();
+    const updateData = { ...product };
+    const [updated] = await db.update(products).set(updateData).where(eq(products.id, id)).returning();
     return updated;
   }
 
   async deleteProduct(id: string): Promise<boolean> {
     const result = await db.delete(products).where(eq(products.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Supplier methods
@@ -258,7 +259,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSupplier(id: string): Promise<boolean> {
     const result = await db.delete(suppliers).where(eq(suppliers.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Order methods
@@ -342,12 +343,12 @@ export class DatabaseStorage implements IStorage {
 
   async removeFromCart(id: string): Promise<boolean> {
     const result = await db.delete(cart).where(eq(cart.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async clearCart(customerId: string): Promise<boolean> {
     const result = await db.delete(cart).where(eq(cart.customerId, customerId));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Wishlist methods
@@ -362,7 +363,7 @@ export class DatabaseStorage implements IStorage {
 
   async removeFromWishlist(id: string): Promise<boolean> {
     const result = await db.delete(wishlist).where(eq(wishlist.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Reviews methods
@@ -407,10 +408,11 @@ export class DatabaseStorage implements IStorage {
     const existing = await this.getShopSettings();
     
     if (existing) {
-      const [updated] = await db.update(shopSettings).set({ ...settings, updatedAt: new Date() }).where(eq(shopSettings.id, existing.id)).returning();
+      const updateData = { ...settings };
+      const [updated] = await db.update(shopSettings).set(updateData).where(eq(shopSettings.id, existing.id)).returning();
       return updated;
     } else {
-      const [created] = await db.insert(shopSettings).values(settings).returning();
+      const [created] = await db.insert(shopSettings).values(settings as InsertShopSettings).returning();
       return created;
     }
   }
