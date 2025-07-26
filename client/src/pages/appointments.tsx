@@ -11,7 +11,8 @@ export default function Appointments() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
   const { data: appointments, isLoading } = useQuery({
-    queryKey: ["/api/appointments", { date: selectedDate }],
+    queryKey: ["/api/appointments", "date", selectedDate],
+    queryFn: () => fetch(`/api/appointments?date=${selectedDate}`).then(res => res.json()),
   });
 
   const { data: allAppointments } = useQuery({
@@ -124,7 +125,7 @@ export default function Appointments() {
             <CardTitle>Appointments for {new Date(selectedDate).toLocaleDateString()}</CardTitle>
           </CardHeader>
           <CardContent>
-            {!appointments || appointments.length === 0 ? (
+            {!appointments || !Array.isArray(appointments) || appointments.length === 0 ? (
               <div className="text-center py-8 text-slate-500">
                 <Calendar className="mx-auto h-12 w-12 text-slate-300 mb-4" />
                 <p>No appointments scheduled for this date</p>
@@ -137,7 +138,7 @@ export default function Appointments() {
               </div>
             ) : (
               <div className="space-y-4">
-                {appointments.map((appointment: any) => (
+                {Array.isArray(appointments) && appointments.map((appointment: any) => (
                   <div key={appointment.id} className="p-6 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
                     <div className="flex flex-col sm:flex-row justify-between items-start">
                       <div className="flex items-start space-x-4">
