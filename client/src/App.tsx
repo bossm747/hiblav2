@@ -93,6 +93,12 @@ function App() {
                 <AIImageManagementPage />
               </AuthGuard>
             </Route>
+
+            <Route path="/product-management">
+              <AuthGuard requiredRole="admin">
+                <ProductManagementPage />
+              </AuthGuard>
+            </Route>
             
             <Route path="/analytics">
               <AuthGuard requiredRole="admin">

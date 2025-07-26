@@ -275,7 +275,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProduct(product: InsertProduct): Promise<Product> {
-    const [newProduct] = await db.insert(products).values(product).returning();
+    const [newProduct] = await db.insert(products).values([product]).returning();
     return newProduct;
   }
 
@@ -463,16 +463,18 @@ export class DatabaseStorage implements IStorage {
     const existing = await this.getShopSettings();
     
     if (existing) {
-      const [updated] = await db.update(shopSettings).set({ 
+      const updateData = { 
         ...settings,
         updatedAt: new Date() 
-      }).where(eq(shopSettings.id, existing.id)).returning();
+      };
+      const [updated] = await db.update(shopSettings).set(updateData).where(eq(shopSettings.id, existing.id)).returning();
       return updated;
     } else {
-      const [created] = await db.insert(shopSettings).values({
+      const insertData = {
         shopEmail: settings.shopEmail || 'info@hibla.com',
         ...settings
-      }).returning();
+      };
+      const [created] = await db.insert(shopSettings).values([insertData]).returning();
       return created;
     }
   }
