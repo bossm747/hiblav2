@@ -17,7 +17,7 @@ import type { Product, Category } from "@shared/schema";
 export default function ProductsPage() {
   const searchParams = new URLSearchParams(useSearch());
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "");
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
   const [selectedHairType, setSelectedHairType] = useState<string[]>([]);
   const [selectedTexture, setSelectedTexture] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState([0, 10000]);
@@ -40,7 +40,7 @@ export default function ProductsPage() {
     queryFn: async () => {
       const params = new URLSearchParams();
       if (searchQuery) params.append("search", searchQuery);
-      if (selectedCategory) params.append("category", selectedCategory);
+      if (selectedCategory && selectedCategory !== "all") params.append("category", selectedCategory);
       selectedHairType.forEach(type => params.append("hairType", type));
       selectedTexture.forEach(texture => params.append("texture", texture));
       params.append("minPrice", priceRange[0].toString());
@@ -144,7 +144,7 @@ export default function ProductsPage() {
                     <SelectValue placeholder="All Categories" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Categories</SelectItem>
+                    <SelectItem value="all">All Categories</SelectItem>
                     {categories?.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
@@ -220,7 +220,7 @@ export default function ProductsPage() {
                 variant="outline" 
                 className="w-full"
                 onClick={() => {
-                  setSelectedCategory("");
+                  setSelectedCategory("all");
                   setSelectedHairType([]);
                   setSelectedTexture([]);
                   setPriceRange([0, 10000]);
