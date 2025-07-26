@@ -95,13 +95,13 @@ export default function InventoryPage() {
 
       {/* Low Stock Alert */}
       {lowStockProducts.length > 0 && (
-        <Card className="mb-6 border-orange-200 bg-orange-50">
+        <Card className="mb-6 border-gray-300 bg-gray-100">
           <CardHeader>
-            <CardTitle className="text-orange-800 flex items-center gap-2">
+            <CardTitle className="text-black flex items-center gap-2">
               <AlertTriangle className="h-5 w-5" />
               Low Stock Alert
             </CardTitle>
-            <CardDescription className="text-orange-700">
+            <CardDescription className="text-gray-700">
               {lowStockProducts.length} products are running low on stock
             </CardDescription>
           </CardHeader>
@@ -190,13 +190,13 @@ export default function InventoryPage() {
                                 <SelectContent>
                                   <SelectItem value="purchase">
                                     <div className="flex items-center gap-2">
-                                      <TrendingUp className="h-4 w-4 text-green-600" />
+                                      <TrendingUp className="h-4 w-4 text-black" />
                                       Purchase (Add Stock)
                                     </div>
                                   </SelectItem>
                                   <SelectItem value="sale">
                                     <div className="flex items-center gap-2">
-                                      <TrendingDown className="h-4 w-4 text-red-600" />
+                                      <TrendingDown className="h-4 w-4 text-gray-600" />
                                       Sale (Remove Stock)
                                     </div>
                                   </SelectItem>

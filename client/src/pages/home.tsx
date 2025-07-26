@@ -31,9 +31,9 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white shadow-md">
+      <header className="sticky top-0 z-50 bg-white shadow-md border-b border-gray-200">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
@@ -45,23 +45,23 @@ export default function HomePage() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
-              <Link href="/products" className="text-gray-700 hover:text-pink-600 transition-colors">
+              <Link href="/products" className="text-gray-700 hover:text-black transition-colors">
                 All Products
               </Link>
-              <Link href="/products?category=synthetic" className="text-gray-700 hover:text-pink-600 transition-colors">
+              <Link href="/products?category=synthetic" className="text-gray-700 hover:text-black transition-colors">
                 Synthetic Hair
               </Link>
-              <Link href="/products?category=human" className="text-gray-700 hover:text-pink-600 transition-colors">
+              <Link href="/products?category=human" className="text-gray-700 hover:text-black transition-colors">
                 Human Hair
               </Link>
-              <Link href="/about" className="text-gray-700 hover:text-pink-600 transition-colors">
+              <Link href="/about" className="text-gray-700 hover:text-black transition-colors">
                 About Us
               </Link>
               <div className="h-6 w-px bg-gray-300 mx-2" />
-              <Link href="/pos" className="text-gray-700 hover:text-pink-600 transition-colors font-medium">
+              <Link href="/pos" className="text-gray-700 hover:text-black transition-colors font-medium">
                 POS
               </Link>
-              <Link href="/inventory" className="text-gray-700 hover:text-pink-600 transition-colors font-medium">
+              <Link href="/inventory" className="text-gray-700 hover:text-black transition-colors font-medium">
                 Inventory
               </Link>
             </nav>
@@ -84,13 +84,13 @@ export default function HomePage() {
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="icon" className="relative">
                 <Heart className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-pink-600 text-white rounded-full text-xs flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-black text-white rounded-full text-xs flex items-center justify-center">
                   0
                 </span>
               </Button>
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingCart className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-pink-600 text-white rounded-full text-xs flex items-center justify-center">
+                <span className="absolute -top-1 -right-1 h-4 w-4 bg-black text-white rounded-full text-xs flex items-center justify-center">
                   0
                 </span>
               </Button>
@@ -118,23 +118,23 @@ export default function HomePage() {
                 className="w-full"
               />
               <nav className="flex flex-col space-y-2">
-                <Link href="/products" className="text-gray-700 hover:text-pink-600 py-2">
+                <Link href="/products" className="text-gray-700 hover:text-black py-2">
                   All Products
                 </Link>
-                <Link href="/products?category=synthetic" className="text-gray-700 hover:text-pink-600 py-2">
+                <Link href="/products?category=synthetic" className="text-gray-700 hover:text-black py-2">
                   Synthetic Hair
                 </Link>
-                <Link href="/products?category=human" className="text-gray-700 hover:text-pink-600 py-2">
+                <Link href="/products?category=human" className="text-gray-700 hover:text-black py-2">
                   Human Hair
                 </Link>
-                <Link href="/about" className="text-gray-700 hover:text-pink-600 py-2">
+                <Link href="/about" className="text-gray-700 hover:text-black py-2">
                   About Us
                 </Link>
                 <div className="border-t pt-2 mt-2">
-                  <Link href="/pos" className="text-gray-700 hover:text-pink-600 py-2 font-medium">
+                  <Link href="/pos" className="text-gray-700 hover:text-black py-2 font-medium">
                     Point of Sale
                   </Link>
-                  <Link href="/inventory" className="text-gray-700 hover:text-pink-600 py-2 font-medium">
+                  <Link href="/inventory" className="text-gray-700 hover:text-black py-2 font-medium">
                     Inventory Management
                   </Link>
                 </div>
@@ -145,22 +145,22 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative h-[500px] bg-gradient-to-r from-pink-400 to-purple-600 overflow-hidden">
-        <div className="absolute inset-0 bg-black/20" />
+      <section className="relative h-[500px] bg-gray-100 overflow-hidden">
+        <div className="absolute inset-0 bg-white/50" />
         <div className="relative container mx-auto px-4 h-full flex items-center">
-          <div className="max-w-2xl text-white">
-            <h1 className="text-5xl font-bold mb-4">
+          <div className="max-w-2xl">
+            <h1 className="text-5xl font-bold mb-4 text-black">
               Premium Filipino Hair Extensions
             </h1>
-            <p className="text-xl mb-8">
+            <p className="text-xl mb-8 text-gray-700">
               Discover our collection of high-quality synthetic and real human hair "piloka" extensions. 
               Transform your look with authentic Filipino beauty.
             </p>
             <div className="space-x-4">
-              <Button size="lg" className="bg-white text-pink-600 hover:bg-gray-100">
+              <Button size="lg" className="bg-black text-white hover:bg-gray-800">
                 Shop Now
               </Button>
-              <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/20">
+              <Button size="lg" variant="outline" className="text-black border-black hover:bg-gray-100">
                 View Catalog
               </Button>
             </div>
@@ -196,7 +196,7 @@ export default function HomePage() {
                       className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     {product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price) && (
-                      <Badge className="absolute top-2 right-2 bg-red-500">
+                      <Badge className="absolute top-2 right-2 bg-black text-white">
                         -{Math.round(((parseFloat(product.compareAtPrice) - parseFloat(product.price)) / parseFloat(product.compareAtPrice)) * 100)}%
                       </Badge>
                     )}
@@ -216,7 +216,7 @@ export default function HomePage() {
                       <div>
                         {product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price) ? (
                           <>
-                            <span className="text-lg font-bold text-pink-600">
+                            <span className="text-lg font-bold text-black">
                               {formatPrice(product.price)}
                             </span>
                             <span className="text-sm text-gray-500 line-through ml-2">
@@ -224,7 +224,7 @@ export default function HomePage() {
                             </span>
                           </>
                         ) : (
-                          <span className="text-lg font-bold text-pink-600">
+                          <span className="text-lg font-bold text-black">
                             {formatPrice(product.price)}
                           </span>
                         )}
@@ -232,11 +232,11 @@ export default function HomePage() {
                     </div>
                   </CardContent>
                   <CardFooter className="p-4 pt-0 space-x-2">
-                    <Button className="flex-1" size="sm">
+                    <Button className="flex-1 bg-black hover:bg-gray-800 text-white" size="sm">
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       Add to Cart
                     </Button>
-                    <Button variant="outline" size="icon">
+                    <Button variant="outline" size="icon" className="border-black">
                       <Heart className="h-4 w-4" />
                     </Button>
                   </CardFooter>
@@ -260,7 +260,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Link href="/products?category=synthetic">
               <a className="group relative h-64 rounded-lg overflow-hidden shadow-lg">
-                <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-pink-600" />
+                <div className="absolute inset-0 bg-gray-800" />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
                 <div className="relative h-full flex items-center justify-center text-white">
                   <div className="text-center">
@@ -272,7 +272,7 @@ export default function HomePage() {
             </Link>
             <Link href="/products?category=human">
               <a className="group relative h-64 rounded-lg overflow-hidden shadow-lg">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-purple-600" />
+                <div className="absolute inset-0 bg-black" />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
                 <div className="relative h-full flex items-center justify-center text-white">
                   <div className="text-center">

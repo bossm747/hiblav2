@@ -7,25 +7,25 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(330, 100%, 98%);
-  --foreground: hsl(220, 13%, 18%);
-  --muted: hsl(330, 50%, 96%);
-  --muted-foreground: hsl(220, 9%, 46%);
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(0, 0%, 0%);
+  --muted: hsl(0, 0%, 96%);
+  --muted-foreground: hsl(0, 0%, 40%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(220, 13%, 18%);
+  --popover-foreground: hsl(0, 0%, 0%);
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(220, 13%, 18%);
-  --border: hsl(330, 20%, 91%);
-  --input: hsl(330, 20%, 95%);
-  --primary: hsl(330, 70%, 60%);
+  --card-foreground: hsl(0, 0%, 0%);
+  --border: hsl(0, 0%, 90%);
+  --input: hsl(0, 0%, 95%);
+  --primary: hsl(0, 0%, 0%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(340, 60%, 85%);
-  --secondary-foreground: hsl(220, 13%, 18%);
-  --accent: hsl(320, 60%, 70%);
-  --accent-foreground: hsl(0, 0%, 100%);
-  --destructive: hsl(0, 84%, 60%);
-  --destructive-foreground: hsl(210, 40%, 98%);
-  --ring: hsl(330, 70%, 60%);
+  --secondary: hsl(0, 0%, 85%);
+  --secondary-foreground: hsl(0, 0%, 0%);
+  --accent: hsl(0, 0%, 75%);
+  --accent-foreground: hsl(0, 0%, 0%);
+  --destructive: hsl(0, 0%, 30%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --ring: hsl(0, 0%, 50%);
   --radius: 0.75rem;
 }
 
@@ -80,19 +80,19 @@
 
 /* Custom styles for spa theme */
 .spa-gradient {
-  background: linear-gradient(135deg, hsl(207, 90%, 54%) 0%, hsl(153, 60%, 53%) 100%);
+  background: hsl(0, 0%, 95%);
 }
 
 .spa-card {
-  @apply bg-white rounded-xl shadow-sm border border-slate-200;
+  @apply bg-white rounded-xl shadow-sm border border-gray-200;
 }
 
 .spa-input {
-  @apply w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent;
 }
 
 .spa-button-primary {
-  @apply bg-primary hover:bg-blue-600 text-primary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors;
+  @apply bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors;
 }
 
 /* Mobile-first responsive utilities */
@@ -143,15 +143,15 @@
 }
 
 .spa-button-secondary {
-  @apply bg-secondary hover:bg-green-600 text-secondary-foreground px-4 py-2 rounded-lg text-sm font-medium transition-colors;
+  @apply bg-gray-200 hover:bg-gray-300 text-black px-4 py-2 rounded-lg text-sm font-medium transition-colors;
 }
 
 .spa-sidebar-item {
-  @apply text-slate-700 hover:bg-pink-50 flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors;
+  @apply text-gray-700 hover:bg-gray-100 flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors;
 }
 
 .spa-sidebar-item.active {
-  @apply bg-pink-50 text-primary border-l-4 border-primary;
+  @apply bg-gray-100 text-black border-l-4 border-black;
 }
 
 /* Handwritten logo styles */
@@ -169,7 +169,7 @@
   left: -2px;
   right: -2px;
   bottom: -2px;
-  background: linear-gradient(45deg, rgba(255,182,193,0.1), rgba(221,160,221,0.1), rgba(173,216,230,0.1));
+  background: hsl(0, 0%, 95%);
   border-radius: 8px;
   z-index: -1;
   opacity: 0;
@@ -203,7 +203,7 @@
 /* Spa background with integrated image */
 .spa-background {
   background: 
-    linear-gradient(135deg, rgba(252, 231, 243, 0.8), rgba(255, 228, 230, 0.7)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(250, 250, 250, 0.9)),
     url('@assets/8D51D6E3-0553-449E-BC10-AF5C3973BBCD_1753455938861.png');
   background-size: cover;
   background-position: center;
@@ -221,9 +221,9 @@
   bottom: 0;
   background: linear-gradient(
     135deg,
-    rgba(252, 231, 243, 0.6),
-    rgba(255, 228, 230, 0.5),
-    rgba(254, 242, 242, 0.7)
+    rgba(255, 255, 255, 0.8),
+    rgba(250, 250, 250, 0.8),
+    rgba(245, 245, 245, 0.8)
   );
   z-index: -1;
   pointer-events: none;
@@ -232,9 +232,9 @@
 /* Enhanced card shadows and effects */
 .spa-card-shadow {
   box-shadow: 
-    0 4px 6px -1px rgba(236, 72, 153, 0.1),
-    0 2px 4px -1px rgba(236, 72, 153, 0.06),
-    0 0 0 1px rgba(236, 72, 153, 0.05);
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
@@ -242,24 +242,24 @@
 
 .spa-card-shadow:hover {
   box-shadow: 
-    0 10px 15px -3px rgba(236, 72, 153, 0.15),
-    0 4px 6px -2px rgba(236, 72, 153, 0.1),
-    0 0 0 1px rgba(236, 72, 153, 0.08);
+    0 10px 15px -3px rgba(0, 0, 0, 0.15),
+    0 4px 6px -2px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
 }
 
 .spa-container-shadow {
   box-shadow: 
-    0 8px 25px -5px rgba(236, 72, 153, 0.1),
-    0 4px 6px -1px rgba(236, 72, 153, 0.06);
+    0 8px 25px -5px rgba(0, 0, 0, 0.1),
+    0 4px 6px -1px rgba(0, 0, 0, 0.06);
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(15px);
 }
 
 .spa-modal-shadow {
   box-shadow: 
-    0 25px 50px -12px rgba(236, 72, 153, 0.25),
-    0 0 0 1px rgba(236, 72, 153, 0.05);
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(20px);
 }
