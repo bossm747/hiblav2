@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff, Lock, User } from "lucide-react";
-import logoPath from "@assets/Hiblalogo_1753513948082.png";
+import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();

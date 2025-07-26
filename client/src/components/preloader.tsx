@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import logoPath from "@assets/Hiblalogo_1753513948082.png";
+import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 
 export function Preloader() {
   const [isLoading, setIsLoading] = useState(true);

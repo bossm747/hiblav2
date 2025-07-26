@@ -13,7 +13,7 @@ import {
   BarChart3,
   Clock
 } from "lucide-react";
-import logoPath from "@assets/Hiblalogo_1753513948082.png";
+import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 
 interface User {
   id: string;

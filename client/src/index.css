@@ -387,7 +387,7 @@
 .spa-background {
   background: 
     linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(250, 250, 250, 0.9)),
-    url('@assets/8D51D6E3-0553-449E-BC10-AF5C3973BBCD_1753455938861.png');
+    url('../../../attached_assets/8D51D6E3-0553-449E-BC10-AF5C3973BBCD_1753455938861.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

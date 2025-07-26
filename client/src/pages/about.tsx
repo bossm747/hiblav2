@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Star, Users, Award, Clock, Globe } from "lucide-react";
-import logoPath from "@assets/Hiblalogo_1753513948082.png";
+import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 import { Navbar } from "@/components/navbar";
 
 export default function AboutPage() {

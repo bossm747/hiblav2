@@ -9,7 +9,7 @@ import { ProductDetailModal } from "@/components/product-detail-modal";
 import { Navbar } from "@/components/navbar";
 import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@shared/schema";
-import logoPath from "@assets/Hiblalogo_1753513948082.png";
+import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 import { HairAnimation3D } from "@/components/hair-animation-3d";
 
 export default function HomePage() {

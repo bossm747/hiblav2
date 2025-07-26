@@ -23,7 +23,7 @@ import {
   HelpCircle
 } from "lucide-react";
 import { Navbar } from "@/components/navbar";
-import logoPath from "@assets/Hiblalogo_1753513948082.png";
+import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 
 export default function DocsPage() {
   const [activeTab, setActiveTab] = useState("hair-care");
