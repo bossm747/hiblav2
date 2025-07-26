@@ -116,48 +116,49 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
       {/* Backdrop */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 md:hidden"
+          className="fixed inset-0 bg-black/80 backdrop-blur-md z-40 md:hidden"
           onClick={onClose}
         />
       )}
 
       {/* Drawer */}
       <div className={cn(
-        "fixed top-0 right-0 h-full w-full max-w-sm glass-dark border-l border-white/20 transform transition-transform duration-300 ease-out z-50 md:hidden",
+        "fixed top-0 right-0 h-full w-full max-w-sm bg-background/95 backdrop-blur-xl border-l border-white/20 transform transition-transform duration-300 ease-out z-50 md:hidden shadow-2xl",
+        "xs:max-w-xs sm:max-w-sm",
         isOpen ? "translate-x-0" : "translate-x-full"
       )}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/20">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/20 bg-background/80">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-full overflow-hidden">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-purple-400/50">
               <img src={logoPath} alt="Hibla" className="w-full h-full object-contain" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-foreground neon-text-cyan">Menu</h2>
-              <p className="text-xs text-muted-foreground">Hibla Filipino Hair</p>
+              <h2 className="text-lg sm:text-xl font-semibold text-foreground neon-text-cyan">Menu</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground">Hibla Filipino Hair</p>
             </div>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="p-2 hover:bg-white/10"
+            className="p-2 sm:p-3 hover:bg-white/10 rounded-full"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5 sm:h-6 sm:w-6" />
           </Button>
         </div>
 
         {/* Search Bar */}
-        <div className="p-4 border-b border-white/10">
+        <div className="p-4 sm:p-6 border-b border-white/10 bg-background/60">
           <form onSubmit={handleSearch}>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search hair extensions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 glass border-white/20 bg-white/5"
+                className="pl-10 sm:pl-12 h-10 sm:h-12 bg-background/80 border-white/30 text-foreground text-sm sm:text-base"
               />
             </div>
           </form>
@@ -165,19 +166,19 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
 
         {/* User Status */}
         {isLoggedIn && (
-          <div className="p-4 border-b border-white/10">
-            <div className="flex items-center space-x-3 glass p-3 rounded-lg">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                <span className="text-xs font-semibold text-white">
+          <div className="p-4 sm:p-6 border-b border-white/10 bg-background/60">
+            <div className="flex items-center space-x-3 bg-background/90 border border-white/20 p-3 sm:p-4 rounded-xl">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                <span className="text-xs sm:text-sm font-semibold text-white">
                   {user.name?.charAt(0).toUpperCase() || 'U'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
-                <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                <p className="text-sm sm:text-base font-medium text-foreground truncate">{user.name}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground capitalize">{user.role}</p>
               </div>
               {isStaff && (
-                <Badge variant="outline" className="text-xs border-purple-400 text-purple-400">
+                <Badge variant="outline" className="text-xs sm:text-sm border-purple-400 text-purple-400">
                   Staff
                 </Badge>
               )}
@@ -186,53 +187,53 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
         )}
 
         {/* Navigation Sections */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-background/40">
           {sections.map((section, sectionIndex) => (
-            <div key={section.title} className="py-4">
-              <div className="px-4 mb-3">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <div key={section.title} className="py-4 sm:py-6">
+              <div className="px-4 sm:px-6 mb-3">
+                <h3 className="text-xs sm:text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                   {section.title}
                 </h3>
               </div>
               
-              <div className="space-y-1 px-2">
+              <div className="space-y-2 px-3 sm:px-4">
                 {section.items.map((item) => (
                   <Link key={item.name} href={item.href}>
                     <div
                       className={cn(
-                        "flex items-center justify-between p-3 mx-2 rounded-xl transition-all duration-200 group touch-manipulation",
+                        "flex items-center justify-between p-3 sm:p-4 mx-1 sm:mx-2 rounded-xl transition-all duration-200 group touch-manipulation min-h-[3.5rem] sm:min-h-[4rem]",
                         isActive(item.href)
-                          ? "glass neon-glow-light border border-purple-400/50 bg-white/10"
-                          : "hover:glass hover:bg-white/5"
+                          ? "bg-background/90 border border-purple-400/50 shadow-lg"
+                          : "hover:bg-background/70 hover:border hover:border-white/20"
                       )}
                       onClick={onClose}
                     >
-                      <div className="flex items-center space-x-3 flex-1 min-w-0">
+                      <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
                         <div className={cn(
-                          "p-2 rounded-lg transition-colors",
+                          "p-2 sm:p-3 rounded-lg transition-colors",
                           isActive(item.href)
                             ? "bg-purple-500/20 text-purple-400"
-                            : "bg-white/5 text-muted-foreground group-hover:text-cyan-400 group-hover:bg-cyan-500/20"
+                            : "bg-white/10 text-muted-foreground group-hover:text-cyan-400 group-hover:bg-cyan-500/20"
                         )}>
-                          <item.icon className="h-4 w-4" />
+                          <item.icon className="h-4 w-4 sm:h-5 sm:w-5" />
                         </div>
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2">
                             <span className={cn(
-                              "text-sm font-medium truncate",
+                              "text-sm sm:text-base font-medium truncate",
                               isActive(item.href) ? "text-foreground" : "text-foreground/80 group-hover:text-foreground"
                             )}>
                               {item.name}
                             </span>
                             {item.badge && (
-                              <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+                              <Badge variant="secondary" className="h-5 px-1.5 text-xs sm:text-sm">
                                 {item.badge}
                               </Badge>
                             )}
                           </div>
                           {item.description && (
-                            <p className="text-xs text-muted-foreground truncate mt-0.5">
+                            <p className="text-xs sm:text-sm text-muted-foreground truncate mt-0.5">
                               {item.description}
                             </p>
                           )}
@@ -240,7 +241,7 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
                       </div>
 
                       <ChevronRight className={cn(
-                        "h-4 w-4 transition-colors flex-shrink-0",
+                        "h-4 w-4 sm:h-5 sm:w-5 transition-colors flex-shrink-0",
                         isActive(item.href) ? "text-purple-400" : "text-muted-foreground group-hover:text-cyan-400"
                       )} />
                     </div>
@@ -252,21 +253,21 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-white/20 space-y-3">
+        <div className="p-4 sm:p-6 border-t border-white/20 space-y-3 sm:space-y-4 bg-background/80">
           {!isLoggedIn ? (
             <Link href="/login">
               <Button 
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                className="w-full h-10 sm:h-12 text-sm sm:text-base bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                 onClick={onClose}
               >
-                <LogIn className="h-4 w-4 mr-2" />
+                <LogIn className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 Staff Login
               </Button>
             </Link>
           ) : (
             <Button 
               variant="outline"
-              className="w-full border-red-400/50 text-red-400 hover:bg-red-500/20"
+              className="w-full h-10 sm:h-12 text-sm sm:text-base border-red-400/50 text-red-400 hover:bg-red-500/20"
               onClick={() => {
                 localStorage.removeItem("user");
                 onClose();
@@ -278,7 +279,7 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
           )}
           
           <div className="text-center">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               © 2025 Hibla Filipino Hair
             </p>
           </div>
