@@ -123,12 +123,12 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
 
       {/* Drawer */}
       <div className={cn(
-        "fixed top-0 right-0 h-full w-full max-w-sm bg-background/95 backdrop-blur-xl border-l border-white/20 transform transition-transform duration-300 ease-out z-50 md:hidden shadow-2xl",
+        "fixed top-0 right-0 h-full w-full max-w-sm bg-background border-l border-white/20 transform transition-transform duration-300 ease-out z-50 md:hidden shadow-2xl",
         "xs:max-w-xs sm:max-w-sm",
         isOpen ? "translate-x-0" : "translate-x-full"
       )}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/20 bg-background/80">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/20 bg-background">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-purple-400/50">
               <img src={logoPath} alt="Hibla" className="w-full h-full object-contain" />
@@ -149,7 +149,7 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
         </div>
 
         {/* Search Bar */}
-        <div className="p-4 sm:p-6 border-b border-white/10 bg-background/60">
+        <div className="p-4 sm:p-6 border-b border-white/10 bg-background">
           <form onSubmit={handleSearch}>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
@@ -158,7 +158,7 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
                 placeholder="Search hair extensions..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 sm:pl-12 h-10 sm:h-12 bg-background/80 border-white/30 text-foreground text-sm sm:text-base"
+                className="pl-10 sm:pl-12 h-10 sm:h-12 bg-background border-white/30 text-foreground text-sm sm:text-base"
               />
             </div>
           </form>
@@ -166,8 +166,8 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
 
         {/* User Status */}
         {isLoggedIn && (
-          <div className="p-4 sm:p-6 border-b border-white/10 bg-background/60">
-            <div className="flex items-center space-x-3 bg-background/90 border border-white/20 p-3 sm:p-4 rounded-xl">
+          <div className="p-4 sm:p-6 border-b border-white/10 bg-background">
+            <div className="flex items-center space-x-3 bg-background border border-white/20 p-3 sm:p-4 rounded-xl">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                 <span className="text-xs sm:text-sm font-semibold text-white">
                   {user.name?.charAt(0).toUpperCase() || 'U'}
@@ -187,7 +187,7 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
         )}
 
         {/* Navigation Sections */}
-        <div className="flex-1 overflow-y-auto bg-background/40">
+        <div className="flex-1 overflow-y-auto bg-background">
           {sections.map((section, sectionIndex) => (
             <div key={section.title} className="py-4 sm:py-6">
               <div className="px-4 sm:px-6 mb-3">
@@ -203,8 +203,8 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
                       className={cn(
                         "flex items-center justify-between p-3 sm:p-4 mx-1 sm:mx-2 rounded-xl transition-all duration-200 group touch-manipulation min-h-[3.5rem] sm:min-h-[4rem]",
                         isActive(item.href)
-                          ? "bg-background/90 border border-purple-400/50 shadow-lg"
-                          : "hover:bg-background/70 hover:border hover:border-white/20"
+                          ? "bg-background border border-purple-400/50 shadow-lg"
+                          : "hover:bg-muted hover:border hover:border-white/20"
                       )}
                       onClick={onClose}
                     >
