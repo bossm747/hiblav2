@@ -104,17 +104,20 @@ export interface IStorage {
 
   // Orders
   getOrder(id: string): Promise<Order | undefined>;
-  getOrders(): Promise<Order[]>;
+  getOrders(filters?: { status?: string; customerId?: string; limit?: number }): Promise<Order[]>;
   getOrdersByCustomer(customerId: string): Promise<Order[]>;
   createOrder(order: InsertOrder): Promise<Order>;
   updateOrder(id: string, order: Partial<InsertOrder>): Promise<Order | undefined>;
+  updateOrderStatus(id: string, update: { status?: string; paymentStatus?: string; trackingNumber?: string }): Promise<Order | undefined>;
+  getOrderStats(): Promise<{ totalOrders: number; totalRevenue: number; pendingOrders: number; shippedOrders: number }>;
+  getRecentOrders(limit: number): Promise<Order[]>;
   
   // Order Items
   getOrderItems(orderId: string): Promise<OrderItem[]>;
   createOrderItem(item: InsertOrderItem): Promise<OrderItem>;
   
   // Cart
-  getCartItems(customerId: string): Promise<Cart[]>;
+  getCartItems(customerId: string): Promise<(Cart & { product: Product })[]>;
   addToCart(item: InsertCart): Promise<Cart>;
   updateCartItem(id: string, quantity: number): Promise<Cart | undefined>;
   removeFromCart(id: string): Promise<boolean>;
@@ -360,8 +363,23 @@ export class DatabaseStorage implements IStorage {
     return order;
   }
 
-  async getOrders(): Promise<Order[]> {
-    return await db.select().from(orders).orderBy(desc(orders.createdAt));
+  async getOrders(filters?: { status?: string; customerId?: string; limit?: number }): Promise<Order[]> {
+    let query = db.select().from(orders);
+    
+    if (filters?.status) {
+      query = query.where(eq(orders.status, filters.status));
+    }
+    if (filters?.customerId) {
+      query = query.where(eq(orders.customerId, filters.customerId));
+    }
+    
+    query = query.orderBy(desc(orders.createdAt));
+    
+    if (filters?.limit) {
+      query = query.limit(filters.limit);
+    }
+    
+    return await query;
   }
 
   async getOrdersByCustomer(customerId: string): Promise<Order[]> {
@@ -387,6 +405,34 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
+  async updateOrderStatus(id: string, update: { status?: string; paymentStatus?: string; trackingNumber?: string }): Promise<Order | undefined> {
+    const [updated] = await db.update(orders).set({ 
+      ...update, 
+      updatedAt: new Date() 
+    }).where(eq(orders.id, id)).returning();
+    return updated;
+  }
+
+  async getOrderStats(): Promise<{ totalOrders: number; totalRevenue: number; pendingOrders: number; shippedOrders: number }> {
+    const [stats] = await db.select({
+      totalOrders: sql<number>`count(*)`.as('totalOrders'),
+      totalRevenue: sql<number>`sum(cast(${orders.total} as decimal))`.as('totalRevenue'),
+      pendingOrders: sql<number>`sum(case when ${orders.status} = 'pending' then 1 else 0 end)`.as('pendingOrders'),
+      shippedOrders: sql<number>`sum(case when ${orders.status} = 'shipped' then 1 else 0 end)`.as('shippedOrders')
+    }).from(orders);
+    
+    return {
+      totalOrders: stats.totalOrders || 0,
+      totalRevenue: stats.totalRevenue || 0,
+      pendingOrders: stats.pendingOrders || 0,
+      shippedOrders: stats.shippedOrders || 0
+    };
+  }
+
+  async getRecentOrders(limit: number): Promise<Order[]> {
+    return await db.select().from(orders).orderBy(desc(orders.createdAt)).limit(limit);
+  }
+
   // Order Items methods
   async getOrderItems(orderId: string): Promise<OrderItem[]> {
     return await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
@@ -405,8 +451,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Cart methods
-  async getCartItems(customerId: string): Promise<Cart[]> {
-    return await db.select().from(cart).where(eq(cart.customerId, customerId));
+  async getCartItems(customerId: string): Promise<(Cart & { product: Product })[]> {
+    return await db
+      .select({
+        id: cart.id,
+        customerId: cart.customerId,
+        productId: cart.productId,
+        quantity: cart.quantity,
+        createdAt: cart.createdAt,
+        updatedAt: cart.updatedAt,
+        product: products
+      })
+      .from(cart)
+      .innerJoin(products, eq(cart.productId, products.id))
+      .where(eq(cart.customerId, customerId));
   }
 
   async addToCart(item: InsertCart): Promise<Cart> {

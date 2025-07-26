@@ -46,6 +46,8 @@ import TestAIPage from "@/pages/test-ai";
 import StylistRecommendationsPage from "@/pages/stylist-recommendations";
 import CategoriesPage from "@/pages/categories";
 import ContactPage from "@/pages/contact";
+import OrderConfirmationPage from "@/pages/order-confirmation";
+import AdminOrdersPage from "@/pages/admin/orders";
 // import OrdersPage from "@/pages/orders"; // TODO: Create this page
 
 function App() {
@@ -59,6 +61,7 @@ function App() {
             <Route path="/products" component={ProductsPage} />
             <Route path="/cart" component={CartPage} />
             <Route path="/checkout" component={CheckoutPage} />
+            <Route path="/order-confirmation/:orderId" component={OrderConfirmationPage} />
             <Route path="/about" component={AboutPage} />
             <Route path="/categories" component={CategoriesPage} />
             <Route path="/contact" component={ContactPage} />
@@ -101,6 +104,12 @@ function App() {
             <Route path="/inventory">
               <AuthGuard requiredRole="admin">
                 <InventoryPage />
+              </AuthGuard>
+            </Route>
+
+            <Route path="/admin/orders">
+              <AuthGuard requiredRole="admin">
+                <AdminOrdersPage />
               </AuthGuard>
             </Route>
             

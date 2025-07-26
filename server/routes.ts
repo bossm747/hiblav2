@@ -258,6 +258,265 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Orders routes
+  app.get("/api/orders", async (req, res) => {
+    try {
+      const { status, customer, limit = "50" } = req.query;
+      const orders = await storage.getOrders({
+        status: status as string,
+        customerId: customer as string,
+        limit: parseInt(limit as string)
+      });
+      res.json(orders);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  app.get("/api/orders/:id", async (req, res) => {
+    try {
+      const order = await storage.getOrder(req.params.id);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      res.json(order);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch order" });
+    }
+  });
+
+  app.post("/api/orders", async (req, res) => {
+    try {
+      const {
+        email,
+        firstName,
+        lastName,
+        phone,
+        address,
+        city,
+        province,
+        postalCode,
+        paymentMethod,
+        shippingMethod,
+        notes
+      } = req.body;
+
+      // Get cart items for demo customer
+      const customerId = "demo-customer-1";
+      const cartItems = await storage.getCartItems(customerId);
+      
+      if (!cartItems || cartItems.length === 0) {
+        return res.status(400).json({ message: "Cart is empty" });
+      }
+
+      // Calculate totals
+      const subtotal = cartItems.reduce((sum, item) => sum + (parseFloat(item.product.price) * item.quantity), 0);
+      const shippingFee = subtotal > 2000 ? 0 : (shippingMethod === "express" ? 300 : shippingMethod === "pickup" ? 0 : 150);
+      const tax = subtotal * 0.12;
+      const total = subtotal + shippingFee + tax;
+
+      // Create order
+      const orderData = {
+        customerId,
+        status: "pending",
+        paymentStatus: paymentMethod === "cod" ? "pending" : "paid",
+        paymentMethod,
+        shippingMethod,
+        shippingFee: shippingFee.toString(),
+        subtotal: subtotal.toString(),
+        tax: tax.toString(),
+        total: total.toString(),
+        shippingAddress: {
+          name: `${firstName} ${lastName}`,
+          phone,
+          address,
+          city,
+          province,
+          postalCode
+        },
+        billingAddress: {
+          name: `${firstName} ${lastName}`,
+          phone,
+          address,
+          city,
+          province,
+          postalCode
+        },
+        notes
+      };
+
+      const order = await storage.createOrder(orderData);
+
+      // Create order items
+      for (const item of cartItems) {
+        await storage.createOrderItem({
+          orderId: order.id,
+          productId: item.productId,
+          productName: item.product.name,
+          productImage: item.product.featuredImage || item.product.images?.[0],
+          price: item.product.price,
+          quantity: item.quantity,
+          total: (parseFloat(item.product.price) * item.quantity).toString()
+        });
+      }
+
+      // Clear cart after order creation
+      await storage.clearCart(customerId);
+
+      res.status(201).json(order);
+    } catch (error) {
+      console.error("Order creation error:", error);
+      res.status(500).json({ message: "Failed to create order" });
+    }
+  });
+
+  app.patch("/api/orders/:id/status", async (req, res) => {
+    try {
+      const { status, paymentStatus, trackingNumber } = req.body;
+      const order = await storage.updateOrderStatus(req.params.id, {
+        status,
+        paymentStatus,
+        trackingNumber
+      });
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      res.json(order);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update order status" });
+    }
+  });
+
+  app.get("/api/orders/:id/items", async (req, res) => {
+    try {
+      const orderItems = await storage.getOrderItems(req.params.id);
+      res.json(orderItems);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch order items" });
+    }
+  });
+
+  // Admin order management routes
+  app.get("/api/admin/orders/stats", async (req, res) => {
+    try {
+      const today = new Date();
+      const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
+      const stats = await storage.getOrderStats(startOfToday);
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch order stats" });
+    }
+  });
+
+  app.get("/api/admin/orders/recent", async (req, res) => {
+    try {
+      const orders = await storage.getRecentOrders(20);
+      res.json(orders);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch recent orders" });
+    }
+  });
+
+  // Payment processing routes (placeholder for PlataPay integration)
+  app.post("/api/payments/process", async (req, res) => {
+    try {
+      const { orderId, paymentMethod, amount } = req.body;
+      
+      // This is where PlataPay integration will be implemented
+      // For now, simulate payment processing
+      if (paymentMethod === "cod") {
+        res.json({
+          success: true,
+          paymentId: `COD-${Date.now()}`,
+          status: "pending",
+          message: "Cash on Delivery order created"
+        });
+      } else {
+        // Simulate online payment
+        res.json({
+          success: true,
+          paymentId: `PAY-${Date.now()}`,
+          status: "paid",
+          message: "Payment processed successfully"
+        });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Payment processing failed" });
+    }
+  });
+
+  app.post("/api/payments/platapay/webhook", async (req, res) => {
+    try {
+      // Handle PlataPay webhook notifications
+      const { orderId, status, transactionId } = req.body;
+      
+      if (status === "completed") {
+        await storage.updateOrderStatus(orderId, {
+          paymentStatus: "paid",
+          trackingNumber: transactionId
+        });
+      }
+      
+      res.status(200).json({ received: true });
+    } catch (error) {
+      res.status(500).json({ message: "Webhook processing failed" });
+    }
+  });
+
+  // Get single order
+  app.get("/api/orders/:id", async (req, res) => {
+    try {
+      const order = await storage.getOrder(req.params.id);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      res.json(order);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch order" });
+    }
+  });
+
+  // Get order items
+  app.get("/api/orders/:id/items", async (req, res) => {
+    try {
+      const orderItems = await storage.getOrderItems(req.params.id);
+      res.json(orderItems);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch order items" });
+    }
+  });
+
+  // Update order status
+  app.patch("/api/orders/:id/status", async (req, res) => {
+    try {
+      const { status, paymentStatus, trackingNumber } = req.body;
+      const updates: Partial<InsertOrder> = {};
+      
+      if (status) updates.status = status;
+      if (paymentStatus) updates.paymentStatus = paymentStatus;
+      if (trackingNumber !== undefined) updates.trackingNumber = trackingNumber;
+      
+      const order = await storage.updateOrder(req.params.id, updates);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      res.json(order);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update order" });
+    }
+  });
+
+  // Admin order statistics
+  app.get("/api/admin/orders/stats", async (req, res) => {
+    try {
+      const stats = await storage.getOrderStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch order statistics" });
+    }
+  });
+
   // Wishlist routes - simplified for demo (no authentication)
   app.get("/api/wishlist", async (req, res) => {
     try {

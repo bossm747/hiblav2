@@ -93,6 +93,7 @@ export function RoleBasedSidebar({ isOpen, onClose, className }: RoleBasedSideba
       items: [
         { name: "Inventory Management", href: "/inventory", icon: Package, description: "Stock management" },
         { name: "Point of Sale", href: "/pos", icon: CreditCard, description: "Process sales" },
+        { name: "Order Management", href: "/admin/orders", icon: Package, description: "Customer orders" },
         { name: "Products", href: "/product-management", icon: ShoppingBag, description: "Product catalog" },
       ]
     },
