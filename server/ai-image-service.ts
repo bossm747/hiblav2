@@ -4,7 +4,7 @@ import path from 'path';
 interface ImageGenerationRequest {
   productName: string;
   description?: string;
-  hairType: 'human' | 'synthetic';
+  hairType: 'human';
   texture: 'straight' | 'curly' | 'wavy';
   color: string;
   length: number;
@@ -105,7 +105,7 @@ class AIImageService {
     // Analyze product name and description for expert context
     const analysisContext = this.analyzeProductContext(productName, description, category);
     
-    const hairTypeDesc = hairType === 'human' ? 'premium human hair' : 'high-quality synthetic hair';
+    const hairTypeDesc = 'premium human hair';
     const textureDesc = textureDescriptions[texture] || texture;
     const colorDesc = colorDescriptions[color as keyof typeof colorDescriptions] || color.toLowerCase();
 

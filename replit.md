@@ -2,14 +2,14 @@
 
 ## Overview
 
-This is an e-commerce platform for synthetic and real human hair extensions (piloka), built with a modern React frontend and Express.js backend, specifically for the Philippine market. The application provides a complete online shopping experience for hair extensions with product catalog, shopping cart, order management, and customer accounts. It features a clean, professional interface using ShadCN UI components with Philippine Peso (₱) currency support and follows a full-stack TypeScript architecture.
+This is an e-commerce platform for premium human hair extensions (piloka), built with a modern React frontend and Express.js backend, specifically for the Philippine market. The application provides a complete online shopping experience for hair extensions with product catalog, shopping cart, order management, and customer accounts. It features a clean, professional interface using ShadCN UI components with Philippine Peso (₱) currency support and follows a full-stack TypeScript architecture.
 
 ## User Preferences
 
 - Preferred communication style: Simple, everyday language
 - Market focus: Philippine hair extensions market
 - Business: Hibla Filipino Hair (Instagram: @hibla.filipinohumanhair)
-- Products: Synthetic and real human hair extensions ("piloka")
+- Products: Premium human hair extensions ("piloka")
 - Currency: Philippine Peso (₱) instead of USD ($)
 - Brand Assets: Hibla logo provided (circular design with elegant typography)
 - Transformation requested: Convert spa/salon system to e-commerce shop for hair extensions
@@ -139,6 +139,18 @@ RESTful API with the following endpoints:
 The architecture prioritizes developer experience with hot reloading, type safety across the full stack, and a component-based UI system that scales well for business applications.
 
 ## Recent Changes
+
+### Synthetic Hair Removal & Brand Alignment (Jan 26, 2025)
+- **Complete Synthetic Hair Elimination**: Removed all references to synthetic hair products throughout the platform
+  - Removed synthetic hair products from seed data (server/seed-ecommerce.ts)
+  - Updated AI image service to only support human hair types
+  - Updated platform meta tags and descriptions to emphasize "real human hair only"
+  - Changed home page content to focus exclusively on premium human hair extensions
+  - Replaced synthetic hair category links with hair care category throughout navigation
+- **Brand Message Consistency**: Aligned all content with Hibla's exclusive focus on premium human hair
+  - Updated documentation to specify "Premium human hair extensions" instead of mixed products
+  - Modified SEO titles and descriptions to highlight authentic, real human hair positioning
+  - Ensured footer navigation and category sections reflect human hair-only business model
 
 ### Deployment Readiness & Production Fixes (Jan 26, 2025)
 - **Environment Validation**: Added comprehensive environment variable validation at startup

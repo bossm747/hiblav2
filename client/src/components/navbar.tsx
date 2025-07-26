@@ -20,7 +20,6 @@ export function Navbar() {
     { name: "Shop Now", href: "/products" },
     { name: "Catalog", href: "/products" },
     { name: "Human Hair", href: "/products?category=human" },
-    { name: "Synthetic Hair", href: "/products?category=synthetic" },
     { name: "About", href: "/about" },
     { name: "Help", href: "/docs" },
   ];

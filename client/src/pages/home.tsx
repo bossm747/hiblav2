@@ -109,7 +109,7 @@ export default function HomePage() {
                 Premium Filipino Hair Extensions
               </h1>
               <p className="text-xl mb-8 text-foreground/80">
-                Discover our collection of high-quality synthetic and real human hair "piloka" extensions. 
+                Discover our collection of high-quality real human hair "piloka" extensions. 
                 Transform your look with authentic Filipino beauty.
               </p>
               <div className="space-x-4">
@@ -370,12 +370,12 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12 text-foreground neon-text-pink">Shop by Category</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Link href="/products?category=synthetic" className="group relative h-64 rounded-lg overflow-hidden block glass-card neon-purple hover:scale-105 transition-transform">
+            <Link href="/products?category=hair-care" className="group relative h-64 rounded-lg overflow-hidden block glass-card neon-purple hover:scale-105 transition-transform">
               <div className="absolute inset-0 glass-dark" />
               <div className="relative h-full flex items-center justify-center">
                 <div className="text-center z-10">
-                  <h3 className="text-2xl font-bold mb-2 text-foreground neon-text-purple">Synthetic Hair</h3>
-                  <p className="text-foreground/80">Affordable and versatile options</p>
+                  <h3 className="text-2xl font-bold mb-2 text-foreground neon-text-purple">Hair Care</h3>
+                  <p className="text-foreground/80">Premium care products for your hair</p>
                 </div>
               </div>
             </Link>
@@ -413,7 +413,7 @@ export default function HomePage() {
             <div>
               <h4 className="font-semibold mb-4 text-foreground neon-text-purple">Categories</h4>
               <ul className="space-y-2">
-                <li><Link href="/products?category=synthetic" className="text-muted-foreground hover:text-foreground hover:neon-text-cyan transition-all">Synthetic Hair</Link></li>
+                <li><Link href="/products?category=hair-care" className="text-muted-foreground hover:text-foreground hover:neon-text-cyan transition-all">Hair Care</Link></li>
                 <li><Link href="/products?category=human" className="text-muted-foreground hover:text-foreground hover:neon-text-cyan transition-all">Human Hair</Link></li>
                 <li><Link href="/products?category=accessories" className="text-muted-foreground hover:text-foreground hover:neon-text-cyan transition-all">Accessories</Link></li>
               </ul>

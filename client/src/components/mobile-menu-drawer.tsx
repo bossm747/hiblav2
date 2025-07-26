@@ -58,7 +58,7 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
         { name: "Home", href: "/", icon: Home, description: "Welcome & featured products" },
         { name: "All Products", href: "/products", icon: ShoppingBag, description: "Browse complete catalog" },
         { name: "Human Hair", href: "/products?category=human", icon: Sparkles, description: "Premium human hair extensions" },
-        { name: "Synthetic Hair", href: "/products?category=synthetic", icon: Package, description: "High-quality synthetic options" },
+        { name: "Korean HD Lace", href: "/products?category=korean-hd", icon: Package, description: "High-definition Korean lace hair" },
       ]
     },
     {
