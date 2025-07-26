@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProductDetailModal } from "@/components/product-detail-modal";
+import { MobileMenuDrawer } from "@/components/mobile-menu-drawer";
 import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@shared/schema";
 import logoPath from "@assets/Hiblalogo_1753513948082.png";
@@ -179,42 +180,11 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden glass-dark border-t border-white/10">
-            <div className="px-4 py-4 space-y-4">
-              <Input
-                type="search"
-                placeholder="Search for hair extensions..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full glass border-white/20 text-foreground placeholder:text-muted-foreground"
-              />
-              <nav className="flex flex-col space-y-2">
-                <Link href="/products" className="text-foreground/80 hover:text-foreground hover:neon-text-cyan py-2">
-                  All Products
-                </Link>
-                <Link href="/products?category=synthetic" className="text-foreground/80 hover:text-foreground hover:neon-text-cyan py-2">
-                  Synthetic Hair
-                </Link>
-                <Link href="/products?category=human" className="text-foreground/80 hover:text-foreground hover:neon-text-cyan py-2">
-                  Human Hair
-                </Link>
-                <Link href="/about" className="text-foreground/80 hover:text-foreground hover:neon-text-cyan py-2">
-                  About Us
-                </Link>
-                <div className="border-t border-white/20 pt-2 mt-2">
-                  <Link href="/pos" className="text-foreground/80 hover:text-foreground hover:neon-text-purple py-2 font-medium">
-                    Point of Sale
-                  </Link>
-                  <Link href="/inventory" className="text-foreground/80 hover:text-foreground hover:neon-text-purple py-2 font-medium">
-                    Inventory Management
-                  </Link>
-                </div>
-              </nav>
-            </div>
-          </div>
-        )}
+        {/* Modern Mobile Menu Drawer */}
+        <MobileMenuDrawer 
+          isOpen={mobileMenuOpen} 
+          onClose={() => setMobileMenuOpen(false)} 
+        />
       </header>
 
       {/* Hero Section */}

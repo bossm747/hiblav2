@@ -190,7 +190,7 @@ export default function ProductManagement() {
 
     const productData = {
       ...formData,
-      featuredImage: formData.images?.[0] || null
+      featuredImage: formData.images?.[0] || undefined
     };
 
     if (isEditing && selectedProduct) {

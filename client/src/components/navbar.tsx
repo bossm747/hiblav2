@@ -4,6 +4,7 @@ import { ShoppingCart, Heart, User, Menu, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { MobileMenuDrawer } from "@/components/mobile-menu-drawer";
 import logoPath from "@assets/Hiblalogo_1753513948082.png";
 
 export function Navbar() {
