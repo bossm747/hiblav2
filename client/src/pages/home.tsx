@@ -146,11 +146,11 @@ export default function HomePage() {
               <HairAnimation3D />
               {/* Logo Overlay */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-full glass-card neon-glow border-2 border-white/20 p-4 backdrop-blur-sm animate-pulse hover:animate-none transition-all duration-500">
+                <div className="w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64">
                   <img 
                     src={logoPath} 
                     alt="Hibla Filipino Hair" 
-                    className="w-full h-full object-contain drop-shadow-2xl animate-float"
+                    className="w-full h-full object-contain"
                   />
                 </div>
               </div>
