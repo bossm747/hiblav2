@@ -1,189 +1,65 @@
-import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from 'react';
+import logoPath from "@assets/Untitled design_1753503650014.png";
 
-interface PreloaderProps {
-  onComplete: () => void;
-}
-
-export default function Preloader({ onComplete }: PreloaderProps) {
+export function Preloader() {
+  const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
-  const [currentText, setCurrentText] = useState("Initializing...");
-
-  const loadingTexts = [
-    "Initializing spa system...",
-    "Loading services...",
-    "Preparing appointments...",
-    "Setting up inventory...",
-    "Almost ready...",
-  ];
 
   useEffect(() => {
-    // Run for exactly 5 seconds
-    const startTime = Date.now();
-    const duration = 5000; // 5 seconds
-    
+    // Simulate loading progress
     const interval = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const progressPercent = Math.min((elapsed / duration) * 100, 100);
-      
       setProgress((prev) => {
-        const newProgress = Math.min(progressPercent + Math.random() * 5, 100);
-        
-        // Update loading text based on progress
-        if (newProgress > 20) setCurrentText(loadingTexts[1]);
-        if (newProgress > 40) setCurrentText(loadingTexts[2]);
-        if (newProgress > 60) setCurrentText(loadingTexts[3]);
-        if (newProgress > 80) setCurrentText(loadingTexts[4]);
-        
-        // Complete after 5 seconds
-        if (elapsed >= duration) {
+        if (prev >= 100) {
           clearInterval(interval);
-          setTimeout(onComplete, 800);
+          setTimeout(() => setIsLoading(false), 500);
           return 100;
         }
-
-        return newProgress;
+        return prev + 10;
       });
     }, 100);
 
     return () => clearInterval(interval);
-  }, [onComplete]);
+  }, []);
+
+  if (!isLoading) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-pink-50 via-white to-rose-50"
-      >
-        {/* Animated Background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-10 -left-10 w-40 h-40 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-bounce"></div>
-          <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-rose-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-bounce" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-bounce" style={{ animationDelay: '2s' }}></div>
+    <div className="fixed inset-0 z-[9999] bg-background flex items-center justify-center">
+      <div className="text-center">
+        {/* Animated Logo */}
+        <div className="relative mb-8">
+          <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 blur-xl opacity-50" />
+          <img 
+            src={logoPath} 
+            alt="Hibla Filipino Hair" 
+            className="relative h-32 w-auto brightness-200 invert animate-spin-slow"
+          />
         </div>
 
-        <div className="relative z-10 text-center">
-          {/* Logo Animation */}
-          <motion.div
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="mb-8"
-          >
-            <div className="relative">
-              <motion.h1
-                className="text-6xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-rose-500 to-purple-600"
-                style={{ fontFamily: "'Dancing Script', cursive" }}
-                animate={{
-                  backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: "linear"
-                }}
-              >
-                Serenity
-              </motion.h1>
-              <motion.p
-                className="text-2xl md:text-3xl text-slate-600 mt-2"
-                style={{ fontFamily: "'Dancing Script', cursive" }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                Spa & Salon
-              </motion.p>
-              
-              {/* Sparkle Effects */}
-              <motion.div
-                className="absolute -top-2 -right-2 text-pink-400 text-2xl"
-                animate={{
-                  rotate: [0, 360],
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              >
-                ✨
-              </motion.div>
-              <motion.div
-                className="absolute bottom-0 -left-4 text-rose-400 text-xl"
-                animate={{
-                  rotate: [360, 0],
-                  scale: [1, 1.1, 1],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: 0.5
-                }}
-              >
-                💫
-              </motion.div>
-            </div>
-          </motion.div>
+        {/* Loading Text */}
+        <h2 className="text-2xl font-bold text-foreground neon-text-purple mb-4">
+          Hibla Filipino Hair
+        </h2>
+        <p className="text-muted-foreground mb-8">
+          Loading premium hair extensions...
+        </p>
 
-          {/* Progress Bar */}
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: "300px", opacity: 1 }}
-            transition={{ delay: 1, duration: 0.5 }}
-            className="mx-auto mb-6"
-          >
-            <div className="bg-white/30 backdrop-blur-sm rounded-full h-3 border border-white/20 shadow-lg">
-              <motion.div
-                className="h-full bg-gradient-to-r from-pink-400 to-rose-500 rounded-full shadow-sm"
-                initial={{ width: "0%" }}
-                animate={{ width: `${progress}%` }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-              />
-            </div>
-            <p className="text-sm text-slate-600 mt-2">{Math.round(progress)}%</p>
-          </motion.div>
-
-          {/* Loading Text */}
-          <motion.p
-            key={currentText}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="text-slate-600 font-medium"
-          >
-            {currentText}
-          </motion.p>
-
-          {/* Floating Elements */}
-          <div className="absolute inset-0 pointer-events-none">
-            {[...Array(6)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-2 h-2 bg-pink-300 rounded-full"
-                style={{
-                  left: `${20 + (i * 15)}%`,
-                  top: `${30 + (i % 2) * 40}%`,
-                }}
-                animate={{
-                  y: [0, -20, 0],
-                  opacity: [0.3, 1, 0.3],
-                }}
-                transition={{
-                  duration: 2 + (i * 0.2),
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: i * 0.3,
-                }}
-              />
-            ))}
-          </div>
+        {/* Progress Bar */}
+        <div className="w-64 h-2 bg-white/10 rounded-full overflow-hidden mx-auto">
+          <div 
+            className="h-full bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 transition-all duration-300 ease-out"
+            style={{ width: `${progress}%` }}
+          />
         </div>
-      </motion.div>
-    </AnimatePresence>
+        <p className="text-sm text-muted-foreground mt-2">{progress}%</p>
+
+        {/* Animated Hair Strands */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/2 left-1/4 w-px h-32 bg-gradient-to-b from-transparent via-purple-500 to-transparent opacity-30 animate-float-1" />
+          <div className="absolute top-1/2 left-1/2 w-px h-40 bg-gradient-to-b from-transparent via-cyan-500 to-transparent opacity-30 animate-float-2" />
+          <div className="absolute top-1/2 right-1/4 w-px h-36 bg-gradient-to-b from-transparent via-pink-500 to-transparent opacity-30 animate-float-3" />
+        </div>
+      </div>
+    </div>
   );
 }
