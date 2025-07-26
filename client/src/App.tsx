@@ -43,6 +43,7 @@ import StaffAdminPage from "@/pages/staff-admin";
 import SettingsAdminPage from "@/pages/settings-admin";
 import NotFound from "@/pages/not-found";
 import TestAIPage from "@/pages/test-ai";
+import StylistRecommendationsPage from "@/pages/stylist-recommendations";
 
 function App() {
   return (
@@ -62,6 +63,7 @@ function App() {
               <DocumentationPage onBack={() => window.history.back()} />
             </Route>
             <Route path="/test-ai" component={TestAIPage} />
+            <Route path="/stylist-recommendations" component={StylistRecommendationsPage} />
             <Route path="/login" component={LoginPage} />
             
             {/* Protected Customer Routes */}

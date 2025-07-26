@@ -17,6 +17,10 @@ import {
   services,
   appointments,
   staffSchedules,
+  stylists,
+  customerPreferences,
+  stylistRecommendations,
+  stylistReviews,
   type Customer,
   type InsertCustomer,
   type Category,
@@ -49,6 +53,14 @@ import {
   type InsertAppointment,
   type StaffSchedule,
   type InsertStaffSchedule,
+  type Stylist,
+  type InsertStylist,
+  type CustomerPreferences,
+  type InsertCustomerPreferences,
+  type StylistRecommendation,
+  type InsertStylistRecommendation,
+  type StylistReview,
+  type InsertStylistReview,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -165,6 +177,31 @@ export interface IStorage {
   createStaffSchedule(schedule: InsertStaffSchedule): Promise<StaffSchedule>;
   updateStaffSchedule(id: string, schedule: Partial<InsertStaffSchedule>): Promise<StaffSchedule | undefined>;
   deleteStaffSchedule(id: string): Promise<boolean>;
+
+  // Stylist Management
+  getStylist(id: string): Promise<Stylist | undefined>;
+  getStylists(): Promise<Stylist[]>;
+  getActiveStylists(): Promise<Stylist[]>;
+  createStylist(stylist: InsertStylist): Promise<Stylist>;
+  updateStylist(id: string, stylist: Partial<InsertStylist>): Promise<Stylist | undefined>;
+  deleteStylist(id: string): Promise<boolean>;
+  getStylistsByLocation(location: string): Promise<Stylist[]>;
+  getStylistsBySpecialty(specialty: string): Promise<Stylist[]>;
+
+  // Customer Preferences
+  getCustomerPreferences(customerId: string): Promise<CustomerPreferences | undefined>;
+  createCustomerPreferences(preferences: InsertCustomerPreferences): Promise<CustomerPreferences>;
+  updateCustomerPreferences(customerId: string, preferences: Partial<InsertCustomerPreferences>): Promise<CustomerPreferences | undefined>;
+
+  // Stylist Recommendations
+  getStylistRecommendations(customerId: string): Promise<StylistRecommendation[]>;
+  createStylistRecommendation(recommendation: InsertStylistRecommendation): Promise<StylistRecommendation>;
+  updateRecommendationStatus(id: string, status: string, feedback?: string, rating?: number): Promise<StylistRecommendation | undefined>;
+
+  // Stylist Reviews
+  getStylistReviews(stylistId: string): Promise<StylistReview[]>;
+  createStylistReview(review: InsertStylistReview): Promise<StylistReview>;
+  updateStylistRating(stylistId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -657,6 +694,144 @@ export class DatabaseStorage implements IStorage {
   async deleteStaffSchedule(id: string): Promise<boolean> {
     const result = await db.delete(staffSchedules).where(eq(staffSchedules.id, id));
     return (result.rowCount ?? 0) > 0;
+  }
+
+  // Stylist Management Methods
+  async getStylist(id: string): Promise<Stylist | undefined> {
+    const [stylist] = await db.select().from(stylists).where(eq(stylists.id, id));
+    return stylist;
+  }
+
+  async getStylists(): Promise<Stylist[]> {
+    return await db.select().from(stylists).orderBy(desc(stylists.rating), desc(stylists.totalReviews));
+  }
+
+  async getActiveStylists(): Promise<Stylist[]> {
+    return await db.select().from(stylists)
+      .where(and(eq(stylists.isActive, true), eq(stylists.isVerified, true)))
+      .orderBy(desc(stylists.rating), desc(stylists.totalReviews));
+  }
+
+  async createStylist(stylist: InsertStylist): Promise<Stylist> {
+    const [newStylist] = await db.insert(stylists).values(stylist).returning();
+    return newStylist;
+  }
+
+  async updateStylist(id: string, stylist: Partial<InsertStylist>): Promise<Stylist | undefined> {
+    const [updated] = await db.update(stylists)
+      .set({ ...stylist, updatedAt: new Date() })
+      .where(eq(stylists.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteStylist(id: string): Promise<boolean> {
+    const [deleted] = await db.update(stylists)
+      .set({ isActive: false })
+      .where(eq(stylists.id, id))
+      .returning();
+    return !!deleted;
+  }
+
+  async getStylistsByLocation(location: string): Promise<Stylist[]> {
+    return await db.select().from(stylists)
+      .where(and(
+        eq(stylists.isActive, true),
+        eq(stylists.isVerified, true),
+        like(stylists.location, `%${location}%`)
+      ))
+      .orderBy(desc(stylists.rating));
+  }
+
+  async getStylistsBySpecialty(specialty: string): Promise<Stylist[]> {
+    return await db.select().from(stylists)
+      .where(and(
+        eq(stylists.isActive, true),
+        eq(stylists.isVerified, true),
+        sql`${stylists.specialties} @> ARRAY[${specialty}]`
+      ))
+      .orderBy(desc(stylists.rating));
+  }
+
+  // Customer Preferences Methods
+  async getCustomerPreferences(customerId: string): Promise<CustomerPreferences | undefined> {
+    const [preferences] = await db.select().from(customerPreferences)
+      .where(eq(customerPreferences.customerId, customerId));
+    return preferences;
+  }
+
+  async createCustomerPreferences(preferences: InsertCustomerPreferences): Promise<CustomerPreferences> {
+    const [newPreferences] = await db.insert(customerPreferences).values(preferences).returning();
+    return newPreferences;
+  }
+
+  async updateCustomerPreferences(customerId: string, preferences: Partial<InsertCustomerPreferences>): Promise<CustomerPreferences | undefined> {
+    const [updated] = await db.update(customerPreferences)
+      .set({ ...preferences, updatedAt: new Date() })
+      .where(eq(customerPreferences.customerId, customerId))
+      .returning();
+    return updated;
+  }
+
+  // Stylist Recommendations Methods
+  async getStylistRecommendations(customerId: string): Promise<StylistRecommendation[]> {
+    return await db.select().from(stylistRecommendations)
+      .where(eq(stylistRecommendations.customerId, customerId))
+      .orderBy(desc(stylistRecommendations.matchScore), desc(stylistRecommendations.createdAt));
+  }
+
+  async createStylistRecommendation(recommendation: InsertStylistRecommendation): Promise<StylistRecommendation> {
+    const [newRecommendation] = await db.insert(stylistRecommendations).values(recommendation).returning();
+    return newRecommendation;
+  }
+
+  async updateRecommendationStatus(id: string, status: string, feedback?: string, rating?: number): Promise<StylistRecommendation | undefined> {
+    const updateData: any = { status, updatedAt: new Date() };
+    if (feedback) updateData.customerFeedback = feedback;
+    if (rating) updateData.feedbackRating = rating;
+
+    const [updated] = await db.update(stylistRecommendations)
+      .set(updateData)
+      .where(eq(stylistRecommendations.id, id))
+      .returning();
+    return updated;
+  }
+
+  // Stylist Reviews Methods
+  async getStylistReviews(stylistId: string): Promise<StylistReview[]> {
+    return await db.select().from(stylistReviews)
+      .where(eq(stylistReviews.stylistId, stylistId))
+      .orderBy(desc(stylistReviews.createdAt));
+  }
+
+  async createStylistReview(review: InsertStylistReview): Promise<StylistReview> {
+    const [newReview] = await db.insert(stylistReviews).values(review).returning();
+    
+    // Update stylist rating after creating review
+    await this.updateStylistRating(review.stylistId);
+    
+    return newReview;
+  }
+
+  async updateStylistRating(stylistId: string): Promise<void> {
+    // Calculate average rating and total reviews
+    const result = await db.select({
+      avgRating: sql<string>`AVG(${stylistReviews.rating})`,
+      totalReviews: sql<string>`COUNT(*)`
+    }).from(stylistReviews)
+      .where(eq(stylistReviews.stylistId, stylistId));
+
+    const { avgRating, totalReviews } = result[0];
+    
+    if (avgRating && totalReviews) {
+      await db.update(stylists)
+        .set({
+          rating: parseFloat(avgRating).toFixed(2),
+          totalReviews: parseInt(totalReviews),
+          updatedAt: new Date()
+        })
+        .where(eq(stylists.id, stylistId));
+    }
   }
 }
 

@@ -19,8 +19,13 @@ import {
   insertClientSchema,
   insertServiceSchema,
   insertAppointmentSchema,
-  insertStaffScheduleSchema
+  insertStaffScheduleSchema,
+  insertStylistSchema,
+  insertCustomerPreferencesSchema,
+  insertStylistRecommendationSchema,
+  insertStylistReviewSchema,
 } from "@shared/schema";
+import { aiStylistService } from "./ai-stylist-service";
 // import { sendAppointmentNotification } from "./notification-service";
 import multer from "multer";
 import path from "path";
@@ -1631,6 +1636,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Marketing stats - Disabled for e-commerce platform
   app.get("/api/marketing/stats", async (req, res) => {
     res.status(404).json({ message: "Marketing stats not available in e-commerce platform" });
+  });
+
+  // Stylist Management Routes
+  app.get("/api/stylists", async (req, res) => {
+    try {
+      const { location, specialty, active } = req.query;
+      let stylists;
+      
+      if (location) {
+        stylists = await storage.getStylistsByLocation(location as string);
+      } else if (specialty) {
+        stylists = await storage.getStylistsBySpecialty(specialty as string);
+      } else if (active === 'true') {
+        stylists = await storage.getActiveStylists();
+      } else {
+        stylists = await storage.getStylists();
+      }
+      
+      res.json(stylists);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch stylists" });
+    }
+  });
+
+  app.post("/api/stylists", async (req, res) => {
+    try {
+      const stylistData = insertStylistSchema.parse(req.body);
+      const stylist = await storage.createStylist(stylistData);
+      res.status(201).json(stylist);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid stylist data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create stylist" });
+    }
+  });
+
+  // Customer Preferences Routes
+  app.post("/api/customer-preferences", async (req, res) => {
+    try {
+      const preferencesData = insertCustomerPreferencesSchema.parse(req.body);
+      const preferences = await storage.createCustomerPreferences(preferencesData);
+      res.status(201).json(preferences);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid preferences data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create customer preferences" });
+    }
+  });
+
+  // AI Stylist Recommendations Routes
+  app.post("/api/stylist-recommendations/generate", async (req, res) => {
+    try {
+      const { customerId, customerProfile } = req.body;
+      
+      // Get customer preferences
+      const customerPreferences = await storage.getCustomerPreferences(customerId);
+      if (!customerPreferences) {
+        return res.status(404).json({ message: "Customer preferences not found. Please set preferences first." });
+      }
+      
+      // Get available stylists
+      const availableStylists = await storage.getActiveStylists();
+      if (availableStylists.length === 0) {
+        return res.status(404).json({ message: "No active stylists available" });
+      }
+      
+      // Generate AI recommendations
+      const aiRecommendations = await aiStylistService.generateStylistRecommendations({
+        customerPreferences,
+        availableStylists,
+        customerProfile
+      });
+      
+      // Save recommendations to database
+      const savedRecommendations = [];
+      for (const aiRec of aiRecommendations) {
+        const recommendation = await storage.createStylistRecommendation({
+          customerId,
+          stylistId: aiRec.stylistId,
+          matchScore: aiRec.matchScore.toString(),
+          matchReason: aiRec.matchReason,
+          strengths: aiRec.strengths,
+          considerations: aiRec.considerations,
+          recommendedServices: aiRec.recommendedServices,
+          estimatedPrice: aiRec.estimatedPrice?.toString(),
+          aiModel: "gpt-4o",
+          aiPrompt: "AI-generated stylist matching based on customer preferences"
+        });
+        savedRecommendations.push(recommendation);
+      }
+      
+      res.json(savedRecommendations);
+    } catch (error) {
+      console.error("AI Stylist Recommendation Error:", error);
+      res.status(500).json({ message: "Failed to generate stylist recommendations" });
+    }
+  });
+
+  app.get("/api/stylist-recommendations/:customerId", async (req, res) => {
+    try {
+      const recommendations = await storage.getStylistRecommendations(req.params.customerId);
+      res.json(recommendations);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch stylist recommendations" });
+    }
   });
 
   const httpServer = createServer(app);
