@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { RoleBasedSidebar } from "@/components/layout/role-based-sidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 
 export function Navbar() {
@@ -107,29 +108,32 @@ export function Navbar() {
                   )}
                 </Button>
               </Link>
-              <div className="border-l border-white/20 ml-3 pl-3">
-                {isLoggedIn ? (
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-foreground hidden md:inline">
-                      {user.name}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleLogout}
-                      className="border-red-500/50 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all"
-                    >
-                      <LogOut className="h-4 w-4 md:mr-2" />
-                      <span className="hidden md:inline">Logout</span>
-                    </Button>
-                  </div>
-                ) : (
-                  <Link href="/login">
-                    <Button variant="outline" size="sm" className="border-primary hover:bg-primary/20 hover:neon-text-cyan transition-all">
-                      Login
-                    </Button>
-                  </Link>
-                )}
+              <div className="flex items-center space-x-3">
+                <ThemeToggle />
+                <div className="border-l border-white/20 pl-3">
+                  {isLoggedIn ? (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-foreground hidden md:inline">
+                        {user.name}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleLogout}
+                        className="border-red-500/50 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all"
+                      >
+                        <LogOut className="h-4 w-4 md:mr-2" />
+                        <span className="hidden md:inline">Logout</span>
+                      </Button>
+                    </div>
+                  ) : (
+                    <Link href="/login">
+                      <Button variant="outline" size="sm" className="border-primary hover:bg-primary/20 hover:neon-text-cyan transition-all">
+                        Login
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
 

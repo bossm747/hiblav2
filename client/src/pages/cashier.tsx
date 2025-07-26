@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RoleBasedSidebar } from "@/components/layout/role-based-sidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { 
   CreditCard, 
   Package, 
@@ -121,14 +122,17 @@ export default function CashierPage() {
                 <h1 className="text-lg font-bold text-foreground neon-text-cyan">Cashier Dashboard</h1>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-              className="border-red-500/50 text-red-400 hover:bg-red-500/20"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center space-x-2">
+              <ThemeToggle />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="border-red-500/50 text-red-400 hover:bg-red-500/20"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -143,15 +147,18 @@ export default function CashierPage() {
                   <p className="text-sm text-muted-foreground">Welcome back, {user.name}</p>
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-                className="border-red-500/50 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
+              <div className="flex items-center space-x-2">
+                <ThemeToggle />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="border-red-500/50 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
             </div>
           </div>
         </header>

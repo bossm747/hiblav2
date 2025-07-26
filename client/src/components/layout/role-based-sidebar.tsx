@@ -22,6 +22,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 
 interface RoleBasedSidebarProps {
@@ -331,6 +332,10 @@ export function RoleBasedSidebar({ isOpen, onClose, className }: RoleBasedSideba
               <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
             </div>
           )}
+          <div className="flex items-center space-x-2 mb-3">
+            <ThemeToggle />
+            <span className="text-sm text-muted-foreground">Theme</span>
+          </div>
           <Button
             variant="outline"
             onClick={handleLogout}
