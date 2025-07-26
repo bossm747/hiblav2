@@ -1,139 +1,172 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { aiService } from "./ai-service";
+// import { aiService } from "./ai-service";
 import {
-  insertClientSchema,
-  insertServiceSchema,
+  insertCustomerSchema,
+  insertCategorySchema,
   insertStaffSchema,
-  insertAppointmentSchema,
   insertProductSchema,
   insertSupplierSchema,
+  insertOrderSchema,
+  insertOrderItemSchema,
+  insertCartSchema,
+  insertWishlistSchema,
+  insertReviewSchema,
   insertInventoryTransactionSchema,
-  insertTransactionSchema,
-  insertTimeRecordSchema,
-  insertNotificationSettingsSchema
+  insertShopSettingsSchema
 } from "@shared/schema";
-import { sendAppointmentNotification } from "./notification-service";
+// import { sendAppointmentNotification } from "./notification-service";
 import multer from "multer";
 import path from "path";
 import { promises as fs } from "fs";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Clients routes
-  app.get("/api/clients", async (req, res) => {
+  // Categories routes
+  app.get("/api/categories", async (req, res) => {
     try {
-      const clients = await storage.getClients();
-      res.json(clients);
+      const categories = await storage.getCategories();
+      res.json(categories);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch clients" });
+      res.status(500).json({ message: "Failed to fetch categories" });
     }
   });
 
-  app.get("/api/clients/:id", async (req, res) => {
+  app.get("/api/categories/:id", async (req, res) => {
     try {
-      const client = await storage.getClient(req.params.id);
-      if (!client) {
-        return res.status(404).json({ message: "Client not found" });
+      const category = await storage.getCategory(req.params.id);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
       }
-      res.json(client);
+      res.json(category);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch client" });
+      res.status(500).json({ message: "Failed to fetch category" });
     }
   });
 
-  app.post("/api/clients", async (req, res) => {
+  app.post("/api/categories", async (req, res) => {
     try {
-      const clientData = insertClientSchema.parse(req.body);
-      const client = await storage.createClient(clientData);
-      res.status(201).json(client);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid client data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create client" });
-    }
-  });
-
-  app.put("/api/clients/:id", async (req, res) => {
-    try {
-      const clientData = insertClientSchema.partial().parse(req.body);
-      const client = await storage.updateClient(req.params.id, clientData);
-      if (!client) {
-        return res.status(404).json({ message: "Client not found" });
-      }
-      res.json(client);
+      const categoryData = insertCategorySchema.parse(req.body);
+      const category = await storage.createCategory(categoryData);
+      res.status(201).json(category);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid client data", errors: error.errors });
+        return res.status(400).json({ message: "Invalid category data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to update client" });
+      res.status(500).json({ message: "Failed to create category" });
     }
   });
 
-  app.delete("/api/clients/:id", async (req, res) => {
+  app.put("/api/categories/:id", async (req, res) => {
     try {
-      const deleted = await storage.deleteClient(req.params.id);
+      const categoryData = insertCategorySchema.partial().parse(req.body);
+      const category = await storage.updateCategory(req.params.id, categoryData);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      res.json(category);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid category data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update category" });
+    }
+  });
+
+  app.delete("/api/categories/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteCategory(req.params.id);
       if (!deleted) {
-        return res.status(404).json({ message: "Client not found" });
+        return res.status(404).json({ message: "Category not found" });
       }
       res.status(204).send();
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete client" });
+      res.status(500).json({ message: "Failed to delete category" });
     }
   });
 
-  // Services routes
-  app.get("/api/services", async (req, res) => {
+  // Products routes
+  app.get("/api/products", async (req, res) => {
     try {
-      const services = await storage.getServices();
-      res.json(services);
+      const { category, featured, search } = req.query;
+      
+      if (search && typeof search === "string") {
+        const products = await storage.searchProducts(search);
+        return res.json(products);
+      }
+      
+      if (featured === "true") {
+        const products = await storage.getFeaturedProducts();
+        return res.json(products);
+      }
+      
+      if (category && typeof category === "string") {
+        const products = await storage.getProductsByCategory(category);
+        return res.json(products);
+      }
+      
+      const products = await storage.getProducts();
+      res.json(products);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch services" });
+      res.status(500).json({ message: "Failed to fetch products" });
     }
   });
 
-  app.post("/api/services", async (req, res) => {
+  app.get("/api/products/:id", async (req, res) => {
     try {
-      const serviceData = insertServiceSchema.parse(req.body);
-      const service = await storage.createService(serviceData);
-      res.status(201).json(service);
+      const product = await storage.getProduct(req.params.id);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      res.json(product);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch product" });
+    }
+  });
+
+  app.post("/api/products", async (req, res) => {
+    try {
+      const productData = insertProductSchema.parse(req.body);
+      const product = await storage.createProduct(productData);
+      res.status(201).json(product);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid service data", errors: error.errors });
+        return res.status(400).json({ message: "Invalid product data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create service" });
+      res.status(500).json({ message: "Failed to create product" });
     }
   });
 
-  app.put("/api/services/:id", async (req, res) => {
+  app.put("/api/products/:id", async (req, res) => {
     try {
-      const serviceData = insertServiceSchema.partial().parse(req.body);
-      const service = await storage.updateService(req.params.id, serviceData);
-      if (!service) {
-        return res.status(404).json({ message: "Service not found" });
+      const productData = insertProductSchema.partial().parse(req.body);
+      const product = await storage.updateProduct(req.params.id, productData);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
       }
-      res.json(service);
+      res.json(product);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid service data", errors: error.errors });
+        return res.status(400).json({ message: "Invalid product data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to update service" });
+      res.status(500).json({ message: "Failed to update product" });
     }
   });
 
-  app.delete("/api/services/:id", async (req, res) => {
+  app.delete("/api/products/:id", async (req, res) => {
     try {
-      const deleted = await storage.deleteService(req.params.id);
+      const deleted = await storage.deleteProduct(req.params.id);
       if (!deleted) {
-        return res.status(404).json({ message: "Service not found" });
+        return res.status(404).json({ message: "Product not found" });
       }
       res.status(204).send();
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete service" });
+      res.status(500).json({ message: "Failed to delete product" });
     }
   });
+
+
 
   // Staff routes
   app.get("/api/staff", async (req, res) => {
@@ -186,116 +219,172 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Appointments routes
-  app.get("/api/appointments", async (req, res) => {
+  // Cart routes
+  app.get("/api/cart/:customerId", async (req, res) => {
     try {
-      const { date } = req.query;
-      if (date && typeof date === "string") {
-        const appointments = await storage.getAppointmentsByDate(date);
-        res.json(appointments);
-      } else {
-        const appointments = await storage.getAppointments();
-        res.json(appointments);
-      }
+      const cartItems = await storage.getCartItems(req.params.customerId);
+      res.json(cartItems);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch appointments" });
+      res.status(500).json({ message: "Failed to fetch cart items" });
     }
   });
 
-  app.post("/api/appointments", async (req, res) => {
+  app.post("/api/cart", async (req, res) => {
     try {
-      const appointmentData = insertAppointmentSchema.parse(req.body);
-      const appointment = await storage.createAppointment(appointmentData);
-      
-      // Send confirmation email in the background
-      sendAppointmentNotification(appointment.id, 'confirmation').catch(error => {
-        console.error('Failed to send appointment confirmation:', error);
-      });
-      
-      res.status(201).json(appointment);
+      const cartData = insertCartSchema.parse(req.body);
+      const cartItem = await storage.addToCart(cartData);
+      res.status(201).json(cartItem);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid appointment data", errors: error.errors });
+        return res.status(400).json({ message: "Invalid cart data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create appointment" });
+      res.status(500).json({ message: "Failed to add to cart" });
     }
   });
 
-  app.put("/api/appointments/:id", async (req, res) => {
+  app.put("/api/cart/:id", async (req, res) => {
     try {
-      const appointmentData = insertAppointmentSchema.partial().parse(req.body);
-      const appointment = await storage.updateAppointment(req.params.id, appointmentData);
-      if (!appointment) {
-        return res.status(404).json({ message: "Appointment not found" });
+      const { quantity } = req.body;
+      const cartItem = await storage.updateCartItem(req.params.id, quantity);
+      if (!cartItem) {
+        return res.status(404).json({ message: "Cart item not found" });
       }
-      res.json(appointment);
+      res.json(cartItem);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid appointment data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to update appointment" });
+      res.status(500).json({ message: "Failed to update cart item" });
     }
   });
 
-  // Cancel appointment (set status to cancelled)
-  app.patch("/api/appointments/:id/cancel", async (req, res) => {
+  app.delete("/api/cart/:id", async (req, res) => {
     try {
-      const appointment = await storage.updateAppointment(req.params.id, { 
-        status: "cancelled" 
-      });
-      if (!appointment) {
-        return res.status(404).json({ message: "Appointment not found" });
-      }
-      
-      // Send cancellation notification in the background
-      // Note: cancellation notification type needs to be added to notification service
-      // sendAppointmentNotification(appointment.id, 'cancellation').catch(error => {
-      //   console.error('Failed to send appointment cancellation:', error);
-      // });
-      
-      res.json({ message: "Appointment cancelled successfully", appointment });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to cancel appointment" });
-    }
-  });
-
-  app.delete("/api/appointments/:id", async (req, res) => {
-    try {
-      const deleted = await storage.deleteAppointment(req.params.id);
+      const deleted = await storage.removeFromCart(req.params.id);
       if (!deleted) {
-        return res.status(404).json({ message: "Appointment not found" });
+        return res.status(404).json({ message: "Cart item not found" });
       }
       res.status(204).send();
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete appointment" });
+      res.status(500).json({ message: "Failed to remove from cart" });
     }
   });
 
-  // Products routes
-  app.get("/api/products", async (req, res) => {
+  app.delete("/api/cart/clear/:customerId", async (req, res) => {
     try {
-      const products = await storage.getProducts();
-      res.json(products);
+      await storage.clearCart(req.params.customerId);
+      res.status(204).send();
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch products" });
+      res.status(500).json({ message: "Failed to clear cart" });
     }
   });
 
-  app.get("/api/products/category/:category", async (req, res) => {
+  // Wishlist routes
+  app.get("/api/wishlist/:customerId", async (req, res) => {
     try {
-      const products = await storage.getProductsByCategory(req.params.category);
-      res.json(products);
+      const wishlistItems = await storage.getWishlistItems(req.params.customerId);
+      res.json(wishlistItems);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch products by category" });
+      res.status(500).json({ message: "Failed to fetch wishlist items" });
     }
   });
 
-  app.get("/api/products/low-stock", async (req, res) => {
+  app.post("/api/wishlist", async (req, res) => {
     try {
-      const products = await storage.getLowStockProducts();
-      res.json(products);
+      const wishlistData = insertWishlistSchema.parse(req.body);
+      const wishlistItem = await storage.addToWishlist(wishlistData);
+      res.status(201).json(wishlistItem);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch low stock products" });
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid wishlist data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to add to wishlist" });
+    }
+  });
+
+  app.delete("/api/wishlist/:id", async (req, res) => {
+    try {
+      const deleted = await storage.removeFromWishlist(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Wishlist item not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to remove from wishlist" });
+    }
+  });
+
+  // Reviews routes
+  app.get("/api/reviews/product/:productId", async (req, res) => {
+    try {
+      const reviews = await storage.getProductReviews(req.params.productId);
+      res.json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch reviews" });
+    }
+  });
+
+  app.post("/api/reviews", async (req, res) => {
+    try {
+      const reviewData = insertReviewSchema.parse(req.body);
+      const review = await storage.createReview(reviewData);
+      res.status(201).json(review);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid review data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create review" });
+    }
+  });
+
+  // Orders routes
+  app.get("/api/orders", async (req, res) => {
+    try {
+      const { customerId } = req.query;
+      const orders = customerId && typeof customerId === "string"
+        ? await storage.getOrdersByCustomer(customerId)
+        : await storage.getOrders();
+      res.json(orders);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  app.get("/api/orders/:id", async (req, res) => {
+    try {
+      const order = await storage.getOrder(req.params.id);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      res.json(order);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch order" });
+    }
+  });
+
+  app.post("/api/orders", async (req, res) => {
+    try {
+      const orderData = insertOrderSchema.parse(req.body);
+      const order = await storage.createOrder(orderData);
+      res.status(201).json(order);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid order data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create order" });
+    }
+  });
+
+  app.put("/api/orders/:id", async (req, res) => {
+    try {
+      const orderData = insertOrderSchema.partial().parse(req.body);
+      const order = await storage.updateOrder(req.params.id, orderData);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+      res.json(order);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid order data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update order" });
     }
   });
 
@@ -478,7 +567,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI Product Generation endpoint
+  // AI Product Generation endpoint - Temporarily disabled during transformation
+  /*
   app.post("/api/ai/generate-product", async (req, res) => {
     try {
       const { category, productType, existingData } = req.body;
@@ -513,6 +603,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  */
 
   // File upload endpoint for product images
   app.post("/api/upload/product-image", upload.single('image'), async (req, res) => {
@@ -541,7 +632,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files
   app.use('/uploads', express.static('uploads'));
 
-  // Generate SKU endpoint
+  // Generate SKU endpoint - Temporarily disabled
+  /*
   app.post("/api/ai/generate-sku", async (req, res) => {
     try {
       const { category, brand, name } = req.body;
@@ -560,8 +652,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  */
 
-  // Generate Barcode endpoint
+  // Generate Barcode endpoint - Temporarily disabled
+  /*
   app.post("/api/ai/generate-barcode", async (req, res) => {
     try {
       const barcode = aiService.generateBarcode();
@@ -574,8 +668,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  */
 
-  // AI Connection Test endpoint
+  // AI Connection Test endpoint - Temporarily disabled
+  /*
   app.post("/api/ai/test-connection", async (req, res) => {
     try {
       // Test with a simple product generation request
@@ -597,6 +693,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  */
 
   // Settings endpoints
   app.post("/api/settings/profile", async (req, res) => {
@@ -877,7 +974,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Manual notification triggers
+  // Manual notification triggers - Temporarily disabled
+  /*
   app.post("/api/notifications/send-confirmation/:appointmentId", async (req, res) => {
     try {
       const success = await sendAppointmentNotification(req.params.appointmentId, 'confirmation');
@@ -903,6 +1001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to send reminder email" });
     }
   });
+  */
 
   // Email Marketing Campaign routes
   app.get("/api/marketing/campaigns", async (req, res) => {

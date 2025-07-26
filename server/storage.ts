@@ -1,83 +1,72 @@
 import { db } from "./db";
-import { eq, lt, sql, desc, and } from "drizzle-orm";
+import { eq, desc, and, like, gte, sql } from "drizzle-orm";
 import {
-  clients,
-  services,
+  customers,
+  categories,
   staff,
-  appointments,
   products,
   suppliers,
+  orders,
+  orderItems,
+  cart,
+  wishlist,
+  reviews,
   inventoryTransactions,
-  campaigns,
-  emailLeads,
-  type Client,
-  type InsertClient,
-  type Service,
-  type InsertService,
+  shopSettings,
+  type Customer,
+  type InsertCustomer,
+  type Category,
+  type InsertCategory,
   type Staff,
   type InsertStaff,
-  type Appointment,
-  type InsertAppointment,
   type Product,
   type InsertProduct,
   type Supplier,
   type InsertSupplier,
+  type Order,
+  type InsertOrder,
+  type OrderItem,
+  type InsertOrderItem,
+  type Cart,
+  type InsertCart,
+  type Wishlist,
+  type InsertWishlist,
+  type Review,
+  type InsertReview,
   type InventoryTransaction,
   type InsertInventoryTransaction,
-  type Transaction,
-  type InsertTransaction,
-  type TimeRecord,
-  type InsertTimeRecord,
-  type NotificationSettings,
-  type InsertNotificationSettings,
-  type NotificationLog,
-  type InsertNotificationLog,
-  type Campaign,
-  type InsertCampaign,
-  type EmailLead,
-  type InsertEmailLead,
-  transactions,
-  timeRecords,
-  notificationSettings,
-  notificationLog,
+  type ShopSettings,
+  type InsertShopSettings,
 } from "@shared/schema";
 
 export interface IStorage {
-  // Clients
-  getClient(id: string): Promise<Client | undefined>;
-  getClients(): Promise<Client[]>;
-  createClient(client: InsertClient): Promise<Client>;
-  updateClient(id: string, client: Partial<InsertClient>): Promise<Client | undefined>;
-  deleteClient(id: string): Promise<boolean>;
+  // Customers
+  getCustomer(id: string): Promise<Customer | undefined>;
+  getCustomers(): Promise<Customer[]>;
+  createCustomer(customer: InsertCustomer): Promise<Customer>;
+  updateCustomer(id: string, customer: Partial<InsertCustomer>): Promise<Customer | undefined>;
+  deleteCustomer(id: string): Promise<boolean>;
 
-  // Services
-  getService(id: string): Promise<Service | undefined>;
-  getServices(): Promise<Service[]>;
-  createService(service: InsertService): Promise<Service>;
-  updateService(id: string, service: Partial<InsertService>): Promise<Service | undefined>;
-  deleteService(id: string): Promise<boolean>;
+  // Categories
+  getCategory(id: string): Promise<Category | undefined>;
+  getCategories(): Promise<Category[]>;
+  createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: string, category: Partial<InsertCategory>): Promise<Category | undefined>;
+  deleteCategory(id: string): Promise<boolean>;
 
   // Staff
   getStaff(id: string): Promise<Staff | undefined>;
   getAllStaff(): Promise<Staff[]>;
-  getStaffMember(id: string): Promise<Staff | undefined>;
   createStaff(staff: InsertStaff): Promise<Staff>;
   updateStaff(id: string, staff: Partial<InsertStaff>): Promise<Staff | undefined>;
   deleteStaff(id: string): Promise<boolean>;
 
-  // Appointments
-  getAppointment(id: string): Promise<Appointment | undefined>;
-  getAppointments(): Promise<Appointment[]>;
-  getAppointmentsByDate(date: string): Promise<Appointment[]>;
-  createAppointment(appointment: InsertAppointment): Promise<Appointment>;
-  updateAppointment(id: string, appointment: Partial<InsertAppointment>): Promise<Appointment | undefined>;
-  deleteAppointment(id: string): Promise<boolean>;
-
   // Products
   getProduct(id: string): Promise<Product | undefined>;
   getProducts(): Promise<Product[]>;
-  getProductsByCategory(category: string): Promise<Product[]>;
-  getLowStockProducts(): Promise<Product[]>;
+  getProductsByCategory(categoryId: string): Promise<Product[]>;
+  getFeaturedProducts(): Promise<Product[]>;
+  searchProducts(query: string): Promise<Product[]>;
   createProduct(product: InsertProduct): Promise<Product>;
   updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined>;
   deleteProduct(id: string): Promise<boolean>;
@@ -89,125 +78,101 @@ export interface IStorage {
   updateSupplier(id: string, supplier: Partial<InsertSupplier>): Promise<Supplier | undefined>;
   deleteSupplier(id: string): Promise<boolean>;
 
-  // Inventory Transactions
-  getInventoryTransaction(id: string): Promise<InventoryTransaction | undefined>;
+  // Orders
+  getOrder(id: string): Promise<Order | undefined>;
+  getOrders(): Promise<Order[]>;
+  getOrdersByCustomer(customerId: string): Promise<Order[]>;
+  createOrder(order: InsertOrder): Promise<Order>;
+  updateOrder(id: string, order: Partial<InsertOrder>): Promise<Order | undefined>;
+  
+  // Order Items
+  getOrderItems(orderId: string): Promise<OrderItem[]>;
+  createOrderItem(item: InsertOrderItem): Promise<OrderItem>;
+  
+  // Cart
+  getCartItems(customerId: string): Promise<Cart[]>;
+  addToCart(item: InsertCart): Promise<Cart>;
+  updateCartItem(id: string, quantity: number): Promise<Cart | undefined>;
+  removeFromCart(id: string): Promise<boolean>;
+  clearCart(customerId: string): Promise<boolean>;
+  
+  // Wishlist
+  getWishlistItems(customerId: string): Promise<Wishlist[]>;
+  addToWishlist(item: InsertWishlist): Promise<Wishlist>;
+  removeFromWishlist(id: string): Promise<boolean>;
+  
+  // Reviews
+  getProductReviews(productId: string): Promise<Review[]>;
+  createReview(review: InsertReview): Promise<Review>;
+  
+  // Inventory
   getInventoryTransactions(): Promise<InventoryTransaction[]>;
-  getInventoryTransactionsByProduct(productId: string): Promise<InventoryTransaction[]>;
   createInventoryTransaction(transaction: InsertInventoryTransaction): Promise<InventoryTransaction>;
-  updateInventoryTransaction(id: string, transaction: Partial<InsertInventoryTransaction>): Promise<InventoryTransaction | undefined>;
-  deleteInventoryTransaction(id: string): Promise<boolean>;
-
-  // POS Transactions
-  getTransactions(): Promise<Transaction[]>;
-  getTransaction(id: string): Promise<Transaction | undefined>;
-  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
-
-  // Time Records
-  getTimeRecords(): Promise<TimeRecord[]>;
-  getActiveTimeRecord(staffId: string): Promise<TimeRecord | undefined>;
-  clockIn(data: { staffId: string; notes?: string }): Promise<TimeRecord>;
-  clockOut(id: string, data: { notes?: string }): Promise<TimeRecord>;
-  startBreak(id: string, data: { notes?: string }): Promise<TimeRecord>;
-  endBreak(id: string, data: { notes?: string }): Promise<TimeRecord>;
-  getAttendanceReport(): Promise<any[]>;
-
-  // Notification Settings
-  getNotificationSettings(): Promise<NotificationSettings | undefined>;
-  createOrUpdateNotificationSettings(settings: InsertNotificationSettings): Promise<NotificationSettings>;
-
-  // Notification Log
-  getNotificationLogs(appointmentId?: string): Promise<NotificationLog[]>;
-  createNotificationLog(log: InsertNotificationLog): Promise<NotificationLog>;
-
-  // Email Marketing Campaigns
-  getCampaigns(): Promise<Campaign[]>;
-  getCampaign(id: string): Promise<Campaign | undefined>;
-  createCampaign(campaign: InsertCampaign): Promise<Campaign>;
-  updateCampaign(id: string, campaign: Partial<InsertCampaign>): Promise<Campaign | undefined>;
-  deleteCampaign(id: string): Promise<boolean>;
-  sendCampaign(id: string): Promise<Campaign>;
-
-  // Email Leads
-  getEmailLeads(): Promise<EmailLead[]>;
-  getEmailLead(id: string): Promise<EmailLead | undefined>;
-  createEmailLead(lead: InsertEmailLead): Promise<EmailLead>;
-  updateEmailLead(id: string, lead: Partial<InsertEmailLead>): Promise<EmailLead | undefined>;
-  deleteEmailLead(id: string): Promise<boolean>;
-
-  // Marketing Stats
-  getMarketingStats(): Promise<{
-    totalCampaigns: number;
-    totalSent: number;
-    openRate: number;
-    clickRate: number;
-    conversionRate: number;
-  }>;
+  
+  // Shop Settings
+  getShopSettings(): Promise<ShopSettings | undefined>;
+  updateShopSettings(settings: Partial<InsertShopSettings>): Promise<ShopSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
-  // Client methods
-  async getClient(id: string): Promise<Client | undefined> {
-    const [client] = await db.select().from(clients).where(eq(clients.id, id));
-    return client || undefined;
+  // Customer methods
+  async getCustomer(id: string): Promise<Customer | undefined> {
+    const [customer] = await db.select().from(customers).where(eq(customers.id, id));
+    return customer;
   }
 
-  async getClients(): Promise<Client[]> {
-    return await db.select().from(clients);
+  async getCustomers(): Promise<Customer[]> {
+    return await db.select().from(customers).orderBy(desc(customers.createdAt));
   }
 
-  async createClient(client: InsertClient): Promise<Client> {
-    const [newClient] = await db.insert(clients).values(client).returning();
-    return newClient;
+  async createCustomer(customer: InsertCustomer): Promise<Customer> {
+    const [newCustomer] = await db.insert(customers).values(customer).returning();
+    return newCustomer;
   }
 
-  async updateClient(id: string, client: Partial<InsertClient>): Promise<Client | undefined> {
-    const [updatedClient] = await db.update(clients).set(client).where(eq(clients.id, id)).returning();
-    return updatedClient || undefined;
+  async updateCustomer(id: string, customer: Partial<InsertCustomer>): Promise<Customer | undefined> {
+    const [updated] = await db.update(customers).set(customer).where(eq(customers.id, id)).returning();
+    return updated;
   }
 
-  async deleteClient(id: string): Promise<boolean> {
-    const result = await db.delete(clients).where(eq(clients.id, id));
-    return (result.rowCount ?? 0) > 0;
+  async deleteCustomer(id: string): Promise<boolean> {
+    const result = await db.delete(customers).where(eq(customers.id, id));
+    return result.rowCount > 0;
   }
 
-  // Service methods
-  async getService(id: string): Promise<Service | undefined> {
-    const [service] = await db.select().from(services).where(eq(services.id, id));
-    return service || undefined;
+  // Category methods
+  async getCategory(id: string): Promise<Category | undefined> {
+    const [category] = await db.select().from(categories).where(eq(categories.id, id));
+    return category;
   }
 
-  async getServices(): Promise<Service[]> {
-    return await db.select().from(services);
+  async getCategories(): Promise<Category[]> {
+    return await db.select().from(categories).orderBy(categories.displayOrder, categories.name);
   }
 
-  async createService(service: InsertService): Promise<Service> {
-    const [newService] = await db.insert(services).values(service).returning();
-    return newService;
+  async createCategory(category: InsertCategory): Promise<Category> {
+    const [newCategory] = await db.insert(categories).values(category).returning();
+    return newCategory;
   }
 
-  async updateService(id: string, service: Partial<InsertService>): Promise<Service | undefined> {
-    const [updatedService] = await db.update(services).set(service).where(eq(services.id, id)).returning();
-    return updatedService || undefined;
+  async updateCategory(id: string, category: Partial<InsertCategory>): Promise<Category | undefined> {
+    const [updated] = await db.update(categories).set(category).where(eq(categories.id, id)).returning();
+    return updated;
   }
 
-  async deleteService(id: string): Promise<boolean> {
-    const result = await db.delete(services).where(eq(services.id, id));
-    return (result.rowCount ?? 0) > 0;
+  async deleteCategory(id: string): Promise<boolean> {
+    const result = await db.delete(categories).where(eq(categories.id, id));
+    return result.rowCount > 0;
   }
 
   // Staff methods
   async getStaff(id: string): Promise<Staff | undefined> {
     const [staffMember] = await db.select().from(staff).where(eq(staff.id, id));
-    return staffMember || undefined;
-  }
-
-  async getStaffMember(id: string): Promise<Staff | undefined> {
-    const [staffMember] = await db.select().from(staff).where(eq(staff.id, id));
-    return staffMember || undefined;
+    return staffMember;
   }
 
   async getAllStaff(): Promise<Staff[]> {
-    return await db.select().from(staff);
+    return await db.select().from(staff).orderBy(staff.name);
   }
 
   async createStaff(staffMember: InsertStaff): Promise<Staff> {
@@ -216,101 +181,44 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateStaff(id: string, staffMember: Partial<InsertStaff>): Promise<Staff | undefined> {
-    const [updatedStaff] = await db.update(staff).set(staffMember).where(eq(staff.id, id)).returning();
-    return updatedStaff || undefined;
+    const [updated] = await db.update(staff).set(staffMember).where(eq(staff.id, id)).returning();
+    return updated;
   }
 
   async deleteStaff(id: string): Promise<boolean> {
     const result = await db.delete(staff).where(eq(staff.id, id));
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  // Appointment methods
-  async getAppointment(id: string): Promise<Appointment | undefined> {
-    const [appointment] = await db.select().from(appointments).where(eq(appointments.id, id));
-    return appointment || undefined;
-  }
-
-  async getAppointments(): Promise<any[]> {
-    return await db
-      .select({
-        id: appointments.id,
-        clientId: appointments.clientId,
-        serviceId: appointments.serviceId,
-        staffId: appointments.staffId,
-        date: appointments.date,
-        time: appointments.time,
-        duration: appointments.duration,
-        status: appointments.status,
-        notes: appointments.notes,
-        totalAmount: appointments.totalAmount,
-        createdAt: appointments.createdAt,
-        clientName: clients.name,
-        serviceName: services.name,
-        staffName: staff.name,
-      })
-      .from(appointments)
-      .leftJoin(clients, eq(appointments.clientId, clients.id))
-      .leftJoin(services, eq(appointments.serviceId, services.id))
-      .leftJoin(staff, eq(appointments.staffId, staff.id));
-  }
-
-  async getAppointmentsByDate(date: string): Promise<any[]> {
-    return await db
-      .select({
-        id: appointments.id,
-        clientId: appointments.clientId,
-        serviceId: appointments.serviceId,
-        staffId: appointments.staffId,
-        date: appointments.date,
-        time: appointments.time,
-        duration: appointments.duration,
-        status: appointments.status,
-        notes: appointments.notes,
-        totalAmount: appointments.totalAmount,
-        createdAt: appointments.createdAt,
-        clientName: clients.name,
-        serviceName: services.name,
-        staffName: staff.name,
-      })
-      .from(appointments)
-      .leftJoin(clients, eq(appointments.clientId, clients.id))
-      .leftJoin(services, eq(appointments.serviceId, services.id))
-      .leftJoin(staff, eq(appointments.staffId, staff.id))
-      .where(eq(appointments.date, date));
-  }
-
-  async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
-    const [newAppointment] = await db.insert(appointments).values(appointment).returning();
-    return newAppointment;
-  }
-
-  async updateAppointment(id: string, appointment: Partial<InsertAppointment>): Promise<Appointment | undefined> {
-    const [updatedAppointment] = await db.update(appointments).set(appointment).where(eq(appointments.id, id)).returning();
-    return updatedAppointment || undefined;
-  }
-
-  async deleteAppointment(id: string): Promise<boolean> {
-    const result = await db.delete(appointments).where(eq(appointments.id, id));
-    return (result.rowCount ?? 0) > 0;
+    return result.rowCount > 0;
   }
 
   // Product methods
   async getProduct(id: string): Promise<Product | undefined> {
     const [product] = await db.select().from(products).where(eq(products.id, id));
-    return product || undefined;
+    if (product) {
+      // Increment view count
+      await db.update(products).set({ viewCount: sql`${products.viewCount} + 1` }).where(eq(products.id, id));
+    }
+    return product;
   }
 
   async getProducts(): Promise<Product[]> {
-    return await db.select().from(products);
+    return await db.select().from(products).where(eq(products.isActive, true)).orderBy(desc(products.createdAt));
   }
 
-  async getProductsByCategory(category: string): Promise<Product[]> {
-    return await db.select().from(products).where(eq(products.category, category));
+  async getProductsByCategory(categoryId: string): Promise<Product[]> {
+    return await db.select().from(products).where(and(eq(products.categoryId, categoryId), eq(products.isActive, true)));
   }
 
-  async getLowStockProducts(): Promise<Product[]> {
-    return await db.select().from(products).where(sql`${products.currentStock} <= ${products.minStockLevel}`);
+  async getFeaturedProducts(): Promise<Product[]> {
+    return await db.select().from(products).where(and(eq(products.isFeatured, true), eq(products.isActive, true))).limit(8);
+  }
+
+  async searchProducts(query: string): Promise<Product[]> {
+    return await db.select().from(products).where(
+      and(
+        eq(products.isActive, true),
+        like(products.name, `%${query}%`)
+      )
+    );
   }
 
   async createProduct(product: InsertProduct): Promise<Product> {
@@ -319,23 +227,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined> {
-    const [updatedProduct] = await db.update(products).set(product).where(eq(products.id, id)).returning();
-    return updatedProduct || undefined;
+    const [updated] = await db.update(products).set({ ...product, updatedAt: new Date() }).where(eq(products.id, id)).returning();
+    return updated;
   }
 
   async deleteProduct(id: string): Promise<boolean> {
     const result = await db.delete(products).where(eq(products.id, id));
-    return (result.rowCount ?? 0) > 0;
+    return result.rowCount > 0;
   }
 
   // Supplier methods
   async getSupplier(id: string): Promise<Supplier | undefined> {
     const [supplier] = await db.select().from(suppliers).where(eq(suppliers.id, id));
-    return supplier || undefined;
+    return supplier;
   }
 
   async getSuppliers(): Promise<Supplier[]> {
-    return await db.select().from(suppliers);
+    return await db.select().from(suppliers).orderBy(suppliers.name);
   }
 
   async createSupplier(supplier: InsertSupplier): Promise<Supplier> {
@@ -344,344 +252,167 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateSupplier(id: string, supplier: Partial<InsertSupplier>): Promise<Supplier | undefined> {
-    const [updatedSupplier] = await db.update(suppliers).set(supplier).where(eq(suppliers.id, id)).returning();
-    return updatedSupplier || undefined;
+    const [updated] = await db.update(suppliers).set(supplier).where(eq(suppliers.id, id)).returning();
+    return updated;
   }
 
   async deleteSupplier(id: string): Promise<boolean> {
     const result = await db.delete(suppliers).where(eq(suppliers.id, id));
-    return (result.rowCount ?? 0) > 0;
+    return result.rowCount > 0;
   }
 
-  // Inventory Transaction methods
-  async getInventoryTransaction(id: string): Promise<InventoryTransaction | undefined> {
-    const [transaction] = await db.select().from(inventoryTransactions).where(eq(inventoryTransactions.id, id));
-    return transaction || undefined;
+  // Order methods
+  async getOrder(id: string): Promise<Order | undefined> {
+    const [order] = await db.select().from(orders).where(eq(orders.id, id));
+    return order;
   }
 
+  async getOrders(): Promise<Order[]> {
+    return await db.select().from(orders).orderBy(desc(orders.createdAt));
+  }
+
+  async getOrdersByCustomer(customerId: string): Promise<Order[]> {
+    return await db.select().from(orders).where(eq(orders.customerId, customerId)).orderBy(desc(orders.createdAt));
+  }
+
+  async createOrder(order: InsertOrder): Promise<Order> {
+    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
+    const [newOrder] = await db.insert(orders).values({ ...order, orderNumber }).returning();
+    
+    // Update customer stats
+    await db.update(customers).set({
+      totalOrders: sql`${customers.totalOrders} + 1`,
+      totalSpent: sql`${customers.totalSpent} + ${order.total}`,
+      lastOrder: new Date()
+    }).where(eq(customers.id, order.customerId));
+    
+    return newOrder;
+  }
+
+  async updateOrder(id: string, order: Partial<InsertOrder>): Promise<Order | undefined> {
+    const [updated] = await db.update(orders).set({ ...order, updatedAt: new Date() }).where(eq(orders.id, id)).returning();
+    return updated;
+  }
+
+  // Order Items methods
+  async getOrderItems(orderId: string): Promise<OrderItem[]> {
+    return await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+  }
+
+  async createOrderItem(item: InsertOrderItem): Promise<OrderItem> {
+    const [newItem] = await db.insert(orderItems).values(item).returning();
+    
+    // Update product sold count and stock
+    await db.update(products).set({
+      soldCount: sql`${products.soldCount} + ${item.quantity}`,
+      currentStock: sql`${products.currentStock} - ${item.quantity}`
+    }).where(eq(products.id, item.productId));
+    
+    return newItem;
+  }
+
+  // Cart methods
+  async getCartItems(customerId: string): Promise<Cart[]> {
+    return await db.select().from(cart).where(eq(cart.customerId, customerId));
+  }
+
+  async addToCart(item: InsertCart): Promise<Cart> {
+    // Check if item already exists in cart
+    const [existing] = await db.select().from(cart).where(
+      and(eq(cart.customerId, item.customerId), eq(cart.productId, item.productId))
+    );
+    
+    if (existing) {
+      // Update quantity
+      const [updated] = await db.update(cart).set({
+        quantity: sql`${cart.quantity} + ${item.quantity}`,
+        updatedAt: new Date()
+      }).where(eq(cart.id, existing.id)).returning();
+      return updated;
+    }
+    
+    const [newItem] = await db.insert(cart).values(item).returning();
+    return newItem;
+  }
+
+  async updateCartItem(id: string, quantity: number): Promise<Cart | undefined> {
+    const [updated] = await db.update(cart).set({ quantity, updatedAt: new Date() }).where(eq(cart.id, id)).returning();
+    return updated;
+  }
+
+  async removeFromCart(id: string): Promise<boolean> {
+    const result = await db.delete(cart).where(eq(cart.id, id));
+    return result.rowCount > 0;
+  }
+
+  async clearCart(customerId: string): Promise<boolean> {
+    const result = await db.delete(cart).where(eq(cart.customerId, customerId));
+    return result.rowCount > 0;
+  }
+
+  // Wishlist methods
+  async getWishlistItems(customerId: string): Promise<Wishlist[]> {
+    return await db.select().from(wishlist).where(eq(wishlist.customerId, customerId));
+  }
+
+  async addToWishlist(item: InsertWishlist): Promise<Wishlist> {
+    const [newItem] = await db.insert(wishlist).values(item).returning();
+    return newItem;
+  }
+
+  async removeFromWishlist(id: string): Promise<boolean> {
+    const result = await db.delete(wishlist).where(eq(wishlist.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Reviews methods
+  async getProductReviews(productId: string): Promise<Review[]> {
+    return await db.select().from(reviews).where(eq(reviews.productId, productId)).orderBy(desc(reviews.createdAt));
+  }
+
+  async createReview(review: InsertReview): Promise<Review> {
+    const [newReview] = await db.insert(reviews).values(review).returning();
+    return newReview;
+  }
+
+  // Inventory methods
   async getInventoryTransactions(): Promise<InventoryTransaction[]> {
-    return await db.select().from(inventoryTransactions);
-  }
-
-  async getInventoryTransactionsByProduct(productId: string): Promise<InventoryTransaction[]> {
-    return await db.select().from(inventoryTransactions).where(eq(inventoryTransactions.productId, productId));
+    return await db.select().from(inventoryTransactions).orderBy(desc(inventoryTransactions.createdAt));
   }
 
   async createInventoryTransaction(transaction: InsertInventoryTransaction): Promise<InventoryTransaction> {
-    // Update product stock based on transaction type
-    const product = await this.getProduct(transaction.productId);
-    if (product) {
-      let newStock = product.currentStock;
-      
-      switch (transaction.type) {
-        case 'purchase':
-        case 'adjustment':
-          newStock += transaction.quantity;
-          break;
-        case 'sale':
-        case 'waste':
-          newStock -= transaction.quantity;
-          break;
-      }
-      
-      await this.updateProduct(transaction.productId, { currentStock: newStock });
-    }
-
     const [newTransaction] = await db.insert(inventoryTransactions).values(transaction).returning();
-    return newTransaction;
-  }
-
-  async updateInventoryTransaction(id: string, transaction: Partial<InsertInventoryTransaction>): Promise<InventoryTransaction | undefined> {
-    const [updatedTransaction] = await db.update(inventoryTransactions).set(transaction).where(eq(inventoryTransactions.id, id)).returning();
-    return updatedTransaction || undefined;
-  }
-
-  async deleteInventoryTransaction(id: string): Promise<boolean> {
-    const result = await db.delete(inventoryTransactions).where(eq(inventoryTransactions.id, id));
-    return (result.rowCount ?? 0) > 0;
-  }
-  // POS Transactions methods
-  async getTransactions(): Promise<Transaction[]> {
-    return await db.select().from(transactions).orderBy(desc(transactions.createdAt));
-  }
-
-  async getTransaction(id: string): Promise<Transaction | undefined> {
-    const [transaction] = await db.select().from(transactions).where(eq(transactions.id, id));
-    return transaction || undefined;
-  }
-
-  async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
-    const [newTransaction] = await db
-      .insert(transactions)
-      .values(transaction)
-      .returning();
-    return newTransaction;
-  }
-
-  // Time Records methods
-  async getTimeRecords(): Promise<TimeRecord[]> {
-    return await db.select().from(timeRecords).orderBy(desc(timeRecords.createdAt));
-  }
-
-  async getActiveTimeRecord(staffId: string): Promise<TimeRecord | undefined> {
-    const [record] = await db
-      .select()
-      .from(timeRecords)
-      .where(and(eq(timeRecords.staffId, staffId), eq(timeRecords.status, "active")));
-    return record || undefined;
-  }
-
-  async clockIn(data: { staffId: string; notes?: string }): Promise<TimeRecord> {
-    const [timeRecord] = await db
-      .insert(timeRecords)
-      .values({
-        staffId: data.staffId,
-        clockIn: new Date(),
-        notes: data.notes,
-        status: "active",
-      })
-      .returning();
-    return timeRecord;
-  }
-
-  async clockOut(id: string, data: { notes?: string }): Promise<TimeRecord> {
-    const clockOutTime = new Date();
-    const [existing] = await db.select().from(timeRecords).where(eq(timeRecords.id, id));
     
-    if (!existing) {
-      throw new Error("Time record not found");
+    // Update product stock based on transaction type
+    if (transaction.type === 'purchase' || transaction.type === 'return') {
+      await db.update(products).set({
+        currentStock: sql`${products.currentStock} + ${transaction.quantity}`
+      }).where(eq(products.id, transaction.productId));
+    } else if (transaction.type === 'sale' || transaction.type === 'adjustment') {
+      await db.update(products).set({
+        currentStock: sql`${products.currentStock} - ${transaction.quantity}`
+      }).where(eq(products.id, transaction.productId));
     }
-
-    const clockInTime = new Date(existing.clockIn);
-    const totalMs = clockOutTime.getTime() - clockInTime.getTime();
-    const totalHours = (totalMs / (1000 * 60 * 60)).toFixed(2);
-
-    // Calculate break duration if applicable
-    let breakDuration = "0";
-    if (existing.breakStart && existing.breakEnd) {
-      const breakMs = new Date(existing.breakEnd).getTime() - new Date(existing.breakStart).getTime();
-      breakDuration = (breakMs / (1000 * 60 * 60)).toFixed(2);
-    }
-
-    const regularHours = Math.max(0, parseFloat(totalHours) - parseFloat(breakDuration)).toFixed(2);
-    const overtimeHours = Math.max(0, parseFloat(regularHours) - 8).toFixed(2);
-
-    const [updatedRecord] = await db
-      .update(timeRecords)
-      .set({
-        clockOut: clockOutTime,
-        totalHours,
-        regularHours,
-        overtimeHours,
-        breakDuration,
-        status: "completed",
-        notes: data.notes || existing.notes,
-        updatedAt: new Date(),
-      })
-      .where(eq(timeRecords.id, id))
-      .returning();
-
-    return updatedRecord;
+    
+    return newTransaction;
   }
 
-  async startBreak(id: string, data: { notes?: string }): Promise<TimeRecord> {
-    const [updatedRecord] = await db
-      .update(timeRecords)
-      .set({
-        breakStart: new Date(),
-        status: "on-break",
-        updatedAt: new Date(),
-      })
-      .where(eq(timeRecords.id, id))
-      .returning();
-
-    return updatedRecord;
+  // Shop Settings methods
+  async getShopSettings(): Promise<ShopSettings | undefined> {
+    const [settings] = await db.select().from(shopSettings).limit(1);
+    return settings;
   }
 
-  async endBreak(id: string, data: { notes?: string }): Promise<TimeRecord> {
-    const [updatedRecord] = await db
-      .update(timeRecords)
-      .set({
-        breakEnd: new Date(),
-        status: "active",
-        updatedAt: new Date(),
-      })
-      .where(eq(timeRecords.id, id))
-      .returning();
-
-    return updatedRecord;
-  }
-
-  // Notification Settings methods
-  async getNotificationSettings(): Promise<NotificationSettings | undefined> {
-    const [settings] = await db.select().from(notificationSettings).limit(1);
-    return settings || undefined;
-  }
-
-  async createOrUpdateNotificationSettings(settingsData: InsertNotificationSettings): Promise<NotificationSettings> {
-    // Check if settings already exist
-    const existing = await this.getNotificationSettings();
+  async updateShopSettings(settings: Partial<InsertShopSettings>): Promise<ShopSettings> {
+    const existing = await this.getShopSettings();
     
     if (existing) {
-      // Update existing settings
-      const [updatedSettings] = await db
-        .update(notificationSettings)
-        .set({ ...settingsData, updatedAt: new Date() })
-        .where(eq(notificationSettings.id, existing.id))
-        .returning();
-      return updatedSettings;
+      const [updated] = await db.update(shopSettings).set({ ...settings, updatedAt: new Date() }).where(eq(shopSettings.id, existing.id)).returning();
+      return updated;
     } else {
-      // Create new settings
-      const [newSettings] = await db
-        .insert(notificationSettings)
-        .values(settingsData)
-        .returning();
-      return newSettings;
+      const [created] = await db.insert(shopSettings).values(settings).returning();
+      return created;
     }
-  }
-
-  // Notification Log methods
-  async getNotificationLogs(appointmentId?: string): Promise<NotificationLog[]> {
-    if (appointmentId) {
-      return await db
-        .select()
-        .from(notificationLog)
-        .where(eq(notificationLog.appointmentId, appointmentId))
-        .orderBy(desc(notificationLog.createdAt));
-    } else {
-      return await db
-        .select()
-        .from(notificationLog)
-        .orderBy(desc(notificationLog.createdAt))
-        .limit(100);
-    }
-  }
-
-  async createNotificationLog(logData: InsertNotificationLog): Promise<NotificationLog> {
-    const [newLog] = await db
-      .insert(notificationLog)
-      .values(logData)
-      .returning();
-    return newLog;
-  }
-
-  // Email Marketing Campaign methods
-  async getCampaigns(): Promise<Campaign[]> {
-    return await db.select().from(campaigns).orderBy(desc(campaigns.createdAt));
-  }
-
-  async getCampaign(id: string): Promise<Campaign | undefined> {
-    const [campaign] = await db.select().from(campaigns).where(eq(campaigns.id, id));
-    return campaign || undefined;
-  }
-
-  async createCampaign(campaign: InsertCampaign): Promise<Campaign> {
-    const [newCampaign] = await db.insert(campaigns).values(campaign).returning();
-    return newCampaign;
-  }
-
-  async updateCampaign(id: string, campaign: Partial<InsertCampaign>): Promise<Campaign | undefined> {
-    const [updatedCampaign] = await db.update(campaigns).set(campaign).where(eq(campaigns.id, id)).returning();
-    return updatedCampaign || undefined;
-  }
-
-  async deleteCampaign(id: string): Promise<boolean> {
-    const result = await db.delete(campaigns).where(eq(campaigns.id, id));
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  async sendCampaign(id: string): Promise<Campaign> {
-    // Update campaign status to sent and set sent date
-    const [campaign] = await db
-      .update(campaigns)
-      .set({ 
-        status: 'sent', 
-        sentDate: new Date(),
-        updatedAt: new Date()
-      })
-      .where(eq(campaigns.id, id))
-      .returning();
-    
-    return campaign;
-  }
-
-  // Email Lead methods
-  async getEmailLeads(): Promise<EmailLead[]> {
-    return await db.select().from(emailLeads).orderBy(desc(emailLeads.createdAt));
-  }
-
-  async getEmailLead(id: string): Promise<EmailLead | undefined> {
-    const [lead] = await db.select().from(emailLeads).where(eq(emailLeads.id, id));
-    return lead || undefined;
-  }
-
-  async createEmailLead(lead: InsertEmailLead): Promise<EmailLead> {
-    const [newLead] = await db.insert(emailLeads).values(lead).returning();
-    return newLead;
-  }
-
-  async updateEmailLead(id: string, lead: Partial<InsertEmailLead>): Promise<EmailLead | undefined> {
-    const [updatedLead] = await db.update(emailLeads).set(lead).where(eq(emailLeads.id, id)).returning();
-    return updatedLead || undefined;
-  }
-
-  async deleteEmailLead(id: string): Promise<boolean> {
-    const result = await db.delete(emailLeads).where(eq(emailLeads.id, id));
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  async getMarketingStats(): Promise<{
-    totalCampaigns: number;
-    totalSent: number;
-    openRate: number;
-    clickRate: number;
-    conversionRate: number;
-  }> {
-    const totalCampaigns = await db.select({ count: sql<number>`count(*)` }).from(campaigns);
-    const sentCampaigns = await db.select({ count: sql<number>`count(*)` }).from(campaigns).where(eq(campaigns.status, 'sent'));
-    
-    return {
-      totalCampaigns: totalCampaigns[0]?.count || 0,
-      totalSent: sentCampaigns[0]?.count || 0,
-      openRate: 68.5,
-      clickRate: 12.3,
-      conversionRate: 4.8,
-    };
-  }
-
-  async getAttendanceReport(): Promise<any[]> {
-    // Get time records grouped by staff
-    const records = await db.select().from(timeRecords);
-    const staffMembers = await db.select().from(staff);
-    
-    // Calculate attendance metrics for each staff member
-    const report = staffMembers.map((staffMember) => {
-      const staffRecords = records.filter(record => record.staffId === staffMember.id);
-      
-      const totalHours = staffRecords.reduce((sum, record) => {
-        if (record.clockOut) {
-          const start = new Date(record.clockIn);
-          const end = new Date(record.clockOut);
-          const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-          return sum + Math.max(0, hours);
-        }
-        return sum;
-      }, 0);
-      
-      const daysWorked = staffRecords.filter(record => record.clockOut).length;
-      const attendanceRate = Math.min(100, (daysWorked / 30) * 100); // Assuming 30-day period
-      const punctualityScore = Math.random() * 30 + 70; // Mock score between 70-100
-      
-      return {
-        staffId: staffMember.id,
-        totalHours: Math.round(totalHours),
-        daysWorked,
-        attendanceRate: Math.round(attendanceRate),
-        punctualityScore: Math.round(punctualityScore),
-      };
-    });
-    
-    return report;
   }
 }
 

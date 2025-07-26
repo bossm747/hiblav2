@@ -1,15 +1,18 @@
-# Spa/Salon Management System
+# Hibla Filipino Hair - E-commerce Shop
 
 ## Overview
 
-This is a comprehensive spa/salon management system built with a modern React frontend and Express.js backend, specifically localized for the Philippine market. The application manages clients, staff, services, and appointments for spa/salon businesses. It features a clean, professional interface using ShadCN UI components with Philippine Peso (₱) currency support and follows a full-stack TypeScript architecture.
+This is an e-commerce platform for synthetic and real human hair extensions (piloka), built with a modern React frontend and Express.js backend, specifically for the Philippine market. The application provides a complete online shopping experience for hair extensions with product catalog, shopping cart, order management, and customer accounts. It features a clean, professional interface using ShadCN UI components with Philippine Peso (₱) currency support and follows a full-stack TypeScript architecture.
 
 ## User Preferences
 
 - Preferred communication style: Simple, everyday language
-- Market focus: Philippine spa/salon businesses
+- Market focus: Philippine hair extensions market
+- Business: Hibla Filipino Hair (Instagram: @hibla.filipinohumanhair)
+- Products: Synthetic and real human hair extensions ("piloka")
 - Currency: Philippine Peso (₱) instead of USD ($)
-- Features requested: Comprehensive feature suggestions for Filipino market
+- Brand Assets: Hibla logo provided (circular design with elegant typography)
+- Transformation requested: Convert spa/salon system to e-commerce shop for hair extensions
 
 ## System Architecture
 
@@ -38,26 +41,33 @@ This is a comprehensive spa/salon management system built with a modern React fr
 ## Key Components
 
 ### Database Schema (PostgreSQL + Drizzle)
-- **Clients**: Customer information, visit history, spending tracking
-- **Services**: Service catalog with categories, pricing, and duration
-- **Staff**: Employee profiles with specialties and experience
-- **Appointments**: Booking system linking clients, services, and staff
+- **Customers**: Customer accounts with order history and spending tracking
+- **Categories**: Product categories with hierarchy support for hair types
+- **Products**: Hair extensions with attributes (type, texture, length, color, weight)
+- **Orders**: Order processing with payment and shipping management
+- **Cart**: Shopping cart functionality with quantity management
+- **Wishlist**: Saved products for later purchase
+- **Reviews**: Product ratings and customer feedback
+- **Shop Settings**: Store configuration and business information
 
 ### API Structure
 RESTful API with the following endpoints:
-- `/api/clients` - Client management (CRUD operations)
-- `/api/services` - Service catalog management
-- `/api/staff` - Staff member management
-- `/api/appointments` - Appointment scheduling and management
-- `/api/dashboard/stats` - Business analytics and reporting
+- `/api/categories` - Product category management
+- `/api/products` - Product catalog with search and filtering
+- `/api/cart` - Shopping cart operations
+- `/api/orders` - Order processing and tracking
+- `/api/wishlist` - Wishlist management
+- `/api/reviews` - Product reviews and ratings
+- `/api/customers` - Customer account management
 
 ### Frontend Pages
-- **Dashboard**: Business overview with key metrics and quick actions
-- **Appointments**: Calendar view and appointment management
-- **Clients**: Customer database with search and filtering
-- **Services**: Service catalog with category-based organization
-- **Staff**: Team management with specialties and scheduling
-- **Reports**: Business analytics and performance metrics
+- **Home**: Landing page with featured products and categories
+- **Products**: Product catalog with filtering by type, texture, length
+- **Product Details**: Individual product pages with images and reviews
+- **Cart**: Shopping cart with quantity updates and checkout
+- **Checkout**: Order placement with shipping and payment
+- **Account**: Customer profile and order history
+- **Admin**: Product and order management (staff only)
 
 ### UI Components Architecture
 - **Layout**: Responsive sidebar navigation with mobile support
@@ -128,11 +138,33 @@ RESTful API with the following endpoints:
 The architecture prioritizes developer experience with hot reloading, type safety across the full stack, and a component-based UI system that scales well for business applications.
 
 ## Recent Changes
-- **Database Migration (Jan 25, 2025)**: Replaced in-memory storage with PostgreSQL database using Drizzle ORM
+
+### E-commerce Transformation (Jan 24, 2025)
+- **Complete Platform Transformation**: Converted spa/salon management system to hair extensions e-commerce shop
+- **Database Schema Overhaul**: 
+  - Removed spa/salon tables (appointments, services, clients, time_records, etc.)
+  - Added e-commerce tables: categories, customers, products, orders, cart, wishlist, reviews
+  - Products table optimized for hair extensions with fields: hairType, texture, length, color, weight
+- **Backend API Updates**:
+  - Replaced all spa/salon endpoints with e-commerce routes
+  - Created new storage.ts with complete e-commerce CRUD operations
+  - Added routes for: products, categories, cart, orders, wishlist, reviews
+- **Frontend Redesign**:
+  - Created new home page with Hibla branding and logo integration
+  - Removed salon management interface (sidebar navigation, appointments calendar)
+  - Simplified App.tsx for e-commerce routing structure
+  - Added product cards with Philippine Peso pricing and discount calculations
+  - Integrated provided Hibla logo (circular design with elegant typography)
+- **Feature Implementation**:
+  - Product search and filtering by category
+  - Featured products display
+  - Shopping cart with add/update/remove functionality
+  - Wishlist for saving favorite products
+  - Product reviews and ratings system
+
+### Previous Changes
+- **Database Migration (Jan 23, 2025)**: Replaced in-memory storage with PostgreSQL database using Drizzle ORM
 - **AI Integration**: Added OpenRouter API integration for Philippine market research and product data generation
 - **Enhanced Product Management**: Implemented AI-powered product form filling with dynamic SKU/barcode generation
 - **File Upload System**: Added multer-based image upload for product photos
 - **Production Database Layer**: Complete database relations and CRUD operations with proper data persistence
-- **Enhanced POS System (Jan 25, 2025)**: Transformed POS into full cashier system with service categories, quick customer registration, cash payment calculations, and receipt modal with print functionality
-- **User Experience Enhancement (Jan 25, 2025)**: Added comprehensive preloader with spa-themed animations, professional landing page showcasing system features, and complete documentation system accessible from header
-- **Onboarding Flow**: Implemented first-time user experience with preloader → landing page → dashboard flow using localStorage to track visits

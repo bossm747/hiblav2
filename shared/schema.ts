@@ -4,82 +4,82 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-export const clients = pgTable("clients", {
+// Customers table (replacing clients)
+export const customers = pgTable("customers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   phone: text("phone"),
-  address: text("address"),
-  dateOfBirth: text("date_of_birth"),
-  notes: text("notes"),
-  totalVisits: integer("total_visits").default(0),
+  password: text("password").notNull(), // for customer login
+  shippingAddress: text("shipping_address"),
+  billingAddress: text("billing_address"),
+  city: text("city"),
+  province: text("province"),
+  postalCode: text("postal_code"),
+  totalOrders: integer("total_orders").default(0),
   totalSpent: decimal("total_spent", { precision: 10, scale: 2 }).default("0"),
-  lastVisit: timestamp("last_visit"),
-  status: text("status").default("active"), // active, inactive
+  lastOrder: timestamp("last_order"),
+  status: text("status").default("active"), // active, inactive, suspended
+  emailVerified: boolean("email_verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const services = pgTable("services", {
+// Product Categories
+export const categories = pgTable("categories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
   description: text("description"),
-  category: text("category").notNull(), // massage, facial, body-treatment, hair, nail-care
-  duration: integer("duration").notNull(), // in minutes
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  parentId: varchar("parent_id"), // for subcategories
+  imageUrl: text("image_url"),
+  displayOrder: integer("display_order").default(0),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Admin/Staff table (simplified for e-commerce)
 export const staff = pgTable("staff", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
+  password: text("password").notNull(),
   phone: text("phone"),
-  role: text("role").notNull(),
-  specialties: text("specialties").array(),
-  experience: integer("experience"), // in years
+  role: text("role").notNull(), // admin, manager, staff
+  permissions: text("permissions").array(), // manage_products, manage_orders, view_reports, etc.
   isActive: boolean("is_active").default(true),
+  lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const appointments = pgTable("appointments", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").references(() => clients.id).notNull(),
-  serviceId: varchar("service_id").references(() => services.id).notNull(),
-  staffId: varchar("staff_id").references(() => staff.id),
-  date: text("date").notNull(), // YYYY-MM-DD format
-  time: text("time").notNull(), // HH:MM format
-  duration: integer("duration").notNull(), // in minutes
-  status: text("status").default("confirmed"), // confirmed, pending, cancelled, completed
-  notes: text("notes"),
-  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
+// Products table optimized for hair extensions
 export const products = pgTable("products", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   description: text("description"),
-  category: text("category").notNull(), // hair-care, skin-care, tools, equipment, retail
-  brand: text("brand"),
+  categoryId: varchar("category_id").references(() => categories.id).notNull(),
+  hairType: text("hair_type").notNull(), // human, synthetic, blend
+  texture: text("texture"), // straight, wavy, curly, kinky
+  length: integer("length"), // in inches
+  color: text("color"),
+  weight: text("weight"), // in grams
   sku: text("sku").unique(),
-  barcode: text("barcode"),
-  costPrice: decimal("cost_price", { precision: 10, scale: 2 }).notNull(),
-  retailPrice: decimal("retail_price", { precision: 10, scale: 2 }),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  compareAtPrice: decimal("compare_at_price", { precision: 10, scale: 2 }), // for showing discounts
+  costPrice: decimal("cost_price", { precision: 10, scale: 2 }),
   currentStock: integer("current_stock").default(0),
-  minStockLevel: integer("min_stock_level").default(10),
-  maxStockLevel: integer("max_stock_level"),
-  unit: text("unit").default("pcs"), // pcs, ml, g, kg, etc.
+  lowStockThreshold: integer("low_stock_threshold").default(5),
   supplierId: varchar("supplier_id").references(() => suppliers.id),
-  imageUrl: text("image_url"),
-  imageName: text("image_name"),
-  aiGenerated: boolean("ai_generated").default(false),
-  aiPrompt: text("ai_prompt"), // stores the AI prompt used for generation
-  marketPrice: decimal("market_price", { precision: 10, scale: 2 }), // AI-researched market price
-  competitors: text("competitors").array(), // competitor products found by AI
-  tags: text("tags").array(), // AI-generated tags
+  images: text("images").array(), // multiple product images
+  featuredImage: text("featured_image"),
+  tags: text("tags").array(),
+  features: jsonb("features").$type<string[]>(), // bullet points for product features
+  careInstructions: text("care_instructions"),
+  isFeatured: boolean("is_featured").default(false),
   isActive: boolean("is_active").default(true),
+  viewCount: integer("view_count").default(0),
+  soldCount: integer("sold_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const suppliers = pgTable("suppliers", {
@@ -94,127 +94,184 @@ export const suppliers = pgTable("suppliers", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const inventoryTransactions = pgTable("inventory_transactions", {
+// Orders table
+export const orders = pgTable("orders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  productId: varchar("product_id").references(() => products.id).notNull(),
-  type: text("type").notNull(), // purchase, sale, adjustment, waste
-  quantity: integer("quantity").notNull(),
-  unitCost: decimal("unit_cost", { precision: 10, scale: 2 }),
-  totalCost: decimal("total_cost", { precision: 10, scale: 2 }),
-  reason: text("reason"),
-  reference: text("reference"), // invoice number, appointment id, etc.
-  staffId: varchar("staff_id").references(() => staff.id),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// POS Transactions
-export const transactions = pgTable("transactions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  transactionNumber: text("transaction_number").notNull().unique(),
-  clientId: varchar("client_id").references(() => clients.id),
-  staffId: varchar("staff_id").references(() => staff.id).notNull(),
-  items: jsonb("items").notNull().$type<{
-    type: 'service' | 'product';
-    id: string;
-    name: string;
-    price: string;
-    quantity: number;
-    total: string;
-  }[]>(),
+  orderNumber: text("order_number").notNull().unique(),
+  customerId: varchar("customer_id").references(() => customers.id).notNull(),
+  status: text("status").notNull().default("pending"), // pending, processing, shipped, delivered, cancelled, refunded
+  paymentStatus: text("payment_status").notNull().default("pending"), // pending, paid, failed, refunded
+  paymentMethod: text("payment_method"), // cod, gcash, maya, card, bank_transfer
+  shippingMethod: text("shipping_method"), // standard, express, pickup
+  shippingFee: decimal("shipping_fee", { precision: 10, scale: 2 }).default("0"),
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
-  discount: decimal("discount", { precision: 10, scale: 2 }).notNull().default("0"),
-  tax: decimal("tax", { precision: 10, scale: 2 }).notNull().default("0"),
+  discount: decimal("discount", { precision: 10, scale: 2 }).default("0"),
+  tax: decimal("tax", { precision: 10, scale: 2 }).default("0"),
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
-  paymentMethod: text("payment_method").notNull(), // cash, gcash, maya, qrph, card
-  paymentReference: text("payment_reference"), // reference number for digital payments
-  paymentStatus: text("payment_status").notNull().default("completed"), // pending, completed, failed, refunded
+  shippingAddress: jsonb("shipping_address").$type<{
+    name: string;
+    phone: string;
+    address: string;
+    city: string;
+    province: string;
+    postalCode: string;
+  }>(),
+  billingAddress: jsonb("billing_address").$type<{
+    name: string;
+    phone: string;
+    address: string;
+    city: string;
+    province: string;
+    postalCode: string;
+  }>(),
+  trackingNumber: text("tracking_number"),
   notes: text("notes"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// Staff Time Records
-export const timeRecords = pgTable("time_records", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  staffId: varchar("staff_id").references(() => staff.id).notNull(),
-  clockIn: timestamp("clock_in").notNull(),
-  clockOut: timestamp("clock_out"),
-  breakStart: timestamp("break_start"),
-  breakEnd: timestamp("break_end"),
-  totalHours: decimal("total_hours", { precision: 5, scale: 2 }),
-  regularHours: decimal("regular_hours", { precision: 5, scale: 2 }),
-  overtimeHours: decimal("overtime_hours", { precision: 5, scale: 2 }),
-  breakDuration: decimal("break_duration", { precision: 5, scale: 2 }),
-  notes: text("notes"),
-  status: text("status").notNull().default("active"), // active, completed, cancelled
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// Notification Settings
-export const notificationSettings = pgTable("notification_settings", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  spaName: text("spa_name").notNull().default("Serenity Spa"),
-  spaEmail: text("spa_email").notNull(),
-  spaPhone: text("spa_phone"),
-  emailEnabled: boolean("email_enabled").default(true),
-  smsEnabled: boolean("sms_enabled").default(false),
-  confirmationEnabled: boolean("confirmation_enabled").default(true),
-  reminderEnabled: boolean("reminder_enabled").default(true),
-  reminderHours: integer("reminder_hours").default(24), // hours before appointment
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Notification Log
-export const notificationLog = pgTable("notification_log", {
+// Order Items
+export const orderItems = pgTable("order_items", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  appointmentId: varchar("appointment_id").references(() => appointments.id).notNull(),
-  type: text("type").notNull(), // confirmation, reminder
-  method: text("method").notNull(), // email, sms
-  status: text("status").notNull(), // sent, failed, pending
-  sentAt: timestamp("sent_at"),
-  errorMessage: text("error_message"),
+  orderId: varchar("order_id").references(() => orders.id).notNull(),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  productName: text("product_name").notNull(), // Store at time of order
+  productImage: text("product_image"),
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(), // Price at time of order
+  quantity: integer("quantity").notNull(),
+  total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-export const insertClientSchema = createInsertSchema(clients).omit({
+// Shopping Cart
+export const cart = pgTable("cart", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  customerId: varchar("customer_id").references(() => customers.id).notNull(),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  quantity: integer("quantity").notNull().default(1),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Wishlist
+export const wishlist = pgTable("wishlist", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  customerId: varchar("customer_id").references(() => customers.id).notNull(),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Product Reviews
+export const reviews = pgTable("reviews", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  customerId: varchar("customer_id").references(() => customers.id).notNull(),
+  orderId: varchar("order_id").references(() => orders.id),
+  rating: integer("rating").notNull(), // 1-5 stars
+  title: text("title"),
+  comment: text("comment"),
+  images: text("images").array(),
+  isVerified: boolean("is_verified").default(false), // verified purchase
+  helpfulCount: integer("helpful_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const inventoryTransactions = pgTable("inventory_transactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  type: text("type").notNull(), // purchase, sale, adjustment, return
+  quantity: integer("quantity").notNull(),
+  unitCost: decimal("unit_cost", { precision: 10, scale: 2 }),
+  totalCost: decimal("total_cost", { precision: 10, scale: 2 }),
+  reason: text("reason"),
+  reference: text("reference"), // order number, purchase order, etc.
+  staffId: varchar("staff_id").references(() => staff.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Shop Settings
+export const shopSettings = pgTable("shop_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  shopName: text("shop_name").notNull().default("Hibla Filipino Hair"),
+  shopEmail: text("shop_email").notNull(),
+  shopPhone: text("shop_phone"),
+  shopAddress: text("shop_address"),
+  logoUrl: text("logo_url"),
+  currency: text("currency").default("PHP"),
+  taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).default("12"), // VAT
+  shippingPolicy: text("shipping_policy"),
+  returnPolicy: text("return_policy"),
+  privacyPolicy: text("privacy_policy"),
+  termsConditions: text("terms_conditions"),
+  socialLinks: jsonb("social_links").$type<{
+    facebook?: string;
+    instagram?: string;
+    tiktok?: string;
+  }>(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Insert Schemas
+export const insertCustomerSchema = createInsertSchema(customers).omit({
   id: true,
-  totalVisits: true,
+  totalOrders: true,
   totalSpent: true,
-  lastVisit: true,
+  lastOrder: true,
+  emailVerified: true,
   createdAt: true,
 });
 
-export const insertServiceSchema = createInsertSchema(services).omit({
+export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
   createdAt: true,
 });
 
 export const insertStaffSchema = createInsertSchema(staff).omit({
   id: true,
-  createdAt: true,
-});
-
-export const insertAppointmentSchema = createInsertSchema(appointments).omit({
-  id: true,
+  lastLogin: true,
   createdAt: true,
 });
 
 export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
+  viewCount: true,
+  soldCount: true,
   createdAt: true,
-}).extend({
-  competitors: z.union([z.string(), z.array(z.string())]).optional().transform(val => 
-    typeof val === 'string' ? val : val?.join(',') || ''
-  ),
-  tags: z.union([z.string(), z.array(z.string())]).optional().transform(val => 
-    typeof val === 'string' ? val : val?.join(',') || ''
-  ),
+  updatedAt: true,
 });
 
 export const insertSupplierSchema = createInsertSchema(suppliers).omit({
   id: true,
+  createdAt: true,
+});
+
+export const insertOrderSchema = createInsertSchema(orders).omit({
+  id: true,
+  orderNumber: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertCartSchema = createInsertSchema(cart).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWishlistSchema = createInsertSchema(wishlist).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertReviewSchema = createInsertSchema(reviews).omit({
+  id: true,
+  helpfulCount: true,
   createdAt: true,
 });
 
@@ -223,95 +280,133 @@ export const insertInventoryTransactionSchema = createInsertSchema(inventoryTran
   createdAt: true,
 });
 
-export const insertTransactionSchema = createInsertSchema(transactions).omit({
-  id: true,
-  transactionNumber: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertTimeRecordSchema = createInsertSchema(timeRecords).omit({
+export const insertShopSettingsSchema = createInsertSchema(shopSettings).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertNotificationSettingsSchema = createInsertSchema(notificationSettings).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertNotificationLogSchema = createInsertSchema(notificationLog).omit({
-  id: true,
-  createdAt: true,
-});
-
-export type Client = typeof clients.$inferSelect;
-export type InsertClient = z.infer<typeof insertClientSchema>;
-export type Service = typeof services.$inferSelect;
-export type InsertService = z.infer<typeof insertServiceSchema>;
+// Types
+export type Customer = typeof customers.$inferSelect;
+export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Staff = typeof staff.$inferSelect;
 export type InsertStaff = z.infer<typeof insertStaffSchema>;
-export type Appointment = typeof appointments.$inferSelect;
-export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Supplier = typeof suppliers.$inferSelect;
 export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
+export type Order = typeof orders.$inferSelect;
+export type InsertOrder = z.infer<typeof insertOrderSchema>;
+export type OrderItem = typeof orderItems.$inferSelect;
+export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
+export type Cart = typeof cart.$inferSelect;
+export type InsertCart = z.infer<typeof insertCartSchema>;
+export type Wishlist = typeof wishlist.$inferSelect;
+export type InsertWishlist = z.infer<typeof insertWishlistSchema>;
+export type Review = typeof reviews.$inferSelect;
+export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type InventoryTransaction = typeof inventoryTransactions.$inferSelect;
 export type InsertInventoryTransaction = z.infer<typeof insertInventoryTransactionSchema>;
-export type Transaction = typeof transactions.$inferSelect;
-export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
-export type TimeRecord = typeof timeRecords.$inferSelect;
-export type InsertTimeRecord = z.infer<typeof insertTimeRecordSchema>;
-export type NotificationSettings = typeof notificationSettings.$inferSelect;
-export type InsertNotificationSettings = z.infer<typeof insertNotificationSettingsSchema>;
-export type NotificationLog = typeof notificationLog.$inferSelect;
-export type InsertNotificationLog = z.infer<typeof insertNotificationLogSchema>;
+export type ShopSettings = typeof shopSettings.$inferSelect;
+export type InsertShopSettings = z.infer<typeof insertShopSettingsSchema>;
 
 // Relations
-export const clientsRelations = relations(clients, ({ many }) => ({
-  appointments: many(appointments),
-  transactions: many(transactions),
+export const customersRelations = relations(customers, ({ many }) => ({
+  orders: many(orders),
+  cart: many(cart),
+  wishlist: many(wishlist),
+  reviews: many(reviews),
 }));
 
-export const servicesRelations = relations(services, ({ many }) => ({
-  appointments: many(appointments),
+export const categoriesRelations = relations(categories, ({ one, many }) => ({
+  parent: one(categories, {
+    fields: [categories.parentId],
+    references: [categories.id],
+  }),
+  subcategories: many(categories),
+  products: many(products),
 }));
 
 export const staffRelations = relations(staff, ({ many }) => ({
-  appointments: many(appointments),
   inventoryTransactions: many(inventoryTransactions),
-  transactions: many(transactions),
-  timeRecords: many(timeRecords),
-}));
-
-export const appointmentsRelations = relations(appointments, ({ one }) => ({
-  client: one(clients, {
-    fields: [appointments.clientId],
-    references: [clients.id],
-  }),
-  service: one(services, {
-    fields: [appointments.serviceId],
-    references: [services.id],
-  }),
-  staff: one(staff, {
-    fields: [appointments.staffId],
-    references: [staff.id],
-  }),
 }));
 
 export const productsRelations = relations(products, ({ one, many }) => ({
+  category: one(categories, {
+    fields: [products.categoryId],
+    references: [categories.id],
+  }),
   supplier: one(suppliers, {
     fields: [products.supplierId],
     references: [suppliers.id],
   }),
   inventoryTransactions: many(inventoryTransactions),
+  orderItems: many(orderItems),
+  cart: many(cart),
+  wishlist: many(wishlist),
+  reviews: many(reviews),
 }));
 
 export const suppliersRelations = relations(suppliers, ({ many }) => ({
   products: many(products),
+}));
+
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+  customer: one(customers, {
+    fields: [orders.customerId],
+    references: [customers.id],
+  }),
+  orderItems: many(orderItems),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+  product: one(products, {
+    fields: [orderItems.productId],
+    references: [products.id],
+  }),
+}));
+
+export const cartRelations = relations(cart, ({ one }) => ({
+  customer: one(customers, {
+    fields: [cart.customerId],
+    references: [customers.id],
+  }),
+  product: one(products, {
+    fields: [cart.productId],
+    references: [products.id],
+  }),
+}));
+
+export const wishlistRelations = relations(wishlist, ({ one }) => ({
+  customer: one(customers, {
+    fields: [wishlist.customerId],
+    references: [customers.id],
+  }),
+  product: one(products, {
+    fields: [wishlist.productId],
+    references: [products.id],
+  }),
+}));
+
+export const reviewsRelations = relations(reviews, ({ one }) => ({
+  product: one(products, {
+    fields: [reviews.productId],
+    references: [products.id],
+  }),
+  customer: one(customers, {
+    fields: [reviews.customerId],
+    references: [customers.id],
+  }),
+  order: one(orders, {
+    fields: [reviews.orderId],
+    references: [orders.id],
+  }),
 }));
 
 export const inventoryTransactionsRelations = relations(inventoryTransactions, ({ one }) => ({
@@ -321,24 +416,6 @@ export const inventoryTransactionsRelations = relations(inventoryTransactions, (
   }),
   staff: one(staff, {
     fields: [inventoryTransactions.staffId],
-    references: [staff.id],
-  }),
-}));
-
-export const transactionsRelations = relations(transactions, ({ one }) => ({
-  client: one(clients, {
-    fields: [transactions.clientId],
-    references: [clients.id],
-  }),
-  staff: one(staff, {
-    fields: [transactions.staffId],
-    references: [staff.id],
-  }),
-}));
-
-export const timeRecordsRelations = relations(timeRecords, ({ one }) => ({
-  staff: one(staff, {
-    fields: [timeRecords.staffId],
     references: [staff.id],
   }),
 }));
