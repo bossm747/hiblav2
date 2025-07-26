@@ -229,12 +229,16 @@ export default function HomePage() {
                 Transform your look with authentic Filipino beauty.
               </p>
               <div className="space-x-4">
-                <Button size="lg" className="bg-primary text-primary-foreground hover:shadow-lg hover:shadow-purple-500/50 transition-all">
-                  Shop Now
-                </Button>
-                <Button size="lg" variant="outline" className="border-primary text-foreground hover:bg-primary/20 hover:shadow-lg hover:shadow-cyan-500/50 transition-all">
-                  View Catalog
-                </Button>
+                <Link href="/products">
+                  <Button size="lg" className="bg-primary text-primary-foreground hover:shadow-lg hover:shadow-purple-500/50 transition-all">
+                    Shop Now
+                  </Button>
+                </Link>
+                <Link href="/products">
+                  <Button size="lg" variant="outline" className="border-primary text-foreground hover:bg-primary/20 hover:shadow-lg hover:shadow-cyan-500/50 transition-all">
+                    View Catalog
+                  </Button>
+                </Link>
               </div>
             </div>
             
@@ -298,9 +302,11 @@ export default function HomePage() {
                         Shop Collection
                       </Button>
                     </Link>
-                    <Button variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400/20 hover:neon-text-cyan transition-all">
-                      Learn More
-                    </Button>
+                    <Link href="/about">
+                      <Button variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400/20 hover:neon-text-cyan transition-all">
+                        Learn More
+                      </Button>
+                    </Link>
                   </div>
                 </div>
 
@@ -364,9 +370,11 @@ export default function HomePage() {
                       <div className="text-2xl font-bold text-cyan-400">15% OFF</div>
                       <div className="text-sm text-muted-foreground">Use code: HIBLA15</div>
                     </div>
-                    <Button className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white">
-                      Shop Now
-                    </Button>
+                    <Link href="/products">
+                      <Button className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white">
+                        Shop Now
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </div>
