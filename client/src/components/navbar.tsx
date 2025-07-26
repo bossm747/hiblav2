@@ -16,11 +16,12 @@ export function Navbar() {
 
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "All Products", href: "/products" },
+    { name: "Shop Now", href: "/products" },
+    { name: "Catalog", href: "/products" },
     { name: "Human Hair", href: "/products?category=human" },
     { name: "Synthetic Hair", href: "/products?category=synthetic" },
     { name: "About", href: "/about" },
-    { name: "Docs", href: "/docs" },
+    { name: "Help", href: "/docs" },
   ];
 
   const handleSearch = (e: React.FormEvent) => {
@@ -177,11 +178,22 @@ export function Navbar() {
                 </Link>
               </div>
               
-              {/* Staff Login for Mobile */}
-              <div className="pt-4 border-t border-white/10 mt-4">
+              {/* Staff Access for Mobile */}
+              <div className="pt-4 border-t border-white/10 mt-4 space-y-2">
+                <div className="text-sm font-medium text-muted-foreground px-3 mb-2">Staff Access</div>
                 <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="outline" size="sm" className="w-full glass border-primary">
+                  <Button variant="outline" size="sm" className="w-full glass border-primary justify-start">
                     Staff Login
+                  </Button>
+                </Link>
+                <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground">
+                    Admin Dashboard
+                  </Button>
+                </Link>
+                <Link href="/cashier" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground">
+                    Cashier Dashboard
                   </Button>
                 </Link>
               </div>

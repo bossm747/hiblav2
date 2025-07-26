@@ -26,9 +26,9 @@ export function AuthGuard({ children, requiredRole, redirectTo = "/login" }: Aut
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
       
-      // Check role if required
+      // Check role if required - admin has access to everything
       if (requiredRole && parsedUser.role !== requiredRole && parsedUser.role !== "admin") {
-        setLocation(redirectTo);
+        setLocation("/login");
         return;
       }
     } else {
