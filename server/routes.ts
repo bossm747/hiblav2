@@ -1063,6 +1063,170 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve attached assets for product images
   app.use('/attached_assets', express.static('attached_assets'));
 
+  // Import AI Image Service
+  import { aiImageService, type ImageGenerationRequest } from './ai-image-service.js';
+
+  // AI Image Generation endpoints
+  app.post("/api/ai/generate-product-image", async (req, res) => {
+    try {
+      const { productName, hairType, texture, color, length, style } = req.body;
+      
+      if (!productName || !hairType || !texture || !color || !length) {
+        return res.status(400).json({ 
+          message: "Product name, hair type, texture, color, and length are required" 
+        });
+      }
+
+      const request: ImageGenerationRequest = {
+        productName,
+        hairType,
+        texture,
+        color,
+        length: parseInt(length),
+        style
+      };
+
+      const imagePath = await aiImageService.generateProductImage(request);
+      
+      res.json({
+        success: true,
+        imagePath,
+        message: "Product image generated successfully"
+      });
+    } catch (error) {
+      console.error('AI Image Generation Error:', error);
+      res.status(500).json({ 
+        message: "Failed to generate product image",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/ai/generate-product-variations", async (req, res) => {
+    try {
+      const { productName, hairType, texture, color, length, count = 3 } = req.body;
+      
+      if (!productName || !hairType || !texture || !color || !length) {
+        return res.status(400).json({ 
+          message: "Product name, hair type, texture, color, and length are required" 
+        });
+      }
+
+      const request: ImageGenerationRequest = {
+        productName,
+        hairType,
+        texture,
+        color,
+        length: parseInt(length)
+      };
+
+      const imagePaths = await aiImageService.generateProductVariations(request, parseInt(count));
+      
+      res.json({
+        success: true,
+        imagePaths,
+        message: `Generated ${imagePaths.length} product variations`
+      });
+    } catch (error) {
+      console.error('AI Image Variations Error:', error);
+      res.status(500).json({ 
+        message: "Failed to generate product variations",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/ai/regenerate-all-product-images", async (req, res) => {
+    try {
+      // Get all products from database
+      const products = await storage.getAllProducts();
+      const results = [];
+      
+      for (const product of products) {
+        try {
+          const request: ImageGenerationRequest = {
+            productName: product.name,
+            hairType: product.hairType as 'human' | 'synthetic',
+            texture: product.texture as 'straight' | 'curly' | 'wavy',
+            color: product.color,
+            length: product.length
+          };
+
+          const imagePath = await aiImageService.generateProductImage(request);
+          
+          // Update product with new image
+          await storage.updateProduct(product.id, {
+            ...product,
+            images: [imagePath],
+            featuredImage: imagePath
+          });
+
+          results.push({
+            productId: product.id,
+            productName: product.name,
+            imagePath,
+            status: 'success'
+          });
+
+        } catch (error) {
+          console.error(`Failed to generate image for product ${product.name}:`, error);
+          results.push({
+            productId: product.id,
+            productName: product.name,
+            status: 'failed',
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      }
+      
+      const successCount = results.filter(r => r.status === 'success').length;
+      const failedCount = results.filter(r => r.status === 'failed').length;
+
+      res.json({
+        success: true,
+        message: `Regenerated ${successCount} product images. ${failedCount} failed.`,
+        results,
+        summary: {
+          total: products.length,
+          successful: successCount,
+          failed: failedCount
+        }
+      });
+    } catch (error) {
+      console.error('Bulk Image Generation Error:', error);
+      res.status(500).json({ 
+        message: "Failed to regenerate product images",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/ai/test-image-connection", async (req, res) => {
+    try {
+      const isValid = await aiImageService.validateApiKey();
+      
+      if (isValid) {
+        res.json({ 
+          status: 'success',
+          message: 'AI image service is working properly',
+          provider: 'OpenRouter (Flux)'
+        });
+      } else {
+        res.status(401).json({ 
+          status: 'error',
+          message: 'Invalid API key or service unavailable'
+        });
+      }
+    } catch (error) {
+      console.error('AI Image Connection Test Error:', error);
+      res.status(500).json({ 
+        status: 'error',
+        message: "AI image connection failed",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Generate SKU endpoint - Temporarily disabled
   /*
   app.post("/api/ai/generate-sku", async (req, res) => {
