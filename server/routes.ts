@@ -237,6 +237,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cancel appointment (set status to cancelled)
+  app.patch("/api/appointments/:id/cancel", async (req, res) => {
+    try {
+      const appointment = await storage.updateAppointment(req.params.id, { 
+        status: "cancelled" 
+      });
+      if (!appointment) {
+        return res.status(404).json({ message: "Appointment not found" });
+      }
+      
+      // Send cancellation notification in the background
+      // Note: cancellation notification type needs to be added to notification service
+      // sendAppointmentNotification(appointment.id, 'cancellation').catch(error => {
+      //   console.error('Failed to send appointment cancellation:', error);
+      // });
+      
+      res.json({ message: "Appointment cancelled successfully", appointment });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to cancel appointment" });
+    }
+  });
+
   app.delete("/api/appointments/:id", async (req, res) => {
     try {
       const deleted = await storage.deleteAppointment(req.params.id);

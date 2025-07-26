@@ -1,14 +1,18 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, ChevronLeft, ChevronRight, Plus, Edit, Trash2 } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, Plus, Edit, Trash2, X } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import AppointmentModal from "@/components/modals/appointment-modal";
 
 export default function Appointments() {
   const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const { toast } = useToast();
 
   const { data: appointments, isLoading } = useQuery({
     queryKey: ["/api/appointments", "date", selectedDate],
@@ -17,6 +21,26 @@ export default function Appointments() {
 
   const { data: allAppointments } = useQuery({
     queryKey: ["/api/appointments"],
+  });
+
+  const cancelAppointmentMutation = useMutation({
+    mutationFn: (appointmentId: string) => 
+      apiRequest(`/api/appointments/${appointmentId}/cancel`, "PATCH"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      toast({
+        title: "Success",
+        description: "Appointment cancelled successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to cancel appointment",
+        variant: "destructive",
+      });
+    },
   });
 
   if (isLoading) {
@@ -157,16 +181,45 @@ export default function Appointments() {
                       <div className="flex items-center space-x-3 mt-4 sm:mt-0">
                         <Badge variant={
                           appointment.status === 'confirmed' ? 'default' : 
-                          appointment.status === 'pending' ? 'secondary' : 'destructive'
+                          appointment.status === 'pending' ? 'secondary' : 
+                          appointment.status === 'cancelled' ? 'outline' : 'destructive'
                         }>
                           {appointment.status}
                         </Badge>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
+                          <>
+                            <Button variant="ghost" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="sm" className="text-orange-600 hover:text-orange-700">
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to cancel this appointment for {appointment.clientName}? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => cancelAppointmentMutation.mutate(appointment.id)}
+                                    className="bg-orange-600 hover:bg-orange-700"
+                                  >
+                                    {cancelAppointmentMutation.isPending ? "Cancelling..." : "Cancel Appointment"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>

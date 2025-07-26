@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,15 +10,40 @@ import {
   Plus,
   Calendar,
   UserPlus,
-  MoreVertical
+  MoreVertical,
+  X
 } from "lucide-react";
 import { useState } from "react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import AppointmentModal from "@/components/modals/appointment-modal";
 import ClientModal from "@/components/modals/client-modal";
 
 export default function Dashboard() {
   const [appointmentModalOpen, setAppointmentModalOpen] = useState(false);
   const [clientModalOpen, setClientModalOpen] = useState(false);
+  const { toast } = useToast();
+
+  const cancelAppointmentMutation = useMutation({
+    mutationFn: (appointmentId: string) => 
+      apiRequest(`/api/appointments/${appointmentId}/cancel`, "PATCH"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+      toast({
+        title: "Success",
+        description: "Appointment cancelled successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to cancel appointment",
+        variant: "destructive",
+      });
+    },
+  });
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["/api/dashboard/stats"],
@@ -198,10 +223,37 @@ export default function Dashboard() {
                         <div className="flex items-center space-x-2">
                           <Badge variant={
                             appointment.status === 'confirmed' ? 'default' : 
-                            appointment.status === 'pending' ? 'secondary' : 'destructive'
+                            appointment.status === 'pending' ? 'secondary' : 
+                            appointment.status === 'cancelled' ? 'outline' : 'destructive'
                           }>
                             {appointment.status}
                           </Badge>
+                          {appointment.status !== 'cancelled' && appointment.status !== 'completed' && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="sm" className="text-orange-600 hover:text-orange-700">
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to cancel this appointment for {appointment.clientName}?
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Keep</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => cancelAppointmentMutation.mutate(appointment.id)}
+                                    className="bg-orange-600 hover:bg-orange-700"
+                                  >
+                                    Cancel
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                           <Button variant="ghost" size="sm">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
