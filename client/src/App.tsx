@@ -35,6 +35,12 @@ import DashboardPage from "@/pages/dashboard";
 import DocumentationPage from "@/pages/documentation";
 import AIImageManagementPage from "@/pages/ai-image-management";
 import ProductManagementPage from "@/pages/product-management";
+import AnalyticsPage from "@/pages/analytics";
+import ProductsAdminPage from "@/pages/products-admin";
+import OrdersAdminPage from "@/pages/orders-admin";
+import CustomersAdminPage from "@/pages/customers-admin";
+import StaffAdminPage from "@/pages/staff-admin";
+import SettingsAdminPage from "@/pages/settings-admin";
 import NotFound from "@/pages/not-found";
 
 function App() {
@@ -88,9 +94,39 @@ function App() {
               </AuthGuard>
             </Route>
             
+            <Route path="/analytics">
+              <AuthGuard requiredRole="admin">
+                <AnalyticsPage />
+              </AuthGuard>
+            </Route>
+
             <Route path="/products-admin">
               <AuthGuard requiredRole="admin">
-                <ProductManagementPage />
+                <ProductsAdminPage />
+              </AuthGuard>
+            </Route>
+
+            <Route path="/orders-admin">
+              <AuthGuard requiredRole="admin">
+                <OrdersAdminPage />
+              </AuthGuard>
+            </Route>
+
+            <Route path="/customers-admin">
+              <AuthGuard requiredRole="admin">
+                <CustomersAdminPage />
+              </AuthGuard>
+            </Route>
+
+            <Route path="/staff-admin">
+              <AuthGuard requiredRole="admin">
+                <StaffAdminPage />
+              </AuthGuard>
+            </Route>
+
+            <Route path="/settings-admin">
+              <AuthGuard requiredRole="admin">
+                <SettingsAdminPage />
               </AuthGuard>
             </Route>
             
