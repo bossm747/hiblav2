@@ -394,25 +394,76 @@ export default function HomePage() {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12 text-foreground neon-text-pink">Shop by Category</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            {/* Hair Care Category */}
             <Link href="/products?category=hair-care" className="group relative h-64 rounded-lg overflow-hidden block glass-card neon-purple hover:scale-105 transition-transform">
-              <div className="absolute inset-0 glass-dark" />
+              <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40"
+                style={{
+                  backgroundImage: 'url(/uploads/ai-generated/human-straight-natural-brown-20in-1753529970210.png)'
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-900/80 to-purple-600/60" />
               <div className="relative h-full flex items-center justify-center">
                 <div className="text-center z-10">
-                  <h3 className="text-2xl font-bold mb-2 text-foreground neon-text-purple">Hair Care</h3>
-                  <p className="text-foreground/80">Premium care products for your hair</p>
+                  <h3 className="text-2xl font-bold mb-2 text-white neon-text-purple">Hair Care</h3>
+                  <p className="text-white/90">Premium care products for your hair</p>
                 </div>
               </div>
             </Link>
+
+            {/* Human Hair Category */}
             <Link href="/products?category=human" className="group relative h-64 rounded-lg overflow-hidden block glass-card neon-cyan hover:scale-105 transition-transform">
-              <div className="absolute inset-0 glass-dark" />
+              <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40"
+                style={{
+                  backgroundImage: 'url(/uploads/ai-generated/human-wavy-jet-black-22in-1753529995220.png)'
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/80 to-cyan-600/60" />
               <div className="relative h-full flex items-center justify-center">
                 <div className="text-center z-10">
-                  <h3 className="text-2xl font-bold mb-2 text-foreground neon-text-cyan">Human Hair</h3>
-                  <p className="text-foreground/80">Premium quality, natural look</p>
+                  <h3 className="text-2xl font-bold mb-2 text-white neon-text-cyan">Human Hair</h3>
+                  <p className="text-white/90">Premium quality, natural look</p>
                 </div>
               </div>
             </Link>
+
+            {/* Lace Closures Category */}
+            <Link href="/products?category=lace-closures" className="group relative h-64 rounded-lg overflow-hidden block glass-card neon-pink hover:scale-105 transition-transform">
+              <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40"
+                style={{
+                  backgroundImage: 'url(/uploads/ai-generated/human-straight-natural-black-16in-1753530018679.png)'
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-900/80 to-pink-600/60" />
+              <div className="relative h-full flex items-center justify-center">
+                <div className="text-center z-10">
+                  <h3 className="text-2xl font-bold mb-2 text-white neon-text-pink">Lace Closures</h3>
+                  <p className="text-white/90">HD Lace closures in various sizes</p>
+                </div>
+              </div>
+            </Link>
+
+            {/* Korean HD Lace Category */}
+            <Link href="/products?category=korean-hd" className="group relative h-64 rounded-lg overflow-hidden block glass-card neon-yellow hover:scale-105 transition-transform">
+              <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40"
+                style={{
+                  backgroundImage: 'url(/uploads/ai-generated/human-body%20wave-chocolate-brown-18in-1753530039325.png)'
+                }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-yellow-900/80 to-yellow-600/60" />
+              <div className="relative h-full flex items-center justify-center">
+                <div className="text-center z-10">
+                  <h3 className="text-2xl font-bold mb-2 text-white neon-text-yellow">Korean HD Lace</h3>
+                  <p className="text-white/90">Premium invisible lace technology</p>
+                </div>
+              </div>
+            </Link>
+
           </div>
         </div>
       </section>
