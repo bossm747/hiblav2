@@ -245,6 +245,22 @@ The architecture prioritizes developer experience with hot reloading, type safet
   - Flowing text effects and layered animations throughout the loading sequence
   - Professional brand presentation with purple, cyan, and pink gradient themes
 
+### Database Seeding & Demo Data (Jan 26, 2025)
+- **Customer Database Seeding**: Complete sample customer accounts for showcase and testing
+  - Created 15 realistic customer profiles with Philippine addresses and phone numbers
+  - Includes varied spending history (₱3,900 - ₱18,900) and order counts (2-15 orders)
+  - Covers major Philippine cities: Manila, Quezon City, Cebu, Davao, Baguio, Iloilo, etc.
+  - All accounts use "password123" for easy testing and demonstration
+- **Staff Database Seeding**: Sample staff accounts for role-based access testing
+  - Admin account (admin@hibla.com / admin123) with full permissions
+  - Cashier account (cashier@hibla.com / cashier123) for POS operations
+  - Manager account (manager@hibla.com / manager123) with management permissions
+  - Sales staff account (sales@hibla.com / sales123) for basic POS access
+- **Demonstration Ready**: Platform now has realistic data for showcasing all features
+  - Customer lookup and order processing with real Philippine customer data
+  - Staff role testing with appropriate permission levels
+  - Comprehensive test data for POS, inventory, and e-commerce features
+
 ### Previous Changes
 - **Database Migration (Jan 23, 2025)**: Replaced in-memory storage with PostgreSQL database using Drizzle ORM
 - **AI Integration**: Added OpenRouter API integration for Philippine market research and product data generation
