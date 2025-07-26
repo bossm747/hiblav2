@@ -57,7 +57,9 @@ export default function HomePage() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center">
-              <img src={logoPath} alt="Hibla Filipino Hair" className="h-12 w-auto brightness-200 invert" />
+              <div className="w-12 h-12 rounded-full overflow-hidden glass-card neon-glow-light flex items-center justify-center">
+                <img src={logoPath} alt="Hibla Filipino Hair" className="h-10 w-auto brightness-200 invert" />
+              </div>
             </Link>
 
             {/* Desktop Navigation */}
@@ -168,7 +170,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full items-center">
             {/* Text Content */}
             <div className="glass-card p-8 neon-purple">
-              <h1 className="text-5xl font-bold mb-4 text-foreground neon-text-purple">
+              <h1 className="text-5xl font-bold mb-4 neon-text-yellow">
                 Premium Filipino Hair Extensions
               </h1>
               <p className="text-xl mb-8 text-foreground/80">

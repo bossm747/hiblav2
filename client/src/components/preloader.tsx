@@ -27,13 +27,15 @@ export function Preloader() {
     <div className="fixed inset-0 z-[9999] bg-background flex items-center justify-center">
       <div className="text-center">
         {/* Animated Logo */}
-        <div className="relative mb-8">
+        <div className="relative mb-8 w-32 h-32 mx-auto">
           <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 blur-xl opacity-50" />
-          <img 
-            src={logoPath} 
-            alt="Hibla Filipino Hair" 
-            className="relative h-32 w-auto brightness-200 invert animate-spin-slow"
-          />
+          <div className="relative w-32 h-32 rounded-full overflow-hidden glass-card neon-glow-light flex items-center justify-center">
+            <img 
+              src={logoPath} 
+              alt="Hibla Filipino Hair" 
+              className="h-24 w-auto brightness-200 invert animate-spin-slow"
+            />
+          </div>
         </div>
 
         {/* Loading Text */}
