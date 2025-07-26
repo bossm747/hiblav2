@@ -112,6 +112,14 @@ export interface IStorage {
   // Shop Settings
   getShopSettings(): Promise<ShopSettings | undefined>;
   updateShopSettings(settings: Partial<InsertShopSettings>): Promise<ShopSettings>;
+  
+  // Additional Inventory Management
+  getLowStockProducts(): Promise<Product[]>;
+  getProductInventoryTransactions(productId: string): Promise<InventoryTransaction[]>;
+  getInventoryTransactionsByProduct(productId: string): Promise<InventoryTransaction[]>;
+  
+  // POS Operations
+  getDailySales(date: string): Promise<Order[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -415,6 +423,44 @@ export class DatabaseStorage implements IStorage {
       const [created] = await db.insert(shopSettings).values(settings as InsertShopSettings).returning();
       return created;
     }
+  }
+
+  // Additional Inventory Management methods
+  async getLowStockProducts(): Promise<Product[]> {
+    return await db.select().from(products).where(
+      and(
+        eq(products.isActive, true),
+        sql`${products.currentStock} <= ${products.lowStockThreshold}`
+      )
+    );
+  }
+
+  async getProductInventoryTransactions(productId: string): Promise<InventoryTransaction[]> {
+    return await db.select().from(inventoryTransactions)
+      .where(eq(inventoryTransactions.productId, productId))
+      .orderBy(desc(inventoryTransactions.createdAt));
+  }
+
+  async getInventoryTransactionsByProduct(productId: string): Promise<InventoryTransaction[]> {
+    return await db.select().from(inventoryTransactions)
+      .where(eq(inventoryTransactions.productId, productId))
+      .orderBy(desc(inventoryTransactions.createdAt));
+  }
+
+  // POS Operations
+  async getDailySales(date: string): Promise<Order[]> {
+    const startDate = new Date(date);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(date);
+    endDate.setHours(23, 59, 59, 999);
+
+    return await db.select().from(orders).where(
+      and(
+        gte(orders.createdAt, startDate),
+        sql`${orders.createdAt} <= ${endDate}`,
+        eq(orders.status, "completed")
+      )
+    ).orderBy(desc(orders.createdAt));
   }
 }
 

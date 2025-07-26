@@ -57,6 +57,13 @@ export default function HomePage() {
               <Link href="/about" className="text-gray-700 hover:text-pink-600 transition-colors">
                 About Us
               </Link>
+              <div className="h-6 w-px bg-gray-300 mx-2" />
+              <Link href="/pos" className="text-gray-700 hover:text-pink-600 transition-colors font-medium">
+                POS
+              </Link>
+              <Link href="/inventory" className="text-gray-700 hover:text-pink-600 transition-colors font-medium">
+                Inventory
+              </Link>
             </nav>
 
             {/* Search Bar */}
@@ -123,6 +130,14 @@ export default function HomePage() {
                 <Link href="/about" className="text-gray-700 hover:text-pink-600 py-2">
                   About Us
                 </Link>
+                <div className="border-t pt-2 mt-2">
+                  <Link href="/pos" className="text-gray-700 hover:text-pink-600 py-2 font-medium">
+                    Point of Sale
+                  </Link>
+                  <Link href="/inventory" className="text-gray-700 hover:text-pink-600 py-2 font-medium">
+                    Inventory Management
+                  </Link>
+                </div>
               </nav>
             </div>
           </div>

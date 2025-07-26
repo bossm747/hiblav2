@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Pages
 import HomePage from "@/pages/home";
+import InventoryPage from "@/pages/inventory";
+import POSPage from "@/pages/pos";
 import NotFound from "@/pages/not-found";
 
 function App() {
@@ -15,6 +17,8 @@ function App() {
         <div className="min-h-screen">
           <Switch>
             <Route path="/" component={HomePage} />
+            <Route path="/inventory" component={InventoryPage} />
+            <Route path="/pos" component={POSPage} />
             <Route component={NotFound} />
           </Switch>
         </div>

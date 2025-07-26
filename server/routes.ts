@@ -536,6 +536,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Inventory Management routes
+  app.get("/api/inventory/low-stock", async (req, res) => {
+    try {
+      const products = await storage.getLowStockProducts();
+      res.json(products);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch low stock products", error });
+    }
+  });
+
+  app.post("/api/inventory/adjust", async (req, res) => {
+    try {
+      const { productId, quantity, type, reason, staffId } = req.body;
+      
+      const transaction = await storage.createInventoryTransaction({
+        productId,
+        quantity,
+        type,
+        reason,
+        staffId: staffId || "system"
+      });
+      
+      res.status(201).json(transaction);
+    } catch (error) {
+      res.status(400).json({ message: "Failed to adjust inventory", error });
+    }
+  });
+
+  app.get("/api/inventory/transactions/:productId", async (req, res) => {
+    try {
+      const transactions = await storage.getProductInventoryTransactions(req.params.productId);
+      res.json(transactions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch inventory transactions", error });
+    }
+  });
+
+  // POS routes
+  app.post("/api/pos/create-sale", async (req, res) => {
+    try {
+      const { items, paymentMethod, amountPaid, customerId } = req.body;
+      
+      // Calculate totals
+      const subtotal = items.reduce((sum: number, item: any) => 
+        sum + (parseFloat(item.price) * item.quantity), 0
+      );
+      const tax = subtotal * 0.12; // 12% VAT
+      const total = subtotal + tax;
+      
+      // Create the order
+      const order = await storage.createOrder({
+        customerId: customerId || "walk-in-customer",
+        status: "completed",
+        paymentStatus: "paid",
+        paymentMethod,
+        subtotal: subtotal.toString(),
+        tax: tax.toString(),
+        total: total.toString(),
+        shippingMethod: "pickup",
+        shippingFee: "0"
+      });
+      
+      // Create order items
+      for (const item of items) {
+        await storage.createOrderItem({
+          orderId: order.id,
+          productId: item.productId,
+          productName: item.productName,
+          productImage: item.productImage,
+          price: item.price,
+          quantity: item.quantity,
+          total: (parseFloat(item.price) * item.quantity).toString()
+        });
+      }
+      
+      res.status(201).json({
+        order,
+        change: amountPaid - total
+      });
+    } catch (error) {
+      res.status(400).json({ message: "Failed to create sale", error });
+    }
+  });
+
+  app.get("/api/pos/daily-sales", async (req, res) => {
+    try {
+      const { date } = req.query;
+      const sales = await storage.getDailySales(date as string || new Date().toISOString().split('T')[0]);
+      
+      // Calculate daily totals
+      const totalSales = sales.reduce((sum, order) => sum + parseFloat(order.total), 0);
+      const totalOrders = sales.length;
+      const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
+      
+      res.json({
+        sales,
+        summary: {
+          totalSales,
+          totalOrders,
+          avgOrderValue,
+          date: date || new Date().toISOString().split('T')[0]
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch daily sales", error });
+    }
+  });
+
   // Configure multer for file uploads
   const storage_multer = multer.diskStorage({
     destination: async (req, file, cb) => {

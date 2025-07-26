@@ -174,6 +174,30 @@ The architecture prioritizes developer experience with hot reloading, type safet
   - All CRUD operations now persist data to PostgreSQL database
 - **Environment Setup**: Database environment variables configured (DATABASE_URL, PGUSER, etc.)
 
+### Inventory Management & POS System (Jan 26, 2025)
+- **Inventory Management System**: Added comprehensive inventory tracking features
+  - Created inventory management page with real-time stock monitoring
+  - Low stock alerts displayed prominently for products below threshold
+  - Stock adjustment interface with transaction types: Purchase, Sale, Adjustment, Return
+  - Complete transaction history tracking for each product
+  - Added API endpoints: `/api/inventory/low-stock`, `/api/inventory/adjust`, `/api/inventory/transactions/:productId`
+- **Point of Sale (POS) System**: Built complete in-store sales solution
+  - Created POS interface with product grid and shopping cart
+  - Real-time product search by name, SKU, or type
+  - Stock validation to prevent overselling
+  - Multiple payment methods support: Cash, GCash, Bank Transfer
+  - Automatic VAT (12%) calculation for Philippine market
+  - Change calculation for cash payments
+  - Daily sales reporting with summary statistics
+  - Added API endpoints: `/api/pos/create-sale`, `/api/pos/daily-sales`
+- **Product Data Import**: Parsed and imported inventory from Instagram posts
+  - Imported 20+ hair extension products from provided Instagram images
+  - Products include Single Drawn, Double Drawn, Korean HD Lace, and European HD Lace varieties
+  - Accurate pricing and stock levels based on Instagram post data
+- **Navigation Updates**: Added staff/admin navigation links
+  - Added POS and Inventory links to desktop and mobile navigation
+  - Separated admin functions with visual divider in navigation menu
+
 ### Previous Changes
 - **Database Migration (Jan 23, 2025)**: Replaced in-memory storage with PostgreSQL database using Drizzle ORM
 - **AI Integration**: Added OpenRouter API integration for Philippine market research and product data generation
