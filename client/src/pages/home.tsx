@@ -10,6 +10,7 @@ import { ProductDetailModal } from "@/components/product-detail-modal";
 import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@shared/schema";
 import logoPath from "@assets/Untitled design_1753503650014.png";
+import { HairAnimation3D } from "@/components/hair-animation-3d";
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -161,24 +162,32 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative h-[500px] overflow-hidden">
+      <section className="relative h-[600px] overflow-hidden">
         <div className="absolute inset-0 glass-dark" />
-        <div className="relative container mx-auto px-4 h-full flex items-center">
-          <div className="max-w-2xl glass-card p-8 neon-purple">
-            <h1 className="text-5xl font-bold mb-4 text-foreground neon-text-purple">
-              Premium Filipino Hair Extensions
-            </h1>
-            <p className="text-xl mb-8 text-foreground/80">
-              Discover our collection of high-quality synthetic and real human hair "piloka" extensions. 
-              Transform your look with authentic Filipino beauty.
-            </p>
-            <div className="space-x-4">
-              <Button size="lg" className="bg-primary text-primary-foreground hover:shadow-lg hover:shadow-purple-500/50 transition-all">
-                Shop Now
-              </Button>
-              <Button size="lg" variant="outline" className="border-primary text-foreground hover:bg-primary/20 hover:shadow-lg hover:shadow-cyan-500/50 transition-all">
-                View Catalog
-              </Button>
+        <div className="relative container mx-auto px-4 h-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full items-center">
+            {/* Text Content */}
+            <div className="glass-card p-8 neon-purple">
+              <h1 className="text-5xl font-bold mb-4 text-foreground neon-text-purple">
+                Premium Filipino Hair Extensions
+              </h1>
+              <p className="text-xl mb-8 text-foreground/80">
+                Discover our collection of high-quality synthetic and real human hair "piloka" extensions. 
+                Transform your look with authentic Filipino beauty.
+              </p>
+              <div className="space-x-4">
+                <Button size="lg" className="bg-primary text-primary-foreground hover:shadow-lg hover:shadow-purple-500/50 transition-all">
+                  Shop Now
+                </Button>
+                <Button size="lg" variant="outline" className="border-primary text-foreground hover:bg-primary/20 hover:shadow-lg hover:shadow-cyan-500/50 transition-all">
+                  View Catalog
+                </Button>
+              </div>
+            </div>
+            
+            {/* 3D Animation */}
+            <div className="glass-card p-4 neon-cyan h-full min-h-[400px]">
+              <HairAnimation3D />
             </div>
           </div>
         </div>
