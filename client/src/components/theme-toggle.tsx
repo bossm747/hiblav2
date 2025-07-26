@@ -11,6 +11,11 @@ export function ThemeToggle() {
     const preferredTheme = savedTheme || "dark";
     setTheme(preferredTheme);
     applyTheme(preferredTheme);
+    
+    // Ensure document has dark class by default
+    if (!savedTheme) {
+      document.documentElement.classList.add("dark");
+    }
   }, []);
 
   const applyTheme = (newTheme: "light" | "dark") => {
@@ -18,45 +23,8 @@ export function ThemeToggle() {
     root.classList.remove("light", "dark");
     root.classList.add(newTheme);
     
-    // Update CSS custom properties for light theme
-    if (newTheme === "light") {
-      root.style.setProperty("--background", "0 0% 100%");
-      root.style.setProperty("--foreground", "222.2 84% 4.9%");
-      root.style.setProperty("--muted", "210 40% 96%");
-      root.style.setProperty("--muted-foreground", "215.4 16.3% 46.9%");
-      root.style.setProperty("--border", "214.3 31.8% 91.4%");
-      root.style.setProperty("--input", "214.3 31.8% 91.4%");
-      root.style.setProperty("--card", "0 0% 100%");
-      root.style.setProperty("--card-foreground", "222.2 84% 4.9%");
-      root.style.setProperty("--primary", "262.1 83.3% 57.8%");
-      root.style.setProperty("--primary-foreground", "210 40% 98%");
-      root.style.setProperty("--secondary", "210 40% 96%");
-      root.style.setProperty("--secondary-foreground", "222.2 84% 4.9%");
-      root.style.setProperty("--accent", "210 40% 96%");
-      root.style.setProperty("--accent-foreground", "222.2 84% 4.9%");
-      root.style.setProperty("--destructive", "0 84.2% 60.2%");
-      root.style.setProperty("--destructive-foreground", "210 40% 98%");
-      root.style.setProperty("--ring", "262.1 83.3% 57.8%");
-    } else {
-      // Dark theme (default)
-      root.style.setProperty("--background", "222.2 84% 4.9%");
-      root.style.setProperty("--foreground", "210 40% 98%");
-      root.style.setProperty("--muted", "217.2 32.6% 17.5%");
-      root.style.setProperty("--muted-foreground", "215 20.2% 65.1%");
-      root.style.setProperty("--border", "217.2 32.6% 17.5%");
-      root.style.setProperty("--input", "217.2 32.6% 17.5%");
-      root.style.setProperty("--card", "222.2 84% 4.9%");
-      root.style.setProperty("--card-foreground", "210 40% 98%");
-      root.style.setProperty("--primary", "263.4 70% 50.4%");
-      root.style.setProperty("--primary-foreground", "210 40% 98%");
-      root.style.setProperty("--secondary", "217.2 32.6% 17.5%");
-      root.style.setProperty("--secondary-foreground", "210 40% 98%");
-      root.style.setProperty("--accent", "217.2 32.6% 17.5%");
-      root.style.setProperty("--accent-foreground", "210 40% 98%");
-      root.style.setProperty("--destructive", "0 62.8% 30.6%");
-      root.style.setProperty("--destructive-foreground", "210 40% 98%");
-      root.style.setProperty("--ring", "263.4 70% 50.4%");
-    }
+    // CSS custom properties are already defined in index.css
+    // The class-based approach will handle the theme switching
   };
 
   const toggleTheme = () => {
