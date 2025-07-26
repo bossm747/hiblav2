@@ -42,11 +42,58 @@ export default function HomePage() {
   };
 
   const handleAddToCart = (product: Product) => {
-    // TODO: Implement cart functionality
-    toast({
-      title: "Added to Cart",
-      description: `${product.name} has been added to your cart.`
-    });
+    // For demo purposes, use a mock customer ID and post to cart API
+    const cartData = {
+      customerId: "demo-customer-1",
+      productId: product.id,
+      quantity: 1,
+    };
+
+    fetch("/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cartData),
+    })
+      .then(() => {
+        toast({
+          title: "Added to Cart",
+          description: `${product.name} has been added to your cart.`,
+        });
+      })
+      .catch(() => {
+        toast({
+          title: "Error",
+          description: "Failed to add item to cart.",
+          variant: "destructive",
+        });
+      });
+  };
+
+  const handleAddToWishlist = (product: Product) => {
+    // For demo purposes, use a mock customer ID and post to wishlist API
+    const wishlistData = {
+      customerId: "demo-customer-1", 
+      productId: product.id,
+    };
+
+    fetch("/api/wishlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(wishlistData),
+    })
+      .then(() => {
+        toast({
+          title: "Added to Wishlist",
+          description: `${product.name} has been added to your wishlist.`,
+        });
+      })
+      .catch(() => {
+        toast({
+          title: "Error", 
+          description: "Failed to add item to wishlist.",
+          variant: "destructive",
+        });
+      });
   };
 
   return (

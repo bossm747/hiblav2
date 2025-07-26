@@ -11,9 +11,10 @@ interface ProductDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddToCart: (product: Product) => void;
+  onAddToWishlist?: (product: Product) => void;
 }
 
-export function ProductDetailModal({ product, isOpen, onClose, onAddToCart }: ProductDetailModalProps) {
+export function ProductDetailModal({ product, isOpen, onClose, onAddToCart, onAddToWishlist }: ProductDetailModalProps) {
   if (!product) return null;
 
   const formatPrice = (price: string) => {
@@ -160,9 +161,19 @@ export function ProductDetailModal({ product, isOpen, onClose, onAddToCart }: Pr
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 {product.currentStock === 0 ? "Out of Stock" : "Add to Cart"}
               </Button>
-              <Button variant="outline" size="lg" className="border-primary hover:bg-primary/20 hover:neon-text-pink transition-all">
-                <Heart className="h-5 w-5" />
-              </Button>
+              {onAddToWishlist && (
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="border-primary hover:bg-primary/20 hover:neon-text-pink transition-all"
+                  onClick={() => {
+                    onAddToWishlist(product);
+                    onClose();
+                  }}
+                >
+                  <Heart className="h-5 w-5" />
+                </Button>
+              )}
             </div>
 
             {/* Rating */}

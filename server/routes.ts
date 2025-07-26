@@ -219,10 +219,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Cart routes
-  app.get("/api/cart/:customerId", async (req, res) => {
+  // Cart routes - simplified for demo (no authentication)
+  app.get("/api/cart", async (req, res) => {
     try {
-      const cartItems = await storage.getCartItems(req.params.customerId);
+      // For demo purposes, use a mock customer ID
+      const customerId = "demo-customer-1";
+      const cartItems = await storage.getCartItems(customerId);
       res.json(cartItems);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch cart items" });
@@ -276,10 +278,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Wishlist routes
-  app.get("/api/wishlist/:customerId", async (req, res) => {
+  // Wishlist routes - simplified for demo (no authentication)
+  app.get("/api/wishlist", async (req, res) => {
     try {
-      const wishlistItems = await storage.getWishlistItems(req.params.customerId);
+      // For demo purposes, use a mock customer ID
+      const customerId = "demo-customer-1";
+      const wishlistItems = await storage.getWishlistItems(customerId);
       res.json(wishlistItems);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch wishlist items" });
