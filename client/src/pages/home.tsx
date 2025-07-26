@@ -242,11 +242,134 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Featured Products */}
+      {/* Featured Collection Showcase */}
       <section className="py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-foreground neon-text-cyan">Featured Products</h2>
-          
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4 neon-text-purple">Premium Collection</h2>
+            <p className="text-lg text-muted-foreground">Discover our Instagram-featured hair extensions</p>
+          </div>
+
+          {/* Premium Featured Showcase */}
+          <div className="mb-16">
+            <Card className="glass-card border-white/20 neon-purple overflow-hidden">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
+                {/* Content Side */}
+                <div className="flex flex-col justify-center space-y-6">
+                  <div>
+                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white mb-4">
+                      PREMIUM COLLECTION
+                    </Badge>
+                    <h3 className="text-3xl font-bold text-foreground mb-4 neon-text-cyan">
+                      Korean HD Lace Collection
+                    </h3>
+                    <p className="text-lg text-muted-foreground leading-relaxed">
+                      Experience the finest quality with our Korean HD Lace hair extensions. 
+                      Invisible lace technology meets premium human hair for the most natural look possible.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                      <span className="text-foreground">100% Human Hair</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                      <span className="text-foreground">HD Invisible Lace Technology</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-2 h-2 bg-pink-400 rounded-full"></div>
+                      <span className="text-foreground">Multiple Textures Available</span>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      <span className="text-foreground">Premium Grade Quality</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-4">
+                    <Link href="/products?category=korean-hd-lace">
+                      <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-purple-500/50 transition-all">
+                        Shop Collection
+                      </Button>
+                    </Link>
+                    <Button variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400/20 hover:neon-text-cyan transition-all">
+                      Learn More
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Visual Side */}
+                <div className="relative">
+                  <div className="grid grid-cols-2 gap-4 h-full">
+                    <div className="space-y-4">
+                      <div className="glass-card p-4 neon-glow-light h-32 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-purple-400 mb-1">₱4,500</div>
+                          <div className="text-sm text-muted-foreground">Straight 18"</div>
+                        </div>
+                      </div>
+                      <div className="glass-card p-4 neon-glow-light h-32 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-cyan-400 mb-1">₱5,200</div>
+                          <div className="text-sm text-muted-foreground">Body Wave 20"</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="glass-card p-4 neon-glow-light h-32 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-pink-400 mb-1">₱4,800</div>
+                          <div className="text-sm text-muted-foreground">Curly 16"</div>
+                        </div>
+                      </div>
+                      <div className="glass-card p-4 neon-glow-light h-32 flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-400 mb-1">₱5,800</div>
+                          <div className="text-sm text-muted-foreground">Deep Wave 22"</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Floating Elements */}
+                  <div className="absolute -top-2 -right-2 w-16 h-16 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-full blur-xl"></div>
+                  <div className="absolute -bottom-2 -left-2 w-12 h-12 bg-gradient-to-br from-cyan-500/30 to-blue-500/30 rounded-full blur-lg"></div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Special Offers Banner */}
+          <div className="mb-12">
+            <Card className="glass-card border-white/20 neon-cyan overflow-hidden">
+              <div className="bg-gradient-to-r from-cyan-500/10 to-purple-500/10 p-6">
+                <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-purple-400 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">!</span>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-foreground neon-text-cyan">Limited Time Offer</h3>
+                      <p className="text-muted-foreground">Get 15% off on orders above ₱8,000 + Free shipping nationwide</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-cyan-400">15% OFF</div>
+                      <div className="text-sm text-muted-foreground">Use code: HIBLA15</div>
+                    </div>
+                    <Button className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white">
+                      Shop Now
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Product Grid */}
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[...Array(4)].map((_, i) => (
@@ -327,7 +450,7 @@ export default function HomePage() {
                       className="border-primary hover:bg-primary/20 hover:neon-text-pink transition-all"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // TODO: Add to wishlist
+                        handleAddToWishlist(product);
                       }}
                     >
                       <Heart className="h-4 w-4" />
