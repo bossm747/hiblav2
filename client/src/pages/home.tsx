@@ -141,9 +141,19 @@ export default function HomePage() {
               </div>
             </div>
             
-            {/* 3D Animation */}
-            <div className="bg-transparent p-4 h-full min-h-[400px]">
+            {/* 3D Animation with Logo Overlay */}
+            <div className="bg-transparent p-4 h-full min-h-[400px] relative">
               <HairAnimation3D />
+              {/* Logo Overlay */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-full glass-card neon-glow border-2 border-white/20 p-4 backdrop-blur-sm animate-pulse hover:animate-none transition-all duration-500">
+                  <img 
+                    src={logoPath} 
+                    alt="Hibla Filipino Hair" 
+                    className="w-full h-full object-contain drop-shadow-2xl animate-float"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
