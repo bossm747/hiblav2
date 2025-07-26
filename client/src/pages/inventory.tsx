@@ -11,7 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Package, AlertTriangle, TrendingUp, TrendingDown, History } from "lucide-react";
+import { Package, AlertTriangle, TrendingUp, TrendingDown, History, Barcode as BarcodeIcon, Eye } from "lucide-react";
+import Barcode from 'react-barcode';
+import { ProductDetailModal } from "@/components/product-detail-modal";
 import type { Product, InventoryTransaction } from "@shared/schema";
 
 export default function InventoryPage() {
@@ -20,6 +22,10 @@ export default function InventoryPage() {
   const [adjustmentType, setAdjustmentType] = useState<"purchase" | "sale" | "adjustment" | "return">("purchase");
   const [adjustmentQuantity, setAdjustmentQuantity] = useState("");
   const [adjustmentReason, setAdjustmentReason] = useState("");
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [selectedViewProduct, setSelectedViewProduct] = useState<Product | null>(null);
+  const [showBarcodeDialog, setShowBarcodeDialog] = useState(false);
+  const [selectedBarcode, setSelectedBarcode] = useState<{ product: Product; value: string } | null>(null);
 
   // Fetch all products
   const { data: products = [], isLoading } = useQuery<Product[]>({
@@ -160,17 +166,38 @@ export default function InventoryPage() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setSelectedProduct(product)}
-                        >
-                          <Package className="h-4 w-4 mr-1" />
-                          Adjust
-                        </Button>
-                      </DialogTrigger>
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedViewProduct(product);
+                          setShowProductModal(true);
+                        }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const barcodeValue = product.sku || `PRD${product.id.slice(0, 8).toUpperCase()}`;
+                          setSelectedBarcode({ product, value: barcodeValue });
+                          setShowBarcodeDialog(true);
+                        }}
+                      >
+                        <BarcodeIcon className="h-4 w-4" />
+                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setSelectedProduct(product)}
+                          >
+                            <Package className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
                       <DialogContent className="max-w-2xl">
                         <DialogHeader>
                           <DialogTitle>Adjust Inventory: {product.name}</DialogTitle>
@@ -286,6 +313,7 @@ export default function InventoryPage() {
                         </div>
                       </DialogContent>
                     </Dialog>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -293,6 +321,53 @@ export default function InventoryPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Barcode Dialog */}
+      <Dialog open={showBarcodeDialog} onOpenChange={setShowBarcodeDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{selectedBarcode?.product.name}</DialogTitle>
+            <DialogDescription>
+              Product Barcode
+            </DialogDescription>
+          </DialogHeader>
+          {selectedBarcode && (
+            <div className="flex flex-col items-center space-y-4 py-4">
+              <div className="bg-white p-6 rounded-lg border">
+                <Barcode 
+                  value={selectedBarcode.value}
+                  width={2}
+                  height={80}
+                  fontSize={16}
+                  background="#ffffff"
+                  lineColor="#000000"
+                />
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-600">SKU: {selectedBarcode.product.sku || "N/A"}</p>
+                <p className="font-semibold">₱{selectedBarcode.product.price}</p>
+                <p className="text-sm text-gray-600">Stock: {selectedBarcode.product.currentStock}</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        product={selectedViewProduct}
+        isOpen={showProductModal}
+        onClose={() => {
+          setShowProductModal(false);
+          setSelectedViewProduct(null);
+        }}
+        onAddToCart={() => {
+          toast({
+            title: "Navigate to POS",
+            description: "Please use the Point of Sale system to add items to cart."
+          });
+        }}
+      />
     </div>
   );
 }

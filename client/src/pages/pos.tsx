@@ -11,7 +11,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ShoppingCart, Trash2, CreditCard, DollarSign, Receipt, Search, Package2 } from "lucide-react";
+import { ShoppingCart, Trash2, CreditCard, DollarSign, Receipt, Search, Package2, Barcode as BarcodeIcon, Eye } from "lucide-react";
+import Barcode from 'react-barcode';
+import { ProductDetailModal } from "@/components/product-detail-modal";
 import type { Product } from "@shared/schema";
 
 interface CartItem {
@@ -29,6 +31,10 @@ export default function POSPage() {
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "gcash" | "bank_transfer">("cash");
   const [amountPaid, setAmountPaid] = useState("");
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [showBarcodeDialog, setShowBarcodeDialog] = useState(false);
+  const [selectedBarcode, setSelectedBarcode] = useState<{ product: Product; value: string } | null>(null);
 
   // Fetch all products
   const { data: products = [], isLoading } = useQuery<Product[]>({
@@ -213,11 +219,38 @@ export default function POSPage() {
                 </div>
                 <h3 className="font-semibold text-sm mb-1 line-clamp-2">{product.name}</h3>
                 <p className="text-xs text-muted-foreground mb-2">{product.sku || "No SKU"}</p>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-2">
                   <span className="font-bold">₱{product.price}</span>
                   <Badge variant={!product.currentStock || product.currentStock === 0 ? "destructive" : "secondary"}>
                     {product.currentStock ?? 0} left
                   </Badge>
+                </div>
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedProduct(product);
+                      setShowProductModal(true);
+                    }}
+                  >
+                    <Eye className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const barcodeValue = product.sku || `PRD${product.id.slice(0, 8).toUpperCase()}`;
+                      setSelectedBarcode({ product, value: barcodeValue });
+                      setShowBarcodeDialog(true);
+                    }}
+                  >
+                    <BarcodeIcon className="h-3 w-3" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -328,6 +361,36 @@ export default function POSPage() {
         </Card>
       </div>
 
+      {/* Barcode Dialog */}
+      <Dialog open={showBarcodeDialog} onOpenChange={setShowBarcodeDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{selectedBarcode?.product.name}</DialogTitle>
+            <DialogDescription>
+              Product Barcode
+            </DialogDescription>
+          </DialogHeader>
+          {selectedBarcode && (
+            <div className="flex flex-col items-center space-y-4 py-4">
+              <div className="bg-white p-6 rounded-lg border">
+                <Barcode 
+                  value={selectedBarcode.value}
+                  width={2}
+                  height={80}
+                  fontSize={16}
+                  background="#ffffff"
+                  lineColor="#000000"
+                />
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-600">SKU: {selectedBarcode.product.sku || "N/A"}</p>
+                <p className="font-semibold">₱{selectedBarcode.product.price}</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Payment Dialog */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
         <DialogContent>
@@ -394,6 +457,17 @@ export default function POSPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        product={selectedProduct}
+        isOpen={showProductModal}
+        onClose={() => {
+          setShowProductModal(false);
+          setSelectedProduct(null);
+        }}
+        onAddToCart={addToCart}
+      />
     </div>
   );
 }

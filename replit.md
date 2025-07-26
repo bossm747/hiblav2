@@ -49,6 +49,7 @@ This is an e-commerce platform for synthetic and real human hair extensions (pil
 - **Wishlist**: Saved products for later purchase
 - **Reviews**: Product ratings and customer feedback
 - **Shop Settings**: Store configuration and business information
+- **Barcodes**: Dynamic barcode generation for all products using SKU or product ID
 
 ### API Structure
 RESTful API with the following endpoints:

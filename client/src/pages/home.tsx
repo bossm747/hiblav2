@@ -6,12 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ProductDetailModal } from "@/components/product-detail-modal";
+import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@shared/schema";
 import logoPath from "@assets/Untitled design_1753503650014.png";
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { toast } = useToast();
 
   const { data: featuredProducts, isLoading } = useQuery<Product[]>({
     queryKey: ["/api/products", { featured: true }],
@@ -28,6 +33,19 @@ export default function HomePage() {
       style: "currency",
       currency: "PHP",
     }).format(numPrice);
+  };
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const handleAddToCart = (product: Product) => {
+    // TODO: Implement cart functionality
+    toast({
+      title: "Added to Cart",
+      description: `${product.name} has been added to your cart.`
+    });
   };
 
   return (
@@ -188,7 +206,11 @@ export default function HomePage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredProducts?.slice(0, 8).map((product) => (
-                <Card key={product.id} className="group hover:shadow-lg transition-shadow">
+                <Card 
+                  key={product.id} 
+                  className="group hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => handleProductClick(product)}
+                >
                   <div className="relative overflow-hidden">
                     <img
                       src={product.featuredImage || product.images?.[0] || "https://via.placeholder.com/300x300?text=Hair+Extension"}
@@ -232,11 +254,26 @@ export default function HomePage() {
                     </div>
                   </CardContent>
                   <CardFooter className="p-4 pt-0 space-x-2">
-                    <Button className="flex-1 bg-black hover:bg-gray-800 text-white" size="sm">
+                    <Button 
+                      className="flex-1 bg-black hover:bg-gray-800 text-white" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToCart(product);
+                      }}
+                    >
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       Add to Cart
                     </Button>
-                    <Button variant="outline" size="icon" className="border-black">
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className="border-black"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // TODO: Add to wishlist
+                      }}
+                    >
                       <Heart className="h-4 w-4" />
                     </Button>
                   </CardFooter>
@@ -258,29 +295,25 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">Shop by Category</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Link href="/products?category=synthetic">
-              <a className="group relative h-64 rounded-lg overflow-hidden shadow-lg">
-                <div className="absolute inset-0 bg-gray-800" />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
-                <div className="relative h-full flex items-center justify-center text-white">
-                  <div className="text-center">
-                    <h3 className="text-2xl font-bold mb-2">Synthetic Hair</h3>
-                    <p>Affordable and versatile options</p>
-                  </div>
+            <Link href="/products?category=synthetic" className="group relative h-64 rounded-lg overflow-hidden shadow-lg block">
+              <div className="absolute inset-0 bg-gray-800" />
+              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
+              <div className="relative h-full flex items-center justify-center text-white">
+                <div className="text-center">
+                  <h3 className="text-2xl font-bold mb-2">Synthetic Hair</h3>
+                  <p>Affordable and versatile options</p>
                 </div>
-              </a>
+              </div>
             </Link>
-            <Link href="/products?category=human">
-              <a className="group relative h-64 rounded-lg overflow-hidden shadow-lg">
-                <div className="absolute inset-0 bg-black" />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
-                <div className="relative h-full flex items-center justify-center text-white">
-                  <div className="text-center">
-                    <h3 className="text-2xl font-bold mb-2">Human Hair</h3>
-                    <p>Premium quality, natural look</p>
-                  </div>
+            <Link href="/products?category=human" className="group relative h-64 rounded-lg overflow-hidden shadow-lg block">
+              <div className="absolute inset-0 bg-black" />
+              <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors" />
+              <div className="relative h-full flex items-center justify-center text-white">
+                <div className="text-center">
+                  <h3 className="text-2xl font-bold mb-2">Human Hair</h3>
+                  <p>Premium quality, natural look</p>
                 </div>
-              </a>
+              </div>
             </Link>
           </div>
         </div>
@@ -322,6 +355,17 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedProduct(null);
+        }}
+        onAddToCart={handleAddToCart}
+      />
     </div>
   );
 }
