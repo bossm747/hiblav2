@@ -1059,6 +1059,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Serve uploaded files
   app.use('/uploads', express.static('uploads'));
+  
+  // Serve attached assets for product images
+  app.use('/attached_assets', express.static('attached_assets'));
 
   // Generate SKU endpoint - Temporarily disabled
   /*
