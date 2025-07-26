@@ -20,6 +20,7 @@ export function Navbar() {
     { name: "Human Hair", href: "/products?category=human" },
     { name: "Synthetic Hair", href: "/products?category=synthetic" },
     { name: "About", href: "/about" },
+    { name: "Docs", href: "/docs" },
   ];
 
   const handleSearch = (e: React.FormEvent) => {

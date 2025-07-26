@@ -18,6 +18,7 @@ import AdminPage from "@/pages/admin";
 import CashierPage from "@/pages/cashier";
 import AboutPage from "@/pages/about";
 import WishlistPage from "@/pages/wishlist";
+import DocsPage from "@/pages/docs";
 import NotFound from "@/pages/not-found";
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
             <Route path="/pos" component={POSPage} />
             <Route path="/about" component={AboutPage} />
             <Route path="/wishlist" component={WishlistPage} />
+            <Route path="/docs" component={DocsPage} />
             <Route component={NotFound} />
           </Switch>
         </div>
