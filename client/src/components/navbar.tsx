@@ -58,13 +58,13 @@ export function Navbar() {
             <div className="w-12 h-12 rounded-full overflow-hidden glass-card neon-glow-light flex items-center justify-center">
               <img src={logoPath} alt="Hibla Filipino Hair" className="h-10 w-10 object-contain" />
             </div>
-            <span className="ml-3 text-xl font-bold text-foreground neon-text-cyan hidden md:block">
+            <span className="ml-3 text-lg xl:text-xl font-bold text-foreground neon-text-cyan hidden md:block">
               Hibla Filipino Hair
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-6">
+          <nav className="hidden lg:flex items-center space-x-4 xl:space-x-6">
             {/* Regular Navigation */}
             {navigation.map((item) => {
               // Skip auth-required items if user is not logged in
@@ -74,7 +74,7 @@ export function Navbar() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`text-foreground/80 hover:text-foreground hover:neon-text-cyan transition-all ${
+                  className={`text-sm xl:text-base text-foreground/80 hover:text-foreground hover:neon-text-cyan transition-all ${
                     location === item.href ? "text-foreground neon-text-cyan" : ""
                   }`}
                 >
@@ -95,7 +95,7 @@ export function Navbar() {
                     <Link
                       key={item.name}
                       href={item.href}
-                      className={`text-foreground/80 hover:text-foreground hover:neon-text-purple transition-all font-medium ${
+                      className={`text-sm xl:text-base text-foreground/80 hover:text-foreground hover:neon-text-purple transition-all font-medium ${
                         location === item.href ? "text-foreground neon-text-purple" : ""
                       }`}
                     >
@@ -108,7 +108,7 @@ export function Navbar() {
           </nav>
 
           {/* Search Bar */}
-          <div className="hidden md:block flex-1 max-w-md mx-8">
+          <div className="hidden md:block flex-1 max-w-sm lg:max-w-md mx-4 xl:mx-8">
             <form onSubmit={handleSearch} className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
@@ -122,9 +122,9 @@ export function Navbar() {
           </div>
 
           {/* Right Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 lg:space-x-4">
             {/* Desktop Actions */}
-            <div className="hidden md:flex items-center space-x-3">
+            <div className="hidden md:flex items-center space-x-2 lg:space-x-3">
               <Link href="/account">
                 <Button variant="ghost" size="sm" className="hover:neon-purple">
                   <User className="h-5 w-5" />
