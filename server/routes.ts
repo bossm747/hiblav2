@@ -2,6 +2,7 @@ import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 // import { aiService } from "./ai-service";
+import { aiImageService, type ImageGenerationRequest } from "./ai-image-service";
 import {
   insertCustomerSchema,
   insertCategorySchema,
@@ -1063,13 +1064,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve attached assets for product images
   app.use('/attached_assets', express.static('attached_assets'));
 
-  // Import AI Image Service
-  import { aiImageService, type ImageGenerationRequest } from './ai-image-service.js';
-
   // AI Image Generation endpoints
   app.post("/api/ai/generate-product-image", async (req, res) => {
     try {
-      const { productName, hairType, texture, color, length, style } = req.body;
+      const { productName, description, hairType, texture, color, length, style, category } = req.body;
       
       if (!productName || !hairType || !texture || !color || !length) {
         return res.status(400).json({ 
@@ -1079,11 +1077,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const request: ImageGenerationRequest = {
         productName,
+        description,
         hairType,
         texture,
         color,
         length: parseInt(length),
-        style
+        style,
+        category
       };
 
       const imagePath = await aiImageService.generateProductImage(request);
@@ -1139,17 +1139,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ai/regenerate-all-product-images", async (req, res) => {
     try {
       // Get all products from database
-      const products = await storage.getAllProducts();
+      const products = await storage.getProducts();
       const results = [];
       
       for (const product of products) {
         try {
           const request: ImageGenerationRequest = {
             productName: product.name,
+            description: product.description,
             hairType: product.hairType as 'human' | 'synthetic',
             texture: product.texture as 'straight' | 'curly' | 'wavy',
             color: product.color,
-            length: product.length
+            length: product.length,
+            category: product.categoryId
           };
 
           const imagePath = await aiImageService.generateProductImage(request);

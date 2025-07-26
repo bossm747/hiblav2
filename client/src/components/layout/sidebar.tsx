@@ -14,7 +14,8 @@ import {
   Settings, 
   LogOut,
   Waves,
-  X
+  X,
+  Sparkles
 } from "lucide-react";
 
 interface SidebarProps {
@@ -30,6 +31,7 @@ const navigation = [
   { name: "Staff", href: "/staff", icon: Bus },
   { name: "Point of Sale", href: "/pos", icon: CreditCard },
   { name: "Inventory", href: "/inventory", icon: Package },
+  { name: "AI Images", href: "/ai-images", icon: Sparkles },
   { name: "Timesheet", href: "/timesheet", icon: Clock },
   { name: "Marketing", href: "/marketing", icon: Mail },
   { name: "Reports", href: "/reports", icon: BarChart3 },

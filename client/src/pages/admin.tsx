@@ -13,7 +13,8 @@ import {
   AlertTriangle,
   LogOut,
   BarChart3,
-  CreditCard
+  CreditCard,
+  Sparkles
 } from "lucide-react";
 import logoPath from "@assets/Hiblalogo_1753513948082.png";
 
@@ -66,6 +67,14 @@ export default function AdminPage() {
       href: "/pos",
       color: "neon-cyan",
       bgColor: "bg-cyan-500/20",
+    },
+    {
+      title: "AI Image Generator",
+      description: "Generate professional product images using AI analysis",
+      icon: Sparkles,
+      href: "/ai-images",
+      color: "neon-purple",
+      bgColor: "bg-purple-500/20",
     },
     {
       title: "Product Management",

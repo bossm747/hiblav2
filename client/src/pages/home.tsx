@@ -130,6 +130,9 @@ export default function HomePage() {
               <Link href="/inventory" className="text-foreground/80 hover:text-foreground hover:neon-text-purple transition-all font-medium">
                 Inventory
               </Link>
+              <Link href="/ai-images" className="text-foreground/80 hover:text-foreground hover:neon-text-purple transition-all font-medium">
+                AI Images
+              </Link>
             </nav>
 
             {/* Search Bar */}

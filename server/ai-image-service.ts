@@ -3,11 +3,13 @@ import path from 'path';
 
 interface ImageGenerationRequest {
   productName: string;
+  description?: string;
   hairType: 'human' | 'synthetic';
   texture: 'straight' | 'curly' | 'wavy';
   color: string;
   length: number;
   style?: string;
+  category?: string;
 }
 
 interface OpenRouterImageResponse {
@@ -77,10 +79,10 @@ class AIImageService {
   }
 
   /**
-   * Build an optimized prompt for hair extension product photography
+   * Build an expert-level optimized prompt for hair extension product photography
    */
   private buildPrompt(request: ImageGenerationRequest): string {
-    const { productName, hairType, texture, color, length } = request;
+    const { productName, description, hairType, texture, color, length, category } = request;
     
     const textureDescriptions = {
       straight: 'sleek, smooth, straight hair flowing naturally',
@@ -100,11 +102,72 @@ class AIImageService {
       'Chestnut Brown': 'rich chestnut brown'
     };
 
+    // Analyze product name and description for expert context
+    const analysisContext = this.analyzeProductContext(productName, description, category);
+    
     const hairTypeDesc = hairType === 'human' ? 'premium human hair' : 'high-quality synthetic hair';
     const textureDesc = textureDescriptions[texture] || texture;
     const colorDesc = colorDescriptions[color as keyof typeof colorDescriptions] || color.toLowerCase();
 
-    return `Professional product photography of ${hairTypeDesc} extensions, ${textureDesc}, ${colorDesc} color, ${length} inches length. Studio lighting, white seamless background, hair arranged in elegant display showing texture and shine. Commercial photography style, high resolution, sharp focus, beauty product photography aesthetic. Hair should look healthy, lustrous, and premium quality. Clean, minimal composition perfect for e-commerce product catalog.`;
+    // Build expert photography prompt with context-aware details
+    const basePrompt = `Professional high-end product photography of ${hairTypeDesc} extensions, ${textureDesc}, ${colorDesc} color, ${length} inches length.`;
+    
+    const technicalSpecs = `Studio lighting setup: key light with softbox, fill light for shadow detail, rim light for hair separation. White seamless paper background. Hair arranged in elegant flowing display showcasing natural movement and texture.`;
+    
+    const qualityRequirements = `Commercial beauty photography aesthetic, shot with 85mm lens, f/8 aperture for optimal depth of field. Hair should appear healthy, lustrous, with natural shine and volume. ${analysisContext.qualityFeatures}`;
+    
+    const compositionDetails = `Clean, minimal composition perfect for e-commerce. Hair positioned to show: texture detail, color accuracy, length proportion, natural flow. ${analysisContext.styleNotes}`;
+    
+    const expertFinishing = `Professional color grading, optimal contrast, sharp focus throughout. Image suitable for luxury beauty brand catalog, highlighting premium quality and craftsmanship.`;
+
+    return `${basePrompt} ${technicalSpecs} ${qualityRequirements} ${compositionDetails} ${expertFinishing}`;
+  }
+
+  /**
+   * Analyze product context from name and description for expert photography guidance
+   */
+  private analyzeProductContext(productName: string, description?: string, category?: string) {
+    const name = productName.toLowerCase();
+    const desc = description?.toLowerCase() || '';
+    const cat = category?.toLowerCase() || '';
+
+    // Expert analysis based on product characteristics
+    const features = {
+      qualityFeatures: '',
+      styleNotes: '',
+      specialHandling: ''
+    };
+
+    // Analyze quality level from name/description
+    if (name.includes('premium') || name.includes('luxury') || desc.includes('premium')) {
+      features.qualityFeatures = 'Emphasize luxury presentation with subtle golden undertones and premium packaging elements visible at edges.';
+    } else if (name.includes('remy') || desc.includes('remy')) {
+      features.qualityFeatures = 'Highlight cuticle alignment and natural hair direction with careful lighting to show authentic texture.';
+    } else if (name.includes('hd lace') || desc.includes('hd lace')) {
+      features.qualityFeatures = 'Focus on lace transparency and natural hairline simulation with detailed macro photography approach.';
+    }
+
+    // Analyze texture and styling from context
+    if (name.includes('body wave') || desc.includes('body wave')) {
+      features.styleNotes = 'Arrange to show gentle S-curve pattern with natural volume and movement.';
+    } else if (name.includes('deep wave') || desc.includes('deep wave')) {
+      features.styleNotes = 'Display pronounced wave pattern with dramatic curves and dimension.';
+    } else if (name.includes('kinky') || name.includes('afro')) {
+      features.styleNotes = 'Showcase natural kinky texture with proper volume and authentic curl definition.';
+    } else if (name.includes('straight')) {
+      features.styleNotes = 'Emphasize sleek, smooth texture with natural shine and flow.';
+    }
+
+    // Analyze origin and specialty features
+    if (name.includes('brazilian') || name.includes('peruvian') || name.includes('malaysian') || name.includes('indian')) {
+      features.specialHandling = 'Highlight regional hair characteristics and authentic natural patterns.';
+    } else if (name.includes('european')) {
+      features.specialHandling = 'Emphasize fine texture and blonde-friendly processing capabilities.';
+    } else if (name.includes('closure') || name.includes('frontal')) {
+      features.specialHandling = 'Focus on lace base construction and natural scalp simulation.';
+    }
+
+    return features;
   }
 
   /**
