@@ -148,18 +148,22 @@ export default function HomePage() {
 
             {/* Action Buttons */}
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="icon" className="relative hover:neon-text-pink">
-                <Heart className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-primary-foreground rounded-full text-xs flex items-center justify-center">
-                  0
-                </span>
-              </Button>
-              <Button variant="ghost" size="icon" className="relative hover:neon-text-cyan">
-                <ShoppingCart className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 bg-accent text-accent-foreground rounded-full text-xs flex items-center justify-center">
-                  0
-                </span>
-              </Button>
+              <Link href="/wishlist">
+                <Button variant="ghost" size="icon" className="relative hover:neon-text-pink">
+                  <Heart className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-primary-foreground rounded-full text-xs flex items-center justify-center">
+                    0
+                  </span>
+                </Button>
+              </Link>
+              <Link href="/cart">
+                <Button variant="ghost" size="icon" className="relative hover:neon-text-cyan">
+                  <ShoppingCart className="h-5 w-5" />
+                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-accent text-accent-foreground rounded-full text-xs flex items-center justify-center">
+                    0
+                  </span>
+                </Button>
+              </Link>
               <Button
                 variant="ghost"
                 size="icon"

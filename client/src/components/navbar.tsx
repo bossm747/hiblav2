@@ -19,7 +19,7 @@ export function Navbar() {
     { name: "All Products", href: "/products" },
     { name: "Human Hair", href: "/products?category=human" },
     { name: "Synthetic Hair", href: "/products?category=synthetic" },
-    { name: "HD Lace", href: "/products?category=hd-lace" },
+    { name: "About", href: "/about" },
   ];
 
   const handleSearch = (e: React.FormEvent) => {
@@ -81,7 +81,7 @@ export function Navbar() {
                   <User className="h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="/account">
+              <Link href="/wishlist">
                 <Button variant="ghost" size="sm" className="hover:neon-pink">
                   <Heart className="h-5 w-5" />
                 </Button>
@@ -157,7 +157,7 @@ export function Navbar() {
                     <span className="text-xs">Account</span>
                   </Button>
                 </Link>
-                <Link href="/account" onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/wishlist" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="ghost" size="sm" className="flex flex-col items-center gap-1">
                     <Heart className="h-5 w-5" />
                     <span className="text-xs">Wishlist</span>

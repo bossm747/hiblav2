@@ -16,6 +16,8 @@ import POSPage from "@/pages/pos";
 import LoginPage from "@/pages/login";
 import AdminPage from "@/pages/admin";
 import CashierPage from "@/pages/cashier";
+import AboutPage from "@/pages/about";
+import WishlistPage from "@/pages/wishlist";
 import NotFound from "@/pages/not-found";
 
 function App() {
@@ -35,6 +37,8 @@ function App() {
             <Route path="/cashier" component={CashierPage} />
             <Route path="/inventory" component={InventoryPage} />
             <Route path="/pos" component={POSPage} />
+            <Route path="/about" component={AboutPage} />
+            <Route path="/wishlist" component={WishlistPage} />
             <Route component={NotFound} />
           </Switch>
         </div>
