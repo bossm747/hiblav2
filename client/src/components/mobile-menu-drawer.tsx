@@ -261,7 +261,7 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
                 onClick={onClose}
               >
                 <LogIn className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                Staff Login
+                Login
               </Button>
             </Link>
           ) : (
@@ -274,7 +274,8 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
                 window.location.href = "/";
               }}
             >
-              Sign Out
+              <LogIn className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              Logout
             </Button>
           )}
           

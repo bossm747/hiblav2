@@ -102,7 +102,7 @@ export function Navbar() {
               <div className="border-l border-white/20 ml-3 pl-3">
                 <Link href="/login">
                   <Button variant="outline" size="sm" className="border-primary hover:bg-primary/20 hover:neon-text-cyan transition-all">
-                    Staff Login
+                    Login
                   </Button>
                 </Link>
               </div>
