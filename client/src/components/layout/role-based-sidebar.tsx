@@ -260,7 +260,7 @@ export function RoleBasedSidebar({ isOpen, onClose, className }: RoleBasedSideba
       {/* Mobile Backdrop */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/80 backdrop-blur-md z-40 lg:hidden"
+          className="fixed inset-0 bg-black/80 z-40 lg:hidden"
           onClick={onClose}
         />
       )}
