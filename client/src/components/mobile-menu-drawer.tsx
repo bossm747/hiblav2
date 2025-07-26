@@ -123,28 +123,34 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
 
       {/* Drawer */}
       <div className={cn(
-        "fixed top-0 right-0 h-full w-full max-w-sm bg-background border-l border-white/20 transform transition-transform duration-300 ease-out z-50 md:hidden shadow-2xl",
-        "xs:max-w-xs sm:max-w-sm",
+        "fixed top-0 right-0 h-full bg-background border-l border-white/20 transform transition-transform duration-300 ease-out z-50 shadow-2xl",
+        // Responsive widths for different screen sizes
+        "w-full max-w-xs",        // Extra small screens: full width, max 320px
+        "xs:max-w-sm",            // Small screens: max 384px  
+        "sm:max-w-md",            // Medium screens: max 448px
+        "md:hidden",              // Hidden on desktop
+        "lg:hidden xl:hidden",    // Ensure hidden on larger screens
         isOpen ? "translate-x-0" : "translate-x-full"
       )}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/20 bg-background">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-purple-400/50">
+        <div className="flex items-center justify-between border-b border-white/20 bg-background p-3 xs:p-4 sm:p-5 md:p-6">
+          <div className="flex items-center space-x-2 xs:space-x-3 min-w-0 flex-1">
+            <div className="w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-purple-400/50 flex-shrink-0">
               <img src={logoPath} alt="Hibla" className="w-full h-full object-contain" />
             </div>
-            <div>
-              <h2 className="text-lg sm:text-xl font-semibold text-foreground neon-text-cyan">Menu</h2>
-              <p className="text-xs sm:text-sm text-muted-foreground">Hibla Filipino Hair</p>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-base xs:text-lg sm:text-xl font-semibold text-foreground neon-text-cyan truncate">Menu</h2>
+              <p className="text-xs xs:text-xs sm:text-sm text-muted-foreground truncate">Hibla Filipino Hair</p>
             </div>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="p-2 sm:p-3 hover:bg-white/10 rounded-full"
+            className="p-1.5 xs:p-2 sm:p-3 hover:bg-white/10 rounded-full flex-shrink-0 touch-manipulation"
+            aria-label="Close menu"
           >
-            <X className="h-5 w-5 sm:h-6 sm:w-6" />
+            <X className="h-4 w-4 xs:h-5 xs:w-5 sm:h-6 sm:w-6" />
           </Button>
         </div>
 
