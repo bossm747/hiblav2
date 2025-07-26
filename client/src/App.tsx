@@ -44,6 +44,9 @@ import SettingsAdminPage from "@/pages/settings-admin";
 import NotFound from "@/pages/not-found";
 import TestAIPage from "@/pages/test-ai";
 import StylistRecommendationsPage from "@/pages/stylist-recommendations";
+import CategoriesPage from "@/pages/categories";
+import ContactPage from "@/pages/contact";
+// import OrdersPage from "@/pages/orders"; // TODO: Create this page
 
 function App() {
   return (
@@ -57,6 +60,8 @@ function App() {
             <Route path="/cart" component={CartPage} />
             <Route path="/checkout" component={CheckoutPage} />
             <Route path="/about" component={AboutPage} />
+            <Route path="/categories" component={CategoriesPage} />
+            <Route path="/contact" component={ContactPage} />
             <Route path="/wishlist" component={WishlistPage} />
             <Route path="/docs" component={DocsPage} />
             <Route path="/documentation">
@@ -72,6 +77,13 @@ function App() {
                 <AccountPage />
               </AuthGuard>
             </Route>
+
+            {/* TODO: Add orders page when created
+            <Route path="/orders">
+              <AuthGuard>
+                <OrdersPage />
+              </AuthGuard>
+            </Route> */}
             
             {/* Protected Staff Routes */}
             <Route path="/admin">

@@ -20,13 +20,21 @@ export function Navbar() {
   // Mock cart count - replace with actual cart state
   const cartCount = 3;
 
+  // Optimized navigation without duplicates
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "Shop Now", href: "/products" },
-    { name: "Catalog", href: "/products" },
-    { name: "Human Hair", href: "/products?category=human" },
+    { name: "Products", href: "/products" },
+    { name: "Categories", href: "/categories" },
+    { name: "Orders", href: "/orders", requiresAuth: true },
     { name: "About", href: "/about" },
-    { name: "Help", href: "/docs" },
+    { name: "Contact", href: "/contact" },
+  ];
+
+  // Staff-only navigation for admin/cashier users
+  const staffNavigation = [
+    { name: "Dashboard", href: user?.role === "admin" ? "/admin" : "/cashier", icon: "dashboard" },
+    { name: "Inventory", href: "/inventory", icon: "inventory" },
+    { name: "Analytics", href: "/analytics", icon: "analytics", adminOnly: true },
   ];
 
   const handleSearch = (e: React.FormEvent) => {
@@ -56,18 +64,47 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`text-foreground/80 hover:text-foreground hover:neon-text-cyan transition-all ${
-                  location === item.href ? "text-foreground neon-text-cyan" : ""
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
+          <nav className="hidden lg:flex items-center space-x-6">
+            {/* Regular Navigation */}
+            {navigation.map((item) => {
+              // Skip auth-required items if user is not logged in
+              if (item.requiresAuth && !isLoggedIn) return null;
+              
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`text-foreground/80 hover:text-foreground hover:neon-text-cyan transition-all ${
+                    location === item.href ? "text-foreground neon-text-cyan" : ""
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
+            
+            {/* Staff Navigation - Only for admin/cashier */}
+            {isLoggedIn && (user?.role === "admin" || user?.role === "cashier") && (
+              <>
+                <div className="w-px h-6 bg-white/20 mx-2" />
+                {staffNavigation.map((item) => {
+                  // Skip admin-only items for non-admin users
+                  if (item.adminOnly && user?.role !== "admin") return null;
+                  
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`text-foreground/80 hover:text-foreground hover:neon-text-purple transition-all font-medium ${
+                        location === item.href ? "text-foreground neon-text-purple" : ""
+                      }`}
+                    >
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </>
+            )}
           </nav>
 
           {/* Search Bar */}
@@ -149,11 +186,13 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Role-Based Sidebar */}
-        <RoleBasedSidebar 
-          isOpen={mobileMenuOpen} 
-          onClose={() => setMobileMenuOpen(false)} 
-        />
+        {/* Mobile-Only Navigation Sidebar */}
+        <div className="lg:hidden">
+          <RoleBasedSidebar 
+            isOpen={mobileMenuOpen} 
+            onClose={() => setMobileMenuOpen(false)} 
+          />
+        </div>
       </div>
     </header>
   );
