@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import OpenAI from 'openai';
 
 interface ImageGenerationRequest {
   productName: string;
@@ -12,22 +13,18 @@ interface ImageGenerationRequest {
   category?: string;
 }
 
-interface OpenRouterImageResponse {
-  data: Array<{
-    url: string;
-    b64_json?: string;
-  }>;
-}
-
 class AIImageService {
-  private apiKey: string;
-  private baseUrl = 'https://openrouter.ai/api/v1';
+  private openai: OpenAI;
 
   constructor() {
-    this.apiKey = process.env.OPENROUTER_API_KEY || '';
-    if (!this.apiKey) {
-      throw new Error('OPENROUTER_API_KEY environment variable is required');
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY environment variable is required');
     }
+    
+    this.openai = new OpenAI({
+      apiKey: apiKey
+    });
   }
 
   /**
@@ -37,36 +34,25 @@ class AIImageService {
     const prompt = this.buildPrompt(request);
     
     try {
-      const response = await fetch(`${this.baseUrl}/images/generations`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://hibla-salon.replit.app',
-          'X-Title': 'Hibla Hair Extensions'
-        },
-        body: JSON.stringify({
-          model: 'black-forest-labs/flux-1.1-pro', // Cost-effective, high-quality model
-          prompt: prompt,
-          n: 1,
-          size: '1024x1024',
-          quality: 'standard',
-          style: 'natural',
-          response_format: 'url'
-        })
+      // Generate image using DALL-E 3
+      const response = await this.openai.images.generate({
+        model: "dall-e-3", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        prompt: prompt,
+        n: 1,
+        size: "1024x1024",
+        quality: "standard",
+        style: "natural"
       });
 
-      if (!response.ok) {
-        throw new Error(`OpenRouter API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data: OpenRouterImageResponse = await response.json();
-      
-      if (!data.data || data.data.length === 0) {
+      if (!response.data || response.data.length === 0) {
         throw new Error('No image generated');
       }
 
-      const imageUrl = data.data[0].url;
+      const imageUrl = response.data[0].url;
+      
+      if (!imageUrl) {
+        throw new Error('No image URL received');
+      }
       
       // Download and save the image locally
       const savedPath = await this.downloadAndSaveImage(imageUrl, request);
@@ -239,13 +225,15 @@ class AIImageService {
    */
   async validateApiKey(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/models`, {
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-        }
+      // Test the API with a simple request
+      const response = await this.openai.images.generate({
+        model: "dall-e-3",
+        prompt: "test image",
+        n: 1,
+        size: "1024x1024"
       });
       
-      return response.ok;
+      return true;
     } catch {
       return false;
     }

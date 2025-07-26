@@ -42,6 +42,7 @@ import CustomersAdminPage from "@/pages/customers-admin";
 import StaffAdminPage from "@/pages/staff-admin";
 import SettingsAdminPage from "@/pages/settings-admin";
 import NotFound from "@/pages/not-found";
+import TestAIPage from "@/pages/test-ai";
 
 function App() {
   return (
@@ -60,6 +61,7 @@ function App() {
             <Route path="/documentation">
               <DocumentationPage onBack={() => window.history.back()} />
             </Route>
+            <Route path="/test-ai" component={TestAIPage} />
             <Route path="/login" component={LoginPage} />
             
             {/* Protected Customer Routes */}

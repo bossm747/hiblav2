@@ -1146,12 +1146,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const request: ImageGenerationRequest = {
             productName: product.name,
-            description: product.description,
-            hairType: product.hairType as 'human' | 'synthetic',
+            description: product.description || undefined,
+            hairType: 'human',
             texture: product.texture as 'straight' | 'curly' | 'wavy',
-            color: product.color,
-            length: product.length,
-            category: product.categoryId
+            color: product.color || 'Natural Black',
+            length: product.length || 18,
+            category: product.categoryId || undefined
           };
 
           const imagePath = await aiImageService.generateProductImage(request);

@@ -383,13 +383,13 @@ export default function ProductManagement() {
                   onChange={(images) => setFormData(prev => ({ ...prev, images }))}
                   maxImages={5}
                   productData={{
-                    name: formData.name || "",
+                    name: formData.name || "Hair Extension Product",
                     description: formData.description,
-                    hairType: formData.hairType || "human",
+                    hairType: formData.hairType || "human", 
                     texture: formData.texture || "straight",
-                    color: formData.color || "",
-                    length: formData.length || 12,
-                    category: "hair-extensions"
+                    color: formData.color || "Natural Black",
+                    length: formData.length || 18,
+                    category: formData.categoryId || "hair-extensions"
                   }}
                 />
               </div>
