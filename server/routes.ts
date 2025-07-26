@@ -338,6 +338,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Authentication routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      // Demo authentication - replace with real authentication
+      const demoUsers = [
+        { id: "admin-1", username: "admin", password: "admin123", name: "Admin User", role: "admin", email: "admin@hibla.com" },
+        { id: "cashier-1", username: "cashier", password: "cashier123", name: "Cashier User", role: "cashier", email: "cashier@hibla.com" },
+      ];
+      
+      const user = demoUsers.find(u => u.username === username && u.password === password);
+      
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      
+      // In a real app, generate JWT token here
+      const { password: _, ...userWithoutPassword } = user;
+      res.json({ 
+        message: "Login successful", 
+        user: userWithoutPassword,
+        token: `demo-token-${user.id}` 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Login failed" });
+    }
+  });
+
+  app.post("/api/auth/logout", async (req, res) => {
+    // In a real app, invalidate the token
+    res.json({ message: "Logout successful" });
+  });
+
   // Orders routes
   app.get("/api/orders", async (req, res) => {
     try {

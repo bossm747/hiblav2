@@ -13,6 +13,9 @@ import CheckoutPage from "@/pages/checkout";
 import AccountPage from "@/pages/account";
 import InventoryPage from "@/pages/inventory";
 import POSPage from "@/pages/pos";
+import LoginPage from "@/pages/login";
+import AdminPage from "@/pages/admin";
+import CashierPage from "@/pages/cashier";
 import NotFound from "@/pages/not-found";
 
 function App() {
@@ -27,6 +30,9 @@ function App() {
             <Route path="/cart" component={CartPage} />
             <Route path="/checkout" component={CheckoutPage} />
             <Route path="/account" component={AccountPage} />
+            <Route path="/login" component={LoginPage} />
+            <Route path="/admin" component={AdminPage} />
+            <Route path="/cashier" component={CashierPage} />
             <Route path="/inventory" component={InventoryPage} />
             <Route path="/pos" component={POSPage} />
             <Route component={NotFound} />

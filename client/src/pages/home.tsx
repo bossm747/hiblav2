@@ -419,6 +419,7 @@ export default function HomePage() {
           setSelectedProduct(null);
         }}
         onAddToCart={handleAddToCart}
+        onAddToWishlist={handleAddToWishlist}
       />
     </div>
   );
