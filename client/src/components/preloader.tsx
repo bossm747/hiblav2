@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import logoPath from "@assets/Untitled design_1753503650014.png";
+import logoPath from "@assets/Logo for Haircare Brand 'Natural Flow'_1753511443300.png";
 
 export function Preloader() {
   const [isLoading, setIsLoading] = useState(true);
@@ -27,13 +27,13 @@ export function Preloader() {
     <div className="fixed inset-0 z-[9999] bg-background flex items-center justify-center">
       <div className="text-center">
         {/* Animated Logo */}
-        <div className="relative mb-8 w-32 h-32 mx-auto">
+        <div className="relative mb-8 w-40 h-40 mx-auto">
           <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 blur-xl opacity-50" />
-          <div className="relative w-32 h-32 rounded-full overflow-hidden glass-card neon-glow-light flex items-center justify-center">
+          <div className="relative w-40 h-40 rounded-full overflow-hidden glass-card neon-glow-light flex items-center justify-center animate-bounce-slow">
             <img 
               src={logoPath} 
               alt="Hibla Filipino Hair" 
-              className="h-24 w-auto brightness-200 invert animate-spin-slow"
+              className="h-32 w-32 object-contain animate-pulse"
             />
           </div>
         </div>

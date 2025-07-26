@@ -302,6 +302,22 @@
   animation: spin-slow 4s linear infinite;
 }
 
+@keyframes bounce-slow {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2s ease-in-out infinite;
+}
+
 @keyframes float-1 {
   0%, 100% {
     transform: translateY(0) translateX(0);

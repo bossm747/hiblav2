@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@shared/schema";
-import logoPath from "@assets/Untitled design_1753503650014.png";
+import logoPath from "@assets/Logo for Haircare Brand 'Natural Flow'_1753511443300.png";
 import { HairAnimation3D } from "@/components/hair-animation-3d";
 
 export default function HomePage() {
@@ -58,7 +58,7 @@ export default function HomePage() {
             {/* Logo */}
             <Link href="/" className="flex items-center">
               <div className="w-12 h-12 rounded-full overflow-hidden glass-card neon-glow-light flex items-center justify-center">
-                <img src={logoPath} alt="Hibla Filipino Hair" className="h-10 w-auto brightness-200 invert" />
+                <img src={logoPath} alt="Hibla Filipino Hair" className="h-10 w-10 object-contain" />
               </div>
             </Link>
 
