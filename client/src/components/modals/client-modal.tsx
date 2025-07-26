@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import { insertClientSchema } from "@shared/schema"; // Schema not available
+import { insertClientSchema } from "@shared/schema";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -170,7 +170,7 @@ export default function ClientModal({ open, onOpenChange }: ClientModalProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select status" />
@@ -197,6 +197,7 @@ export default function ClientModal({ open, onOpenChange }: ClientModalProps) {
                       placeholder="Any additional notes about the client..."
                       className="resize-none"
                       {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />

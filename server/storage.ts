@@ -13,6 +13,10 @@ import {
   reviews,
   inventoryTransactions,
   shopSettings,
+  clients,
+  services,
+  appointments,
+  staffSchedules,
   type Customer,
   type InsertCustomer,
   type Category,
@@ -37,6 +41,14 @@ import {
   type InsertInventoryTransaction,
   type ShopSettings,
   type InsertShopSettings,
+  type Client,
+  type InsertClient,
+  type Service,
+  type InsertService,
+  type Appointment,
+  type InsertAppointment,
+  type StaffSchedule,
+  type InsertStaffSchedule,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -120,6 +132,39 @@ export interface IStorage {
   
   // POS Operations
   getDailySales(date: string): Promise<Order[]>;
+  
+  // Salon/Spa Clients
+  getClient(id: string): Promise<Client | undefined>;
+  getClients(): Promise<Client[]>;
+  createClient(client: InsertClient): Promise<Client>;
+  updateClient(id: string, client: Partial<InsertClient>): Promise<Client | undefined>;
+  deleteClient(id: string): Promise<boolean>;
+  
+  // Services
+  getService(id: string): Promise<Service | undefined>;
+  getServices(): Promise<Service[]>;
+  getServicesByCategory(category: string): Promise<Service[]>;
+  createService(service: InsertService): Promise<Service>;
+  updateService(id: string, service: Partial<InsertService>): Promise<Service | undefined>;
+  deleteService(id: string): Promise<boolean>;
+  
+  // Appointments
+  getAppointment(id: string): Promise<Appointment | undefined>;
+  getAppointments(): Promise<Appointment[]>;
+  getAppointmentsByClient(clientId: string): Promise<Appointment[]>;
+  getAppointmentsByStaff(staffId: string): Promise<Appointment[]>;
+  getAppointmentsByDate(date: string): Promise<Appointment[]>;
+  createAppointment(appointment: InsertAppointment): Promise<Appointment>;
+  updateAppointment(id: string, appointment: Partial<InsertAppointment>): Promise<Appointment | undefined>;
+  deleteAppointment(id: string): Promise<boolean>;
+  
+  // Staff Schedules
+  getStaffSchedule(id: string): Promise<StaffSchedule | undefined>;
+  getStaffSchedules(): Promise<StaffSchedule[]>;
+  getStaffScheduleByStaffAndDate(staffId: string, date: string): Promise<StaffSchedule | undefined>;
+  createStaffSchedule(schedule: InsertStaffSchedule): Promise<StaffSchedule>;
+  updateStaffSchedule(id: string, schedule: Partial<InsertStaffSchedule>): Promise<StaffSchedule | undefined>;
+  deleteStaffSchedule(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -230,16 +275,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProduct(product: InsertProduct): Promise<Product> {
-    const [newProduct] = await db.insert(products).values([product]).returning();
+    const [newProduct] = await db.insert(products).values(product).returning();
     return newProduct;
   }
 
   async updateProduct(id: string, product: Partial<InsertProduct>): Promise<Product | undefined> {
-    const updateData = { 
+    const [updated] = await db.update(products).set({ 
       ...product, 
       updatedAt: new Date() 
-    };
-    const [updated] = await db.update(products).set(updateData).where(eq(products.id, id)).returning();
+    }).where(eq(products.id, id)).returning();
     return updated;
   }
 
@@ -419,17 +463,16 @@ export class DatabaseStorage implements IStorage {
     const existing = await this.getShopSettings();
     
     if (existing) {
-      const updateData = { 
-        ...settings
-      };
-      const [updated] = await db.update(shopSettings).set(updateData).where(eq(shopSettings.id, existing.id)).returning();
+      const [updated] = await db.update(shopSettings).set({ 
+        ...settings,
+        updatedAt: new Date() 
+      }).where(eq(shopSettings.id, existing.id)).returning();
       return updated;
     } else {
-      const settingsData = {
+      const [created] = await db.insert(shopSettings).values({
         shopEmail: settings.shopEmail || 'info@hibla.com',
         ...settings
-      };
-      const [created] = await db.insert(shopSettings).values(settingsData).returning();
+      }).returning();
       return created;
     }
   }
@@ -470,6 +513,148 @@ export class DatabaseStorage implements IStorage {
         eq(orders.status, "completed")
       )
     ).orderBy(desc(orders.createdAt));
+  }
+
+  // Client methods
+  async getClient(id: string): Promise<Client | undefined> {
+    const [client] = await db.select().from(clients).where(eq(clients.id, id));
+    return client;
+  }
+
+  async getClients(): Promise<Client[]> {
+    return await db.select().from(clients).orderBy(desc(clients.createdAt));
+  }
+
+  async createClient(client: InsertClient): Promise<Client> {
+    const [newClient] = await db.insert(clients).values(client).returning();
+    return newClient;
+  }
+
+  async updateClient(id: string, client: Partial<InsertClient>): Promise<Client | undefined> {
+    const [updated] = await db.update(clients).set({
+      ...client,
+      updatedAt: new Date()
+    }).where(eq(clients.id, id)).returning();
+    return updated;
+  }
+
+  async deleteClient(id: string): Promise<boolean> {
+    const result = await db.delete(clients).where(eq(clients.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Service methods
+  async getService(id: string): Promise<Service | undefined> {
+    const [service] = await db.select().from(services).where(eq(services.id, id));
+    return service;
+  }
+
+  async getServices(): Promise<Service[]> {
+    return await db.select().from(services).where(eq(services.isActive, true)).orderBy(services.name);
+  }
+
+  async getServicesByCategory(category: string): Promise<Service[]> {
+    return await db.select().from(services).where(
+      and(eq(services.category, category), eq(services.isActive, true))
+    );
+  }
+
+  async createService(service: InsertService): Promise<Service> {
+    const [newService] = await db.insert(services).values(service).returning();
+    return newService;
+  }
+
+  async updateService(id: string, service: Partial<InsertService>): Promise<Service | undefined> {
+    const [updated] = await db.update(services).set({
+      ...service,
+      updatedAt: new Date()
+    }).where(eq(services.id, id)).returning();
+    return updated;
+  }
+
+  async deleteService(id: string): Promise<boolean> {
+    const result = await db.delete(services).where(eq(services.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Appointment methods
+  async getAppointment(id: string): Promise<Appointment | undefined> {
+    const [appointment] = await db.select().from(appointments).where(eq(appointments.id, id));
+    return appointment;
+  }
+
+  async getAppointments(): Promise<Appointment[]> {
+    return await db.select().from(appointments).orderBy(desc(appointments.createdAt));
+  }
+
+  async getAppointmentsByClient(clientId: string): Promise<Appointment[]> {
+    return await db.select().from(appointments).where(eq(appointments.clientId, clientId)).orderBy(desc(appointments.createdAt));
+  }
+
+  async getAppointmentsByStaff(staffId: string): Promise<Appointment[]> {
+    return await db.select().from(appointments).where(eq(appointments.staffId, staffId)).orderBy(appointments.date, appointments.time);
+  }
+
+  async getAppointmentsByDate(date: string): Promise<Appointment[]> {
+    return await db.select().from(appointments).where(eq(appointments.date, date)).orderBy(appointments.time);
+  }
+
+  async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
+    const [newAppointment] = await db.insert(appointments).values(appointment).returning();
+    
+    // Update client stats
+    await db.update(clients).set({
+      totalVisits: sql`${clients.totalVisits} + 1`,
+      totalSpent: sql`${clients.totalSpent} + ${appointment.totalAmount}`,
+      lastVisit: new Date()
+    }).where(eq(clients.id, appointment.clientId));
+    
+    return newAppointment;
+  }
+
+  async updateAppointment(id: string, appointment: Partial<InsertAppointment>): Promise<Appointment | undefined> {
+    const [updated] = await db.update(appointments).set({
+      ...appointment,
+      updatedAt: new Date()
+    }).where(eq(appointments.id, id)).returning();
+    return updated;
+  }
+
+  async deleteAppointment(id: string): Promise<boolean> {
+    const result = await db.delete(appointments).where(eq(appointments.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  // Staff Schedule methods
+  async getStaffSchedule(id: string): Promise<StaffSchedule | undefined> {
+    const [schedule] = await db.select().from(staffSchedules).where(eq(staffSchedules.id, id));
+    return schedule;
+  }
+
+  async getStaffSchedules(): Promise<StaffSchedule[]> {
+    return await db.select().from(staffSchedules).orderBy(staffSchedules.date, staffSchedules.startTime);
+  }
+
+  async getStaffScheduleByStaffAndDate(staffId: string, date: string): Promise<StaffSchedule | undefined> {
+    const [schedule] = await db.select().from(staffSchedules).where(
+      and(eq(staffSchedules.staffId, staffId), eq(staffSchedules.date, date))
+    );
+    return schedule;
+  }
+
+  async createStaffSchedule(schedule: InsertStaffSchedule): Promise<StaffSchedule> {
+    const [newSchedule] = await db.insert(staffSchedules).values(schedule).returning();
+    return newSchedule;
+  }
+
+  async updateStaffSchedule(id: string, schedule: Partial<InsertStaffSchedule>): Promise<StaffSchedule | undefined> {
+    const [updated] = await db.update(staffSchedules).set(schedule).where(eq(staffSchedules.id, id)).returning();
+    return updated;
+  }
+
+  async deleteStaffSchedule(id: string): Promise<boolean> {
+    const result = await db.delete(staffSchedules).where(eq(staffSchedules.id, id));
+    return (result.rowCount ?? 0) > 0;
   }
 }
 

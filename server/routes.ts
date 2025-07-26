@@ -14,7 +14,11 @@ import {
   insertWishlistSchema,
   insertReviewSchema,
   insertInventoryTransactionSchema,
-  insertShopSettingsSchema
+  insertShopSettingsSchema,
+  insertClientSchema,
+  insertServiceSchema,
+  insertAppointmentSchema,
+  insertStaffScheduleSchema
 } from "@shared/schema";
 // import { sendAppointmentNotification } from "./notification-service";
 import multer from "multer";
@@ -691,6 +695,274 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch daily sales", error });
     }
   });
+
+  // ============ SALON/SPA SPECIFIC ROUTES ============
+
+  // Clients routes
+  app.get("/api/clients", async (req, res) => {
+    try {
+      const clients = await storage.getClients();
+      res.json(clients);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch clients" });
+    }
+  });
+
+  app.get("/api/clients/:id", async (req, res) => {
+    try {
+      const client = await storage.getClient(req.params.id);
+      if (!client) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      res.json(client);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch client" });
+    }
+  });
+
+  app.post("/api/clients", async (req, res) => {
+    try {
+      const clientData = insertClientSchema.parse(req.body);
+      const client = await storage.createClient(clientData);
+      res.status(201).json(client);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid client data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create client" });
+    }
+  });
+
+  app.put("/api/clients/:id", async (req, res) => {
+    try {
+      const clientData = insertClientSchema.partial().parse(req.body);
+      const client = await storage.updateClient(req.params.id, clientData);
+      if (!client) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      res.json(client);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid client data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update client" });
+    }
+  });
+
+  app.delete("/api/clients/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteClient(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Client not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete client" });
+    }
+  });
+
+  // Services routes
+  app.get("/api/services", async (req, res) => {
+    try {
+      const { category } = req.query;
+      const services = category 
+        ? await storage.getServicesByCategory(category as string)
+        : await storage.getServices();
+      res.json(services);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch services" });
+    }
+  });
+
+  app.get("/api/services/:id", async (req, res) => {
+    try {
+      const service = await storage.getService(req.params.id);
+      if (!service) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+      res.json(service);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch service" });
+    }
+  });
+
+  app.post("/api/services", async (req, res) => {
+    try {
+      const serviceData = insertServiceSchema.parse(req.body);
+      const service = await storage.createService(serviceData);
+      res.status(201).json(service);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid service data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create service" });
+    }
+  });
+
+  app.put("/api/services/:id", async (req, res) => {
+    try {
+      const serviceData = insertServiceSchema.partial().parse(req.body);
+      const service = await storage.updateService(req.params.id, serviceData);
+      if (!service) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+      res.json(service);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid service data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update service" });
+    }
+  });
+
+  app.delete("/api/services/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteService(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Service not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete service" });
+    }
+  });
+
+  // Appointments routes
+  app.get("/api/appointments", async (req, res) => {
+    try {
+      const { clientId, staffId, date } = req.query;
+      let appointments;
+      
+      if (clientId) {
+        appointments = await storage.getAppointmentsByClient(clientId as string);
+      } else if (staffId) {
+        appointments = await storage.getAppointmentsByStaff(staffId as string);
+      } else if (date) {
+        appointments = await storage.getAppointmentsByDate(date as string);
+      } else {
+        appointments = await storage.getAppointments();
+      }
+      
+      res.json(appointments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch appointments" });
+    }
+  });
+
+  app.get("/api/appointments/:id", async (req, res) => {
+    try {
+      const appointment = await storage.getAppointment(req.params.id);
+      if (!appointment) {
+        return res.status(404).json({ message: "Appointment not found" });
+      }
+      res.json(appointment);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch appointment" });
+    }
+  });
+
+  app.post("/api/appointments", async (req, res) => {
+    try {
+      const appointmentData = insertAppointmentSchema.parse(req.body);
+      const appointment = await storage.createAppointment(appointmentData);
+      res.status(201).json(appointment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid appointment data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create appointment" });
+    }
+  });
+
+  app.put("/api/appointments/:id", async (req, res) => {
+    try {
+      const appointmentData = insertAppointmentSchema.partial().parse(req.body);
+      const appointment = await storage.updateAppointment(req.params.id, appointmentData);
+      if (!appointment) {
+        return res.status(404).json({ message: "Appointment not found" });
+      }
+      res.json(appointment);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid appointment data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update appointment" });
+    }
+  });
+
+  app.delete("/api/appointments/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteAppointment(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Appointment not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete appointment" });
+    }
+  });
+
+  // Staff Schedules routes
+  app.get("/api/staff-schedules", async (req, res) => {
+    try {
+      const { staffId, date } = req.query;
+      let schedules;
+      
+      if (staffId && date) {
+        const schedule = await storage.getStaffScheduleByStaffAndDate(staffId as string, date as string);
+        schedules = schedule ? [schedule] : [];
+      } else {
+        schedules = await storage.getStaffSchedules();
+      }
+      
+      res.json(schedules);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch staff schedules" });
+    }
+  });
+
+  app.post("/api/staff-schedules", async (req, res) => {
+    try {
+      const scheduleData = insertStaffScheduleSchema.parse(req.body);
+      const schedule = await storage.createStaffSchedule(scheduleData);
+      res.status(201).json(schedule);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid schedule data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create staff schedule" });
+    }
+  });
+
+  app.put("/api/staff-schedules/:id", async (req, res) => {
+    try {
+      const scheduleData = insertStaffScheduleSchema.partial().parse(req.body);
+      const schedule = await storage.updateStaffSchedule(req.params.id, scheduleData);
+      if (!schedule) {
+        return res.status(404).json({ message: "Staff schedule not found" });
+      }
+      res.json(schedule);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid schedule data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update staff schedule" });
+    }
+  });
+
+  app.delete("/api/staff-schedules/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteStaffSchedule(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Staff schedule not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete staff schedule" });
+    }
+  });
+
+  // ============ END SALON/SPA ROUTES ============
 
   // Configure multer for file uploads
   const storage_multer = multer.diskStorage({

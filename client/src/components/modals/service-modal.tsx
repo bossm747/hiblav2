@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import { insertServiceSchema } from "@shared/schema"; // Schema not available
+import { insertServiceSchema } from "@shared/schema";
 import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import {
@@ -186,6 +186,7 @@ export default function ServiceModal({ open, onOpenChange }: ServiceModalProps) 
                       placeholder="Describe the service..."
                       className="resize-none"
                       {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />

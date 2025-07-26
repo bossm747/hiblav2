@@ -474,3 +474,143 @@ export const insertEmailLeadSchema = createInsertSchema(emailLeads).omit({
 });
 
 export type InsertEmailLead = z.infer<typeof insertEmailLeadSchema>;
+
+// Salon/Spa Specific Tables
+
+// Clients table (for spa/salon clients - different from e-commerce customers)
+export const clients = pgTable("clients", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  phone: text("phone"),
+  address: text("address"),
+  dateOfBirth: text("date_of_birth"), // stored as string for privacy
+  notes: text("notes"),
+  preferredStaff: varchar("preferred_staff"),
+  allergies: text("allergies").array(),
+  skinType: text("skin_type"), // oily, dry, combination, sensitive
+  hairType: text("hair_type"), // straight, wavy, curly, coily
+  lastVisit: timestamp("last_visit"),
+  totalVisits: integer("total_visits").default(0),
+  totalSpent: decimal("total_spent", { precision: 10, scale: 2 }).default("0"),
+  status: text("status").default("active"), // active, inactive, blacklisted
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Services table
+export const services = pgTable("services", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  category: text("category").notNull(), // massage, facial, body-treatment, hair, nail-care
+  duration: integer("duration").notNull(), // in minutes
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+  staffRequired: integer("staff_required").default(1),
+  isActive: boolean("is_active").default(true),
+  imageUrl: text("image_url"),
+  instructions: text("instructions"), // pre/post care instructions
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Appointments table
+export const appointments = pgTable("appointments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  clientId: varchar("client_id").references(() => clients.id).notNull(),
+  serviceId: varchar("service_id").references(() => services.id).notNull(),
+  staffId: varchar("staff_id").references(() => staff.id),
+  date: text("date").notNull(), // YYYY-MM-DD format
+  time: text("time").notNull(), // HH:MM format
+  duration: integer("duration").notNull(), // in minutes
+  status: text("status").notNull().default("confirmed"), // confirmed, completed, cancelled, no-show
+  notes: text("notes"),
+  totalAmount: decimal("total_amount", { precision: 10, scale: 2 }).notNull(),
+  paymentStatus: text("payment_status").default("pending"), // pending, paid, partial
+  reminderSent: boolean("reminder_sent").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Staff Schedules table
+export const staffSchedules = pgTable("staff_schedules", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  staffId: varchar("staff_id").references(() => staff.id).notNull(),
+  date: text("date").notNull(), // YYYY-MM-DD format
+  startTime: text("start_time").notNull(), // HH:MM format
+  endTime: text("end_time").notNull(), // HH:MM format
+  isAvailable: boolean("is_available").default(true),
+  breakStart: text("break_start"), // HH:MM format
+  breakEnd: text("break_end"), // HH:MM format
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Insert Schemas for Salon Tables
+export const insertClientSchema = createInsertSchema(clients).omit({
+  id: true,
+  lastVisit: true,
+  totalVisits: true,
+  totalSpent: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertServiceSchema = createInsertSchema(services).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAppointmentSchema = createInsertSchema(appointments).omit({
+  id: true,
+  reminderSent: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStaffScheduleSchema = createInsertSchema(staffSchedules).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types for Salon Tables
+export type Client = typeof clients.$inferSelect;
+export type InsertClient = z.infer<typeof insertClientSchema>;
+export type Service = typeof services.$inferSelect;
+export type InsertService = z.infer<typeof insertServiceSchema>;
+export type Appointment = typeof appointments.$inferSelect;
+export type InsertAppointment = z.infer<typeof insertAppointmentSchema>;
+export type StaffSchedule = typeof staffSchedules.$inferSelect;
+export type InsertStaffSchedule = z.infer<typeof insertStaffScheduleSchema>;
+
+// Relations for Salon Tables
+export const clientsRelations = relations(clients, ({ many }) => ({
+  appointments: many(appointments),
+}));
+
+export const servicesRelations = relations(services, ({ many }) => ({
+  appointments: many(appointments),
+}));
+
+export const appointmentsRelations = relations(appointments, ({ one }) => ({
+  client: one(clients, {
+    fields: [appointments.clientId],
+    references: [clients.id],
+  }),
+  service: one(services, {
+    fields: [appointments.serviceId],
+    references: [services.id],
+  }),
+  staff: one(staff, {
+    fields: [appointments.staffId],
+    references: [staff.id],
+  }),
+}));
+
+export const staffSchedulesRelations = relations(staffSchedules, ({ one }) => ({
+  staff: one(staff, {
+    fields: [staffSchedules.staffId],
+    references: [staff.id],
+  }),
+}));

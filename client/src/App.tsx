@@ -26,6 +26,9 @@ import ClientsPage from "@/pages/clients";
 import ReportsPage from "@/pages/reports";
 import SettingsPage from "@/pages/settings";
 import AppointmentsPage from "@/pages/appointments";
+import AppointmentBookingPage from "@/pages/appointment-booking";
+import StaffDashboardPage from "@/pages/staff-dashboard";
+import ClientPortalPage from "@/pages/client-portal";
 import TimesheetPage from "@/pages/timesheet";
 import MarketingPage from "@/pages/marketing";
 import DashboardPage from "@/pages/dashboard";
@@ -116,6 +119,24 @@ function App() {
             <Route path="/appointments">
               <AuthGuard requiredRole="admin">
                 <AppointmentsPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/book-appointment">
+              <AuthGuard requiredRole="admin">
+                <AppointmentBookingPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/staff-dashboard">
+              <AuthGuard requiredRole="admin">
+                <StaffDashboardPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/client-portal">
+              <AuthGuard>
+                <ClientPortalPage />
               </AuthGuard>
             </Route>
             
