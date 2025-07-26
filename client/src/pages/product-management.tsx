@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ImageUploadWithAI } from "@/components/image-upload-with-ai";
-import { Plus, Edit, Trash2, Eye, Sparkles } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Sparkles, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 
 interface Product {
   id: string;
@@ -240,14 +241,24 @@ export default function ProductManagement() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="container mx-auto p-6 space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold neon-text-purple mb-2">
-          Product Management
-        </h1>
-        <p className="text-muted-foreground">
-          Manage your hair extension catalog with AI-powered image generation
-        </p>
-      </div>
+        {/* Back Button */}
+        <div className="flex items-center gap-4 mb-6">
+          <Link href="/admin">
+            <Button variant="outline" size="sm" className="border-white/20 hover:border-purple-400/50">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Admin
+            </Button>
+          </Link>
+        </div>
+
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold neon-text-purple mb-2">
+            Product Management
+          </h1>
+          <p className="text-muted-foreground">
+            Manage your hair extension catalog with AI-powered image generation
+          </p>
+        </div>
 
       {/* Product Form */}
       <Card className="glass-card border-white/20">

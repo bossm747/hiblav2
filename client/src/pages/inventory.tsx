@@ -11,9 +11,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Package, AlertTriangle, TrendingUp, TrendingDown, History, Barcode as BarcodeIcon, Eye } from "lucide-react";
+import { Package, AlertTriangle, TrendingUp, TrendingDown, History, Barcode as BarcodeIcon, Eye, ArrowLeft } from "lucide-react";
 import Barcode from 'react-barcode';
 import { ProductDetailModal } from "@/components/product-detail-modal";
+import { Link } from "wouter";
 import type { Product, InventoryTransaction } from "@shared/schema";
 
 export default function InventoryPage() {
@@ -46,10 +47,7 @@ export default function InventoryPage() {
   // Inventory adjustment mutation
   const adjustInventoryMutation = useMutation({
     mutationFn: (data: { productId: string; quantity: number; type: string; reason: string }) =>
-      apiRequest("/api/inventory/adjust", {
-        method: "POST",
-        body: JSON.stringify(data)
-      }),
+      apiRequest("/api/inventory/adjust", "POST", data),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -94,12 +92,21 @@ export default function InventoryPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <RoleBasedSidebar />
       <div className="container mx-auto py-8">
-      <div className="mb-8 glass-card p-6 neon-purple">
-        <h1 className="text-3xl font-bold mb-2 text-foreground neon-text-purple">Inventory Management</h1>
-        <p className="text-muted-foreground">Monitor stock levels and manage inventory</p>
-      </div>
+        {/* Back Button */}
+        <div className="flex items-center gap-4 mb-6">
+          <Link href="/admin">
+            <Button variant="outline" size="sm" className="border-white/20 hover:border-purple-400/50">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Admin
+            </Button>
+          </Link>
+        </div>
+
+        <div className="mb-8 glass-card p-6 neon-purple">
+          <h1 className="text-3xl font-bold mb-2 text-foreground neon-text-purple">Inventory Management</h1>
+          <p className="text-muted-foreground">Monitor stock levels and manage inventory</p>
+        </div>
 
       {/* Low Stock Alert */}
       {lowStockProducts.length > 0 && (
@@ -159,7 +166,7 @@ export default function InventoryPage() {
                   <TableCell>
                     {product.currentStock === 0 ? (
                       <Badge variant="destructive" className="neon-pink">Out of Stock</Badge>
-                    ) : product.currentStock <= product.lowStockThreshold ? (
+                    ) : (product.currentStock || 0) <= (product.lowStockThreshold || 0) ? (
                       <Badge variant="secondary">Low Stock</Badge>
                     ) : (
                       <Badge className="bg-green-500 text-white">In Stock</Badge>
@@ -293,7 +300,7 @@ export default function InventoryPage() {
                                     {transactions.slice(0, 5).map((transaction) => (
                                       <TableRow key={transaction.id} className="border-white/10">
                                         <TableCell className="text-muted-foreground">
-                                          {new Date(transaction.createdAt).toLocaleDateString()}
+                                          {transaction.createdAt ? new Date(transaction.createdAt).toLocaleDateString() : 'N/A'}
                                         </TableCell>
                                         <TableCell>
                                           <Badge variant={
