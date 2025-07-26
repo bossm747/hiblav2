@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
@@ -27,6 +29,64 @@ interface StaffModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
+
+// Common salon and spa specialties
+const SALON_SPA_SPECIALTIES = [
+  // Hair Services
+  "Hair Cutting & Styling",
+  "Hair Coloring",
+  "Hair Highlights & Lowlights", 
+  "Hair Extensions",
+  "Keratin Treatment",
+  "Hair Perming",
+  "Hair Rebonding",
+  "Bridal Hair Styling",
+  
+  // Facial & Skin Care
+  "Classic Facial",
+  "Anti-Aging Facial",
+  "Acne Treatment",
+  "Hydrafacial",
+  "Microdermabrasion",
+  "Chemical Peels",
+  "Diamond Peel",
+  "Oxygen Facial",
+  
+  // Body Treatments
+  "Swedish Massage",
+  "Deep Tissue Massage",
+  "Hot Stone Massage",
+  "Aromatherapy Massage",
+  "Prenatal Massage",
+  "Thai Massage",
+  "Shiatsu Massage",
+  "Reflexology",
+  
+  // Beauty Services
+  "Manicure",
+  "Pedicure",
+  "Gel Nails",
+  "Nail Art",
+  "Eyebrow Threading",
+  "Eyebrow Microblading",
+  "Eyelash Extensions",
+  "Makeup Application",
+  
+  // Spa Treatments
+  "Body Scrub",
+  "Body Wrap",
+  "Cellulite Treatment",
+  "Slimming Treatment",
+  "Detox Treatment",
+  "Couples Massage",
+  
+  // Specialized Services
+  "Waxing (Full Body)",
+  "IPL Hair Removal",
+  "RF Skin Tightening",
+  "Cavitation Treatment",
+  "Permanent Makeup"
+];
 
 export default function StaffModal({ open, onOpenChange }: StaffModalProps) {
   const { toast } = useToast();
@@ -68,14 +128,10 @@ export default function StaffModal({ open, onOpenChange }: StaffModalProps) {
   });
 
   const onSubmit = (data: z.infer<typeof insertStaffSchema>) => {
-    // Convert specialties string to array if needed
+    // Ensure specialties is an array
     const formattedData = {
       ...data,
-      specialties: Array.isArray(data.specialties) 
-        ? data.specialties
-        : data.specialties 
-          ? String(data.specialties).split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0)
-          : []
+      specialties: Array.isArray(data.specialties) ? data.specialties : []
     };
     createStaffMutation.mutate(formattedData);
   };
@@ -169,19 +225,50 @@ export default function StaffModal({ open, onOpenChange }: StaffModalProps) {
             <FormField
               control={form.control}
               name="specialties"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Specialties</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="e.g. Deep Tissue, Hot Stone (comma separated)"
-                      {...field}
-                      value={Array.isArray(field.value) ? field.value.join(', ') : field.value || ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const currentSpecialties = Array.isArray(field.value) ? field.value : [];
+                return (
+                  <FormItem>
+                    <FormLabel>
+                      Specialties {currentSpecialties.length > 0 && (
+                        <span className="text-xs text-slate-500">({currentSpecialties.length} selected)</span>
+                      )}
+                    </FormLabel>
+                    <FormControl>
+                      <ScrollArea className="h-48 border rounded-md p-3">
+                        <div className="grid grid-cols-1 gap-2">
+                          {SALON_SPA_SPECIALTIES.map((specialty) => {
+                            const isChecked = currentSpecialties.includes(specialty);
+                            
+                            return (
+                              <div key={specialty} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={specialty}
+                                  checked={isChecked}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) {
+                                      field.onChange([...currentSpecialties, specialty]);
+                                    } else {
+                                      field.onChange(currentSpecialties.filter((s) => s !== specialty));
+                                    }
+                                  }}
+                                />
+                                <label 
+                                  htmlFor={specialty}
+                                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                >
+                                  {specialty}
+                                </label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </ScrollArea>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             
             <div className="flex space-x-3 pt-4">
