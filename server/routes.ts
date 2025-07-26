@@ -33,6 +33,9 @@ import { promises as fs } from "fs";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve uploaded files statically
+  app.use('/uploads', express.static(path.resolve('uploads')));
+  
   // Health check endpoint for deployment monitoring
   app.get("/health", (req, res) => {
     res.status(200).json({ 
@@ -1016,7 +1019,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      const imageUrl = `/uploads/${req.file.filename}`;
+      const imageUrl = `/uploads/products/${req.file.filename}`;
       
       res.json({
         url: imageUrl,
