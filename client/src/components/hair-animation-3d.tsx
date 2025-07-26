@@ -46,57 +46,50 @@ export function HairAnimation3D() {
     backLight.position.set(-5, 3, -5);
     scene.add(backLight);
 
-    // Head geometry (simplified)
-    const headGeometry = new THREE.SphereGeometry(1, 32, 32);
-    const headMaterial = new THREE.MeshPhongMaterial({ 
-      color: 0xffdbac,
-      specular: 0x050505,
-      shininess: 100
-    });
-    const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.scale.y = 1.2; // Make head slightly oval
-    scene.add(head);
+    // Remove head geometry - we'll just have floating hair
 
-    // Hair strands
+    // Flowing hair strands
     const hairGroup = new THREE.Group();
-    const hairCount = 200;
+    const hairCount = 150;
     const hairStrands: THREE.Line[] = [];
 
     for (let i = 0; i < hairCount; i++) {
+      // Create longer, more flowing hair curves
+      const startX = (Math.random() - 0.5) * 3;
+      const startZ = (Math.random() - 0.5) * 2;
       const curve = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(0, -0.5, 0.1),
-        new THREE.Vector3(0, -1, 0.2),
-        new THREE.Vector3(0, -1.5, 0.3),
-        new THREE.Vector3(0, -2, 0.4),
-        new THREE.Vector3(0, -2.5, 0.5)
+        new THREE.Vector3(startX, 2, startZ),
+        new THREE.Vector3(startX + (Math.random() - 0.5) * 0.3, 1, startZ + (Math.random() - 0.5) * 0.3),
+        new THREE.Vector3(startX + (Math.random() - 0.5) * 0.5, 0, startZ + (Math.random() - 0.5) * 0.5),
+        new THREE.Vector3(startX + (Math.random() - 0.5) * 0.8, -1, startZ + (Math.random() - 0.5) * 0.8),
+        new THREE.Vector3(startX + (Math.random() - 0.5) * 1.2, -2, startZ + (Math.random() - 0.5) * 1.2),
+        new THREE.Vector3(startX + (Math.random() - 0.5) * 1.5, -3, startZ + (Math.random() - 0.5) * 1.5)
       ]);
 
-      const points = curve.getPoints(50);
+      const points = curve.getPoints(60);
       const geometry = new THREE.BufferGeometry().setFromPoints(points);
       
-      // Create gradient material for hair
+      // Create hair with various colors (browns, blacks, highlights)
+      const hairColors = [
+        new THREE.Color().setHSL(0.08, 0.4, 0.15), // Dark brown
+        new THREE.Color().setHSL(0.06, 0.5, 0.1),  // Almost black
+        new THREE.Color().setHSL(0.1, 0.3, 0.25),  // Medium brown
+        new THREE.Color().setHSL(0.12, 0.2, 0.35), // Light brown highlight
+      ];
+      
       const material = new THREE.LineBasicMaterial({ 
-        color: new THREE.Color().setHSL(0.08, 0.3, 0.2 + Math.random() * 0.2), // Dark brown variations
-        linewidth: 2,
+        color: hairColors[Math.floor(Math.random() * hairColors.length)],
+        linewidth: 1.5,
         transparent: true,
-        opacity: 0.8
+        opacity: 0.7 + Math.random() * 0.3
       });
 
       const hairStrand = new THREE.Line(geometry, material);
       
-      // Position hair around the head
-      const angle = (i / hairCount) * Math.PI * 2;
-      const radius = 0.95 + Math.random() * 0.1;
-      const yOffset = 0.8 - (i / hairCount) * 0.3;
-      
-      hairStrand.position.x = Math.cos(angle) * radius;
-      hairStrand.position.y = yOffset;
-      hairStrand.position.z = Math.sin(angle) * radius;
-      
-      // Random rotation for variety
-      hairStrand.rotation.x = (Math.random() - 0.5) * 0.2;
-      hairStrand.rotation.z = (Math.random() - 0.5) * 0.2;
+      // Random rotation for natural look
+      hairStrand.rotation.x = (Math.random() - 0.5) * 0.3;
+      hairStrand.rotation.y = (Math.random() - 0.5) * 0.3;
+      hairStrand.rotation.z = (Math.random() - 0.5) * 0.3;
       
       hairStrands.push(hairStrand);
       hairGroup.add(hairStrand);
@@ -110,25 +103,31 @@ export function HairAnimation3D() {
     // Animation loop
     const animate = () => {
       frameIdRef.current = requestAnimationFrame(animate);
-      time += 0.01;
+      time += 0.008;
 
-      // Rotate head slightly
-      head.rotation.y = Math.sin(time) * 0.1;
-      hairGroup.rotation.y = Math.sin(time) * 0.1;
+      // Gentle rotation of entire hair group
+      hairGroup.rotation.y = Math.sin(time * 0.5) * 0.2;
 
-      // Animate hair strands
+      // Animate hair strands with flowing motion
       hairStrands.forEach((strand, i) => {
-        const offset = i * 0.01;
-        strand.rotation.x = Math.sin(time + offset) * 0.05;
-        strand.rotation.z = Math.cos(time + offset) * 0.05;
+        const offset = i * 0.02;
         
-        // Update hair position for flowing effect
+        // Gentle swaying motion
+        strand.rotation.x = Math.sin(time + offset) * 0.08;
+        strand.rotation.z = Math.cos(time + offset) * 0.06;
+        
+        // Update hair position for realistic wind flow
         const positions = strand.geometry.attributes.position;
         if (positions) {
           const posArray = positions.array as Float32Array;
-          for (let j = 3; j < posArray.length; j += 3) {
-            const windEffect = Math.sin(time * 2 + j * 0.1) * 0.02;
+          for (let j = 6; j < posArray.length; j += 3) {
+            const segmentRatio = j / posArray.length;
+            const windStrength = segmentRatio * 0.015; // Stronger effect on hair ends
+            const windEffect = Math.sin(time * 3 + j * 0.05 + offset) * windStrength;
+            const gentleWave = Math.cos(time * 2 + j * 0.03) * windStrength * 0.5;
+            
             posArray[j] += windEffect; // X movement
+            posArray[j + 2] += gentleWave; // Z movement
           }
           positions.needsUpdate = true;
         }
@@ -169,8 +168,6 @@ export function HairAnimation3D() {
           strand.material.dispose();
         }
       });
-      headGeometry.dispose();
-      headMaterial.dispose();
       renderer.dispose();
     };
   }, []);
