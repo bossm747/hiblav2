@@ -133,23 +133,26 @@ html {
   }
 }
 
-/* Glass morphism styles - Reduced blur for better desktop/tablet experience */
+/* Glass morphism styles - Optimized for desktop/tablet clarity */
 .glass {
   background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .glass-dark {
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .glass-card {
-  @apply glass rounded-xl shadow-2xl;
+  @apply rounded-xl shadow-2xl;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(3px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 /* Neon glow effects */
@@ -478,7 +481,7 @@ html {
   pointer-events: none;
 }
 
-/* Enhanced card shadows and effects */
+/* Enhanced card shadows and effects - Desktop/Tablet optimized */
 .spa-card-shadow {
   box-shadow: 
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
@@ -486,7 +489,7 @@ html {
     0 0 0 1px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(2px);
 }
 
 .spa-card-shadow:hover {
@@ -502,43 +505,153 @@ html {
     0 8px 25px -5px rgba(0, 0, 0, 0.1),
     0 4px 6px -1px rgba(0, 0, 0, 0.06);
   background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(2px);
 }
 
 .spa-modal-shadow {
   box-shadow: 
     0 25px 50px -12px rgba(0, 0, 0, 0.25),
     0 0 0 1px rgba(0, 0, 0, 0.05);
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.99);
+  backdrop-filter: blur(3px);
 }
 
-/* Desktop and Tablet blur reduction for better performance and clarity */
+/* Desktop and Tablet optimizations for crystal clear UI */
 @media (min-width: 768px) {
+  /* Reduce blur on desktop/tablet for better clarity */
   .glass {
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    background: rgba(255, 255, 255, 0.06);
   }
   
   .glass-dark {
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.25);
   }
   
   .glass-card {
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    background: rgba(0, 0, 0, 0.15);
   }
   
   .spa-card-shadow {
-    backdrop-filter: blur(3px);
+    backdrop-filter: blur(2px);
+    background: rgba(255, 255, 255, 0.97);
   }
   
   .spa-container-shadow {
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(2px);
+    background: rgba(255, 255, 255, 0.99);
   }
   
   .spa-modal-shadow {
-    backdrop-filter: blur(6px);
+    backdrop-filter: blur(3px);
+    background: rgba(255, 255, 255, 0.99);
+  }
+
+  /* Enhanced clarity for desktop/tablet text and elements */
+  .neon-text-purple,
+  .neon-text-cyan,
+  .neon-text-yellow {
+    text-shadow: 0 0 8px currentColor,
+                 0 0 16px currentColor,
+                 0 0 24px currentColor;
+  }
+
+  /* Reduce excessive glow effects on larger screens */
+  .neon-purple {
+    box-shadow: 0 0 12px hsl(var(--neon-purple)), 
+                0 0 24px hsl(var(--neon-purple)),
+                inset 0 0 12px hsl(var(--neon-purple) / 0.08);
+  }
+
+  .neon-cyan {
+    box-shadow: 0 0 12px hsl(var(--neon-cyan)), 
+                0 0 24px hsl(var(--neon-cyan)),
+                inset 0 0 12px hsl(var(--neon-cyan) / 0.08);
+  }
+
+  .neon-glow-light {
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.25),
+                0 0 20px rgba(168, 85, 247, 0.15),
+                0 0 30px rgba(168, 85, 247, 0.08),
+                inset 0 0 10px rgba(168, 85, 247, 0.08);
+  }
+
+  /* Optimize layout spacing for desktop/tablet */
+  .container-responsive {
+    @apply max-w-6xl mx-auto px-6 lg:px-8;
+  }
+
+  /* Improve card grid consistency */
+  .grid-responsive-cards {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 lg:gap-6;
+  }
+
+  /* Better button and form sizing */
+  .button-responsive {
+    @apply px-6 py-3 text-base font-medium;
+  }
+
+  /* Enhanced typography for larger screens */
+  .text-responsive-lg {
+    @apply text-xl lg:text-2xl xl:text-3xl;
+  }
+
+  /* Optimize modal sizing */
+  .modal-responsive {
+    @apply max-w-lg md:max-w-2xl lg:max-w-4xl xl:max-w-5xl;
+  }
+}
+
+/* High-resolution desktop and ultrawide optimizations */
+@media (min-width: 1440px) {
+  /* Further reduce blur effects for high-res displays */
+  .glass, .glass-dark, .glass-card {
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+  }
+
+  /* Enhance container max-widths for ultrawide */
+  .container-responsive {
+    @apply max-w-7xl;
+  }
+
+  /* Optimize grid layouts for large displays */
+  .grid-responsive-cards {
+    @apply xl:grid-cols-5 2xl:grid-cols-6;
+  }
+
+  /* Improve typography scaling */
+  .text-responsive-lg {
+    @apply xl:text-4xl 2xl:text-5xl;
+  }
+
+  /* Better spacing for large screens */
+  .p-responsive {
+    @apply xl:p-10 2xl:p-12;
+  }
+}
+
+/* Ultra-high resolution displays (4K+) */
+@media (min-width: 2560px) {
+  .glass, .glass-dark, .glass-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    /* Use solid backgrounds for crystal clarity on 4K+ */
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  /* Maximum container width for ultrawide monitors */
+  .container-responsive {
+    @apply max-w-screen-2xl;
   }
 }
 
@@ -604,9 +717,9 @@ html {
 }
 
 /* Enhanced radiant effects for glass elements */
-.glass-card {
+.glass-card-enhanced {
   background: rgba(0, 0, 0, 0.25);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(3px);
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 
     0 8px 32px 0 rgba(31, 38, 135, 0.2),
