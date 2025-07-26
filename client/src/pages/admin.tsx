@@ -78,7 +78,7 @@ export default function AdminPage() {
     },
     {
       title: "Product Management",
-      description: "Add, edit, and organize product catalog",
+      description: "Add, edit, and organize product catalog with AI images",
       icon: Package,
       href: "/products-admin",
       color: "neon-pink",

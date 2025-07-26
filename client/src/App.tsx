@@ -34,6 +34,7 @@ import MarketingPage from "@/pages/marketing";
 import DashboardPage from "@/pages/dashboard";
 import DocumentationPage from "@/pages/documentation";
 import AIImageManagementPage from "@/pages/ai-image-management";
+import ProductManagementPage from "@/pages/product-management";
 import NotFound from "@/pages/not-found";
 
 function App() {
@@ -84,6 +85,12 @@ function App() {
             <Route path="/ai-images">
               <AuthGuard requiredRole="admin">
                 <AIImageManagementPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/products-admin">
+              <AuthGuard requiredRole="admin">
+                <ProductManagementPage />
               </AuthGuard>
             </Route>
             
