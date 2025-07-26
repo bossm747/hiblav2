@@ -3,6 +3,18 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 // import { startReminderScheduler } from "./notification-service";
 
+// Environment validation function
+function validateEnvironment() {
+  const requiredEnvVars = ['DATABASE_URL'];
+  const missingVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+  
+  if (missingVars.length > 0) {
+    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+  }
+  
+  log('Environment validation passed');
+}
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -37,40 +49,83 @@ app.use((req, res, next) => {
   next();
 });
 
+// Graceful shutdown handling
+function setupGracefulShutdown(server: any) {
+  const shutdown = (signal: string) => {
+    log(`Received ${signal}, shutting down gracefully`);
+    server.close(() => {
+      log('Server closed');
+      process.exit(0);
+    });
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+}
+
+// Main application startup with comprehensive error handling
 (async () => {
-  const server = await registerRoutes(app);
-
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
-  }
-
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+  try {
+    // Validate environment variables first
+    validateEnvironment();
     
-    // Start the notification reminder scheduler - Temporarily disabled
-    // startReminderScheduler();
-    // log('Notification reminder scheduler started');
-  });
+    // Register routes and get server instance
+    const server = await registerRoutes(app);
+    log('Routes registered successfully');
+
+    // Global error handler
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+
+      log(`Error ${status}: ${message}`);
+      res.status(status).json({ message });
+    });
+
+    // Setup development or production environment
+    if (app.get("env") === "development") {
+      await setupVite(app, server);
+      log('Development environment with Vite setup complete');
+    } else {
+      serveStatic(app);
+      log('Production environment with static files setup complete');
+    }
+
+    // Configure server port
+    const port = parseInt(process.env.PORT || '5000', 10);
+    
+    // Start server with proper error handling
+    const serverInstance = server.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, () => {
+      log(`Server successfully started on port ${port}`);
+      log(`Health check available at: /health`);
+      
+      // Start the notification reminder scheduler - Temporarily disabled
+      // startReminderScheduler();
+      // log('Notification reminder scheduler started');
+    });
+
+    // Handle server startup errors
+    serverInstance.on('error', (error: any) => {
+      if (error.code === 'EADDRINUSE') {
+        log(`Port ${port} is already in use`);
+      } else {
+        log(`Server error: ${error.message}`);
+      }
+      process.exit(1);
+    });
+
+    // Setup graceful shutdown
+    setupGracefulShutdown(serverInstance);
+    
+  } catch (error) {
+    // Catch any initialization errors
+    const errorMessage = error instanceof Error ? error.message : 'Unknown initialization error';
+    log(`Application startup failed: ${errorMessage}`);
+    console.error('Startup error details:', error);
+    process.exit(1);
+  }
 })();
