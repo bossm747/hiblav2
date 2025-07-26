@@ -164,12 +164,12 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative h-[600px] overflow-hidden">
+      <section className="relative h-[600px] overflow-hidden w-full">
         <div className="absolute inset-0 glass-dark" />
-        <div className="relative container mx-auto px-4 h-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full items-center">
+        <div className="relative w-full h-full px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full items-center max-w-none">
             {/* Text Content */}
-            <div className="glass p-8">
+            <div className="bg-transparent p-8">
               <h1 className="text-5xl font-bold mb-4 neon-text-yellow">
                 Premium Filipino Hair Extensions
               </h1>
@@ -188,7 +188,7 @@ export default function HomePage() {
             </div>
             
             {/* 3D Animation */}
-            <div className="glass p-4 h-full min-h-[400px]">
+            <div className="bg-transparent p-4 h-full min-h-[400px]">
               <HairAnimation3D />
             </div>
           </div>
