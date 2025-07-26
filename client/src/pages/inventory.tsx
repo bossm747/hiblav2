@@ -89,80 +89,78 @@ export default function InventoryPage() {
   };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-full">Loading inventory...</div>;
+    return <div className="flex items-center justify-center h-full bg-background text-foreground">Loading inventory...</div>;
   }
 
   return (
     <div className="container mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Inventory Management</h1>
+      <div className="mb-8 glass-card p-6 neon-purple">
+        <h1 className="text-3xl font-bold mb-2 text-foreground neon-text-purple">Inventory Management</h1>
         <p className="text-muted-foreground">Monitor stock levels and manage inventory</p>
       </div>
 
       {/* Low Stock Alert */}
       {lowStockProducts.length > 0 && (
-        <Card className="mb-6 border-gray-300 bg-gray-100">
-          <CardHeader>
-            <CardTitle className="text-black flex items-center gap-2">
+        <div className="mb-6 glass-card neon-pink">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold flex items-center gap-2 text-foreground neon-text-pink mb-2">
               <AlertTriangle className="h-5 w-5" />
               Low Stock Alert
-            </CardTitle>
-            <CardDescription className="text-gray-700">
+            </h2>
+            <p className="text-muted-foreground mb-4">
               {lowStockProducts.length} products are running low on stock
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {lowStockProducts.map((product) => (
-                <div key={product.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                <div key={product.id} className="flex items-center justify-between p-3 glass-dark rounded-lg border border-white/10">
                   <div>
-                    <p className="font-medium">{product.name}</p>
+                    <p className="font-medium text-foreground">{product.name}</p>
                     <p className="text-sm text-muted-foreground">SKU: {product.sku || "N/A"}</p>
                   </div>
-                  <Badge variant="destructive">
+                  <Badge variant="destructive" className="neon-pink">
                     {product.currentStock} left
                   </Badge>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Inventory Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Current Inventory</CardTitle>
-          <CardDescription>Click on a product to view details and adjust stock</CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="glass-card neon-cyan">
+        <div className="p-6">
+          <h2 className="text-xl font-semibold mb-2 text-foreground neon-text-cyan">Current Inventory</h2>
+          <p className="text-sm text-muted-foreground mb-4">Click on a product to view details and adjust stock</p>
+        </div>
+        <div className="p-6 pt-0">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Current Stock</TableHead>
-                <TableHead>Low Stock Threshold</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+              <TableRow className="border-white/10">
+                <TableHead className="text-foreground">Product</TableHead>
+                <TableHead className="text-foreground">SKU</TableHead>
+                <TableHead className="text-foreground">Category</TableHead>
+                <TableHead className="text-foreground">Current Stock</TableHead>
+                <TableHead className="text-foreground">Low Stock Threshold</TableHead>
+                <TableHead className="text-foreground">Status</TableHead>
+                <TableHead className="text-foreground">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.sku || "N/A"}</TableCell>
-                  <TableCell>{product.hairType}</TableCell>
-                  <TableCell>{product.currentStock}</TableCell>
-                  <TableCell>{product.lowStockThreshold}</TableCell>
+                <TableRow key={product.id} className="border-white/10">
+                  <TableCell className="font-medium text-foreground">{product.name}</TableCell>
+                  <TableCell className="text-muted-foreground">{product.sku || "N/A"}</TableCell>
+                  <TableCell className="text-muted-foreground">{product.hairType}</TableCell>
+                  <TableCell className="text-foreground">{product.currentStock}</TableCell>
+                  <TableCell className="text-muted-foreground">{product.lowStockThreshold}</TableCell>
                   <TableCell>
                     {product.currentStock === 0 ? (
-                      <Badge variant="destructive">Out of Stock</Badge>
+                      <Badge variant="destructive" className="neon-pink">Out of Stock</Badge>
                     ) : product.currentStock <= product.lowStockThreshold ? (
                       <Badge variant="secondary">Low Stock</Badge>
                     ) : (
-                      <Badge variant="default">In Stock</Badge>
+                      <Badge className="bg-green-500 text-white">In Stock</Badge>
                     )}
                   </TableCell>
                   <TableCell>
@@ -170,6 +168,7 @@ export default function InventoryPage() {
                       <Button
                         size="sm"
                         variant="outline"
+                        className="border-white/20 hover:bg-primary/20 hover:neon-text-purple"
                         onClick={() => {
                           setSelectedViewProduct(product);
                           setShowProductModal(true);
@@ -180,6 +179,7 @@ export default function InventoryPage() {
                       <Button
                         size="sm"
                         variant="outline"
+                        className="border-white/20 hover:bg-primary/20 hover:neon-text-cyan"
                         onClick={() => {
                           const barcodeValue = product.sku || `PRD${product.id.slice(0, 8).toUpperCase()}`;
                           setSelectedBarcode({ product, value: barcodeValue });
@@ -193,37 +193,38 @@ export default function InventoryPage() {
                           <Button
                             size="sm"
                             variant="outline"
+                            className="border-white/20 hover:bg-primary/20 hover:neon-text-pink"
                             onClick={() => setSelectedProduct(product)}
                           >
                             <Package className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
+                      <DialogContent className="max-w-2xl glass-card border-white/20 neon-purple bg-background">
                         <DialogHeader>
-                          <DialogTitle>Adjust Inventory: {product.name}</DialogTitle>
-                          <DialogDescription>
-                            Current Stock: {product.currentStock} units
+                          <DialogTitle className="text-foreground neon-text-purple">Adjust Inventory: {product.name}</DialogTitle>
+                          <DialogDescription className="text-muted-foreground">
+                            Current Stock: <span className="text-foreground font-semibold">{product.currentStock}</span> units
                           </DialogDescription>
                         </DialogHeader>
                         
                         <div className="grid gap-4 py-4">
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="type">Transaction Type</Label>
+                              <Label htmlFor="type" className="text-foreground">Transaction Type</Label>
                               <Select value={adjustmentType} onValueChange={(value: any) => setAdjustmentType(value)}>
-                                <SelectTrigger>
+                                <SelectTrigger className="glass border-white/20 text-foreground">
                                   <SelectValue />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="glass-card border-white/20">
                                   <SelectItem value="purchase">
                                     <div className="flex items-center gap-2">
-                                      <TrendingUp className="h-4 w-4 text-black" />
+                                      <TrendingUp className="h-4 w-4 text-green-500" />
                                       Purchase (Add Stock)
                                     </div>
                                   </SelectItem>
                                   <SelectItem value="sale">
                                     <div className="flex items-center gap-2">
-                                      <TrendingDown className="h-4 w-4 text-gray-600" />
+                                      <TrendingDown className="h-4 w-4 text-red-500" />
                                       Sale (Remove Stock)
                                     </div>
                                   </SelectItem>
@@ -238,30 +239,33 @@ export default function InventoryPage() {
                             </div>
                             
                             <div>
-                              <Label htmlFor="quantity">Quantity</Label>
+                              <Label htmlFor="quantity" className="text-foreground">Quantity</Label>
                               <Input
                                 id="quantity"
                                 type="number"
                                 value={adjustmentQuantity}
                                 onChange={(e) => setAdjustmentQuantity(e.target.value)}
                                 placeholder="Enter quantity"
+                                className="glass border-white/20 text-foreground placeholder:text-muted-foreground"
                               />
                             </div>
                           </div>
                           
                           <div>
-                            <Label htmlFor="reason">Reason</Label>
+                            <Label htmlFor="reason" className="text-foreground">Reason</Label>
                             <Input
                               id="reason"
                               value={adjustmentReason}
                               onChange={(e) => setAdjustmentReason(e.target.value)}
                               placeholder="Enter reason for adjustment"
+                              className="glass border-white/20 text-foreground placeholder:text-muted-foreground"
                             />
                           </div>
                           
                           <Button 
                             onClick={handleAdjustInventory}
                             disabled={adjustInventoryMutation.isPending}
+                            className="bg-primary text-primary-foreground hover:shadow-lg hover:shadow-purple-500/50 transition-all"
                           >
                             {adjustInventoryMutation.isPending ? "Processing..." : "Adjust Inventory"}
                           </Button>
@@ -269,24 +273,24 @@ export default function InventoryPage() {
                           {/* Transaction History */}
                           {transactions.length > 0 && (
                             <div className="mt-4">
-                              <h4 className="font-medium mb-2 flex items-center gap-2">
+                              <h4 className="font-medium mb-2 flex items-center gap-2 text-foreground">
                                 <History className="h-4 w-4" />
                                 Recent Transactions
                               </h4>
-                              <div className="border rounded-lg max-h-48 overflow-y-auto">
+                              <div className="glass-dark border border-white/10 rounded-lg max-h-48 overflow-y-auto">
                                 <Table>
                                   <TableHeader>
-                                    <TableRow>
-                                      <TableHead>Date</TableHead>
-                                      <TableHead>Type</TableHead>
-                                      <TableHead>Quantity</TableHead>
-                                      <TableHead>Reason</TableHead>
+                                    <TableRow className="border-white/10">
+                                      <TableHead className="text-foreground">Date</TableHead>
+                                      <TableHead className="text-foreground">Type</TableHead>
+                                      <TableHead className="text-foreground">Quantity</TableHead>
+                                      <TableHead className="text-foreground">Reason</TableHead>
                                     </TableRow>
                                   </TableHeader>
                                   <TableBody>
                                     {transactions.slice(0, 5).map((transaction) => (
-                                      <TableRow key={transaction.id}>
-                                        <TableCell>
+                                      <TableRow key={transaction.id} className="border-white/10">
+                                        <TableCell className="text-muted-foreground">
                                           {new Date(transaction.createdAt).toLocaleDateString()}
                                         </TableCell>
                                         <TableCell>
@@ -294,15 +298,15 @@ export default function InventoryPage() {
                                             transaction.type === "purchase" || transaction.type === "return" 
                                               ? "default" 
                                               : "secondary"
-                                          }>
+                                          } className={transaction.type === "purchase" || transaction.type === "return" ? "bg-green-500 text-white" : ""}>
                                             {transaction.type}
                                           </Badge>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className={transaction.type === "purchase" || transaction.type === "return" ? "text-green-500" : "text-red-500"}>
                                           {transaction.type === "purchase" || transaction.type === "return" ? "+" : "-"}
                                           {transaction.quantity}
                                         </TableCell>
-                                        <TableCell>{transaction.reason}</TableCell>
+                                        <TableCell className="text-muted-foreground">{transaction.reason}</TableCell>
                                       </TableRow>
                                     ))}
                                   </TableBody>
@@ -319,21 +323,21 @@ export default function InventoryPage() {
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Barcode Dialog */}
       <Dialog open={showBarcodeDialog} onOpenChange={setShowBarcodeDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md glass-card border-white/20 neon-cyan bg-background">
           <DialogHeader>
-            <DialogTitle>{selectedBarcode?.product.name}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-foreground neon-text-cyan">{selectedBarcode?.product.name}</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Product Barcode
             </DialogDescription>
           </DialogHeader>
           {selectedBarcode && (
             <div className="flex flex-col items-center space-y-4 py-4">
-              <div className="bg-white p-6 rounded-lg border">
+              <div className="bg-white p-6 rounded-lg">
                 <Barcode 
                   value={selectedBarcode.value}
                   width={2}
@@ -344,9 +348,9 @@ export default function InventoryPage() {
                 />
               </div>
               <div className="text-center">
-                <p className="text-sm text-gray-600">SKU: {selectedBarcode.product.sku || "N/A"}</p>
-                <p className="font-semibold">₱{selectedBarcode.product.price}</p>
-                <p className="text-sm text-gray-600">Stock: {selectedBarcode.product.currentStock}</p>
+                <p className="text-sm text-muted-foreground">SKU: {selectedBarcode.product.sku || "N/A"}</p>
+                <p className="font-semibold text-foreground neon-text-cyan">₱{selectedBarcode.product.price}</p>
+                <p className="text-sm text-muted-foreground">Stock: <span className="text-foreground font-semibold">{selectedBarcode.product.currentStock}</span></p>
               </div>
             </div>
           )}

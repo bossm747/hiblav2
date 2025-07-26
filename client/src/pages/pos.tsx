@@ -173,15 +173,15 @@ export default function POSPage() {
   };
 
   if (isLoading) {
-    return <div className="flex items-center justify-center h-full">Loading products...</div>;
+    return <div className="flex items-center justify-center h-full bg-background text-foreground">Loading products...</div>;
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6 h-screen">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6 h-screen bg-background">
       {/* Products Section */}
       <div className="lg:col-span-2 space-y-4 overflow-y-auto">
-        <div className="sticky top-0 bg-background z-10 pb-4">
-          <h1 className="text-2xl font-bold mb-4">Point of Sale</h1>
+        <div className="sticky top-0 glass-dark z-10 pb-4 p-4 rounded-lg border border-white/10">
+          <h1 className="text-2xl font-bold mb-4 text-foreground neon-text-purple">Point of Sale</h1>
           
           {/* Search Bar */}
           <div className="relative">
@@ -190,7 +190,7 @@ export default function POSPage() {
               placeholder="Search products by name, SKU, or type..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 glass border-white/20 text-foreground placeholder:text-muted-foreground"
             />
           </div>
         </div>
@@ -198,30 +198,30 @@ export default function POSPage() {
         {/* Products Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {filteredProducts.map((product) => (
-            <Card
+            <div
               key={product.id}
-              className={`cursor-pointer transition-all hover:shadow-lg ${
+              className={`glass-card cursor-pointer transition-all hover:neon-cyan ${
                 product.currentStock === 0 ? "opacity-50" : ""
               }`}
               onClick={() => addToCart(product)}
             >
-              <CardContent className="p-4">
-                <div className="aspect-square bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
+              <div className="p-4">
+                <div className="aspect-square glass-dark rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                   {product.featuredImage ? (
                     <img 
                       src={product.featuredImage} 
                       alt={product.name}
-                      className="w-full h-full object-cover rounded-lg"
+                      className="w-full h-full object-cover"
                     />
                   ) : (
-                    <Package2 className="h-12 w-12 text-gray-400" />
+                    <Package2 className="h-12 w-12 text-muted-foreground" />
                   )}
                 </div>
-                <h3 className="font-semibold text-sm mb-1 line-clamp-2">{product.name}</h3>
+                <h3 className="font-semibold text-sm mb-1 line-clamp-2 text-foreground">{product.name}</h3>
                 <p className="text-xs text-muted-foreground mb-2">{product.sku || "No SKU"}</p>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-bold">₱{product.price}</span>
-                  <Badge variant={!product.currentStock || product.currentStock === 0 ? "destructive" : "secondary"}>
+                  <span className="font-bold text-foreground">₱{product.price}</span>
+                  <Badge variant={!product.currentStock || product.currentStock === 0 ? "destructive" : "secondary"} className={!product.currentStock || product.currentStock === 0 ? "neon-pink" : ""}>
                     {product.currentStock ?? 0} left
                   </Badge>
                 </div>
@@ -229,7 +229,7 @@ export default function POSPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 border-white/20 hover:bg-primary/20 hover:neon-text-purple"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedProduct(product);
@@ -241,7 +241,7 @@ export default function POSPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 border-white/20 hover:bg-primary/20 hover:neon-text-cyan"
                     onClick={(e) => {
                       e.stopPropagation();
                       const barcodeValue = product.sku || `PRD${product.id.slice(0, 8).toUpperCase()}`;
@@ -252,25 +252,25 @@ export default function POSPage() {
                     <BarcodeIcon className="h-3 w-3" />
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       </div>
 
       {/* Cart Section */}
       <div className="space-y-4">
-        <Card className="h-full flex flex-col">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <div className="glass-card h-full flex flex-col neon-purple">
+          <div className="p-6">
+            <h2 className="text-xl font-semibold flex items-center gap-2 text-foreground neon-text-purple">
               <ShoppingCart className="h-5 w-5" />
               Shopping Cart
-            </CardTitle>
-            <CardDescription>
+            </h2>
+            <p className="text-sm text-muted-foreground">
               {cart.length} {cart.length === 1 ? "item" : "items"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col">
+            </p>
+          </div>
+          <div className="flex-1 flex flex-col p-6">
             {cart.length === 0 ? (
               <div className="flex-1 flex items-center justify-center text-muted-foreground">
                 <p>Cart is empty</p>
@@ -279,15 +279,16 @@ export default function POSPage() {
               <>
                 <div className="flex-1 overflow-y-auto space-y-3 mb-4">
                   {cart.map((item) => (
-                    <div key={item.productId} className="flex items-center gap-3 p-3 border rounded-lg">
+                    <div key={item.productId} className="flex items-center gap-3 p-3 glass-dark border border-white/10 rounded-lg">
                       <div className="flex-1">
-                        <p className="font-medium text-sm">{item.productName}</p>
+                        <p className="font-medium text-sm text-foreground">{item.productName}</p>
                         <p className="text-sm text-muted-foreground">₱{item.price} each</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
                           size="sm"
                           variant="outline"
+                          className="border-white/20 hover:bg-primary/20"
                           onClick={(e) => {
                             e.stopPropagation();
                             updateQuantity(item.productId, item.quantity - 1);
@@ -295,10 +296,11 @@ export default function POSPage() {
                         >
                           -
                         </Button>
-                        <span className="w-8 text-center">{item.quantity}</span>
+                        <span className="w-8 text-center text-foreground">{item.quantity}</span>
                         <Button
                           size="sm"
                           variant="outline"
+                          className="border-white/20 hover:bg-primary/20"
                           onClick={(e) => {
                             e.stopPropagation();
                             const product = products.find(p => p.id === item.productId);
@@ -318,6 +320,7 @@ export default function POSPage() {
                         <Button
                           size="sm"
                           variant="ghost"
+                          className="hover:text-destructive hover:neon-text-pink"
                           onClick={(e) => {
                             e.stopPropagation();
                             removeFromCart(item.productId);
@@ -331,23 +334,23 @@ export default function POSPage() {
                 </div>
 
                 {/* Totals */}
-                <div className="space-y-2 border-t pt-4">
+                <div className="space-y-2 border-t border-white/20 pt-4">
                   <div className="flex justify-between text-sm">
-                    <span>Subtotal</span>
-                    <span>₱{subtotal.toFixed(2)}</span>
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="text-foreground">₱{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>VAT (12%)</span>
-                    <span>₱{tax.toFixed(2)}</span>
+                    <span className="text-muted-foreground">VAT (12%)</span>
+                    <span className="text-foreground">₱{tax.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between font-bold">
-                    <span>Total</span>
-                    <span>₱{total.toFixed(2)}</span>
+                  <div className="flex justify-between font-bold text-lg">
+                    <span className="text-foreground">Total</span>
+                    <span className="text-foreground neon-text-cyan">₱{total.toFixed(2)}</span>
                   </div>
                 </div>
 
                 <Button
-                  className="w-full mt-4"
+                  className="w-full mt-4 bg-primary text-primary-foreground hover:shadow-lg hover:shadow-purple-500/50 transition-all"
                   size="lg"
                   onClick={() => setShowPaymentDialog(true)}
                   disabled={cart.length === 0}
@@ -357,22 +360,22 @@ export default function POSPage() {
                 </Button>
               </>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Barcode Dialog */}
       <Dialog open={showBarcodeDialog} onOpenChange={setShowBarcodeDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md glass-card border-white/20 neon-cyan bg-background">
           <DialogHeader>
-            <DialogTitle>{selectedBarcode?.product.name}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-foreground neon-text-cyan">{selectedBarcode?.product.name}</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Product Barcode
             </DialogDescription>
           </DialogHeader>
           {selectedBarcode && (
             <div className="flex flex-col items-center space-y-4 py-4">
-              <div className="bg-white p-6 rounded-lg border">
+              <div className="bg-white p-6 rounded-lg">
                 <Barcode 
                   value={selectedBarcode.value}
                   width={2}
@@ -383,8 +386,8 @@ export default function POSPage() {
                 />
               </div>
               <div className="text-center">
-                <p className="text-sm text-gray-600">SKU: {selectedBarcode.product.sku || "N/A"}</p>
-                <p className="font-semibold">₱{selectedBarcode.product.price}</p>
+                <p className="text-sm text-muted-foreground">SKU: {selectedBarcode.product.sku || "N/A"}</p>
+                <p className="font-semibold text-foreground">₱{selectedBarcode.product.price}</p>
               </div>
             </div>
           )}
@@ -393,22 +396,22 @@ export default function POSPage() {
 
       {/* Payment Dialog */}
       <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
-        <DialogContent>
+        <DialogContent className="glass-card border-white/20 neon-purple bg-background">
           <DialogHeader>
-            <DialogTitle>Process Payment</DialogTitle>
-            <DialogDescription>
-              Total Amount: ₱{total.toFixed(2)}
+            <DialogTitle className="text-foreground neon-text-purple">Process Payment</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Total Amount: <span className="text-foreground font-semibold neon-text-cyan">₱{total.toFixed(2)}</span>
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
             <div>
-              <Label>Payment Method</Label>
+              <Label className="text-foreground">Payment Method</Label>
               <Select value={paymentMethod} onValueChange={(value: any) => setPaymentMethod(value)}>
-                <SelectTrigger>
+                <SelectTrigger className="glass border-white/20 text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="glass-card border-white/20">
                   <SelectItem value="cash">
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4" />
@@ -422,26 +425,27 @@ export default function POSPage() {
             </div>
             
             <div>
-              <Label>Amount Paid</Label>
+              <Label className="text-foreground">Amount Paid</Label>
               <Input
                 type="number"
                 step="0.01"
                 value={amountPaid}
                 onChange={(e) => setAmountPaid(e.target.value)}
                 placeholder="Enter amount paid"
+                className="glass border-white/20 text-foreground placeholder:text-muted-foreground"
               />
             </div>
             
             {amountPaid && parseFloat(amountPaid) >= total && (
-              <div className="p-3 bg-green-50 rounded-lg">
-                <p className="text-sm text-green-800">
-                  Change: ₱{(parseFloat(amountPaid) - total).toFixed(2)}
+              <div className="p-3 glass-dark border border-green-500/50 rounded-lg neon-cyan">
+                <p className="text-sm text-foreground">
+                  Change: <span className="font-semibold neon-text-cyan">₱{(parseFloat(amountPaid) - total).toFixed(2)}</span>
                 </p>
               </div>
             )}
             
             <Button
-              className="w-full"
+              className="w-full bg-primary text-primary-foreground hover:shadow-lg hover:shadow-purple-500/50 transition-all"
               onClick={processPayment}
               disabled={createSaleMutation.isPending || !amountPaid || parseFloat(amountPaid) < total}
             >

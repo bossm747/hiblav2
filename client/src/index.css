@@ -7,26 +7,33 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(0, 0%, 100%);
-  --foreground: hsl(0, 0%, 0%);
-  --muted: hsl(0, 0%, 96%);
-  --muted-foreground: hsl(0, 0%, 40%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(0, 0%, 0%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(0, 0%, 0%);
-  --border: hsl(0, 0%, 90%);
-  --input: hsl(0, 0%, 95%);
-  --primary: hsl(0, 0%, 0%);
+  /* Dark background with light text for proper contrast */
+  --background: hsl(220, 20%, 10%);
+  --foreground: hsl(0, 0%, 95%);
+  --muted: hsl(220, 15%, 15%);
+  --muted-foreground: hsl(220, 10%, 60%);
+  --popover: hsl(220, 20%, 12%);
+  --popover-foreground: hsl(0, 0%, 95%);
+  --card: hsl(220, 20%, 12%);
+  --card-foreground: hsl(0, 0%, 95%);
+  --border: hsl(220, 15%, 25%);
+  --input: hsl(220, 15%, 18%);
+  --primary: hsl(280, 100%, 65%);
   --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(0, 0%, 85%);
-  --secondary-foreground: hsl(0, 0%, 0%);
-  --accent: hsl(0, 0%, 75%);
+  --secondary: hsl(220, 15%, 20%);
+  --secondary-foreground: hsl(0, 0%, 95%);
+  --accent: hsl(180, 100%, 50%);
   --accent-foreground: hsl(0, 0%, 0%);
-  --destructive: hsl(0, 0%, 30%);
-  --destructive-foreground: hsl(0, 0%, 100%);
-  --ring: hsl(0, 0%, 50%);
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(280, 100%, 65%);
   --radius: 0.75rem;
+  
+  /* Neon colors for effects */
+  --neon-purple: 280, 100%, 65%;
+  --neon-cyan: 180, 100%, 50%;
+  --neon-pink: 340, 75%, 55%;
+  --neon-blue: 220, 70%, 50%;
 }
 
 .dark {
@@ -78,21 +85,68 @@
   }
 }
 
-/* Custom styles for spa theme */
-.spa-gradient {
-  background: hsl(0, 0%, 95%);
+/* Glass morphism styles */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.spa-card {
-  @apply bg-white rounded-xl shadow-sm border border-gray-200;
+.glass-dark {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.spa-input {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent;
+.glass-card {
+  @apply glass rounded-xl shadow-2xl;
 }
 
-.spa-button-primary {
-  @apply bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors;
+/* Neon glow effects */
+.neon-purple {
+  box-shadow: 0 0 20px hsl(var(--neon-purple)), 
+              0 0 40px hsl(var(--neon-purple)),
+              inset 0 0 20px hsl(var(--neon-purple) / 0.1);
+  border: 1px solid hsl(var(--neon-purple));
+}
+
+.neon-cyan {
+  box-shadow: 0 0 20px hsl(var(--neon-cyan)), 
+              0 0 40px hsl(var(--neon-cyan)),
+              inset 0 0 20px hsl(var(--neon-cyan) / 0.1);
+  border: 1px solid hsl(var(--neon-cyan));
+}
+
+.neon-pink {
+  box-shadow: 0 0 20px hsl(var(--neon-pink)), 
+              0 0 40px hsl(var(--neon-pink)),
+              inset 0 0 20px hsl(var(--neon-pink) / 0.1);
+  border: 1px solid hsl(var(--neon-pink));
+}
+
+.neon-text-purple {
+  color: hsl(var(--neon-purple));
+  text-shadow: 0 0 10px hsl(var(--neon-purple)), 
+               0 0 20px hsl(var(--neon-purple)),
+               0 0 30px hsl(var(--neon-purple));
+}
+
+.neon-text-cyan {
+  color: hsl(var(--neon-cyan));
+  text-shadow: 0 0 10px hsl(var(--neon-cyan)), 
+               0 0 20px hsl(var(--neon-cyan)),
+               0 0 30px hsl(var(--neon-cyan));
+}
+
+/* Button styles with glass morphism */
+.btn-glass {
+  @apply glass text-white px-4 py-2 rounded-lg text-sm font-medium transition-all hover:scale-105;
+}
+
+.btn-neon {
+  @apply btn-glass neon-purple hover:shadow-xl;
 }
 
 /* Mobile-first responsive utilities */
