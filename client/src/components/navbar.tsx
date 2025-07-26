@@ -176,6 +176,15 @@ export function Navbar() {
                   </Button>
                 </Link>
               </div>
+              
+              {/* Staff Login for Mobile */}
+              <div className="pt-4 border-t border-white/10 mt-4">
+                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="outline" size="sm" className="w-full glass border-primary">
+                    Staff Login
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         )}

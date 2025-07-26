@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Preloader } from "@/components/preloader";
+import { AuthGuard } from "@/components/auth-guard";
 
 // Pages
 import HomePage from "@/pages/home";
@@ -19,6 +20,16 @@ import CashierPage from "@/pages/cashier";
 import AboutPage from "@/pages/about";
 import WishlistPage from "@/pages/wishlist";
 import DocsPage from "@/pages/docs";
+import StaffPage from "@/pages/staff";
+import ServicesPage from "@/pages/services";
+import ClientsPage from "@/pages/clients";
+import ReportsPage from "@/pages/reports";
+import SettingsPage from "@/pages/settings";
+import AppointmentsPage from "@/pages/appointments";
+import TimesheetPage from "@/pages/timesheet";
+import MarketingPage from "@/pages/marketing";
+import DashboardPage from "@/pages/dashboard";
+import DocumentationPage from "@/pages/documentation";
 import NotFound from "@/pages/not-found";
 
 function App() {
@@ -32,15 +43,100 @@ function App() {
             <Route path="/products" component={ProductsPage} />
             <Route path="/cart" component={CartPage} />
             <Route path="/checkout" component={CheckoutPage} />
-            <Route path="/account" component={AccountPage} />
-            <Route path="/login" component={LoginPage} />
-            <Route path="/admin" component={AdminPage} />
-            <Route path="/cashier" component={CashierPage} />
-            <Route path="/inventory" component={InventoryPage} />
-            <Route path="/pos" component={POSPage} />
             <Route path="/about" component={AboutPage} />
             <Route path="/wishlist" component={WishlistPage} />
             <Route path="/docs" component={DocsPage} />
+            <Route path="/documentation">
+              <DocumentationPage onBack={() => window.history.back()} />
+            </Route>
+            <Route path="/login" component={LoginPage} />
+            
+            {/* Protected Customer Routes */}
+            <Route path="/account">
+              <AuthGuard>
+                <AccountPage />
+              </AuthGuard>
+            </Route>
+            
+            {/* Protected Staff Routes */}
+            <Route path="/admin">
+              <AuthGuard requiredRole="admin">
+                <AdminPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/cashier">
+              <AuthGuard requiredRole="cashier">
+                <CashierPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/inventory">
+              <AuthGuard requiredRole="admin">
+                <InventoryPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/pos">
+              <AuthGuard requiredRole="cashier">
+                <POSPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/staff">
+              <AuthGuard requiredRole="admin">
+                <StaffPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/services">
+              <AuthGuard requiredRole="admin">
+                <ServicesPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/clients">
+              <AuthGuard requiredRole="admin">
+                <ClientsPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/reports">
+              <AuthGuard requiredRole="admin">
+                <ReportsPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/settings">
+              <AuthGuard requiredRole="admin">
+                <SettingsPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/appointments">
+              <AuthGuard requiredRole="admin">
+                <AppointmentsPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/timesheet">
+              <AuthGuard requiredRole="admin">
+                <TimesheetPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/marketing">
+              <AuthGuard requiredRole="admin">
+                <MarketingPage />
+              </AuthGuard>
+            </Route>
+            
+            <Route path="/dashboard">
+              <AuthGuard requiredRole="admin">
+                <DashboardPage />
+              </AuthGuard>
+            </Route>
+            
             <Route component={NotFound} />
           </Switch>
         </div>

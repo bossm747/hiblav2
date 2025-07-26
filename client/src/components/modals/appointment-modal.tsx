@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertAppointmentSchema } from "@shared/schema";
+// import { insertAppointmentSchema } from "@shared/schema"; // Schema not available
 import { z } from "zod";
 import {
   Dialog,
@@ -32,9 +32,16 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 
-const appointmentFormSchema = insertAppointmentSchema.extend({
+const appointmentFormSchema = z.object({
+  clientId: z.string().min(1, "Client is required"),
+  serviceId: z.string().min(1, "Service is required"),
+  staffId: z.string().optional(),
   date: z.string().min(1, "Date is required"),
   time: z.string().min(1, "Time is required"),
+  duration: z.number().default(60),
+  status: z.string().default("confirmed"),
+  notes: z.string().optional(),
+  totalAmount: z.string().default("0"),
 });
 
 interface AppointmentModalProps {

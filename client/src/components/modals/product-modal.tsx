@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertProductSchema } from "@shared/schema";
+// import { insertProductSchema } from "@shared/schema"; // Will use simple form
 import { z } from "zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
