@@ -946,13 +946,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configure multer for file uploads
   const storage_multer = multer.diskStorage({
     destination: async (req, file, cb) => {
-      const uploadDir = 'uploads/products';
+      const uploadDir = 'uploads/ai-generated';
       await fs.mkdir(uploadDir, { recursive: true });
       cb(null, uploadDir);
     },
     filename: (req, file, cb) => {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+      const extension = path.extname(file.originalname).toLowerCase();
+      cb(null, `manual-upload-${uniqueSuffix}${extension}`);
     }
   });
 
@@ -1019,7 +1020,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      const imageUrl = `/uploads/products/${req.file.filename}`;
+      const imageUrl = `/uploads/ai-generated/${req.file.filename}`;
       
       res.json({
         url: imageUrl,
@@ -1043,7 +1044,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      const imageUrl = `/uploads/products/${req.file.filename}`;
+      const imageUrl = `/uploads/ai-generated/${req.file.filename}`;
       
       res.json({
         imageUrl,
