@@ -272,7 +272,7 @@ export function RoleBasedSidebar({ isOpen, onClose, className }: RoleBasedSideba
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Mobile Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/20">
+        <div className="flex items-center justify-between p-4 border-b border-white/20 bg-background">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-purple-400/50">
               <img src={logoPath} alt="Hibla" className="w-full h-full object-contain" />
@@ -290,7 +290,7 @@ export function RoleBasedSidebar({ isOpen, onClose, className }: RoleBasedSideba
         </div>
 
         {/* Mobile Navigation */}
-        <div className="flex-1 overflow-y-auto py-4">
+        <div className="flex-1 overflow-y-auto py-4 bg-background">
           {sections.map((section, sectionIndex) => (
             <div key={sectionIndex} className="mb-6">
               <h3 className="px-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
@@ -325,9 +325,9 @@ export function RoleBasedSidebar({ isOpen, onClose, className }: RoleBasedSideba
         </div>
 
         {/* Mobile User Info & Logout */}
-        <div className="p-4 border-t border-white/20">
+        <div className="p-4 border-t border-white/20 bg-background">
           {user && (
-            <div className="mb-3 p-3 glass-card rounded-lg">
+            <div className="mb-3 p-3 bg-secondary/50 rounded-lg border border-white/10">
               <p className="text-sm font-medium text-foreground">{user.name}</p>
               <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
             </div>

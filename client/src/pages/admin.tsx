@@ -150,7 +150,7 @@ export default function AdminPage() {
       {/* Main Content */}
       <div className="flex-1 lg:ml-0">
         {/* Mobile Header */}
-        <div className="lg:hidden glass-dark border-b border-white/20 p-4">
+        <div className="lg:hidden bg-background border-b border-white/20 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Button
