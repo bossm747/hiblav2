@@ -120,87 +120,11 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-white/10 bg-background/95 backdrop-blur-md">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              {/* Mobile Search */}
-              <form onSubmit={handleSearch} className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  type="search"
-                  placeholder="Search hair extensions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 glass"
-                />
-              </form>
-
-              {/* Mobile Navigation Links */}
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`block px-3 py-2 rounded-md text-base font-medium transition-all ${
-                    location === item.href
-                      ? "text-foreground neon-text-cyan bg-white/10"
-                      : "text-foreground/80 hover:text-foreground hover:bg-white/5"
-                  }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-
-              {/* Mobile Actions */}
-              <div className="flex items-center justify-around pt-4 border-t border-white/10 mt-4">
-                <Link href="/account" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" size="sm" className="flex flex-col items-center gap-1">
-                    <User className="h-5 w-5" />
-                    <span className="text-xs">Account</span>
-                  </Button>
-                </Link>
-                <Link href="/wishlist" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" size="sm" className="flex flex-col items-center gap-1">
-                    <Heart className="h-5 w-5" />
-                    <span className="text-xs">Wishlist</span>
-                  </Button>
-                </Link>
-                <Link href="/cart" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" size="sm" className="flex flex-col items-center gap-1 relative">
-                    <ShoppingCart className="h-5 w-5" />
-                    <span className="text-xs">Cart</span>
-                    {cartCount > 0 && (
-                      <Badge className="absolute -top-1 -right-1 h-4 w-4 rounded-full p-0 text-xs bg-primary">
-                        {cartCount}
-                      </Badge>
-                    )}
-                  </Button>
-                </Link>
-              </div>
-              
-              {/* Staff Access for Mobile */}
-              <div className="pt-4 border-t border-white/10 mt-4 space-y-2">
-                <div className="text-sm font-medium text-muted-foreground px-3 mb-2">Staff Access</div>
-                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="outline" size="sm" className="w-full glass border-primary justify-start">
-                    Staff Login
-                  </Button>
-                </Link>
-                <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground">
-                    Admin Dashboard
-                  </Button>
-                </Link>
-                <Link href="/cashier" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground">
-                    Cashier Dashboard
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Mobile Menu Drawer */}
+        <MobileMenuDrawer 
+          isOpen={mobileMenuOpen} 
+          onClose={() => setMobileMenuOpen(false)} 
+        />
       </div>
     </header>
   );

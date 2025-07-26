@@ -1,21 +1,18 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { ShoppingCart, Heart, Search, Menu, X, Star } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { ShoppingCart, Heart, Search, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProductDetailModal } from "@/components/product-detail-modal";
-import { MobileMenuDrawer } from "@/components/mobile-menu-drawer";
+import { Navbar } from "@/components/navbar";
 import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@shared/schema";
 import logoPath from "@assets/Hiblalogo_1753513948082.png";
 import { HairAnimation3D } from "@/components/hair-animation-3d";
 
 export default function HomePage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
@@ -99,93 +96,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 glass-dark shadow-xl border-b border-white/10">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <Link href="/" className="flex items-center">
-              <div className="w-12 h-12 rounded-full overflow-hidden glass-card neon-glow-light flex items-center justify-center">
-                <img src={logoPath} alt="Hibla Filipino Hair" className="h-10 w-10 object-contain" />
-              </div>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link href="/products" className="text-foreground/80 hover:text-foreground hover:neon-text-cyan transition-all">
-                All Products
-              </Link>
-              <Link href="/products?category=synthetic" className="text-foreground/80 hover:text-foreground hover:neon-text-cyan transition-all">
-                Synthetic Hair
-              </Link>
-              <Link href="/products?category=human" className="text-foreground/80 hover:text-foreground hover:neon-text-cyan transition-all">
-                Human Hair
-              </Link>
-              <Link href="/about" className="text-foreground/80 hover:text-foreground hover:neon-text-cyan transition-all">
-                About Us
-              </Link>
-              <div className="h-6 w-px bg-white/20 mx-2" />
-              <Link href="/pos" className="text-foreground/80 hover:text-foreground hover:neon-text-purple transition-all font-medium">
-                POS
-              </Link>
-              <Link href="/inventory" className="text-foreground/80 hover:text-foreground hover:neon-text-purple transition-all font-medium">
-                Inventory
-              </Link>
-              <Link href="/ai-images" className="text-foreground/80 hover:text-foreground hover:neon-text-purple transition-all font-medium">
-                AI Images
-              </Link>
-            </nav>
-
-            {/* Search Bar */}
-            <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
-              <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  type="search"
-                  placeholder="Search for hair extensions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 w-full glass border-white/20 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center space-x-4">
-              <Link href="/wishlist">
-                <Button variant="ghost" size="icon" className="relative hover:neon-text-pink">
-                  <Heart className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-primary-foreground rounded-full text-xs flex items-center justify-center">
-                    0
-                  </span>
-                </Button>
-              </Link>
-              <Link href="/cart">
-                <Button variant="ghost" size="icon" className="relative hover:neon-text-cyan">
-                  <ShoppingCart className="h-5 w-5" />
-                  <span className="absolute -top-1 -right-1 h-4 w-4 bg-accent text-accent-foreground rounded-full text-xs flex items-center justify-center">
-                    0
-                  </span>
-                </Button>
-              </Link>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Modern Mobile Menu Drawer */}
-        <MobileMenuDrawer 
-          isOpen={mobileMenuOpen} 
-          onClose={() => setMobileMenuOpen(false)} 
-        />
-      </header>
+      <Navbar />
 
       {/* Hero Section */}
       <section className="relative h-[600px] overflow-hidden w-full">
