@@ -138,6 +138,26 @@ export default function DocsPage() {
         ]
       },
       {
+        title: "Demo Credentials for Testing",
+        content: [
+          "Staff Login - Admin Access: admin@hibla.com / admin123 (full management permissions)",
+          "Staff Login - Manager Access: manager@hibla.com / manager123 (inventory and sales management)",
+          "Staff Login - Cashier Access: cashier@hibla.com / cashier123 (POS operations only)",
+          "Staff Login - Sales Staff: sales@hibla.com / sales123 (basic POS access)",
+          "Customer Accounts: Use any email from our 15 sample customers with password 'password123'"
+        ]
+      },
+      {
+        title: "Sample Customer Data for Testing",
+        content: [
+          "Philippine customer profiles include: maria.santos@gmail.com, jasmine.cruz@hotmail.com, angel.reyes@icloud.com",
+          "Customer data covers major cities: Manila, Cebu, Davao, Baguio, Iloilo, Cagayan de Oro, and more",
+          "Spending history ranges from ₱3,900 to ₱18,900 with order counts from 2 to 15 orders",
+          "All customer accounts use 'password123' for easy testing and demonstration purposes",
+          "Customer lookup and order processing can be tested with these realistic Philippine profiles"
+        ]
+      },
+      {
         title: "Order Management and Tracking",
         content: [
           "Review your cart carefully before checkout, ensuring correct quantities and specifications.",
@@ -184,6 +204,14 @@ export default function DocsPage() {
     {
       question: "What's your return and exchange policy?",
       answer: "We offer a 30-day return policy for unopened, unused extensions in original packaging. Custom-colored or cut extensions cannot be returned. Contact customer service for exchanges due to color matching issues."
+    },
+    {
+      question: "How can I test the platform features?",
+      answer: "Use our demo credentials to explore all platform features. Staff accounts (admin@hibla.com/admin123 for full access) let you test POS, inventory, and management features. Customer accounts use any sample email with password 'password123' to test the shopping experience."
+    },
+    {
+      question: "What sample data is available for testing?",
+      answer: "The platform includes 15 realistic Philippine customer profiles, 25+ hair extension products, and 4 staff accounts with different permission levels. All data includes authentic Philippine addresses, phone numbers, and realistic spending patterns for comprehensive testing."
     }
   ];
 
@@ -374,6 +402,7 @@ export default function DocsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                   { title: "Care Guide PDF", description: "Complete hair care routine", size: "2.4 MB" },
+                  { title: "Demo Credentials", description: "Staff and customer login details", size: "0.1 MB" },
                   { title: "Styling Checklist", description: "Step-by-step styling guide", size: "1.8 MB" },
                   { title: "Color Chart", description: "Hair color matching reference", size: "5.2 MB" },
                   { title: "Maintenance Schedule", description: "Monthly care calendar", size: "1.2 MB" }

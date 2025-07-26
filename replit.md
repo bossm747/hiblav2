@@ -228,9 +228,10 @@ The architecture prioritizes developer experience with hot reloading, type safet
   - Hair Care & Maintenance guides with daily routines, washing, and storage tips
   - Installation & Styling tutorials with professional techniques and color matching
   - Platform usage guides covering account management, orders, and POS system
-  - Interactive FAQ section with expandable accordion interface
+  - Demo credentials section with all staff and customer login details for testing
+  - Interactive FAQ section with expandable accordion interface including testing information
   - Video tutorial showcase with beginner to advanced content organization
-  - Downloadable resource section with PDF guides and reference materials
+  - Downloadable resource section with PDF guides and demo credentials reference
 - **Enhanced Featured Section**: Instagram-inspired product showcase
   - Premium Collection highlight featuring Korean HD Lace hair extensions (₱4,500-₱5,800)
   - Professional product descriptions with bullet point features
