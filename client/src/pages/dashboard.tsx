@@ -26,7 +26,8 @@ export default function Dashboard() {
 
   const today = new Date().toISOString().split('T')[0];
   const { data: todayAppointments, isLoading: appointmentsLoading } = useQuery({
-    queryKey: ["/api/appointments", { date: today }],
+    queryKey: ["/api/appointments", "date", today],
+    queryFn: () => fetch(`/api/appointments?date=${today}`).then(res => res.json()),
   });
 
   if (statsLoading || appointmentsLoading) {
@@ -150,6 +151,7 @@ export default function Dashboard() {
                   <Button 
                     className="w-full justify-between"
                     variant="ghost"
+                    onClick={() => window.location.href = '/appointments'}
                   >
                     <div className="flex items-center">
                       <Calendar className="mr-3 h-4 w-4" />

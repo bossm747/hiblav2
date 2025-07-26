@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { eq, lt, sql, desc } from "drizzle-orm";
+import { eq, lt, sql, desc, and } from "drizzle-orm";
 import {
   clients,
   services,
@@ -231,12 +231,53 @@ export class DatabaseStorage implements IStorage {
     return appointment || undefined;
   }
 
-  async getAppointments(): Promise<Appointment[]> {
-    return await db.select().from(appointments);
+  async getAppointments(): Promise<any[]> {
+    return await db
+      .select({
+        id: appointments.id,
+        clientId: appointments.clientId,
+        serviceId: appointments.serviceId,
+        staffId: appointments.staffId,
+        date: appointments.date,
+        time: appointments.time,
+        duration: appointments.duration,
+        status: appointments.status,
+        notes: appointments.notes,
+        totalAmount: appointments.totalAmount,
+        createdAt: appointments.createdAt,
+        clientName: clients.name,
+        serviceName: services.name,
+        staffName: staff.name,
+      })
+      .from(appointments)
+      .leftJoin(clients, eq(appointments.clientId, clients.id))
+      .leftJoin(services, eq(appointments.serviceId, services.id))
+      .leftJoin(staff, eq(appointments.staffId, staff.id));
   }
 
-  async getAppointmentsByDate(date: string): Promise<Appointment[]> {
-    return await db.select().from(appointments).where(sql`DATE(${appointments.dateTime}) = ${date}`);
+  async getAppointmentsByDate(date: string): Promise<any[]> {
+    return await db
+      .select({
+        id: appointments.id,
+        clientId: appointments.clientId,
+        serviceId: appointments.serviceId,
+        staffId: appointments.staffId,
+        date: appointments.date,
+        time: appointments.time,
+        duration: appointments.duration,
+        status: appointments.status,
+        notes: appointments.notes,
+        totalAmount: appointments.totalAmount,
+        createdAt: appointments.createdAt,
+        clientName: clients.name,
+        serviceName: services.name,
+        staffName: staff.name,
+      })
+      .from(appointments)
+      .leftJoin(clients, eq(appointments.clientId, clients.id))
+      .leftJoin(services, eq(appointments.serviceId, services.id))
+      .leftJoin(staff, eq(appointments.staffId, staff.id))
+      .where(eq(appointments.date, date));
   }
 
   async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
@@ -251,7 +292,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAppointment(id: string): Promise<boolean> {
     const result = await db.delete(appointments).where(eq(appointments.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Product methods
@@ -284,7 +325,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProduct(id: string): Promise<boolean> {
     const result = await db.delete(products).where(eq(products.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Supplier methods
@@ -309,7 +350,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSupplier(id: string): Promise<boolean> {
     const result = await db.delete(suppliers).where(eq(suppliers.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Inventory Transaction methods
@@ -357,7 +398,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteInventoryTransaction(id: string): Promise<boolean> {
     const result = await db.delete(inventoryTransactions).where(eq(inventoryTransactions.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
   // POS Transactions methods
   async getTransactions(): Promise<Transaction[]> {
@@ -370,10 +411,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
-    const transactionNumber = `TXN-${Date.now()}`;
     const [newTransaction] = await db
       .insert(transactions)
-      .values({ ...transaction, transactionNumber })
+      .values(transaction)
       .returning();
     return newTransaction;
   }
@@ -619,16 +659,16 @@ export class DatabaseStorage implements IStorage {
       const staffRecords = records.filter(record => record.staffId === staffMember.id);
       
       const totalHours = staffRecords.reduce((sum, record) => {
-        if (record.clockOutTime) {
-          const start = new Date(record.clockInTime);
-          const end = new Date(record.clockOutTime);
+        if (record.clockOut) {
+          const start = new Date(record.clockIn);
+          const end = new Date(record.clockOut);
           const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-          return sum + Math.max(0, hours - (record.breakMinutes || 0) / 60);
+          return sum + Math.max(0, hours);
         }
         return sum;
       }, 0);
       
-      const daysWorked = staffRecords.filter(record => record.clockOutTime).length;
+      const daysWorked = staffRecords.filter(record => record.clockOut).length;
       const attendanceRate = Math.min(100, (daysWorked / 30) * 100); // Assuming 30-day period
       const punctualityScore = Math.random() * 30 + 70; // Mock score between 70-100
       
