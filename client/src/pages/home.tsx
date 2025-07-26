@@ -169,7 +169,7 @@ export default function HomePage() {
         <div className="relative container mx-auto px-4 h-full">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full items-center">
             {/* Text Content */}
-            <div className="glass-card p-8 neon-purple">
+            <div className="glass p-8">
               <h1 className="text-5xl font-bold mb-4 neon-text-yellow">
                 Premium Filipino Hair Extensions
               </h1>
@@ -188,7 +188,7 @@ export default function HomePage() {
             </div>
             
             {/* 3D Animation */}
-            <div className="glass-card p-4 neon-cyan h-full min-h-[400px]">
+            <div className="glass p-4 h-full min-h-[400px]">
               <HairAnimation3D />
             </div>
           </div>
