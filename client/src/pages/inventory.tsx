@@ -93,7 +93,9 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="min-h-screen bg-background text-foreground">
+      <RoleBasedSidebar />
+      <div className="container mx-auto py-8">
       <div className="mb-8 glass-card p-6 neon-purple">
         <h1 className="text-3xl font-bold mb-2 text-foreground neon-text-purple">Inventory Management</h1>
         <p className="text-muted-foreground">Monitor stock levels and manage inventory</p>
@@ -372,6 +374,7 @@ export default function InventoryPage() {
           });
         }}
       />
+      </div>
     </div>
   );
 }

@@ -177,7 +177,8 @@ export default function POSPage() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6 h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6 h-screen">
       {/* Products Section */}
       <div className="lg:col-span-2 space-y-4 overflow-y-auto">
         <div className="sticky top-0 glass-dark z-10 pb-4 p-4 rounded-lg border border-white/10">
@@ -472,6 +473,7 @@ export default function POSPage() {
         }}
         onAddToCart={addToCart}
       />
+      </div>
     </div>
   );
 }

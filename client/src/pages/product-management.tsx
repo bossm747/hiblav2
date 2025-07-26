@@ -216,7 +216,8 @@ export default function ProductManagement() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="container mx-auto p-6 space-y-6">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold neon-text-purple mb-2">
           Product Management
@@ -494,6 +495,7 @@ export default function ProductManagement() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

@@ -6,6 +6,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure dark theme by default */
+html {
+  @apply dark;
+}
+
 :root {
   /* Dark background with light text for proper contrast */
   --background: hsl(220, 20%, 10%);
