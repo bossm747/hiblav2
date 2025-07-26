@@ -140,49 +140,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/products", async (req, res) => {
-    try {
-      const productData = insertProductSchema.parse(req.body);
-      const product = await storage.createProduct(productData);
-      res.status(201).json(product);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid product data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to create product" });
-    }
-  });
-
-  app.put("/api/products/:id", async (req, res) => {
-    try {
-      const productData = insertProductSchema.partial().parse(req.body);
-      const product = await storage.updateProduct(req.params.id, productData);
-      if (!product) {
-        return res.status(404).json({ message: "Product not found" });
-      }
-      res.json(product);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid product data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Failed to update product" });
-    }
-  });
-
-  app.delete("/api/products/:id", async (req, res) => {
-    try {
-      const deleted = await storage.deleteProduct(req.params.id);
-      if (!deleted) {
-        return res.status(404).json({ message: "Product not found" });
-      }
-      res.status(204).send();
-    } catch (error) {
-      res.status(500).json({ message: "Failed to delete product" });
-    }
-  });
-
-
-
   // Staff routes
   app.get("/api/staff", async (req, res) => {
     try {
@@ -455,14 +412,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/products", async (req, res) => {
     try {
-      const productData = insertProductSchema.parse(req.body);
+      // Transform data to match schema expectations
+      const transformedData = {
+        ...req.body,
+        price: req.body.price ? req.body.price.toString() : "0",
+        weight: req.body.weight ? req.body.weight.toString() : "100",
+        currentStock: req.body.stock || 0
+      };
+      delete transformedData.stock; // Remove frontend field
+      
+      const productData = insertProductSchema.parse(transformedData);
       const product = await storage.createProduct(productData);
       res.status(201).json(product);
     } catch (error) {
+      console.error('Product creation error:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid product data", errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create product" });
+      res.status(500).json({ 
+        message: "Failed to create product",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
@@ -1034,7 +1004,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   */
 
-  // File upload endpoint for product images
+  // General file upload endpoint (matches ImageUploadWithAI component)
+  app.post("/api/upload", upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const imageUrl = `/uploads/${req.file.filename}`;
+      
+      res.json({
+        url: imageUrl,
+        imageName: req.file.originalname,
+        fileName: req.file.filename,
+        size: req.file.size
+      });
+    } catch (error) {
+      console.error('File Upload Error:', error);
+      res.status(500).json({ 
+        message: "Failed to upload image",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // File upload endpoint for product images (specific)
   app.post("/api/upload/product-image", upload.single('image'), async (req, res) => {
     try {
       if (!req.file) {

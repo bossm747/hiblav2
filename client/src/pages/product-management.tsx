@@ -64,14 +64,25 @@ export default function ProductManagement() {
 
   const createProductMutation = useMutation({
     mutationFn: async (productData: Partial<Product>) => {
+      // Ensure correct data types for schema  
+      const cleanData = {
+        ...productData,
+        price: productData.price?.toString() || "0",
+        weight: productData.weight?.toString() || "100",
+        length: productData.length || 18,
+        currentStock: productData.stock || 0
+      };
+      delete cleanData.stock; // Remove the old field name
+      
       const response = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(productData)
+        body: JSON.stringify(cleanData)
       });
       
       if (!response.ok) {
-        throw new Error("Failed to create product");
+        const error = await response.json();
+        throw new Error(error.message || "Failed to create product");
       }
       
       return response.json();
@@ -95,14 +106,25 @@ export default function ProductManagement() {
 
   const updateProductMutation = useMutation({
     mutationFn: async ({ id, ...productData }: Partial<Product> & { id: string }) => {
+      // Ensure correct data types for schema
+      const cleanData = {
+        ...productData,
+        price: productData.price?.toString(),
+        weight: productData.weight?.toString(),
+        length: productData.length,
+        currentStock: productData.stock
+      };
+      delete cleanData.stock; // Remove the old field name
+      
       const response = await fetch(`/api/products/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(productData)
+        body: JSON.stringify(cleanData)
       });
       
       if (!response.ok) {
-        throw new Error("Failed to update product");
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update product");
       }
       
       return response.json();
