@@ -97,6 +97,21 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      
+      {/* Demo Notice Banner */}
+      <div className="glass-dark border-b border-white/10">
+        <div className="container mx-auto px-4 py-3">
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              🎭 <span className="neon-text-cyan">Demo Platform</span> - Try our 
+              <Link href="/login" className="ml-1 text-primary hover:neon-text-purple underline transition-all">
+                demo login
+              </Link>
+              {" "}with instant access (Customer, Admin, Cashier modes available)
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Hero Section */}
       <section className="relative h-[600px] overflow-hidden w-full">

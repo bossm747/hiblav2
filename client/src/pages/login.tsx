@@ -66,10 +66,10 @@ export default function LoginPage() {
     }
   };
 
-  const handleDemoLogin = (role: "admin" | "cashier") => {
+  const handleDemoLogin = (role: "admin" | "cashier" | "customer") => {
     const demoUser = {
       id: `demo-${role}`,
-      name: role === "admin" ? "Admin Demo" : "Cashier Demo",
+      name: role === "admin" ? "Admin Demo" : role === "cashier" ? "Cashier Demo" : "Customer Demo",
       username: role,
       role,
       email: `${role}@demo.com`,
@@ -79,13 +79,15 @@ export default function LoginPage() {
     
     toast({
       title: "Demo Login",
-      description: `Logged in as ${role}`,
+      description: `Logged in as ${demoUser.name}`,
     });
 
     if (role === "admin") {
       setLocation("/admin");
-    } else {
+    } else if (role === "cashier") {
       setLocation("/cashier");
+    } else {
+      setLocation("/account");
     }
   };
 
@@ -158,7 +160,7 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-white/20" />
@@ -168,21 +170,63 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="text-xs text-muted-foreground text-center space-y-1">
+                <p>Try these credentials or use demo buttons below:</p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="text-left">
+                    <p className="text-cyan-400">Admin: admin / admin123</p>
+                    <p className="text-pink-400">Cashier: cashier / cashier123</p>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-purple-400">Manager: manager / manager123</p>
+                    <p className="text-blue-400">Sales: sales / sales123</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFormData({ username: "admin", password: "admin123" })}
+                    className="flex-1 text-xs text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10"
+                  >
+                    Fill Admin
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setFormData({ username: "cashier", password: "cashier123" })}
+                    className="flex-1 text-xs text-pink-400 hover:text-pink-300 hover:bg-pink-400/10"
+                  >
+                    Fill Cashier
+                  </Button>
+                </div>
+                
                 <Button
                   variant="outline"
-                  onClick={() => handleDemoLogin("admin")}
-                  className="border-primary hover:bg-primary/20 hover:neon-text-pink transition-all"
+                  onClick={() => handleDemoLogin("customer")}
+                  className="w-full border-primary hover:bg-primary/20 hover:neon-text-purple transition-all"
                 >
-                  Admin Demo
+                  🛍️ Customer Demo
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => handleDemoLogin("cashier")}
-                  className="border-primary hover:bg-primary/20 hover:neon-text-cyan transition-all"
-                >
-                  Cashier Demo
-                </Button>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDemoLogin("admin")}
+                    className="border-primary hover:bg-primary/20 hover:neon-text-pink transition-all"
+                  >
+                    👨‍💼 Admin Demo
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDemoLogin("cashier")}
+                    className="border-primary hover:bg-primary/20 hover:neon-text-cyan transition-all"
+                  >
+                    💰 Cashier Demo
+                  </Button>
+                </div>
               </div>
             </div>
 
