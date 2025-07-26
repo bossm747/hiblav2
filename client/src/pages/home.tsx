@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@shared/schema";
-import logoPath from "@assets/Logo for Haircare Brand 'Natural Flow'_1753511443300.png";
+import logoPath from "@assets/Hiblalogo_1753513948082.png";
 import { HairAnimation3D } from "@/components/hair-animation-3d";
 
 export default function HomePage() {

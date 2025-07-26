@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import logoPath from "@assets/Logo for Haircare Brand 'Natural Flow'_1753511443300.png";
+import logoPath from "@assets/Hiblalogo_1753513948082.png";
 
 export function Preloader() {
   const [isLoading, setIsLoading] = useState(true);
