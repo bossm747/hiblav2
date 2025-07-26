@@ -1,16 +1,20 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingCart, Heart, User, Menu, X, Search } from "lucide-react";
+import { ShoppingCart, Heart, User, Menu, X, Search, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { MobileMenuDrawer } from "@/components/mobile-menu-drawer";
+import { RoleBasedSidebar } from "@/components/layout/role-based-sidebar";
 import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 
 export function Navbar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Check if user is logged in
+  const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem("user") || "null") : null;
+  const isLoggedIn = !!user;
 
   // Mock cart count - replace with actual cart state
   const cartCount = 3;
@@ -29,6 +33,11 @@ export function Navbar() {
     if (searchQuery.trim()) {
       window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`;
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    setLocation("/login");
   };
 
   return (
@@ -99,11 +108,28 @@ export function Navbar() {
                 </Button>
               </Link>
               <div className="border-l border-white/20 ml-3 pl-3">
-                <Link href="/login">
-                  <Button variant="outline" size="sm" className="border-primary hover:bg-primary/20 hover:neon-text-cyan transition-all">
-                    Login
-                  </Button>
-                </Link>
+                {isLoggedIn ? (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-foreground hidden md:inline">
+                      {user.name}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleLogout}
+                      className="border-red-500/50 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all"
+                    >
+                      <LogOut className="h-4 w-4 md:mr-2" />
+                      <span className="hidden md:inline">Logout</span>
+                    </Button>
+                  </div>
+                ) : (
+                  <Link href="/login">
+                    <Button variant="outline" size="sm" className="border-primary hover:bg-primary/20 hover:neon-text-cyan transition-all">
+                      Login
+                    </Button>
+                  </Link>
+                )}
               </div>
             </div>
 
@@ -119,8 +145,8 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Menu Drawer */}
-        <MobileMenuDrawer 
+        {/* Role-Based Sidebar */}
+        <RoleBasedSidebar 
           isOpen={mobileMenuOpen} 
           onClose={() => setMobileMenuOpen(false)} 
         />

@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { RoleBasedSidebar } from "@/components/layout/role-based-sidebar";
 import { 
   Settings, 
   Users, 
@@ -14,7 +15,9 @@ import {
   LogOut,
   BarChart3,
   CreditCard,
-  Sparkles
+  Sparkles,
+  Menu,
+  X
 } from "lucide-react";
 import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 
@@ -29,6 +32,7 @@ interface User {
 export default function AdminPage() {
   const [, setLocation] = useLocation();
   const [user, setUser] = useState<User | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -135,41 +139,76 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="glass-dark shadow-xl border-b border-white/10">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <div className="w-10 h-10 rounded-full overflow-hidden glass-card neon-glow-light flex items-center justify-center">
-                <img src={logoPath} alt="Hibla Filipino Hair" className="h-8 w-8 object-contain" />
-              </div>
-              <div className="ml-3">
-                <h1 className="text-xl font-bold text-foreground neon-text-cyan">Admin Panel</h1>
-                <p className="text-sm text-muted-foreground">Hibla Filipino Hair</p>
-              </div>
-            </div>
+    <div className="min-h-screen bg-background flex">
+      {/* Role-Based Sidebar */}
+      <RoleBasedSidebar 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)}
+      />
 
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <p className="text-sm text-foreground">{user.name}</p>
-                <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
-              </div>
+      {/* Main Content */}
+      <div className="flex-1 lg:ml-0">
+        {/* Mobile Header */}
+        <div className="lg:hidden glass-dark border-b border-white/20 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                onClick={handleLogout}
-                className="border-primary hover:bg-primary/20 hover:neon-text-pink transition-all"
+                onClick={() => setSidebarOpen(true)}
               >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
+                <Menu className="h-5 w-5" />
               </Button>
+              <div className="flex items-center space-x-2">
+                <img src={logoPath} alt="Hibla" className="h-8 w-8 rounded-full" />
+                <h1 className="text-lg font-bold text-foreground neon-text-cyan">Admin Panel</h1>
+              </div>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="border-red-500/50 text-red-400 hover:bg-red-500/20"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
-      </header>
 
-      <div className="container mx-auto px-4 py-8">
+        {/* Desktop Header */}
+        <header className="hidden lg:block glass-dark shadow-xl border-b border-white/10">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between h-16">
+              <div className="flex items-center">
+                <div className="w-10 h-10 rounded-full overflow-hidden glass-card neon-glow-light flex items-center justify-center">
+                  <img src={logoPath} alt="Hibla Filipino Hair" className="h-8 w-8 object-contain" />
+                </div>
+                <div className="ml-3">
+                  <h1 className="text-xl font-bold text-foreground neon-text-cyan">Admin Panel</h1>
+                  <p className="text-sm text-muted-foreground">Hibla Filipino Hair</p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-4">
+                <div className="text-right">
+                  <p className="text-sm text-foreground">{user.name}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="border-red-500/50 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="container mx-auto px-4 py-8">
         {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {stats.map((stat, index) => (
@@ -267,6 +306,7 @@ export default function AdminPage() {
               </div>
             </CardContent>
           </Card>
+        </div>
         </div>
       </div>
     </div>

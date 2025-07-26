@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { RoleBasedSidebar } from "@/components/layout/role-based-sidebar";
 import { 
   CreditCard, 
   Package, 
@@ -11,7 +12,9 @@ import {
   Users,
   LogOut,
   BarChart3,
-  Clock
+  Clock,
+  Menu,
+  X
 } from "lucide-react";
 import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 
@@ -26,6 +29,7 @@ interface User {
 export default function CashierPage() {
   const [, setLocation] = useLocation();
   const [user, setUser] = useState<User | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
@@ -92,27 +96,67 @@ export default function CashierPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="glass-dark border-b border-white/10 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen bg-background flex">
+      {/* Role-Based Sidebar */}
+      <RoleBasedSidebar 
+        isOpen={sidebarOpen} 
+        onClose={() => setSidebarOpen(false)}
+      />
+
+      {/* Main Content */}
+      <div className="flex-1 lg:ml-0">
+        {/* Mobile Header */}
+        <div className="lg:hidden glass-dark border-b border-white/20 p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <img src={logoPath} alt="Hibla Filipino Hair" className="h-8 w-auto brightness-200 invert" />
-              <div>
-                <h1 className="text-xl font-bold text-foreground neon-text-cyan">Cashier Dashboard</h1>
-                <p className="text-sm text-muted-foreground">Welcome back, {user.name}</p>
+            <div className="flex items-center space-x-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+              <div className="flex items-center space-x-2">
+                <img src={logoPath} alt="Hibla" className="h-8 w-8 rounded-full" />
+                <h1 className="text-lg font-bold text-foreground neon-text-cyan">Cashier Dashboard</h1>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="glass">
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="border-red-500/50 text-red-400 hover:bg-red-500/20"
+            >
+              <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
-      </header>
 
-      <div className="container mx-auto px-4 py-8">
+        {/* Desktop Header */}
+        <header className="hidden lg:block glass-dark border-b border-white/10 sticky top-0 z-50">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <img src={logoPath} alt="Hibla Filipino Hair" className="h-8 w-auto brightness-200 invert" />
+                <div>
+                  <h1 className="text-xl font-bold text-foreground neon-text-cyan">Cashier Dashboard</h1>
+                  <p className="text-sm text-muted-foreground">Welcome back, {user.name}</p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="border-red-500/50 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        <div className="container mx-auto px-4 py-8">
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {todayStats.map((stat) => (
@@ -189,6 +233,7 @@ export default function CashierPage() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );
