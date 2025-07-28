@@ -60,7 +60,7 @@ export default function PaymentProcessing() {
         title: "Payment Processed!",
         description: "Your payment has been submitted successfully.",
       });
-      setLocation(`/order-confirmation/${data.orderId}`);
+      setLocation(`/payment-success/${data.orderId}`);
     },
     onError: () => {
       toast({
@@ -92,10 +92,7 @@ export default function PaymentProcessing() {
     switch (paymentData.paymentMethod) {
       case "gcash":
         return <Smartphone className="h-6 w-6 text-blue-500" />;
-      case "maya":
-        return <Smartphone className="h-6 w-6 text-green-500" />;
-      case "bank_transfer":
-        return <Building className="h-6 w-6 text-purple-500" />;
+
       case "cod":
         return <Receipt className="h-6 w-6 text-orange-500" />;
       default:
@@ -107,41 +104,17 @@ export default function PaymentProcessing() {
     switch (paymentData.paymentMethod) {
       case "gcash":
         return {
-          title: "GCash Payment",
+          title: "GCash P2P Transfer",
           instructions: [
             "Open your GCash app",
-            "Go to Send Money > Bank/E-Wallet",
-            "Enter our GCash number: 09XX-XXX-XXXX",
-            "Enter the exact amount: " + formatPrice(paymentData.amount),
-            "Complete the transaction",
-            "Screenshot the confirmation and upload below"
-          ],
-          accountInfo: "GCash Number: 09XX-XXX-XXXX\nAccount Name: Hibla Filipino Hair"
-        };
-      case "maya":
-        return {
-          title: "Maya (PayMaya) Payment",
-          instructions: [
-            "Open your Maya app",
             "Go to Send Money",
-            "Enter our Maya number: 09XX-XXX-XXXX",
+            "Enter our GCash number: 09178-HIBLA-1 (09178-442521)",
             "Enter the exact amount: " + formatPrice(paymentData.amount),
+            "Use your order ID as message: " + paymentData.orderId,
             "Complete the transaction",
-            "Screenshot the confirmation and upload below"
+            "Screenshot the confirmation receipt"
           ],
-          accountInfo: "Maya Number: 09XX-XXX-XXXX\nAccount Name: Hibla Filipino Hair"
-        };
-      case "bank_transfer":
-        return {
-          title: "Bank Transfer Payment",
-          instructions: [
-            "Log in to your online banking or visit the bank",
-            "Transfer to our account details below",
-            "Use your order ID as reference: " + paymentData.orderId,
-            "Keep the transfer receipt",
-            "Upload proof of payment below"
-          ],
-          accountInfo: "Bank: BPI\nAccount Number: 1234-5678-90\nAccount Name: Hibla Filipino Hair\nBranch: Manila"
+          accountInfo: "GCash Number: 09178-442521\nAccount Name: Maria Santos\nHibla Filipino Hair"
         };
       case "cod":
         return {
@@ -279,30 +252,21 @@ export default function PaymentProcessing() {
                   </div>
 
                   <div>
-                    <Label htmlFor="proofOfPayment">Proof of Payment (Screenshot URL)</Label>
-                    <Input
-                      id="proofOfPayment"
-                      placeholder="Upload your payment screenshot URL"
-                      value={paymentData.proofOfPayment}
-                      onChange={(e) => setPaymentData(prev => ({ ...prev, proofOfPayment: e.target.value }))}
-                      className="glass"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Upload your screenshot to an image host and paste the URL here
-                    </p>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="notes">Additional Notes (Optional)</Label>
+                    <Label htmlFor="notes">Payment Screenshot Description</Label>
                     <Textarea
                       id="notes"
-                      placeholder="Any additional information about your payment..."
+                      placeholder="Describe your payment screenshot (e.g., 'GCash receipt showing ₱2,500 sent to 09178-442521 at 3:15 PM today')"
                       value={paymentData.notes}
                       onChange={(e) => setPaymentData(prev => ({ ...prev, notes: e.target.value }))}
                       className="glass"
                       rows={3}
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Describe your payment details so we can verify faster
+                    </p>
                   </div>
+
+
 
                   <div className="pt-4 space-y-3">
                     <div className="flex justify-between items-center p-3 bg-white/5 rounded-lg">

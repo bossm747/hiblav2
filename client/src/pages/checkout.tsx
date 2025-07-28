@@ -382,22 +382,8 @@ export default function CheckoutPage() {
                     <div className="flex items-center space-x-2 p-3 rounded-lg border border-white/20">
                       <RadioGroupItem value="gcash" id="gcash" />
                       <label htmlFor="gcash" className="flex-1 cursor-pointer">
-                        <p className="font-medium text-foreground">GCash</p>
-                        <p className="text-sm text-muted-foreground">Pay instantly with GCash</p>
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2 p-3 rounded-lg border border-white/20">
-                      <RadioGroupItem value="maya" id="maya" />
-                      <label htmlFor="maya" className="flex-1 cursor-pointer">
-                        <p className="font-medium text-foreground">Maya (PayMaya)</p>
-                        <p className="text-sm text-muted-foreground">Pay instantly with Maya</p>
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2 p-3 rounded-lg border border-white/20">
-                      <RadioGroupItem value="bank_transfer" id="bank_transfer" />
-                      <label htmlFor="bank_transfer" className="flex-1 cursor-pointer">
-                        <p className="font-medium text-foreground">Bank Transfer</p>
-                        <p className="text-sm text-muted-foreground">Transfer to our bank account</p>
+                        <p className="font-medium text-foreground">GCash P2P Transfer</p>
+                        <p className="text-sm text-muted-foreground">Send money directly to our GCash account</p>
                       </label>
                     </div>
                   </RadioGroup>

@@ -49,6 +49,7 @@ import ContactPage from "@/pages/contact";
 import OrderConfirmationPage from "@/pages/order-confirmation";
 import AdminOrdersPage from "@/pages/admin/orders";
 import PaymentProcessingPage from "@/pages/payment-processing";
+import PaymentSuccessPage from "@/pages/payment-success";
 // import OrdersPage from "@/pages/orders"; // TODO: Create this page
 
 function App() {
@@ -63,6 +64,7 @@ function App() {
             <Route path="/cart" component={CartPage} />
             <Route path="/checkout" component={CheckoutPage} />
             <Route path="/payment/:orderId" component={PaymentProcessingPage} />
+            <Route path="/payment-success/:orderId" component={PaymentSuccessPage} />
             <Route path="/order-confirmation/:orderId" component={OrderConfirmationPage} />
             <Route path="/about" component={AboutPage} />
             <Route path="/categories" component={CategoriesPage} />

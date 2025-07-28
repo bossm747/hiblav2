@@ -2008,48 +2008,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Payment processing routes
+  // Simplified Payment processing routes - COD and GCash only
   app.post("/api/payments/process", async (req, res) => {
     try {
-      const { orderId, paymentMethod, amount, referenceNumber, accountNumber, proofOfPayment, notes } = req.body;
+      const { orderId, paymentMethod, amount, referenceNumber, accountNumber, notes } = req.body;
       
+      // Validate payment method
+      if (!["cod", "gcash"].includes(paymentMethod)) {
+        return res.status(400).json({ message: "Invalid payment method. Only COD and GCash are supported." });
+      }
+
       // Update order payment status based on method
       let paymentStatus = "pending";
+      let orderStatus = "pending";
+      
       if (paymentMethod === "cod") {
         paymentStatus = "pending_cod";
-      } else if (referenceNumber) {
+        orderStatus = "confirmed"; // COD orders are confirmed immediately
+      } else if (paymentMethod === "gcash" && referenceNumber) {
         paymentStatus = "pending_verification";
+        orderStatus = "processing";
+      } else if (paymentMethod === "gcash" && !referenceNumber) {
+        return res.status(400).json({ message: "GCash reference number is required" });
       }
 
       const updatedOrder = await storage.updateOrderStatus(orderId, {
         paymentStatus,
-        ...(paymentMethod !== "cod" && { status: "processing" })
+        status: orderStatus
       });
 
       if (!updatedOrder) {
         return res.status(404).json({ message: "Order not found" });
       }
 
-      // Store payment details (you might want to create a payments table)
-      // For now, we'll add it to order notes
+      // Store payment details in order notes
       const paymentDetails = {
         method: paymentMethod,
-        reference: referenceNumber,
-        account: accountNumber,
-        proof: proofOfPayment,
-        notes,
-        processedAt: new Date().toISOString()
+        reference: referenceNumber || null,
+        account: accountNumber || null,
+        notes: notes || null,
+        processedAt: new Date().toISOString(),
+        amount: amount
       };
 
       await storage.updateOrder(orderId, {
-        notes: `Payment Details: ${JSON.stringify(paymentDetails)}`
+        notes: `Payment: ${JSON.stringify(paymentDetails)}`
       });
 
       res.json({ 
         success: true, 
         orderId,
-        message: "Payment processed successfully",
-        paymentStatus 
+        message: paymentMethod === "cod" ? "COD order confirmed" : "GCash payment submitted for verification",
+        paymentStatus,
+        orderStatus
       });
     } catch (error: any) {
       console.error("Payment processing error:", error);
