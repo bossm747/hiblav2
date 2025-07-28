@@ -140,20 +140,16 @@ The architecture prioritizes developer experience with hot reloading, type safet
 
 ## Recent Changes
 
-### Modal UI Fixes & Form Positioning (Jan 28, 2025)
-- **Fixed Modal Positioning Issues**: Resolved annoying modal behavior where forms would shift to the sides when clicking
-  - Added comprehensive CSS fixes for Radix UI dialog components using `[data-radix-dialog-content]` selectors
-  - Implemented proper fixed positioning with `translate(-50%, -50%)` centering and `!important` declarations
-  - Fixed form field spacing and prevented content shifting with consistent width and position properties
-  - Added proper button positioning at modal bottom with sticky behavior and visual separation
-- **Enhanced Modal Stability**: All modals now maintain consistent positioning and layout
-  - Payment processing modal, admin payment methods, payment approvals, product details, and service modals all fixed
-  - Forms no longer move or shift when users click input fields or interact with modal content
-  - Improved user experience with stable, predictable modal behavior across the application
-- **Modal System Optimization**: Unified modal behavior with standardized CSS classes and proper responsive design
-  - Maximum height set to 85vh with proper overflow handling for long forms
-  - Consistent padding, borders, and shadow effects across all modal components
-  - Fixed backdrop blur effects and overlay positioning for better visual consistency
+### Modal UI Fixes & Mobile-Friendly Design (Jan 28, 2025)
+- **Permanent Modal Positioning Fix**: Resolved modal forms moving to sides with simple, permanent solution
+  - Modified core dialog component with inline styles to force absolute center positioning
+  - Removed all animations and transitions that caused modal displacement during interactions
+  - Set mobile-friendly width (95vw) with proper max-width constraints for all screen sizes
+  - Fixed positioning works consistently across desktop, tablet, and mobile devices
+- **Root Cause Resolution**: Identified and fixed the core issue in dialog component instead of complex CSS overrides
+  - Removed complex CSS fixes and custom dialog components to avoid duplication
+  - Applied inline styles directly to DialogContent for guaranteed positioning stability
+  - Ensured mobile-first responsive design with proper viewport width handling
 
 ### Philippine Payment System Implementation (Jan 28, 2025)
 - **Simplified Payment Methods**: Implemented COD (Cash on Delivery) and GCash P2P transfer as primary payment options
