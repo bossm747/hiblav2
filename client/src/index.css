@@ -742,61 +742,154 @@ html {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Fix modal positioning and prevent form shifting */
-[data-radix-dialog-overlay] {
+/* Comprehensive Modal Positioning Fixes - Prevent All Form Movement */
+
+/* Fix all possible Radix UI dialog overlay positioning */
+[data-radix-dialog-overlay],
+[data-radix-dialog-overlay][data-state],
+.dialog-overlay {
   position: fixed !important;
   inset: 0 !important;
   z-index: 50 !important;
   background-color: rgba(0, 0, 0, 0.80) !important;
   backdrop-filter: blur(2px) !important;
+  animation: none !important;
 }
 
-[data-radix-dialog-content] {
+/* Fix all possible Radix UI dialog content positioning */
+[data-radix-dialog-content],
+[data-radix-dialog-content][data-state],
+.dialog-content {
   position: fixed !important;
   left: 50% !important;
   top: 50% !important;
-  z-index: 50 !important;
+  z-index: 51 !important;
   transform: translate(-50%, -50%) !important;
   max-height: 85vh !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   width: 100% !important;
-  max-width: var(--radix-dialog-content-width, 32rem) !important;
+  max-width: 32rem !important;
+  min-width: 20rem !important;
   border: 1px solid hsl(var(--border)) !important;
   background-color: hsl(var(--background)) !important;
   padding: 1.5rem !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
   border-radius: 0.5rem !important;
+  animation: none !important;
+  transition: none !important;
 }
 
-/* Prevent content shifting in modals */
-[data-radix-dialog-content] form {
+/* Force center positioning on all screen sizes */
+@media (max-width: 640px) {
+  [data-radix-dialog-content],
+  [data-radix-dialog-content][data-state],
+  .dialog-content {
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 0 !important;
+  }
+}
+
+/* Prevent content shifting in modals - ALL FORMS */
+[data-radix-dialog-content] form,
+[data-radix-dialog-content] .form,
+.dialog-content form,
+.dialog-content .form {
   position: relative !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+}
+
+/* Fix form containers */
+[data-radix-dialog-content] .space-y-4,
+[data-radix-dialog-content] .space-y-6,
+.dialog-content .space-y-4,
+.dialog-content .space-y-6 {
+  display: block !important;
   width: 100% !important;
 }
 
-[data-radix-dialog-content] .space-y-4 > * + * {
+[data-radix-dialog-content] .space-y-4 > *,
+[data-radix-dialog-content] .space-y-6 > *,
+.dialog-content .space-y-4 > *,
+.dialog-content .space-y-6 > * {
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+[data-radix-dialog-content] .space-y-4 > * + *,
+[data-radix-dialog-content] .space-y-6 > * + * {
   margin-top: 1rem !important;
 }
 
-[data-radix-dialog-content] .grid {
+/* Fix grid layouts in modals */
+[data-radix-dialog-content] .grid,
+.dialog-content .grid {
   display: grid !important;
   gap: 1rem !important;
+  width: 100% !important;
 }
 
-/* Fix form field spacing */
-[data-radix-dialog-content] [data-radix-form-field] {
+[data-radix-dialog-content] .grid-cols-2,
+.dialog-content .grid-cols-2 {
+  grid-template-columns: 1fr 1fr !important;
+}
+
+/* Fix all form fields and inputs */
+[data-radix-dialog-content] [data-radix-form-field],
+[data-radix-dialog-content] .form-field,
+[data-radix-dialog-content] input,
+[data-radix-dialog-content] textarea,
+[data-radix-dialog-content] select,
+.dialog-content input,
+.dialog-content textarea,
+.dialog-content select {
   width: 100% !important;
   position: relative !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
 }
 
-/* Ensure buttons stay at bottom */
-[data-radix-dialog-content] .flex.gap-3.pt-4,
-[data-radix-dialog-content] .flex.gap-3.pt-6,
-[data-radix-dialog-content] .flex.space-x-3.pt-4,
-[data-radix-dialog-content] .flex.space-x-3.pt-6 {
+/* Ensure buttons stay properly positioned */
+[data-radix-dialog-content] .flex.gap-3,
+[data-radix-dialog-content] .flex.space-x-3,
+[data-radix-dialog-content] .button-group,
+.dialog-content .flex.gap-3,
+.dialog-content .flex.space-x-3,
+.dialog-content .button-group {
+  display: flex !important;
+  gap: 0.75rem !important;
+  justify-content: flex-end !important;
   margin-top: 1.5rem !important;
   border-top: 1px solid hsl(var(--border)) !important;
   padding-top: 1rem !important;
   background: hsl(var(--background)) !important;
+  width: 100% !important;
+}
+
+/* Specific fixes for dialog trigger and portal */
+[data-radix-dialog-portal] {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 50 !important;
+}
+
+/* Remove any animations that might cause shifting */
+[data-radix-dialog-content][data-state="open"],
+[data-radix-dialog-content][data-state="closed"] {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Force static positioning for dialog containers */
+.dialog-container,
+[role="dialog"] {
+  position: relative !important;
 }

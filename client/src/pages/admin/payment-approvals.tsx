@@ -4,7 +4,7 @@ import { Check, X, Eye, Upload, Clock, CheckCircle, XCircle } from "lucide-react
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { FixedDialog as Dialog, FixedDialogContent as DialogContent, FixedDialogHeader as DialogHeader, FixedDialogTitle as DialogTitle, FixedDialogTrigger as DialogTrigger } from "@/components/ui/fixed-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
