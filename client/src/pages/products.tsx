@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useSearch } from "wouter";
 import { Navbar } from "@/components/navbar";
 import { ShoppingCart, Heart, Filter, Grid, List, Search, Star } from "lucide-react";
@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { Product, Category } from "@shared/schema";
 
 export default function ProductsPage() {
@@ -26,6 +27,7 @@ export default function ProductsPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: products, isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ["/api/products", { 
@@ -70,26 +72,74 @@ export default function ProductsPage() {
     }).format(numPrice);
   };
 
-  const handleProductClick = (product: Product) => {
-    setSelectedProduct(product);
-    setIsModalOpen(true);
-  };
+  // Add to cart mutation
+  const addToCartMutation = useMutation({
+    mutationFn: async (product: Product) => {
+      const response = await apiRequest("POST", "/api/cart", {
+        customerId: "demo-customer-1", // For demo purposes
+        productId: product.id,
+        quantity: 1,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cart"] });
+      toast({
+        title: "Added to Cart",
+        description: "Product has been added to your cart.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add product to cart.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Add to wishlist mutation
+  const addToWishlistMutation = useMutation({
+    mutationFn: async (product: Product) => {
+      const response = await apiRequest("POST", "/api/wishlist", {
+        customerId: "demo-customer-1", // For demo purposes
+        productId: product.id,
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/wishlist"] });
+      toast({
+        title: "Added to Wishlist",
+        description: "Product has been added to your wishlist.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add product to wishlist.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleAddToCart = (product: Product) => {
-    // TODO: Implement cart functionality
-    toast({
-      title: "Added to Cart",
-      description: `${product.name} has been added to your cart.`
-    });
+    if (!product.currentStock || product.currentStock === 0) {
+      toast({
+        title: "Out of Stock",
+        description: "This product is currently out of stock.",
+        variant: "destructive",
+      });
+      return;
+    }
+    addToCartMutation.mutate(product);
   };
 
   const handleAddToWishlist = (product: Product) => {
-    // TODO: Implement wishlist functionality
-    toast({
-      title: "Added to Wishlist",
-      description: `${product.name} has been added to your wishlist.`
-    });
+    addToWishlistMutation.mutate(product);
   };
+
+
 
   const hairTypes = ["Human", "Synthetic", "Blend"];
   const textures = ["Straight", "Wavy", "Curly", "Kinky"];
@@ -322,10 +372,8 @@ export default function ProductsPage() {
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-lg font-bold text-foreground">
-                            {formatPrice(product.price)}
-                          </span>
-                          {product.compareAtPrice && (
+                          <span className="text-lg font-bold text-foreground">{formatPrice(product.price)}</span>
+                          {product.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(product.price) && (
                             <span className="text-sm text-muted-foreground line-through">
                               {formatPrice(product.compareAtPrice)}
                             </span>
@@ -333,14 +381,15 @@ export default function ProductsPage() {
                         </div>
                         <Button 
                           size="sm"
+                          className="bg-primary text-primary-foreground hover:shadow-lg hover:shadow-purple-500/50 transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleAddToCart(product);
                           }}
-                          className="hover:shadow-lg hover:shadow-purple-500/50 transition-all"
+                          disabled={!product.currentStock || product.currentStock === 0}
                         >
-                          <ShoppingCart className="h-4 w-4 mr-1" />
-                          Add to Cart
+                          <ShoppingCart className="h-4 w-4 mr-2" />
+                          {product.currentStock === 0 ? "Out of Stock" : "Add to Cart"}
                         </Button>
                       </div>
                     </div>
@@ -373,18 +422,16 @@ export default function ProductsPage() {
       </div>
 
       {/* Product Detail Modal */}
-      {selectedProduct && (
-        <ProductDetailModal
-          product={selectedProduct}
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedProduct(null);
-          }}
-          onAddToCart={handleAddToCart}
-          onAddToWishlist={handleAddToWishlist}
-        />
-      )}
+      <ProductDetailModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedProduct(null);
+        }}
+        onAddToCart={handleAddToCart}
+        onAddToWishlist={handleAddToWishlist}
+      />
     </div>
   );
 }
