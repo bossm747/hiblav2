@@ -52,6 +52,7 @@ import PaymentProcessingPage from "@/pages/payment-processing";
 import PaymentSuccessPage from "@/pages/payment-success";
 import AdminPaymentMethodsPage from "@/pages/admin/payment-methods";
 import AdminPaymentApprovalsPage from "@/pages/admin/payment-approvals";
+import LoyaltyPage from "@/pages/loyalty";
 // import OrdersPage from "@/pages/orders"; // TODO: Create this page
 
 function App() {
@@ -72,6 +73,7 @@ function App() {
             <Route path="/categories" component={CategoriesPage} />
             <Route path="/contact" component={ContactPage} />
             <Route path="/wishlist" component={WishlistPage} />
+            <Route path="/loyalty" component={LoyaltyPage} />
             <Route path="/docs" component={DocsPage} />
             <Route path="/documentation">
               <DocumentationPage onBack={() => window.history.back()} />

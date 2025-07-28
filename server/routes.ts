@@ -24,6 +24,10 @@ import {
   insertCustomerPreferencesSchema,
   insertStylistRecommendationSchema,
   insertStylistReviewSchema,
+  insertStylingChallengeSchema,
+  insertChallengeParticipationSchema,
+  insertAchievementSchema,
+  insertLoyaltyRewardSchema,
 } from "@shared/schema";
 import { aiStylistService } from "./ai-stylist-service";
 // import { sendAppointmentNotification } from "./notification-service";
@@ -2201,6 +2205,248 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(methods);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch payment methods" });
+    }
+  });
+
+  // ============ LOYALTY SYSTEM ROUTES ============
+
+  // Loyalty Points routes
+  app.get("/api/loyalty/points/:customerId", async (req, res) => {
+    try {
+      const points = await storage.getCustomerLoyaltyPoints(req.params.customerId);
+      res.json({ points });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch loyalty points" });
+    }
+  });
+
+  app.get("/api/loyalty/history/:customerId", async (req, res) => {
+    try {
+      const history = await storage.getLoyaltyPointsHistory(req.params.customerId);
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch loyalty points history" });
+    }
+  });
+
+  app.post("/api/loyalty/points/add", async (req, res) => {
+    try {
+      const { customerId, points, pointsType, description, referenceId, referenceType } = req.body;
+      const history = await storage.addLoyaltyPoints(customerId, points, pointsType, description, referenceId, referenceType);
+      res.status(201).json(history);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to add loyalty points" });
+    }
+  });
+
+  // Styling Challenges routes
+  app.get("/api/challenges", async (req, res) => {
+    try {
+      const { active } = req.query;
+      const isActive = active === 'true' ? true : active === 'false' ? false : undefined;
+      const challenges = await storage.getStylingChallenges(isActive);
+      res.json(challenges);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch challenges" });
+    }
+  });
+
+  app.get("/api/challenges/:id", async (req, res) => {
+    try {
+      const challenge = await storage.getStylingChallenge(req.params.id);
+      if (!challenge) {
+        return res.status(404).json({ message: "Challenge not found" });
+      }
+      res.json(challenge);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch challenge" });
+    }
+  });
+
+  app.post("/api/challenges", async (req, res) => {
+    try {
+      const challengeData = insertStylingChallengeSchema.parse(req.body);
+      const challenge = await storage.createStylingChallenge(challengeData);
+      res.status(201).json(challenge);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid challenge data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create challenge" });
+    }
+  });
+
+  app.put("/api/challenges/:id", async (req, res) => {
+    try {
+      const challengeData = insertStylingChallengeSchema.partial().parse(req.body);
+      const challenge = await storage.updateStylingChallenge(req.params.id, challengeData);
+      res.json(challenge);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid challenge data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update challenge" });
+    }
+  });
+
+  app.post("/api/challenges/:challengeId/join", async (req, res) => {
+    try {
+      const { customerId } = req.body;
+      const participation = await storage.joinChallenge(customerId, req.params.challengeId);
+      res.status(201).json(participation);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Already joined this challenge') {
+        return res.status(409).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Failed to join challenge" });
+    }
+  });
+
+  app.post("/api/challenges/submit/:participationId", async (req, res) => {
+    try {
+      const { submissionText, submissionImages } = req.body;
+      const participation = await storage.submitChallenge(req.params.participationId, submissionText, submissionImages || []);
+      res.json(participation);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to submit challenge" });
+    }
+  });
+
+  app.get("/api/challenges/customer/:customerId", async (req, res) => {
+    try {
+      const challenges = await storage.getCustomerChallenges(req.params.customerId);
+      res.json(challenges);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch customer challenges" });
+    }
+  });
+
+  app.get("/api/challenges/:challengeId/participations", async (req, res) => {
+    try {
+      const participations = await storage.getChallengeParticipations(req.params.challengeId);
+      res.json(participations);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch challenge participations" });
+    }
+  });
+
+  // Achievements routes
+  app.get("/api/achievements", async (req, res) => {
+    try {
+      const { active } = req.query;
+      const isActive = active === 'true' ? true : active === 'false' ? false : undefined;
+      const achievements = await storage.getAchievements(isActive);
+      res.json(achievements);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch achievements" });
+    }
+  });
+
+  app.post("/api/achievements", async (req, res) => {
+    try {
+      const achievementData = insertAchievementSchema.parse(req.body);
+      const achievement = await storage.createAchievement(achievementData);
+      res.status(201).json(achievement);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid achievement data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create achievement" });
+    }
+  });
+
+  app.get("/api/achievements/customer/:customerId", async (req, res) => {
+    try {
+      const achievements = await storage.getCustomerAchievements(req.params.customerId);
+      res.json(achievements);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch customer achievements" });
+    }
+  });
+
+  app.post("/api/achievements/check/:customerId", async (req, res) => {
+    try {
+      const newAchievements = await storage.checkAndUnlockAchievements(req.params.customerId);
+      res.json(newAchievements);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to check achievements" });
+    }
+  });
+
+  app.post("/api/achievements/mark-viewed", async (req, res) => {
+    try {
+      const { customerId, achievementId } = req.body;
+      await storage.markAchievementAsViewed(customerId, achievementId);
+      res.json({ message: "Achievement marked as viewed" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark achievement as viewed" });
+    }
+  });
+
+  // Loyalty Rewards routes
+  app.get("/api/loyalty/rewards", async (req, res) => {
+    try {
+      const { active, tier } = req.query;
+      const isActive = active === 'true' ? true : active === 'false' ? false : undefined;
+      const rewards = await storage.getLoyaltyRewards(isActive, tier as string);
+      res.json(rewards);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch loyalty rewards" });
+    }
+  });
+
+  app.post("/api/loyalty/rewards", async (req, res) => {
+    try {
+      const rewardData = insertLoyaltyRewardSchema.parse(req.body);
+      const reward = await storage.createLoyaltyReward(rewardData);
+      res.status(201).json(reward);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid reward data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create loyalty reward" });
+    }
+  });
+
+  app.post("/api/loyalty/rewards/:rewardId/redeem", async (req, res) => {
+    try {
+      const { customerId } = req.body;
+      const redemption = await storage.redeemLoyaltyReward(customerId, req.params.rewardId);
+      res.status(201).json(redemption);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message === 'Insufficient points') {
+          return res.status(400).json({ message: error.message });
+        }
+        if (error.message === 'Reward usage limit reached') {
+          return res.status(410).json({ message: error.message });
+        }
+      }
+      res.status(500).json({ message: "Failed to redeem reward" });
+    }
+  });
+
+  app.get("/api/loyalty/redemptions/:customerId", async (req, res) => {
+    try {
+      const redemptions = await storage.getCustomerRedemptions(req.params.customerId);
+      res.json(redemptions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch customer redemptions" });
+    }
+  });
+
+  // Loyalty System Seeding endpoint (for development)
+  app.post("/api/admin/seed-loyalty", async (req, res) => {
+    try {
+      const { seedLoyaltySystem } = await import("./seed-loyalty");
+      await seedLoyaltySystem();
+      res.json({ message: "Loyalty system seeded successfully" });
+    } catch (error) {
+      console.error("Loyalty seeding error:", error);
+      res.status(500).json({ 
+        message: "Failed to seed loyalty system",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 

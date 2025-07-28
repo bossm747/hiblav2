@@ -67,6 +67,27 @@ import {
   type InsertPaymentMethod,
   type PaymentProof,
   type InsertPaymentProof,
+  loyaltyPointsHistory,
+  stylingChallenges,
+  challengeParticipations,
+  achievements,
+  customerAchievements,
+  loyaltyRewards,
+  rewardRedemptions,
+  type LoyaltyPointsHistory,
+  type InsertLoyaltyPointsHistory,
+  type StylingChallenge,
+  type InsertStylingChallenge,
+  type ChallengeParticipation,
+  type InsertChallengeParticipation,
+  type Achievement,
+  type InsertAchievement,
+  type CustomerAchievement,
+  type InsertCustomerAchievement,
+  type LoyaltyReward,
+  type InsertLoyaltyReward,
+  type RewardRedemption,
+  type InsertRewardRedemption,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -224,6 +245,36 @@ export interface IStorage {
   getPaymentProofs(status?: string): Promise<PaymentProof[]>;
   getPaymentProof(id: string): Promise<PaymentProof | null>;
   updatePaymentProofStatus(id: string, status: string, adminNotes?: string, staffId?: string): Promise<PaymentProof | null>;
+
+  // Loyalty Points System
+  getCustomerLoyaltyPoints(customerId: string): Promise<number>;
+  addLoyaltyPoints(customerId: string, points: number, pointsType: string, description: string, referenceId?: string, referenceType?: string): Promise<LoyaltyPointsHistory>;
+  deductLoyaltyPoints(customerId: string, points: number, description: string, referenceId?: string): Promise<LoyaltyPointsHistory>;
+  getLoyaltyPointsHistory(customerId: string): Promise<LoyaltyPointsHistory[]>;
+  updateCustomerLoyaltyTier(customerId: string): Promise<void>;
+
+  // Styling Challenges
+  getStylingChallenges(isActive?: boolean): Promise<StylingChallenge[]>;
+  getStylingChallenge(id: string): Promise<StylingChallenge | undefined>;
+  createStylingChallenge(challenge: InsertStylingChallenge): Promise<StylingChallenge>;
+  updateStylingChallenge(id: string, updates: Partial<InsertStylingChallenge>): Promise<StylingChallenge>;
+  joinChallenge(customerId: string, challengeId: string): Promise<ChallengeParticipation>;
+  submitChallenge(participationId: string, submissionText: string, submissionImages: string[]): Promise<ChallengeParticipation>;
+  getCustomerChallenges(customerId: string): Promise<(ChallengeParticipation & { challenge: StylingChallenge })[]>;
+  getChallengeParticipations(challengeId: string): Promise<(ChallengeParticipation & { customer: Customer })[]>;
+
+  // Achievements
+  getAchievements(isActive?: boolean): Promise<Achievement[]>;
+  createAchievement(achievement: InsertAchievement): Promise<Achievement>;
+  getCustomerAchievements(customerId: string): Promise<(CustomerAchievement & { achievement: Achievement })[]>;
+  checkAndUnlockAchievements(customerId: string): Promise<CustomerAchievement[]>;
+  markAchievementAsViewed(customerId: string, achievementId: string): Promise<void>;
+
+  // Loyalty Rewards
+  getLoyaltyRewards(isActive?: boolean, tierRequirement?: string): Promise<LoyaltyReward[]>;
+  createLoyaltyReward(reward: InsertLoyaltyReward): Promise<LoyaltyReward>;
+  redeemLoyaltyReward(customerId: string, rewardId: string): Promise<RewardRedemption>;
+  getCustomerRedemptions(customerId: string): Promise<(RewardRedemption & { reward: LoyaltyReward })[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -974,6 +1025,388 @@ export class DatabaseStorage implements IStorage {
       .where(eq(paymentProofs.id, id))
       .returning();
     return result[0] || null;
+  }
+
+  // Loyalty Points System Implementation
+  async getCustomerLoyaltyPoints(customerId: string): Promise<number> {
+    const [customer] = await db.select({ loyaltyPoints: customers.loyaltyPoints })
+      .from(customers)
+      .where(eq(customers.id, customerId));
+    return customer?.loyaltyPoints || 0;
+  }
+
+  async addLoyaltyPoints(customerId: string, points: number, pointsType: string, description: string, referenceId?: string, referenceType?: string): Promise<LoyaltyPointsHistory> {
+    const [history] = await db.insert(loyaltyPointsHistory).values({
+      customerId,
+      points,
+      pointsType,
+      description,
+      referenceId,
+      referenceType,
+    }).returning();
+
+    // Update customer's total loyalty points
+    await db.update(customers)
+      .set({ loyaltyPoints: sql`${customers.loyaltyPoints} + ${points}` })
+      .where(eq(customers.id, customerId));
+
+    // Update loyalty tier
+    await this.updateCustomerLoyaltyTier(customerId);
+
+    return history;
+  }
+
+  async deductLoyaltyPoints(customerId: string, points: number, description: string, referenceId?: string): Promise<LoyaltyPointsHistory> {
+    const [history] = await db.insert(loyaltyPointsHistory).values({
+      customerId,
+      points: -points, // negative for deduction
+      pointsType: 'redemption',
+      description,
+      referenceId,
+      referenceType: 'redemption',
+    }).returning();
+
+    // Update customer's total loyalty points
+    await db.update(customers)
+      .set({ loyaltyPoints: sql`${customers.loyaltyPoints} - ${points}` })
+      .where(eq(customers.id, customerId));
+
+    // Update loyalty tier
+    await this.updateCustomerLoyaltyTier(customerId);
+
+    return history;
+  }
+
+  async getLoyaltyPointsHistory(customerId: string): Promise<LoyaltyPointsHistory[]> {
+    return await db.select().from(loyaltyPointsHistory)
+      .where(eq(loyaltyPointsHistory.customerId, customerId))
+      .orderBy(desc(loyaltyPointsHistory.createdAt));
+  }
+
+  async updateCustomerLoyaltyTier(customerId: string): Promise<void> {
+    const [customer] = await db.select({ loyaltyPoints: customers.loyaltyPoints })
+      .from(customers)
+      .where(eq(customers.id, customerId));
+
+    if (!customer) return;
+
+    let tier = 'bronze';
+    const points = customer.loyaltyPoints;
+
+    if (points >= 10000) tier = 'platinum';
+    else if (points >= 5000) tier = 'gold';
+    else if (points >= 2000) tier = 'silver';
+
+    await db.update(customers)
+      .set({ loyaltyTier: tier })
+      .where(eq(customers.id, customerId));
+  }
+
+  // Styling Challenges Implementation
+  async getStylingChallenges(isActive?: boolean): Promise<StylingChallenge[]> {
+    let query = db.select().from(stylingChallenges);
+    if (isActive !== undefined) {
+      query = query.where(eq(stylingChallenges.isActive, isActive));
+    }
+    return await query.orderBy(desc(stylingChallenges.createdAt));
+  }
+
+  async getStylingChallenge(id: string): Promise<StylingChallenge | undefined> {
+    const [challenge] = await db.select().from(stylingChallenges)
+      .where(eq(stylingChallenges.id, id));
+    return challenge;
+  }
+
+  async createStylingChallenge(challenge: InsertStylingChallenge): Promise<StylingChallenge> {
+    const [newChallenge] = await db.insert(stylingChallenges).values(challenge).returning();
+    return newChallenge;
+  }
+
+  async updateStylingChallenge(id: string, updates: Partial<InsertStylingChallenge>): Promise<StylingChallenge> {
+    const [updated] = await db.update(stylingChallenges)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(stylingChallenges.id, id))
+      .returning();
+    return updated;
+  }
+
+  async joinChallenge(customerId: string, challengeId: string): Promise<ChallengeParticipation> {
+    // Check if customer already joined
+    const existing = await db.select().from(challengeParticipations)
+      .where(and(
+        eq(challengeParticipations.customerId, customerId),
+        eq(challengeParticipations.challengeId, challengeId)
+      ));
+
+    if (existing.length > 0) {
+      throw new Error('Already joined this challenge');
+    }
+
+    // Increment challenge participant count
+    await db.update(stylingChallenges)
+      .set({ currentParticipants: sql`${stylingChallenges.currentParticipants} + 1` })
+      .where(eq(stylingChallenges.id, challengeId));
+
+    const [participation] = await db.insert(challengeParticipations).values({
+      customerId,
+      challengeId,
+      status: 'started',
+    }).returning();
+
+    return participation;
+  }
+
+  async submitChallenge(participationId: string, submissionText: string, submissionImages: string[]): Promise<ChallengeParticipation> {
+    const [updated] = await db.update(challengeParticipations)
+      .set({
+        submissionText,
+        submissionImages,
+        submissionDate: new Date(),
+        status: 'submitted',
+        updatedAt: new Date(),
+      })
+      .where(eq(challengeParticipations.id, participationId))
+      .returning();
+
+    return updated;
+  }
+
+  async getCustomerChallenges(customerId: string): Promise<(ChallengeParticipation & { challenge: StylingChallenge })[]> {
+    const results = await db.select({
+      id: challengeParticipations.id,
+      customerId: challengeParticipations.customerId,
+      challengeId: challengeParticipations.challengeId,
+      status: challengeParticipations.status,
+      submissionText: challengeParticipations.submissionText,
+      submissionImages: challengeParticipations.submissionImages,
+      submissionDate: challengeParticipations.submissionDate,
+      completionDate: challengeParticipations.completionDate,
+      pointsEarned: challengeParticipations.pointsEarned,
+      feedback: challengeParticipations.feedback,
+      rating: challengeParticipations.rating,
+      startedAt: challengeParticipations.startedAt,
+      updatedAt: challengeParticipations.updatedAt,
+      challenge: stylingChallenges,
+    })
+    .from(challengeParticipations)
+    .innerJoin(stylingChallenges, eq(challengeParticipations.challengeId, stylingChallenges.id))
+    .where(eq(challengeParticipations.customerId, customerId))
+    .orderBy(desc(challengeParticipations.startedAt));
+
+    return results as (ChallengeParticipation & { challenge: StylingChallenge })[];
+  }
+
+  async getChallengeParticipations(challengeId: string): Promise<(ChallengeParticipation & { customer: Customer })[]> {
+    const results = await db.select({
+      id: challengeParticipations.id,
+      customerId: challengeParticipations.customerId,
+      challengeId: challengeParticipations.challengeId,
+      status: challengeParticipations.status,
+      submissionText: challengeParticipations.submissionText,
+      submissionImages: challengeParticipations.submissionImages,
+      submissionDate: challengeParticipations.submissionDate,
+      completionDate: challengeParticipations.completionDate,
+      pointsEarned: challengeParticipations.pointsEarned,
+      feedback: challengeParticipations.feedback,
+      rating: challengeParticipations.rating,
+      startedAt: challengeParticipations.startedAt,
+      updatedAt: challengeParticipations.updatedAt,
+      customer: customers,
+    })
+    .from(challengeParticipations)
+    .innerJoin(customers, eq(challengeParticipations.customerId, customers.id))
+    .where(eq(challengeParticipations.challengeId, challengeId))
+    .orderBy(desc(challengeParticipations.startedAt));
+
+    return results as (ChallengeParticipation & { customer: Customer })[];
+  }
+
+  // Achievements Implementation
+  async getAchievements(isActive?: boolean): Promise<Achievement[]> {
+    let query = db.select().from(achievements);
+    if (isActive !== undefined) {
+      query = query.where(eq(achievements.isActive, isActive));
+    }
+    return await query.orderBy(achievements.category, achievements.name);
+  }
+
+  async getCustomerAchievements(customerId: string): Promise<(CustomerAchievement & { achievement: Achievement })[]> {
+    const results = await db.select({
+      id: customerAchievements.id,
+      customerId: customerAchievements.customerId,
+      achievementId: customerAchievements.achievementId,
+      unlockedAt: customerAchievements.unlockedAt,
+      pointsEarned: customerAchievements.pointsEarned,
+      isNew: customerAchievements.isNew,
+      achievement: achievements,
+    })
+    .from(customerAchievements)
+    .innerJoin(achievements, eq(customerAchievements.achievementId, achievements.id))
+    .where(eq(customerAchievements.customerId, customerId))
+    .orderBy(desc(customerAchievements.unlockedAt));
+
+    return results as (CustomerAchievement & { achievement: Achievement })[];
+  }
+
+  async checkAndUnlockAchievements(customerId: string): Promise<CustomerAchievement[]> {
+    const customer = await this.getCustomer(customerId);
+    if (!customer) return [];
+
+    const allAchievements = await this.getAchievements(true);
+    const customerAchievementsList = await this.getCustomerAchievements(customerId);
+    const unlockedIds = customerAchievementsList.map(ca => ca.achievementId);
+
+    const newAchievements: CustomerAchievement[] = [];
+
+    for (const achievement of allAchievements) {
+      if (unlockedIds.includes(achievement.id)) continue;
+
+      let shouldUnlock = false;
+      const reqs = achievement.requirements as any;
+
+      if (reqs.totalSpent && parseFloat(customer.totalSpent || '0') >= reqs.totalSpent) {
+        shouldUnlock = true;
+      }
+      if (reqs.totalOrders && customer.totalOrders >= reqs.totalOrders) {
+        shouldUnlock = true;
+      }
+      if (reqs.challengesCompleted) {
+        const completedChallenges = await db.select()
+          .from(challengeParticipations)
+          .where(and(
+            eq(challengeParticipations.customerId, customerId),
+            eq(challengeParticipations.status, 'completed')
+          ));
+        if (completedChallenges.length >= reqs.challengesCompleted) {
+          shouldUnlock = true;
+        }
+      }
+
+      if (shouldUnlock) {
+        const [newAchievement] = await db.insert(customerAchievements).values({
+          customerId,
+          achievementId: achievement.id,
+          pointsEarned: achievement.pointsReward,
+        }).returning();
+
+        // Add loyalty points for achievement
+        await this.addLoyaltyPoints(
+          customerId,
+          achievement.pointsReward,
+          'achievement',
+          `Achievement unlocked: ${achievement.name}`,
+          achievement.id,
+          'achievement'
+        );
+
+        newAchievements.push(newAchievement);
+      }
+    }
+
+    return newAchievements;
+  }
+
+  async markAchievementAsViewed(customerId: string, achievementId: string): Promise<void> {
+    await db.update(customerAchievements)
+      .set({ isNew: false })
+      .where(and(
+        eq(customerAchievements.customerId, customerId),
+        eq(customerAchievements.achievementId, achievementId)
+      ));
+  }
+
+  // Loyalty Rewards Implementation
+  async getLoyaltyRewards(isActive?: boolean, tierRequirement?: string): Promise<LoyaltyReward[]> {
+    let query = db.select().from(loyaltyRewards);
+    const conditions = [];
+    
+    if (isActive !== undefined) {
+      conditions.push(eq(loyaltyRewards.isActive, isActive));
+    }
+    if (tierRequirement) {
+      conditions.push(eq(loyaltyRewards.tierRequirement, tierRequirement));
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    return await query.orderBy(loyaltyRewards.pointsCost);
+  }
+
+  async redeemLoyaltyReward(customerId: string, rewardId: string): Promise<RewardRedemption> {
+    const [reward] = await db.select().from(loyaltyRewards)
+      .where(eq(loyaltyRewards.id, rewardId));
+    
+    if (!reward) {
+      throw new Error('Reward not found');
+    }
+
+    const customerPoints = await this.getCustomerLoyaltyPoints(customerId);
+    if (customerPoints < reward.pointsCost) {
+      throw new Error('Insufficient points');
+    }
+
+    // Check usage limits
+    if (reward.maxUses && reward.currentUses >= reward.maxUses) {
+      throw new Error('Reward usage limit reached');
+    }
+
+    // Deduct points
+    await this.deductLoyaltyPoints(
+      customerId,
+      reward.pointsCost,
+      `Redeemed: ${reward.name}`,
+      reward.id
+    );
+
+    // Increment usage count
+    await db.update(loyaltyRewards)
+      .set({ currentUses: sql`${loyaltyRewards.currentUses} + 1` })
+      .where(eq(loyaltyRewards.id, rewardId));
+
+    // Create redemption record
+    const [redemption] = await db.insert(rewardRedemptions).values({
+      customerId,
+      rewardId,
+      pointsUsed: reward.pointsCost,
+      discountAmount: reward.discountValue,
+      expiresAt: reward.validUntil,
+    }).returning();
+
+    return redemption;
+  }
+
+  async getCustomerRedemptions(customerId: string): Promise<(RewardRedemption & { reward: LoyaltyReward })[]> {
+    const results = await db.select({
+      id: rewardRedemptions.id,
+      customerId: rewardRedemptions.customerId,
+      rewardId: rewardRedemptions.rewardId,
+      orderId: rewardRedemptions.orderId,
+      pointsUsed: rewardRedemptions.pointsUsed,
+      discountAmount: rewardRedemptions.discountAmount,
+      status: rewardRedemptions.status,
+      usedAt: rewardRedemptions.usedAt,
+      expiresAt: rewardRedemptions.expiresAt,
+      redeemedAt: rewardRedemptions.redeemedAt,
+      reward: loyaltyRewards,
+    })
+    .from(rewardRedemptions)
+    .innerJoin(loyaltyRewards, eq(rewardRedemptions.rewardId, loyaltyRewards.id))
+    .where(eq(rewardRedemptions.customerId, customerId))
+    .orderBy(desc(rewardRedemptions.redeemedAt));
+
+    return results as (RewardRedemption & { reward: LoyaltyReward })[];
+  }
+
+  async createAchievement(achievement: InsertAchievement): Promise<Achievement> {
+    const [newAchievement] = await db.insert(achievements).values(achievement).returning();
+    return newAchievement;
+  }
+
+  async createLoyaltyReward(reward: InsertLoyaltyReward): Promise<LoyaltyReward> {
+    const [newReward] = await db.insert(loyaltyRewards).values(reward).returning();
+    return newReward;
   }
 }
 
