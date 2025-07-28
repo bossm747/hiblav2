@@ -29,12 +29,12 @@ export function ProductDetailModal({ product, isOpen, onClose, onAddToCart, onAd
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-card border-white/20 neon-purple bg-background">
+      <DialogContent className="max-w-4xl glass-card border-white/20 neon-purple bg-background">
         <DialogHeader>
           <DialogTitle className="text-2xl text-foreground neon-text-purple">{product.name}</DialogTitle>
         </DialogHeader>
         
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 mt-4">
           {/* Product Image */}
           <div className="space-y-4">
             <div className="aspect-square relative overflow-hidden glass-card rounded-lg">

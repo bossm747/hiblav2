@@ -140,6 +140,21 @@ The architecture prioritizes developer experience with hot reloading, type safet
 
 ## Recent Changes
 
+### Modal UI Fixes & Form Positioning (Jan 28, 2025)
+- **Fixed Modal Positioning Issues**: Resolved annoying modal behavior where forms would shift to the sides when clicking
+  - Added comprehensive CSS fixes for Radix UI dialog components using `[data-radix-dialog-content]` selectors
+  - Implemented proper fixed positioning with `translate(-50%, -50%)` centering and `!important` declarations
+  - Fixed form field spacing and prevented content shifting with consistent width and position properties
+  - Added proper button positioning at modal bottom with sticky behavior and visual separation
+- **Enhanced Modal Stability**: All modals now maintain consistent positioning and layout
+  - Payment processing modal, admin payment methods, payment approvals, product details, and service modals all fixed
+  - Forms no longer move or shift when users click input fields or interact with modal content
+  - Improved user experience with stable, predictable modal behavior across the application
+- **Modal System Optimization**: Unified modal behavior with standardized CSS classes and proper responsive design
+  - Maximum height set to 85vh with proper overflow handling for long forms
+  - Consistent padding, borders, and shadow effects across all modal components
+  - Fixed backdrop blur effects and overlay positioning for better visual consistency
+
 ### Philippine Payment System Implementation (Jan 28, 2025)
 - **Simplified Payment Methods**: Implemented COD (Cash on Delivery) and GCash P2P transfer as primary payment options
   - Removed complex payment methods (Maya, Bank Transfer) per user request for simplicity

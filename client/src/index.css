@@ -741,3 +741,62 @@ html {
   backdrop-filter: blur(6px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* Fix modal positioning and prevent form shifting */
+[data-radix-dialog-overlay] {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 50 !important;
+  background-color: rgba(0, 0, 0, 0.80) !important;
+  backdrop-filter: blur(2px) !important;
+}
+
+[data-radix-dialog-content] {
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  z-index: 50 !important;
+  transform: translate(-50%, -50%) !important;
+  max-height: 85vh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: var(--radix-dialog-content-width, 32rem) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  background-color: hsl(var(--background)) !important;
+  padding: 1.5rem !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  border-radius: 0.5rem !important;
+}
+
+/* Prevent content shifting in modals */
+[data-radix-dialog-content] form {
+  position: relative !important;
+  width: 100% !important;
+}
+
+[data-radix-dialog-content] .space-y-4 > * + * {
+  margin-top: 1rem !important;
+}
+
+[data-radix-dialog-content] .grid {
+  display: grid !important;
+  gap: 1rem !important;
+}
+
+/* Fix form field spacing */
+[data-radix-dialog-content] [data-radix-form-field] {
+  width: 100% !important;
+  position: relative !important;
+}
+
+/* Ensure buttons stay at bottom */
+[data-radix-dialog-content] .flex.gap-3.pt-4,
+[data-radix-dialog-content] .flex.gap-3.pt-6,
+[data-radix-dialog-content] .flex.space-x-3.pt-4,
+[data-radix-dialog-content] .flex.space-x-3.pt-6 {
+  margin-top: 1.5rem !important;
+  border-top: 1px solid hsl(var(--border)) !important;
+  padding-top: 1rem !important;
+  background: hsl(var(--background)) !important;
+}
