@@ -402,7 +402,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const today = new Date();
       const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
       
-      const stats = await storage.getOrderStats(startOfToday);
+      const stats = await storage.getOrderStats();
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch order stats" });
@@ -491,7 +491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/orders/:id/status", async (req, res) => {
     try {
       const { status, paymentStatus, trackingNumber } = req.body;
-      const updates: Partial<InsertOrder> = {};
+      const updates: any = {};
       
       if (status) updates.status = status;
       if (paymentStatus) updates.paymentStatus = paymentStatus;
@@ -2005,6 +2005,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(recommendations);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch stylist recommendations" });
+    }
+  });
+
+  // Payment processing routes
+  app.post("/api/payments/process", async (req, res) => {
+    try {
+      const { orderId, paymentMethod, amount, referenceNumber, accountNumber, proofOfPayment, notes } = req.body;
+      
+      // Update order payment status based on method
+      let paymentStatus = "pending";
+      if (paymentMethod === "cod") {
+        paymentStatus = "pending_cod";
+      } else if (referenceNumber) {
+        paymentStatus = "pending_verification";
+      }
+
+      const updatedOrder = await storage.updateOrderStatus(orderId, {
+        paymentStatus,
+        ...(paymentMethod !== "cod" && { status: "processing" })
+      });
+
+      if (!updatedOrder) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      // Store payment details (you might want to create a payments table)
+      // For now, we'll add it to order notes
+      const paymentDetails = {
+        method: paymentMethod,
+        reference: referenceNumber,
+        account: accountNumber,
+        proof: proofOfPayment,
+        notes,
+        processedAt: new Date().toISOString()
+      };
+
+      await storage.updateOrder(orderId, {
+        notes: `Payment Details: ${JSON.stringify(paymentDetails)}`
+      });
+
+      res.json({ 
+        success: true, 
+        orderId,
+        message: "Payment processed successfully",
+        paymentStatus 
+      });
+    } catch (error: any) {
+      console.error("Payment processing error:", error);
+      res.status(500).json({ message: "Failed to process payment: " + error.message });
+    }
+  });
+
+  // Get payment status
+  app.get("/api/payments/status/:orderId", async (req, res) => {
+    try {
+      const order = await storage.getOrder(req.params.orderId);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      res.json({
+        orderId: order.id,
+        paymentStatus: order.paymentStatus,
+        status: order.status,
+        total: order.total
+      });
+    } catch (error: any) {
+      console.error("Get payment status error:", error);
+      res.status(500).json({ message: "Failed to get payment status: " + error.message });
     }
   });
 

@@ -57,17 +57,26 @@ export default function CheckoutPage() {
 
   const createOrderMutation = useMutation({
     mutationFn: async (orderData: CheckoutFormData) => {
-      return apiRequest("/api/orders", {
-        method: "POST",
-        body: orderData,
-      });
+      const response = await apiRequest("POST", "/api/orders", orderData);
+      return await response.json();
     },
     onSuccess: (data) => {
-      toast({
-        title: "Order Placed Successfully!",
-        description: `Your order #${data.orderNumber} has been placed.`,
-      });
-      setLocation(`/order-confirmation/${data.id}`);
+      // Store order data for payment processing
+      localStorage.setItem('pendingOrder', JSON.stringify(data));
+      
+      if (data.paymentMethod === 'cod') {
+        toast({
+          title: "Order Placed Successfully!",
+          description: `Your order #${data.orderNumber} has been placed.`,
+        });
+        setLocation(`/order-confirmation/${data.id}`);
+      } else {
+        toast({
+          title: "Order Created!",
+          description: "Please proceed with payment to confirm your order.",
+        });
+        setLocation(`/payment/${data.id}`);
+      }
     },
     onError: () => {
       toast({
