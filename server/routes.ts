@@ -2088,6 +2088,122 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Payment Methods Management
+  app.get("/api/admin/payment-methods", async (req, res) => {
+    try {
+      const methods = await storage.getPaymentMethods();
+      res.json(methods);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch payment methods" });
+    }
+  });
+
+  app.post("/api/admin/payment-methods", async (req, res) => {
+    try {
+      const method = await storage.createPaymentMethod(req.body);
+      res.json(method);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create payment method" });
+    }
+  });
+
+  app.put("/api/admin/payment-methods/:id", async (req, res) => {
+    try {
+      const method = await storage.updatePaymentMethod(req.params.id, req.body);
+      if (!method) {
+        return res.status(404).json({ message: "Payment method not found" });
+      }
+      res.json(method);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update payment method" });
+    }
+  });
+
+  app.delete("/api/admin/payment-methods/:id", async (req, res) => {
+    try {
+      const success = await storage.deletePaymentMethod(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Payment method not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete payment method" });
+    }
+  });
+
+  // Payment Proof Management
+  app.get("/api/admin/payment-proofs", async (req, res) => {
+    try {
+      const status = req.query.status as string;
+      const proofs = await storage.getPaymentProofs(status);
+      res.json(proofs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch payment proofs" });
+    }
+  });
+
+  app.post("/api/admin/payment-proofs/:id/approve", async (req, res) => {
+    try {
+      const { adminNotes } = req.body;
+      const proof = await storage.updatePaymentProofStatus(req.params.id, "approved", adminNotes, "admin-user");
+      
+      if (!proof) {
+        return res.status(404).json({ message: "Payment proof not found" });
+      }
+
+      // Update the order status to confirmed when payment is approved
+      await storage.updateOrderStatus(proof.orderId, {
+        paymentStatus: "confirmed",
+        status: "confirmed"
+      });
+
+      res.json(proof);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to approve payment" });
+    }
+  });
+
+  app.post("/api/admin/payment-proofs/:id/reject", async (req, res) => {
+    try {
+      const { adminNotes } = req.body;
+      const proof = await storage.updatePaymentProofStatus(req.params.id, "rejected", adminNotes, "admin-user");
+      
+      if (!proof) {
+        return res.status(404).json({ message: "Payment proof not found" });
+      }
+
+      // Update the order status when payment is rejected
+      await storage.updateOrderStatus(proof.orderId, {
+        paymentStatus: "rejected",
+        status: "payment_failed"
+      });
+
+      res.json(proof);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to reject payment" });
+    }
+  });
+
+  // Customer payment proof submission
+  app.post("/api/payment-proofs", async (req, res) => {
+    try {
+      const proof = await storage.createPaymentProof(req.body);
+      res.json(proof);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to submit payment proof" });
+    }
+  });
+
+  // Get active payment methods for checkout
+  app.get("/api/payment-methods/active", async (req, res) => {
+    try {
+      const methods = await storage.getActivePaymentMethods();
+      res.json(methods);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch payment methods" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

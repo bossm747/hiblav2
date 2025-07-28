@@ -189,6 +189,41 @@ export const inventoryTransactions = pgTable("inventory_transactions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Payment Methods Configuration
+export const paymentMethods = pgTable("payment_methods", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  type: text("type").notNull(), // gcash, cod, bank_transfer
+  isActive: boolean("is_active").default(true),
+  displayName: text("display_name").notNull(),
+  description: text("description"),
+  config: jsonb("config").$type<{
+    gcashNumber?: string;
+    gcashName?: string;
+    qrCodeUrl?: string;
+    instructions?: string[];
+  }>(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Payment Proofs/Screenshots
+export const paymentProofs = pgTable("payment_proofs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id").references(() => orders.id).notNull(),
+  customerId: varchar("customer_id").references(() => customers.id).notNull(),
+  paymentMethod: text("payment_method").notNull(),
+  referenceNumber: text("reference_number"),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  proofImageUrl: text("proof_image_url"),
+  customerNotes: text("customer_notes"),
+  status: text("status").default("pending"), // pending, approved, rejected
+  adminNotes: text("admin_notes"),
+  approvedBy: varchar("approved_by").references(() => staff.id),
+  approvedAt: timestamp("approved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Shop Settings
 export const shopSettings = pgTable("shop_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -609,6 +644,24 @@ export const insertEmailLeadSchema = createInsertSchema(emailLeads).omit({
 });
 
 export type InsertEmailLead = z.infer<typeof insertEmailLeadSchema>;
+
+// Payment Method Types
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
+export type InsertPaymentMethod = typeof paymentMethods.$inferInsert;
+export type PaymentProof = typeof paymentProofs.$inferSelect;
+export type InsertPaymentProof = typeof paymentProofs.$inferInsert;
+
+export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPaymentProofSchema = createInsertSchema(paymentProofs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
 // Salon/Spa Specific Tables
 

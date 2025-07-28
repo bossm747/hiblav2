@@ -50,6 +50,8 @@ import OrderConfirmationPage from "@/pages/order-confirmation";
 import AdminOrdersPage from "@/pages/admin/orders";
 import PaymentProcessingPage from "@/pages/payment-processing";
 import PaymentSuccessPage from "@/pages/payment-success";
+import AdminPaymentMethodsPage from "@/pages/admin/payment-methods";
+import AdminPaymentApprovalsPage from "@/pages/admin/payment-approvals";
 // import OrdersPage from "@/pages/orders"; // TODO: Create this page
 
 function App() {
@@ -114,6 +116,18 @@ function App() {
             <Route path="/admin/orders">
               <AuthGuard requiredRole="admin">
                 <AdminOrdersPage />
+              </AuthGuard>
+            </Route>
+
+            <Route path="/admin/payment-methods">
+              <AuthGuard requiredRole="admin">
+                <AdminPaymentMethodsPage />
+              </AuthGuard>
+            </Route>
+
+            <Route path="/admin/payment-approvals">
+              <AuthGuard requiredRole="admin">
+                <AdminPaymentApprovalsPage />
               </AuthGuard>
             </Route>
             

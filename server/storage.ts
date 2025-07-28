@@ -21,6 +21,8 @@ import {
   customerPreferences,
   stylistRecommendations,
   stylistReviews,
+  paymentMethods,
+  paymentProofs,
   type Customer,
   type InsertCustomer,
   type Category,
@@ -61,6 +63,10 @@ import {
   type InsertStylistRecommendation,
   type StylistReview,
   type InsertStylistReview,
+  type PaymentMethod,
+  type InsertPaymentMethod,
+  type PaymentProof,
+  type InsertPaymentProof,
 } from "@shared/schema";
 
 export interface IStorage {
@@ -205,6 +211,19 @@ export interface IStorage {
   getStylistReviews(stylistId: string): Promise<StylistReview[]>;
   createStylistReview(review: InsertStylistReview): Promise<StylistReview>;
   updateStylistRating(stylistId: string): Promise<void>;
+
+  // Payment Methods
+  createPaymentMethod(method: InsertPaymentMethod): Promise<PaymentMethod>;
+  getPaymentMethods(): Promise<PaymentMethod[]>;
+  getActivePaymentMethods(): Promise<PaymentMethod[]>;
+  updatePaymentMethod(id: string, updates: Partial<InsertPaymentMethod>): Promise<PaymentMethod | null>;
+  deletePaymentMethod(id: string): Promise<boolean>;
+
+  // Payment Proofs
+  createPaymentProof(proof: InsertPaymentProof): Promise<PaymentProof>;
+  getPaymentProofs(status?: string): Promise<PaymentProof[]>;
+  getPaymentProof(id: string): Promise<PaymentProof | null>;
+  updatePaymentProofStatus(id: string, status: string, adminNotes?: string, staffId?: string): Promise<PaymentProof | null>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -890,6 +909,71 @@ export class DatabaseStorage implements IStorage {
         })
         .where(eq(stylists.id, stylistId));
     }
+  }
+
+  // Payment method management
+  async createPaymentMethod(method: InsertPaymentMethod): Promise<PaymentMethod> {
+    const result = await db.insert(paymentMethods).values(method).returning();
+    return result[0];
+  }
+
+  async getPaymentMethods(): Promise<PaymentMethod[]> {
+    return await db.select().from(paymentMethods).orderBy(desc(paymentMethods.createdAt));
+  }
+
+  async getActivePaymentMethods(): Promise<PaymentMethod[]> {
+    return await db.select().from(paymentMethods)
+      .where(eq(paymentMethods.isActive, true))
+      .orderBy(desc(paymentMethods.createdAt));
+  }
+
+  async updatePaymentMethod(id: string, updates: Partial<InsertPaymentMethod>): Promise<PaymentMethod | null> {
+    const result = await db.update(paymentMethods)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(paymentMethods.id, id))
+      .returning();
+    return result[0] || null;
+  }
+
+  async deletePaymentMethod(id: string): Promise<boolean> {
+    const result = await db.delete(paymentMethods).where(eq(paymentMethods.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Payment proof management
+  async createPaymentProof(proof: InsertPaymentProof): Promise<PaymentProof> {
+    const result = await db.insert(paymentProofs).values(proof).returning();
+    return result[0];
+  }
+
+  async getPaymentProofs(status?: string): Promise<PaymentProof[]> {
+    let query = db.select().from(paymentProofs);
+    if (status) {
+      query = query.where(eq(paymentProofs.status, status));
+    }
+    return await query.orderBy(desc(paymentProofs.createdAt));
+  }
+
+  async getPaymentProof(id: string): Promise<PaymentProof | null> {
+    const result = await db.select().from(paymentProofs).where(eq(paymentProofs.id, id));
+    return result[0] || null;
+  }
+
+  async updatePaymentProofStatus(id: string, status: string, adminNotes?: string, staffId?: string): Promise<PaymentProof | null> {
+    const updates: any = { 
+      status, 
+      updatedAt: new Date() 
+    };
+    
+    if (adminNotes) updates.adminNotes = adminNotes;
+    if (staffId) updates.approvedBy = staffId;
+    if (status === 'approved') updates.approvedAt = new Date();
+
+    const result = await db.update(paymentProofs)
+      .set(updates)
+      .where(eq(paymentProofs.id, id))
+      .returning();
+    return result[0] || null;
   }
 }
 
