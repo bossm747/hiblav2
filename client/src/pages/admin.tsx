@@ -18,7 +18,8 @@ import {
   CreditCard,
   Sparkles,
   Menu,
-  X
+  X,
+  CheckCircle
 } from "lucide-react";
 import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 
@@ -120,6 +121,22 @@ export default function AdminPage() {
       href: "/staff-admin",
       color: "neon-red",
       bgColor: "bg-red-500/20",
+    },
+    {
+      title: "Payment Methods",
+      description: "Configure GCash numbers and payment options",
+      icon: CreditCard,
+      href: "/admin/payment-methods",
+      color: "neon-blue",
+      bgColor: "bg-blue-500/20",
+    },
+    {
+      title: "Payment Approvals",
+      description: "Review and approve customer payment proofs",
+      icon: CheckCircle,
+      href: "/admin/payment-approvals",
+      color: "neon-green",
+      bgColor: "bg-green-500/20",
     },
     {
       title: "Store Settings",

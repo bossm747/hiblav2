@@ -19,7 +19,8 @@ import {
   TrendingUp,
   DollarSign,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  CheckCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -102,6 +103,8 @@ export function RoleBasedSidebar({ isOpen, onClose, className }: RoleBasedSideba
       items: [
         { name: "Staff Management", href: "/staff", icon: Users, description: "Employee management" },
         { name: "Customer Management", href: "/clients", icon: User, description: "Customer database" },
+        { name: "Payment Methods", href: "/admin/payment-methods", icon: CreditCard, description: "Configure payment options" },
+        { name: "Payment Approvals", href: "/admin/payment-approvals", icon: CheckCircle, description: "Review payment proofs" },
         { name: "AI Image Generator", href: "/ai-images", icon: Sparkles, description: "Generate product photos" },
         { name: "Settings", href: "/settings", icon: Settings, description: "System configuration" },
       ]
