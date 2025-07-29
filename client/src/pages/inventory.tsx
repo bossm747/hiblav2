@@ -53,16 +53,21 @@ export default function InventoryPage() {
         title: "Success",
         description: "Inventory adjusted successfully"
       });
+      // Force refresh all relevant queries
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       queryClient.invalidateQueries({ queryKey: ["/api/inventory/low-stock"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/inventory/transactions"] });
+      if (selectedProduct) {
+        queryClient.invalidateQueries({ queryKey: ["/api/inventory/transactions", selectedProduct.id] });
+      }
       setAdjustmentQuantity("");
       setAdjustmentReason("");
+      setAdjustmentType("purchase");
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Inventory adjustment error:", error);
       toast({
         title: "Error",
-        description: "Failed to adjust inventory",
+        description: error?.message || "Failed to adjust inventory",
         variant: "destructive"
       });
     }
