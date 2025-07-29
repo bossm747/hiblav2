@@ -1,4 +1,5 @@
 import { useState } from "react";
+import * as React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -62,6 +63,13 @@ export default function ProductManagement() {
   const { data: categories } = useQuery({
     queryKey: ["/api/categories"],
   });
+
+  // Set default category when categories are loaded
+  React.useEffect(() => {
+    if (categories && categories.length > 0 && !formData.categoryId) {
+      setFormData(prev => ({ ...prev, categoryId: categories[0].id }));
+    }
+  }, [categories, formData.categoryId]);
 
   const createProductMutation = useMutation({
     mutationFn: async (productData: Partial<Product>) => {
@@ -176,6 +184,7 @@ export default function ProductManagement() {
   });
 
   const resetForm = () => {
+    const defaultCategoryId = categories && categories.length > 0 ? categories[0].id : "";
     setFormData({
       name: "",
       description: "",
@@ -187,7 +196,7 @@ export default function ProductManagement() {
       weight: 100,
       stock: 0,
       images: [],
-      categoryId: ""
+      categoryId: defaultCategoryId
     });
     setSelectedProduct(null);
     setIsEditing(false);
