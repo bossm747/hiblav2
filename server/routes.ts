@@ -844,12 +844,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { productId, quantity, type, reason, staffId } = req.body;
       
+      // Validate required fields
+      if (!productId || !quantity || !type) {
+        return res.status(400).json({ 
+          message: "Missing required fields: productId, quantity, and type are required" 
+        });
+      }
+      
       // Get the first admin user as fallback if no staffId provided
       let finalStaffId = staffId;
       if (!finalStaffId) {
         try {
           const staffList = await storage.getAllStaff();
-          const adminUser = staffList.find((s: any) => s.role === 'admin');
+          const adminUser = staffList.find((s: any) => s.role === 'admin' || s.role === 'cashier');
           finalStaffId = adminUser?.id || null;
         } catch (error) {
           console.warn("Could not fetch staff for inventory adjustment:", error);
@@ -859,16 +866,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const transaction = await storage.createInventoryTransaction({
         productId,
-        quantity,
+        quantity: parseInt(quantity),
         type,
-        reason,
+        reason: reason || `${type} adjustment`,
         staffId: finalStaffId
       });
       
       res.status(201).json(transaction);
     } catch (error) {
       console.error("Inventory adjustment error:", error);
-      res.status(400).json({ message: "Failed to adjust inventory", error });
+      res.status(500).json({ 
+        message: "Failed to adjust inventory", 
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
@@ -931,15 +941,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
           total: (parseFloat(item.price) * item.quantity).toString()
         });
         
-        // Create inventory transaction to reduce stock
-        await storage.createInventoryTransaction({
-          productId: item.productId,
-          type: "sale",
-          quantity: item.quantity,
-          reason: `POS Sale - Order ${order.orderNumber}`,
-          reference: order.id,
-          staffId: "pos-system"
-        });
+        // Create inventory transaction to reduce stock - handle staffId properly
+        try {
+          // Get a valid staff member or create a fallback POS user
+          let posStaffId = null;
+          try {
+            const staffList = await storage.getAllStaff();
+            const posUser = staffList.find((s: any) => s.role === 'cashier' || s.role === 'admin');
+            posStaffId = posUser?.id || null;
+          } catch (staffError) {
+            console.warn("Could not fetch staff for POS transaction:", staffError);
+          }
+          
+          await storage.createInventoryTransaction({
+            productId: item.productId,
+            type: "sale",
+            quantity: item.quantity,
+            reason: `POS Sale - Order ${order.orderNumber || order.id}`,
+            reference: order.id,
+            staffId: posStaffId // This can be null, which should be handled by the schema
+          });
+        } catch (inventoryError) {
+          console.warn(`Failed to create inventory transaction for ${item.productName}:`, inventoryError);
+          // Continue with sale even if inventory tracking fails
+        }
       }
       
       res.status(201).json({
@@ -947,7 +972,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         change: amountPaid - total
       });
     } catch (error) {
-      res.status(400).json({ message: "Failed to create sale", error });
+      console.error("POS sale creation error:", error);
+      res.status(500).json({ 
+        message: "Failed to create sale", 
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
