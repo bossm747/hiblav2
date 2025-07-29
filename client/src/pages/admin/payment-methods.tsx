@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Navbar } from "@/components/navbar";
 
 const paymentMethodSchema = z.object({
-  type: z.enum(["gcash", "cod"]),
+  type: z.enum(["gcash", "cod", "nexuspay"]),
   displayName: z.string().min(1, "Display name is required"),
   description: z.string().optional(),
   isActive: z.boolean().default(true),
@@ -26,6 +26,11 @@ const paymentMethodSchema = z.object({
     gcashName: z.string().optional(),
     qrCodeUrl: z.string().optional(),
     instructions: z.array(z.string()).optional(),
+    nexusPayEnabled: z.boolean().optional(),
+    nexusPayCredentials: z.object({
+      username: z.string().optional(),
+      password: z.string().optional(),
+    }).optional(),
   }).optional(),
 });
 

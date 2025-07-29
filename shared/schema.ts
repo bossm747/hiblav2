@@ -203,6 +203,11 @@ export const paymentMethods = pgTable("payment_methods", {
     gcashName?: string;
     qrCodeUrl?: string;
     instructions?: string[];
+    nexusPayEnabled?: boolean;
+    nexusPayCredentials?: {
+      username?: string;
+      password?: string;
+    };
   }>(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -842,6 +847,36 @@ export const insertPaymentProofSchema = createInsertSchema(paymentProofs).omit({
   createdAt: true,
   updatedAt: true,
 });
+
+export type InsertPaymentMethodType = z.infer<typeof insertPaymentMethodSchema>;
+export type InsertPaymentProofType = z.infer<typeof insertPaymentProofSchema>;
+
+// NexusPay transactions table
+export const nexusPayTransactions = pgTable("nexuspay_transactions", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: text("order_id").notNull(),
+  transactionId: text("transaction_id"), // NexusPay transaction ID
+  type: text("type").notNull(), // 'cash_in', 'cash_out', 'refund'
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  currency: text("currency").default('PHP'),
+  status: text("status").default('pending'), // 'pending', 'completed', 'failed', 'cancelled'
+  reference: text("reference").notNull(),
+  description: text("description"),
+  nexusPayResponse: jsonb("nexuspay_response"), // Store full NexusPay API response
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+export type NexusPayTransaction = typeof nexusPayTransactions.$inferSelect;
+export type InsertNexusPayTransaction = typeof nexusPayTransactions.$inferInsert;
+
+export const insertNexusPayTransactionSchema = createInsertSchema(nexusPayTransactions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertNexusPayTransactionType = z.infer<typeof insertNexusPayTransactionSchema>;
 
 // Salon/Spa Specific Tables
 

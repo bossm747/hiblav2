@@ -1414,6 +1414,41 @@ export class DatabaseStorage implements IStorage {
     const [newReward] = await db.insert(loyaltyRewards).values([reward]).returning();
     return newReward;
   }
+
+  // NexusPay transaction management
+  async createNexusPayTransaction(transaction: any): Promise<any> {
+    const result = await db.insert(nexusPayTransactions).values([transaction]).returning();
+    return result[0];
+  }
+
+  async getNexusPayTransactions(orderId?: string): Promise<any[]> {
+    let query = db.select().from(nexusPayTransactions);
+    if (orderId) {
+      query = query.where(eq(nexusPayTransactions.orderId, orderId)) as any;
+    }
+    return await query.orderBy(desc(nexusPayTransactions.createdAt));
+  }
+
+  async getNexusPayTransaction(id: string): Promise<any | null> {
+    const result = await db.select().from(nexusPayTransactions).where(eq(nexusPayTransactions.id, id));
+    return result[0] || null;
+  }
+
+  async updateNexusPayTransaction(id: string, updates: any): Promise<any | null> {
+    const result = await db.update(nexusPayTransactions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(nexusPayTransactions.id, id))
+      .returning();
+    return result[0] || null;
+  }
+
+  async updateNexusPayTransactionByOrderId(orderId: string, updates: any): Promise<any | null> {
+    const result = await db.update(nexusPayTransactions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(nexusPayTransactions.orderId, orderId))
+      .returning();
+    return result[0] || null;
+  }
 }
 
 export const storage = new DatabaseStorage();

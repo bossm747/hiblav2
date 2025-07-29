@@ -2179,6 +2179,189 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // NexusPay Integration Routes
+  app.post("/api/nexuspay/cash-in", async (req, res) => {
+    try {
+      const { orderId, amount, description } = req.body;
+
+      if (!orderId || !amount) {
+        return res.status(400).json({ message: "Order ID and amount are required" });
+      }
+
+      // Get order to verify it exists
+      const order = await storage.getOrder(orderId);
+      if (!order) {
+        return res.status(404).json({ message: "Order not found" });
+      }
+
+      // Create NexusPay transaction record
+      const transaction = await storage.createNexusPayTransaction({
+        orderId,
+        type: 'cash_in',
+        amount: amount.toString(),
+        currency: 'PHP',
+        reference: orderId,
+        description: description || `Payment for order ${orderId}`,
+        status: 'pending'
+      });
+
+      // Initialize NexusPay service
+      const { createNexusPayService } = await import('./nexuspay-service');
+      const nexusPayService = createNexusPayService();
+
+      // Process payment through NexusPay
+      const result = await nexusPayService.cashIn({
+        amount: parseFloat(amount),
+        reference: orderId,
+        description: description || `Payment for order ${orderId}`
+      });
+
+      // Update transaction with NexusPay response
+      await storage.updateNexusPayTransaction(transaction.id, {
+        transactionId: result.transactionId,
+        status: result.success ? 'completed' : 'failed',
+        nexusPayResponse: JSON.stringify(result)
+      });
+
+      if (result.success) {
+        // Update order payment status
+        await storage.updateOrderStatus(orderId, {
+          paymentStatus: 'paid',
+          status: 'confirmed'
+        });
+
+        res.json({
+          success: true,
+          transactionId: result.transactionId,
+          message: 'Payment processed successfully',
+          orderId
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.error || 'Payment processing failed',
+          orderId
+        });
+      }
+    } catch (error: any) {
+      console.error("NexusPay Cash In Error:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to process payment: " + error.message 
+      });
+    }
+  });
+
+  app.post("/api/nexuspay/cash-out", async (req, res) => {
+    try {
+      const { orderId, amount, recipientAccount, description } = req.body;
+
+      if (!orderId || !amount || !recipientAccount) {
+        return res.status(400).json({ message: "Order ID, amount, and recipient account are required" });
+      }
+
+      // Create NexusPay transaction record
+      const transaction = await storage.createNexusPayTransaction({
+        orderId,
+        type: 'cash_out',
+        amount: amount.toString(),
+        currency: 'PHP',
+        reference: orderId,
+        description: description || `Refund for order ${orderId}`,
+        status: 'pending'
+      });
+
+      // Initialize NexusPay service
+      const { createNexusPayService } = await import('./nexuspay-service');
+      const nexusPayService = createNexusPayService();
+
+      // Process refund through NexusPay
+      const result = await nexusPayService.cashOut({
+        amount: parseFloat(amount),
+        reference: orderId,
+        recipientAccount,
+        description: description || `Refund for order ${orderId}`
+      });
+
+      // Update transaction with NexusPay response
+      await storage.updateNexusPayTransaction(transaction.id, {
+        transactionId: result.transactionId,
+        status: result.success ? 'completed' : 'failed',
+        nexusPayResponse: JSON.stringify(result)
+      });
+
+      if (result.success) {
+        res.json({
+          success: true,
+          transactionId: result.transactionId,
+          message: 'Refund processed successfully',
+          orderId
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          message: result.error || 'Refund processing failed',
+          orderId
+        });
+      }
+    } catch (error: any) {
+      console.error("NexusPay Cash Out Error:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to process refund: " + error.message 
+      });
+    }
+  });
+
+  app.get("/api/nexuspay/transactions/:orderId", async (req, res) => {
+    try {
+      const { orderId } = req.params;
+      const transactions = await storage.getNexusPayTransactions(orderId);
+      res.json(transactions);
+    } catch (error: any) {
+      console.error("Get NexusPay transactions error:", error);
+      res.status(500).json({ message: "Failed to get transactions: " + error.message });
+    }
+  });
+
+  app.get("/api/nexuspay/status/:transactionId", async (req, res) => {
+    try {
+      const { transactionId } = req.params;
+      
+      // Initialize NexusPay service
+      const { createNexusPayService } = await import('./nexuspay-service');
+      const nexusPayService = createNexusPayService();
+
+      // Get transaction status from NexusPay
+      const result = await nexusPayService.getTransactionStatus(transactionId);
+
+      res.json(result);
+    } catch (error: any) {
+      console.error("Get NexusPay status error:", error);
+      res.status(500).json({ message: "Failed to get transaction status: " + error.message });
+    }
+  });
+
+  app.get("/api/nexuspay/balance", async (req, res) => {
+    try {
+      // Initialize NexusPay service
+      const { createNexusPayService } = await import('./nexuspay-service');
+      const nexusPayService = createNexusPayService();
+
+      // Get wallet balance
+      const balance = await nexusPayService.getBalance();
+
+      if (balance) {
+        res.json(balance);
+      } else {
+        res.status(503).json({ message: "Unable to retrieve balance at this time" });
+      }
+    } catch (error: any) {
+      console.error("Get NexusPay balance error:", error);
+      res.status(500).json({ message: "Failed to get balance: " + error.message });
+    }
+  });
+
   // Admin Payment Methods Management
   app.get("/api/admin/payment-methods", async (req, res) => {
     try {

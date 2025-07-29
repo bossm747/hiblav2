@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,7 +64,7 @@ export default function ProductManagement() {
   });
 
   // Set default category when categories are loaded
-  React.useEffect(() => {
+  useEffect(() => {
     if (categories && categories.length > 0 && !formData.categoryId) {
       setFormData(prev => ({ ...prev, categoryId: categories[0].id }));
     }
