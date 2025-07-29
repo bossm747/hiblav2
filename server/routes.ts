@@ -1755,6 +1755,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       res.json(defaultAISettings);
+      
     } catch (error) {
       console.error('AI Settings Fetch Error:', error);
       res.status(500).json({ 
@@ -1773,8 +1774,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const products = await storage.getProducts();
 
       // Calculate basic e-commerce stats
-      const todayOrders```text
- = orders.filter(order => 
+      const todayOrders = orders.filter(order => 
         order.createdAt && order.createdAt.toISOString().startsWith(today)
       );
 
@@ -2620,8 +2620,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/achievements", async (req, res) => {
     try {
-      const achievementData = insertAchievementSchema```text
-.parse(req.body);
+      const achievementData = insertAchievementSchema.parse(req.body);
       const achievement = await storage.createAchievement(achievementData);
       res.status(201).json(achievement);
     } catch (error) {

@@ -69,7 +69,7 @@ export function Navbar() {
             {navigation.map((item) => {
               // Skip auth-required items if user is not logged in
               if (item.requiresAuth && !isLoggedIn) return null;
-              
+
               return (
                 <Link
                   key={item.name}
@@ -82,7 +82,7 @@ export function Navbar() {
                 </Link>
               );
             })}
-            
+
             {/* Staff Navigation - Only for admin/cashier */}
             {isLoggedIn && (user?.role === "admin" || user?.role === "cashier") && (
               <>
@@ -90,7 +90,7 @@ export function Navbar() {
                 {staffNavigation.map((item) => {
                   // Skip admin-only items for non-admin users
                   if (item.adminOnly && user?.role !== "admin") return null;
-                  
+
                   return (
                     <Link
                       key={item.name}
