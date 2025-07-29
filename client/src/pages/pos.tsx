@@ -14,6 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { ShoppingCart, Trash2, CreditCard, DollarSign, Receipt, Search, Package2, Barcode as BarcodeIcon, Eye } from "lucide-react";
 import Barcode from 'react-barcode';
 import { ProductDetailModal } from "@/components/product-detail-modal";
+import ThermalReceipt from "@/components/thermal-receipt";
 import type { Product } from "@shared/schema";
 
 interface CartItem {
@@ -35,6 +36,8 @@ export default function POSPage() {
   const [showProductModal, setShowProductModal] = useState(false);
   const [showBarcodeDialog, setShowBarcodeDialog] = useState(false);
   const [selectedBarcode, setSelectedBarcode] = useState<{ product: Product; value: string } | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [lastSale, setLastSale] = useState<any>(null);
 
   // Fetch all products
   const { data: products = [], isLoading } = useQuery<Product[]>({
@@ -73,6 +76,29 @@ export default function POSPage() {
       return response.json();
     },
     onSuccess: (data: { order: any; change: number }) => {
+      // Prepare receipt data
+      const receiptData = {
+        id: data.order.id,
+        items: cart.map(item => ({
+          id: item.productId,
+          name: item.productName,
+          quantity: item.quantity,
+          price: parseFloat(item.price),
+          total: parseFloat(item.price) * item.quantity
+        })),
+        subtotal: subtotal,
+        tax: tax,
+        total: total,
+        paymentMethod: paymentMethod.toUpperCase(),
+        amountPaid: parseFloat(amountPaid),
+        change: data.change,
+        createdAt: new Date().toISOString(),
+        cashier: "POS Operator"
+      };
+      
+      setLastSale(receiptData);
+      setShowReceipt(true);
+      
       toast({
         title: "Sale Complete!",
         description: `Change: ₱${data.change.toFixed(2)}`
@@ -475,6 +501,43 @@ export default function POSPage() {
           setSelectedProduct(null);
         }}
         onAddToCart={addToCart}
+      />
+
+      {/* Barcode Dialog */}
+      <Dialog open={showBarcodeDialog} onOpenChange={setShowBarcodeDialog}>
+        <DialogContent className="max-w-md glass-card border-white/20 neon-purple bg-background">
+          <DialogHeader>
+            <DialogTitle className="text-foreground neon-text-purple">Product Barcode</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {selectedBarcode?.product.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedBarcode && (
+            <div className="flex flex-col items-center space-y-4">
+              <div className="bg-white p-4 rounded">
+                <Barcode
+                  value={selectedBarcode.value}
+                  width={2}
+                  height={80}
+                  fontSize={14}
+                  background="#ffffff"
+                  lineColor="#000000"
+                />
+              </div>
+              <p className="text-sm text-muted-foreground text-center">
+                SKU: {selectedBarcode.product.sku || 'N/A'}
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Thermal Receipt Modal */}
+      <ThermalReceipt
+        open={showReceipt}
+        onOpenChange={setShowReceipt}
+        receiptData={lastSale}
       />
       </div>
     </div>
