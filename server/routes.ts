@@ -844,16 +844,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { productId, quantity, type, reason, staffId } = req.body;
       
+      // Get the first admin user as fallback if no staffId provided
+      let finalStaffId = staffId;
+      if (!finalStaffId) {
+        try {
+          const staffList = await storage.getStaff();
+          const adminUser = staffList.find((s: any) => s.role === 'admin');
+          finalStaffId = adminUser?.id || null;
+        } catch (error) {
+          console.warn("Could not fetch staff for inventory adjustment:", error);
+          finalStaffId = null;
+        }
+      }
+      
       const transaction = await storage.createInventoryTransaction({
         productId,
         quantity,
         type,
         reason,
-        staffId: staffId || "system"
+        staffId: finalStaffId
       });
       
       res.status(201).json(transaction);
     } catch (error) {
+      console.error("Inventory adjustment error:", error);
       res.status(400).json({ message: "Failed to adjust inventory", error });
     }
   });
