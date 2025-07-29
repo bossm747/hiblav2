@@ -288,8 +288,8 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(customers).orderBy(desc(customers.createdAt));
   }
 
-  async createCustomer(customer: InsertCustomer): Promise<Customer> {
-    const [newCustomer] = await db.insert(customers).values(customer).returning();
+  async createCustomer(customer: InsertCustomer & { id?: string }): Promise<Customer> {
+    const [newCustomer] = await db.insert(customers).values(customer as any).returning();
     return newCustomer;
   }
 

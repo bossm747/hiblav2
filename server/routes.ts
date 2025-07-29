@@ -909,6 +909,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Ensure walk-in customer exists
+      let finalCustomerId = customerId || "walk-in-customer";
+      if (finalCustomerId === "walk-in-customer") {
+        try {
+          const existingCustomer = await storage.getCustomer("walk-in-customer");
+          if (!existingCustomer) {
+            // Create walk-in customer
+            await storage.createCustomer({
+              id: "walk-in-customer",
+              name: "Walk-in Customer",
+              email: "walkin@pos.local",
+              password: "pos-system",
+              status: "active"
+            });
+          }
+        } catch (error) {
+          console.warn("Walk-in customer creation failed, using demo customer");
+          finalCustomerId = "demo-customer-1";
+        }
+      }
+      
       // Calculate totals
       const subtotal = items.reduce((sum: number, item: any) => 
         sum + (parseFloat(item.price) * item.quantity), 0
@@ -918,7 +939,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create the order
       const order = await storage.createOrder({
-        customerId: customerId || "walk-in-customer",
+        customerId: finalCustomerId,
         status: "completed",
         paymentStatus: "paid",
         paymentMethod,
