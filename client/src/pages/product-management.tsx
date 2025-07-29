@@ -1,5 +1,4 @@
-import { useState } from "react";
-import * as React from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +22,7 @@ interface Product {
   color: string;
   length: number;
   weight?: number;
-  stock: number;
+  currentStock: number;
   images: string[];
   featuredImage?: string;
   categoryId: string;
@@ -48,7 +47,7 @@ export default function ProductManagement() {
     color: "",
     length: 12,
     weight: 100,
-    stock: 0,
+    currentStock: 0,
     images: [],
     categoryId: ""
   });
@@ -79,9 +78,8 @@ export default function ProductManagement() {
         price: productData.price?.toString() || "0",
         weight: productData.weight?.toString() || "100",
         length: productData.length || 18,
-        currentStock: productData.stock || 0
+        currentStock: productData.currentStock || 0
       };
-      delete cleanData.stock; // Remove the old field name
       
       const response = await fetch("/api/products", {
         method: "POST",
@@ -121,9 +119,8 @@ export default function ProductManagement() {
         price: productData.price?.toString(),
         weight: productData.weight?.toString(),
         length: productData.length,
-        currentStock: productData.stock
+        currentStock: productData.currentStock
       };
-      delete cleanData.stock; // Remove the old field name
       
       const response = await fetch(`/api/products/${id}`, {
         method: "PUT",
@@ -194,7 +191,7 @@ export default function ProductManagement() {
       color: "",
       length: 12,
       weight: 100,
-      stock: 0,
+      currentStock: 0,
       images: [],
       categoryId: defaultCategoryId
     });
@@ -315,12 +312,12 @@ export default function ProductManagement() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="stock">Stock</Label>
+                    <Label htmlFor="currentStock">Stock</Label>
                     <Input
-                      id="stock"
+                      id="currentStock"
                       type="number"
-                      value={formData.stock || ""}
-                      onChange={(e) => setFormData(prev => ({ ...prev, stock: parseInt(e.target.value) || 0 }))}
+                      value={formData.currentStock || ""}
+                      onChange={(e) => setFormData(prev => ({ ...prev, currentStock: parseInt(e.target.value) || 0 }))}
                       className="glass"
                     />
                   </div>
@@ -506,7 +503,7 @@ export default function ProductManagement() {
                       </Badge>
                     </div>
                     <p className="text-lg font-bold text-purple-400">₱{product.price.toLocaleString()}</p>
-                    <p className="text-sm text-muted-foreground">Stock: {product.stock}</p>
+                    <p className="text-sm text-muted-foreground">Stock: {product.currentStock}</p>
                   </div>
                 </CardHeader>
                 
