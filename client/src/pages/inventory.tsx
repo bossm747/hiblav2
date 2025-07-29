@@ -46,8 +46,9 @@ export default function InventoryPage() {
 
   // Inventory adjustment mutation
   const adjustInventoryMutation = useMutation({
-    mutationFn: (data: { productId: string; quantity: number; type: string; reason: string }) =>
-      apiRequest("/api/inventory/adjust", "POST", data),
+    mutationFn: async (data: { productId: string; quantity: number; type: string; reason: string }) => {
+      return await apiRequest("POST", "/api/inventory/adjust", data);
+    },
     onSuccess: () => {
       toast({
         title: "Success",
