@@ -138,50 +138,50 @@ export interface IStorage {
   updateOrderStatus(id: string, update: { status?: string; paymentStatus?: string; trackingNumber?: string }): Promise<Order | undefined>;
   getOrderStats(): Promise<{ totalOrders: number; totalRevenue: number; pendingOrders: number; shippedOrders: number }>;
   getRecentOrders(limit: number): Promise<Order[]>;
-  
+
   // Order Items
   getOrderItems(orderId: string): Promise<OrderItem[]>;
   createOrderItem(item: InsertOrderItem): Promise<OrderItem>;
-  
+
   // Cart
   getCartItems(customerId: string): Promise<(Cart & { product: Product })[]>;
   addToCart(item: InsertCart): Promise<Cart>;
   updateCartItem(id: string, quantity: number): Promise<Cart | undefined>;
   removeFromCart(id: string): Promise<boolean>;
   clearCart(customerId: string): Promise<boolean>;
-  
+
   // Wishlist
   getWishlistItems(customerId: string): Promise<Wishlist[]>;
   addToWishlist(item: InsertWishlist): Promise<Wishlist>;
   removeFromWishlist(id: string): Promise<boolean>;
-  
+
   // Reviews
   getProductReviews(productId: string): Promise<Review[]>;
   createReview(review: InsertReview): Promise<Review>;
-  
+
   // Inventory
   getInventoryTransactions(): Promise<InventoryTransaction[]>;
   createInventoryTransaction(transaction: InsertInventoryTransaction): Promise<InventoryTransaction>;
-  
+
   // Shop Settings
   getShopSettings(): Promise<ShopSettings | undefined>;
   updateShopSettings(settings: Partial<InsertShopSettings>): Promise<ShopSettings>;
-  
+
   // Additional Inventory Management
   getLowStockProducts(): Promise<Product[]>;
   getProductInventoryTransactions(productId: string): Promise<InventoryTransaction[]>;
   getInventoryTransactionsByProduct(productId: string): Promise<InventoryTransaction[]>;
-  
+
   // POS Operations
   getDailySales(date: string): Promise<Order[]>;
-  
+
   // Salon/Spa Clients
   getClient(id: string): Promise<Client | undefined>;
   getClients(): Promise<Client[]>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<InsertClient>): Promise<Client | undefined>;
   deleteClient(id: string): Promise<boolean>;
-  
+
   // Services
   getService(id: string): Promise<Service | undefined>;
   getServices(): Promise<Service[]>;
@@ -189,7 +189,7 @@ export interface IStorage {
   createService(service: InsertService): Promise<Service>;
   updateService(id: string, service: Partial<InsertService>): Promise<Service | undefined>;
   deleteService(id: string): Promise<boolean>;
-  
+
   // Appointments
   getAppointment(id: string): Promise<Appointment | undefined>;
   getAppointments(): Promise<Appointment[]>;
@@ -199,7 +199,7 @@ export interface IStorage {
   createAppointment(appointment: InsertAppointment): Promise<Appointment>;
   updateAppointment(id: string, appointment: Partial<InsertAppointment>): Promise<Appointment | undefined>;
   deleteAppointment(id: string): Promise<boolean>;
-  
+
   // Staff Schedules
   getStaffSchedule(id: string): Promise<StaffSchedule | undefined>;
   getStaffSchedules(): Promise<StaffSchedule[]>;
@@ -435,26 +435,26 @@ export class DatabaseStorage implements IStorage {
 
   async getOrders(filters?: { status?: string; customerId?: string; limit?: number }): Promise<Order[]> {
     const whereConditions = [];
-    
+
     if (filters?.status) {
       whereConditions.push(eq(orders.status, filters.status));
     }
     if (filters?.customerId) {
       whereConditions.push(eq(orders.customerId, filters.customerId));
     }
-    
+
     let query = db.select().from(orders);
-    
+
     if (whereConditions.length > 0) {
       query = query.where(and(...whereConditions)) as any;
     }
-    
+
     query = query.orderBy(desc(orders.createdAt)) as any;
-    
+
     if (filters?.limit) {
       query = query.limit(filters.limit) as any;
     }
-    
+
     return await query;
   }
 
@@ -465,14 +465,14 @@ export class DatabaseStorage implements IStorage {
   async createOrder(order: InsertOrder): Promise<Order> {
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
     const [newOrder] = await db.insert(orders).values({ ...order, orderNumber }).returning();
-    
+
     // Update customer stats
     await db.update(customers).set({
       totalOrders: sql`${customers.totalOrders} + 1`,
       totalSpent: sql`${customers.totalSpent} + ${order.total}`,
       lastOrder: new Date()
     }).where(eq(customers.id, order.customerId));
-    
+
     return newOrder;
   }
 
@@ -496,7 +496,7 @@ export class DatabaseStorage implements IStorage {
       pendingOrders: sql<number>`sum(case when ${orders.status} = 'pending' then 1 else 0 end)`.as('pendingOrders'),
       shippedOrders: sql<number>`sum(case when ${orders.status} = 'shipped' then 1 else 0 end)`.as('shippedOrders')
     }).from(orders);
-    
+
     return {
       totalOrders: stats.totalOrders || 0,
       totalRevenue: stats.totalRevenue || 0,
@@ -516,13 +516,13 @@ export class DatabaseStorage implements IStorage {
 
   async createOrderItem(item: InsertOrderItem): Promise<OrderItem> {
     const [newItem] = await db.insert(orderItems).values(item).returning();
-    
+
     // Update product sold count and stock
     await db.update(products).set({
       soldCount: sql`${products.soldCount} + ${item.quantity}`,
       currentStock: sql`${products.currentStock} - ${item.quantity}`
     }).where(eq(products.id, item.productId));
-    
+
     return newItem;
   }
 
@@ -548,7 +548,7 @@ export class DatabaseStorage implements IStorage {
     const [existing] = await db.select().from(cart).where(
       and(eq(cart.customerId, item.customerId), eq(cart.productId, item.productId))
     );
-    
+
     if (existing) {
       // Update quantity
       const [updated] = await db.update(cart).set({
@@ -557,7 +557,7 @@ export class DatabaseStorage implements IStorage {
       }).where(eq(cart.id, existing.id)).returning();
       return updated;
     }
-    
+
     const [newItem] = await db.insert(cart).values(item).returning();
     return newItem;
   }
@@ -609,7 +609,7 @@ export class DatabaseStorage implements IStorage {
 
   async createInventoryTransaction(transaction: InsertInventoryTransaction): Promise<InventoryTransaction> {
     const [newTransaction] = await db.insert(inventoryTransactions).values(transaction).returning();
-    
+
     // Update product stock based on transaction type
     if (transaction.type === 'purchase' || transaction.type === 'return') {
       await db.update(products).set({
@@ -620,7 +620,7 @@ export class DatabaseStorage implements IStorage {
         currentStock: sql`${products.currentStock} - ${transaction.quantity}`
       }).where(eq(products.id, transaction.productId));
     }
-    
+
     return newTransaction;
   }
 
@@ -632,7 +632,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateShopSettings(settings: Partial<InsertShopSettings>): Promise<ShopSettings> {
     const existing = await this.getShopSettings();
-    
+
     if (existing) {
       const updateData: any = { 
         ...settings,
@@ -774,14 +774,14 @@ export class DatabaseStorage implements IStorage {
 
   async createAppointment(appointment: InsertAppointment): Promise<Appointment> {
     const [newAppointment] = await db.insert(appointments).values(appointment).returning();
-    
+
     // Update client stats
     await db.update(clients).set({
       totalVisits: sql`${clients.totalVisits} + 1`,
       totalSpent: sql`${clients.totalSpent} + ${appointment.totalAmount}`,
       lastVisit: new Date()
     }).where(eq(clients.id, appointment.clientId));
-    
+
     return newAppointment;
   }
 
@@ -940,10 +940,10 @@ export class DatabaseStorage implements IStorage {
 
   async createStylistReview(review: InsertStylistReview): Promise<StylistReview> {
     const [newReview] = await db.insert(stylistReviews).values(review).returning();
-    
+
     // Update stylist rating after creating review
     await this.updateStylistRating(review.stylistId);
-    
+
     return newReview;
   }
 
@@ -956,7 +956,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(stylistReviews.stylistId, stylistId));
 
     const { avgRating, totalReviews } = result[0];
-    
+
     if (avgRating && totalReviews) {
       await db.update(stylists)
         .set({
@@ -1021,7 +1021,7 @@ export class DatabaseStorage implements IStorage {
       status, 
       updatedAt: new Date() 
     };
-    
+
     if (adminNotes) updates.adminNotes = adminNotes;
     if (staffId) updates.approvedBy = staffId;
     if (status === 'approved') updates.approvedAt = new Date();
@@ -1325,25 +1325,25 @@ export class DatabaseStorage implements IStorage {
   async getLoyaltyRewards(isActive?: boolean, tierRequirement?: string): Promise<LoyaltyReward[]> {
     let query = db.select().from(loyaltyRewards);
     const conditions = [];
-    
+
     if (isActive !== undefined) {
       conditions.push(eq(loyaltyRewards.isActive, isActive));
     }
     if (tierRequirement) {
       conditions.push(eq(loyaltyRewards.tierRequirement, tierRequirement));
     }
-    
+
     if (conditions.length > 0) {
       query = query.where(and(...conditions)) as any;
     }
-    
+
     return await query.orderBy(loyaltyRewards.pointsCost);
   }
 
   async redeemLoyaltyReward(customerId: string, rewardId: string): Promise<RewardRedemption> {
     const [reward] = await db.select().from(loyaltyRewards)
       .where(eq(loyaltyRewards.id, rewardId));
-    
+
     if (!reward) {
       throw new Error('Reward not found');
     }

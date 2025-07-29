@@ -39,7 +39,7 @@ import { z } from "zod";
 export async function registerRoutes(app: Express): Promise<Server> {
   // Serve uploaded files statically
   app.use('/uploads', express.static(path.resolve('uploads')));
-  
+
   // Health check endpoint for deployment monitoring
   app.get("/health", (req, res) => {
     res.status(200).json({ 
@@ -117,22 +117,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/products", async (req, res) => {
     try {
       const { category, featured, search } = req.query;
-      
+
       if (search && typeof search === "string") {
         const products = await storage.searchProducts(search);
         return res.json(products);
       }
-      
+
       if (featured === "true") {
         const products = await storage.getFeaturedProducts();
         return res.json(products);
       }
-      
+
       if (category && typeof category === "string") {
         const products = await storage.getProductsByCategory(category);
         return res.json(products);
       }
-      
+
       const products = await storage.getProducts();
       res.json(products);
     } catch (error) {
@@ -265,15 +265,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Orders routes
   app.get("/api/orders", async (req, res) => {
     try {
-      const { status, customer, limit = "50" } = req.query;
-      const orders = await storage.getOrders({
-        status: status as string,
-        customerId: customer as string,
-        limit: parseInt(limit as string)
-      });
+      const orders = await storage.getOrders();
       res.json(orders);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  app.get("/api/orders/customer/:customerId", async (req, res) => {
+    try {
+      const { customerId } = req.params;
+      const orders = await storage.getCustomerOrders(customerId);
+      res.json(orders);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch customer orders" });
     }
   });
 
@@ -308,7 +313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get cart items for demo customer
       const customerId = "demo-customer-1";
       const cartItems = await storage.getCartItems(customerId);
-      
+
       if (!cartItems || cartItems.length === 0) {
         return res.status(400).json({ message: "Cart is empty" });
       }
@@ -405,7 +410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const today = new Date();
       const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      
+
       const stats = await storage.getOrderStats();
       res.json(stats);
     } catch (error) {
@@ -426,7 +431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/payments/process", async (req, res) => {
     try {
       const { orderId, paymentMethod, amount } = req.body;
-      
+
       // This is where PlataPay integration will be implemented
       // For now, simulate payment processing
       if (paymentMethod === "cod") {
@@ -454,14 +459,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Handle PlataPay webhook notifications
       const { orderId, status, transactionId } = req.body;
-      
+
       if (status === "completed") {
         await storage.updateOrderStatus(orderId, {
           paymentStatus: "paid",
           trackingNumber: transactionId
         });
       }
-      
+
       res.status(200).json({ received: true });
     } catch (error) {
       res.status(500).json({ message: "Webhook processing failed" });
@@ -496,11 +501,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { status, paymentStatus, trackingNumber } = req.body;
       const updates: any = {};
-      
+
       if (status) updates.status = status;
       if (paymentStatus) updates.paymentStatus = paymentStatus;
       if (trackingNumber !== undefined) updates.trackingNumber = trackingNumber;
-      
+
       const order = await storage.updateOrder(req.params.id, updates);
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
@@ -585,19 +590,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req, res) => {
     try {
       const { username, password } = req.body;
-      
+
       // Demo authentication - replace with real authentication
       const demoUsers = [
         { id: "admin-1", username: "admin", password: "admin123", name: "Admin User", role: "admin", email: "admin@hibla.com" },
         { id: "cashier-1", username: "cashier", password: "cashier123", name: "Cashier User", role: "cashier", email: "cashier@hibla.com" },
       ];
-      
+
       const user = demoUsers.find(u => u.username === username && u.password === password);
-      
+
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
-      
+
       // In a real app, generate JWT token here
       const { password: _, ...userWithoutPassword } = user;
       res.json({ 
@@ -691,7 +696,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentStock: req.body.stock || 0
       };
       delete transformedData.stock; // Remove frontend field
-      
+
       const productData = insertProductSchema.parse(transformedData);
       const product = await storage.createProduct(productData);
       res.status(201).json(product);
@@ -843,14 +848,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/inventory/adjust", async (req, res) => {
     try {
       const { productId, quantity, type, reason, staffId } = req.body;
-      
+
       // Validate required fields
       if (!productId || !quantity || !type) {
         return res.status(400).json({ 
           message: "Missing required fields: productId, quantity, and type are required" 
         });
       }
-      
+
       // Get the first admin user as fallback if no staffId provided
       let finalStaffId = staffId;
       if (!finalStaffId) {
@@ -863,7 +868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           finalStaffId = null;
         }
       }
-      
+
       const transaction = await storage.createInventoryTransaction({
         productId,
         quantity: parseInt(quantity),
@@ -871,7 +876,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         reason: reason || `${type} adjustment`,
         staffId: finalStaffId
       });
-      
+
       res.status(201).json(transaction);
     } catch (error) {
       console.error("Inventory adjustment error:", error);
@@ -895,7 +900,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/pos/create-sale", async (req, res) => {
     try {
       const { items, paymentMethod, amountPaid, customerId } = req.body;
-      
+
       // Validate stock availability before processing
       for (const item of items) {
         const product = await storage.getProduct(item.productId);
@@ -908,7 +913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
-      
+
       // Ensure walk-in customer exists
       let finalCustomerId = customerId || "walk-in-customer";
       if (finalCustomerId === "walk-in-customer") {
@@ -929,14 +934,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           finalCustomerId = "demo-customer-1";
         }
       }
-      
+
       // Calculate totals
       const subtotal = items.reduce((sum: number, item: any) => 
         sum + (parseFloat(item.price) * item.quantity), 0
       );
       const tax = subtotal * 0.12; // 12% VAT
       const total = subtotal + tax;
-      
+
       // Create the order
       const order = await storage.createOrder({
         customerId: finalCustomerId,
@@ -949,7 +954,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shippingMethod: "pickup",
         shippingFee: "0"
       });
-      
+
       // Create order items and update inventory
       for (const item of items) {
         await storage.createOrderItem({
@@ -961,7 +966,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           quantity: item.quantity,
           total: (parseFloat(item.price) * item.quantity).toString()
         });
-        
+
         // Create inventory transaction to reduce stock - handle staffId properly
         try {
           // Get a valid staff member or create a fallback POS user
@@ -973,7 +978,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } catch (staffError) {
             console.warn("Could not fetch staff for POS transaction:", staffError);
           }
-          
+
           await storage.createInventoryTransaction({
             productId: item.productId,
             type: "sale",
@@ -987,7 +992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Continue with sale even if inventory tracking fails
         }
       }
-      
+
       res.status(201).json({
         order,
         change: amountPaid - total
@@ -1005,12 +1010,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { date } = req.query;
       const sales = await storage.getDailySales(date as string || new Date().toISOString().split('T')[0]);
-      
+
       // Calculate daily totals
       const totalSales = sales.reduce((sum, order) => sum + parseFloat(order.total), 0);
       const totalOrders = sales.length;
       const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
-      
+
       res.json({
         sales,
         summary: {
@@ -1161,7 +1166,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { clientId, staffId, date } = req.query;
       let appointments;
-      
+
       if (clientId) {
         appointments = await storage.getAppointmentsByClient(clientId as string);
       } else if (staffId) {
@@ -1171,7 +1176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         appointments = await storage.getAppointments();
       }
-      
+
       res.json(appointments);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch appointments" });
@@ -1236,14 +1241,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { staffId, date } = req.query;
       let schedules;
-      
+
       if (staffId && date) {
         const schedule = await storage.getStaffScheduleByStaffAndDate(staffId as string, date as string);
         schedules = schedule ? [schedule] : [];
       } else {
         schedules = await storage.getStaffSchedules();
       }
-      
+
       res.json(schedules);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch staff schedules" });
@@ -1316,7 +1321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allowedTypes = /jpeg|jpg|png|gif|webp/;
       const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
       const mimetype = allowedTypes.test(file.mimetype);
-      
+
       if (mimetype && extname) {
         return cb(null, true);
       } else {
@@ -1330,7 +1335,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ai/generate-product", async (req, res) => {
     try {
       const { category, productType, existingData } = req.body;
-      
+
       if (!category) {
         return res.status(400).json({ message: "Category is required" });
       }
@@ -1371,7 +1376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const imageUrl = `/uploads/ai-generated/${req.file.filename}`;
-      
+
       res.json({
         url: imageUrl,
         imageName: req.file.originalname,
@@ -1395,7 +1400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const imageUrl = `/uploads/ai-generated/${req.file.filename}`;
-      
+
       res.json({
         imageUrl,
         imageName: req.file.originalname,
@@ -1413,7 +1418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Serve uploaded files
   app.use('/uploads', express.static('uploads'));
-  
+
   // Serve attached assets for product images
   app.use('/attached_assets', express.static('attached_assets'));
 
@@ -1421,7 +1426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ai/generate-product-image", async (req, res) => {
     try {
       const { productName, description, hairType, texture, color, length, style, category } = req.body;
-      
+
       if (!productName || !hairType || !texture || !color || !length) {
         return res.status(400).json({ 
           message: "Product name, hair type, texture, color, and length are required" 
@@ -1440,7 +1445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const imagePath = await aiImageService.generateProductImage(request);
-      
+
       res.json({
         success: true,
         imagePath,
@@ -1458,7 +1463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ai/generate-product-variations", async (req, res) => {
     try {
       const { productName, hairType, texture, color, length, count = 3 } = req.body;
-      
+
       if (!productName || !hairType || !texture || !color || !length) {
         return res.status(400).json({ 
           message: "Product name, hair type, texture, color, and length are required" 
@@ -1474,7 +1479,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const imagePaths = await aiImageService.generateProductVariations(request, parseInt(count));
-      
+
       res.json({
         success: true,
         imagePaths,
@@ -1494,7 +1499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all products from database
       const products = await storage.getProducts();
       const results = [];
-      
+
       for (const product of products) {
         try {
           const request: ImageGenerationRequest = {
@@ -1508,7 +1513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
 
           const imagePath = await aiImageService.generateProductImage(request);
-          
+
           // Update product with new image
           await storage.updateProduct(product.id, {
             ...product,
@@ -1533,7 +1538,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
-      
+
       const successCount = results.filter(r => r.status === 'success').length;
       const failedCount = results.filter(r => r.status === 'failed').length;
 
@@ -1559,7 +1564,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ai/test-image-connection", async (req, res) => {
     try {
       const isValid = await aiImageService.validateApiKey();
-      
+
       if (isValid) {
         res.json({ 
           status: 'success',
@@ -1587,7 +1592,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/ai/generate-sku", async (req, res) => {
     try {
       const { category, brand, name } = req.body;
-      
+
       if (!category || !brand || !name) {
         return res.status(400).json({ message: "Category, brand, and name are required" });
       }
@@ -1651,12 +1656,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // In a real application, this would save to database
       // For now, we'll just validate and return success
       const profileData = req.body;
-      
+
       // Here you would typically:
       // 1. Validate the profile data
       // 2. Save to database
       // 3. Return updated profile
-      
+
       res.json({ 
         message: "Profile saved successfully",
         profile: profileData 
@@ -1674,13 +1679,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // In a real application, this would save AI settings to database
       const aiSettings = req.body;
-      
+
       // Here you would typically:
       // 1. Validate AI settings
       // 2. Update AI service configuration
       // 3. Save to database
       // 4. Return updated settings
-      
+
       res.json({ 
         message: "AI settings saved successfully",
         settings: aiSettings 
@@ -1716,7 +1721,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tiktok: "",
         },
       };
-      
+
       res.json(defaultProfile);
     } catch (error) {
       console.error('Profile Fetch Error:', error);
@@ -1748,7 +1753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           pricing: "",
         },
       };
-      
+
       res.json(defaultAISettings);
     } catch (error) {
       console.error('AI Settings Fetch Error:', error);
@@ -1766,12 +1771,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orders = await storage.getOrders();
       const customers = await storage.getCustomers();
       const products = await storage.getProducts();
-      
+
       // Calculate basic e-commerce stats
-      const todayOrders = orders.filter(order => 
+      const todayOrders```text
+ = orders.filter(order => 
         order.createdAt && order.createdAt.toISOString().startsWith(today)
       );
-      
+
       const dailyRevenue = todayOrders.reduce((sum: number, order) => {
         return sum + parseFloat(order.total?.toString() || "0");
       }, 0);
@@ -1939,7 +1945,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const csvContent = await fs.readFile(req.file.path, 'utf-8');
       const lines = csvContent.trim().split('\n');
       const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-      
+
       const emailIndex = headers.indexOf('email');
       const firstNameIndex = headers.indexOf('firstname') !== -1 ? headers.indexOf('firstname') : headers.indexOf('first_name');
       const lastNameIndex = headers.indexOf('lastname') !== -1 ? headers.indexOf('lastname') : headers.indexOf('last_name');
@@ -1997,7 +2003,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { location, specialty, active } = req.query;
       let stylists;
-      
+
       if (location) {
         stylists = await storage.getStylistsByLocation(location as string);
       } else if (specialty) {
@@ -2007,7 +2013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         stylists = await storage.getStylists();
       }
-      
+
       res.json(stylists);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch stylists" });
@@ -2045,26 +2051,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/stylist-recommendations/generate", async (req, res) => {
     try {
       const { customerId, customerProfile } = req.body;
-      
+
       // Get customer preferences
       const customerPreferences = await storage.getCustomerPreferences(customerId);
       if (!customerPreferences) {
         return res.status(404).json({ message: "Customer preferences not found. Please set preferences first." });
       }
-      
+
       // Get available stylists
       const availableStylists = await storage.getActiveStylists();
       if (availableStylists.length === 0) {
         return res.status(404).json({ message: "No active stylists available" });
       }
-      
+
       // Generate AI recommendations
       const aiRecommendations = await aiStylistService.generateStylistRecommendations({
         customerPreferences,
         availableStylists,
         customerProfile
       });
-      
+
       // Save recommendations to database
       const savedRecommendations = [];
       for (const aiRec of aiRecommendations) {
@@ -2082,7 +2088,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         savedRecommendations.push(recommendation);
       }
-      
+
       res.json(savedRecommendations);
     } catch (error) {
       console.error("AI Stylist Recommendation Error:", error);
@@ -2103,7 +2109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/payments/process", async (req, res) => {
     try {
       const { orderId, paymentMethod, amount, referenceNumber, accountNumber, notes } = req.body;
-      
+
       // Validate payment method
       if (!["cod", "gcash"].includes(paymentMethod)) {
         return res.status(400).json({ message: "Invalid payment method. Only COD and GCash are supported." });
@@ -2112,7 +2118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update order payment status based on method
       let paymentStatus = "pending";
       let orderStatus = "pending";
-      
+
       if (paymentMethod === "cod") {
         paymentStatus = "pending_cod";
         orderStatus = "confirmed"; // COD orders are confirmed immediately
@@ -2327,7 +2333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/nexuspay/status/:transactionId", async (req, res) => {
     try {
       const { transactionId } = req.params;
-      
+
       // Initialize NexusPay service
       const { createNexusPayService } = await import('./nexuspay-service');
       const nexusPayService = createNexusPayService();
@@ -2420,7 +2426,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { adminNotes } = req.body;
       const proof = await storage.updatePaymentProofStatus(req.params.id, "approved", adminNotes, "admin-user");
-      
+
       if (!proof) {
         return res.status(404).json({ message: "Payment proof not found" });
       }
@@ -2441,7 +2447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { adminNotes } = req.body;
       const proof = await storage.updatePaymentProofStatus(req.params.id, "rejected", adminNotes, "admin-user");
-      
+
       if (!proof) {
         return res.status(404).json({ message: "Payment proof not found" });
       }
@@ -2614,7 +2620,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/achievements", async (req, res) => {
     try {
-      const achievementData = insertAchievementSchema.parse(req.body);
+      const achievementData = insertAchievementSchema```text
+.parse(req.body);
       const achievement = await storage.createAchievement(achievementData);
       res.status(201).json(achievement);
     } catch (error) {

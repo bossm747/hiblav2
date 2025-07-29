@@ -54,7 +54,7 @@ import PaymentSuccessPage from "@/pages/payment-success";
 import AdminPaymentMethodsPage from "@/pages/admin/payment-methods";
 import AdminPaymentApprovalsPage from "@/pages/admin/payment-approvals";
 import LoyaltyPage from "@/pages/loyalty";
-// import OrdersPage from "@/pages/orders"; // TODO: Create this page
+import OrdersPage from "@/pages/orders";
 
 function App() {
   return (
@@ -90,12 +90,11 @@ function App() {
               </AuthGuard>
             </Route>
 
-            {/* TODO: Add orders page when created
             <Route path="/orders">
               <AuthGuard>
                 <OrdersPage />
               </AuthGuard>
-            </Route> */}
+            </Route>
 
             {/* Protected Staff Routes */}
             <Route path="/admin">

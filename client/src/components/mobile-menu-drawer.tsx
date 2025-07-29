@@ -64,8 +64,9 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
     {
       title: "Account",
       items: [
+        { name: "My Orders", href: "/orders", icon: Package, description: "Order history & tracking" },
         { name: "Wishlist", href: "/wishlist", icon: Heart, badge: "3", description: "Saved favorites" },
-        { name: "My Account", href: "/account", icon: User, description: "Orders & profile" },
+        { name: "My Account", href: "/account", icon: User, description: "Profile & settings" },
         { name: "About Us", href: "/about", icon: Info, description: "Our story & mission" },
         { name: "Help & Guides", href: "/docs", icon: HelpCircle, description: "Care guides & tutorials" },
       ]
