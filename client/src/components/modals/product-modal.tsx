@@ -31,13 +31,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 
-const categories = [
-  { value: "hair-care", label: "Hair Care" },
-  { value: "skin-care", label: "Skin Care" },
-  { value: "tools", label: "Tools" },
-  { value: "equipment", label: "Equipment" },
-  { value: "retail", label: "Retail" },
-];
+// Categories will be fetched from API
 
 const units = [
   { value: "pcs", label: "Pieces" },
@@ -58,6 +52,10 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
 
   const { data: suppliers } = useQuery({
     queryKey: ["/api/suppliers"],
+  });
+
+  const { data: categories } = useQuery({
+    queryKey: ["/api/categories"],
   });
 
   const form = useForm<z.infer<typeof insertProductSchema>>({
@@ -153,9 +151,9 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.value} value={category.value}>
-                            {category.label}
+                        {((categories as any[])?.map((category: any) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -453,9 +451,9 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category.value} value={category.value}>
-                            {category.label}
+                        {((categories as any[])?.map((category: any) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

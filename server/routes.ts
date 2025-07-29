@@ -848,7 +848,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let finalStaffId = staffId;
       if (!finalStaffId) {
         try {
-          const staffList = await storage.getStaff();
+          const staffList = await storage.getAllStaff();
           const adminUser = staffList.find((s: any) => s.role === 'admin');
           finalStaffId = adminUser?.id || null;
         } catch (error) {
