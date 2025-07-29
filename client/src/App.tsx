@@ -11,6 +11,7 @@ import HomePage from "@/pages/home";
 import ProductsPage from "@/pages/products";
 import CartPage from "@/pages/cart";
 import CheckoutPage from "@/pages/checkout";
+import PaymentPage from "@/pages/payment";
 import AccountPage from "@/pages/account";
 import InventoryPage from "@/pages/inventory";
 import POSPage from "@/pages/pos";
@@ -66,7 +67,7 @@ function App() {
             <Route path="/products" component={ProductsPage} />
             <Route path="/cart" component={CartPage} />
             <Route path="/checkout" component={CheckoutPage} />
-            <Route path="/payment/:orderId" component={PaymentProcessingPage} />
+            <Route path="/payment/:orderId" component={PaymentPage} />
             <Route path="/payment-success/:orderId" component={PaymentSuccessPage} />
             <Route path="/order-confirmation/:orderId" component={OrderConfirmationPage} />
             <Route path="/about" component={AboutPage} />
@@ -81,7 +82,7 @@ function App() {
             <Route path="/test-ai" component={TestAIPage} />
             <Route path="/stylist-recommendations" component={StylistRecommendationsPage} />
             <Route path="/login" component={LoginPage} />
-            
+
             {/* Protected Customer Routes */}
             <Route path="/account">
               <AuthGuard>
@@ -95,20 +96,20 @@ function App() {
                 <OrdersPage />
               </AuthGuard>
             </Route> */}
-            
+
             {/* Protected Staff Routes */}
             <Route path="/admin">
               <AuthGuard requiredRole="admin">
                 <AdminPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/cashier">
               <AuthGuard requiredRole="cashier">
                 <CashierPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/inventory">
               <AuthGuard requiredRole="admin">
                 <InventoryPage />
@@ -132,7 +133,7 @@ function App() {
                 <AdminPaymentApprovalsPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/ai-images">
               <AuthGuard requiredRole="admin">
                 <AIImageManagementPage />
@@ -144,7 +145,7 @@ function App() {
                 <ProductManagementPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/analytics">
               <AuthGuard requiredRole="admin">
                 <AnalyticsPage />
@@ -180,85 +181,85 @@ function App() {
                 <SettingsAdminPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/pos">
               <AuthGuard requiredRole="cashier">
                 <POSPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/staff">
               <AuthGuard requiredRole="admin">
                 <StaffPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/services">
               <AuthGuard requiredRole="admin">
                 <ServicesPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/clients">
               <AuthGuard requiredRole="admin">
                 <ClientsPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/reports">
               <AuthGuard requiredRole="admin">
                 <ReportsPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/settings">
               <AuthGuard requiredRole="admin">
                 <SettingsPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/appointments">
               <AuthGuard requiredRole="admin">
                 <AppointmentsPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/book-appointment">
               <AuthGuard requiredRole="admin">
                 <AppointmentBookingPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/staff-dashboard">
               <AuthGuard requiredRole="admin">
                 <StaffDashboardPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/client-portal">
               <AuthGuard>
                 <ClientPortalPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/timesheet">
               <AuthGuard requiredRole="admin">
                 <TimesheetPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/marketing">
               <AuthGuard requiredRole="admin">
                 <MarketingPage />
               </AuthGuard>
             </Route>
-            
+
             <Route path="/dashboard">
               <AuthGuard requiredRole="admin">
                 <DashboardPage />
               </AuthGuard>
             </Route>
-            
+
             <Route component={NotFound} />
           </Switch>
         </div>

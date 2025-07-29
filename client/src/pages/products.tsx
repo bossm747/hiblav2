@@ -139,7 +139,10 @@ export default function ProductsPage() {
     addToWishlistMutation.mutate(product);
   };
 
-
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
 
   const hairTypes = ["Human", "Synthetic", "Blend"];
   const textures = ["Straight", "Wavy", "Curly", "Kinky"];

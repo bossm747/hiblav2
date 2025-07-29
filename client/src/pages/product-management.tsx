@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ImageUploadWithAI } from "@/components/image-upload-with-ai";
 import { Plus, Edit, Trash2, Eye, Sparkles, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
+import { ProductDetailModal } from "@/components/product-detail-modal";
 
 interface Product {
   id: string;
@@ -80,18 +81,18 @@ export default function ProductManagement() {
         length: productData.length || 18,
         currentStock: productData.currentStock || 0
       };
-      
+
       const response = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(cleanData)
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to create product");
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -121,18 +122,18 @@ export default function ProductManagement() {
         length: productData.length,
         currentStock: productData.currentStock
       };
-      
+
       const response = await fetch(`/api/products/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(cleanData)
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || "Failed to update product");
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -157,11 +158,11 @@ export default function ProductManagement() {
       const response = await fetch(`/api/products/${id}`, {
         method: "DELETE"
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to delete product");
       }
-      
+
       return response.json();
     },
     onSuccess: () => {
@@ -207,7 +208,7 @@ export default function ProductManagement() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.categoryId) {
       toast({
         title: "Validation Error",
@@ -442,7 +443,7 @@ export default function ProductManagement() {
               >
                 {isEditing ? "Update Product" : "Create Product"}
               </Button>
-              
+
               {isEditing && (
                 <Button
                   type="button"
@@ -486,7 +487,7 @@ export default function ProductManagement() {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <h3 className="font-semibold text-foreground text-sm line-clamp-2">
                       {product.name}
@@ -506,7 +507,7 @@ export default function ProductManagement() {
                     <p className="text-sm text-muted-foreground">Stock: {product.currentStock}</p>
                   </div>
                 </CardHeader>
-                
+
                 <CardContent className="pt-0">
                   <div className="flex gap-2">
                     <Button
@@ -518,7 +519,7 @@ export default function ProductManagement() {
                       <Edit className="h-3 w-3 mr-1" />
                       Edit
                     </Button>
-                    
+
                     <Button
                       onClick={() => deleteProductMutation.mutate(product.id)}
                       size="sm"
