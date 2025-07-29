@@ -10,7 +10,7 @@ import StaffModal from "@/components/modals/staff-modal";
 export default function Staff() {
   const [staffModalOpen, setStaffModalOpen] = useState(false);
 
-  const { data: staff, isLoading } = useQuery({
+  const { data: staff = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/staff"],
   });
 

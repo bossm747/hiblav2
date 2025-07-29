@@ -385,7 +385,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProduct(product: InsertProduct): Promise<Product> {
-    const [newProduct] = await db.insert(products).values(product).returning();
+    const [newProduct] = await db.insert(products).values([product as any]).returning();
     return newProduct;
   }
 
@@ -393,7 +393,7 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db.update(products).set({ 
       ...product, 
       updatedAt: new Date() 
-    }).where(eq(products.id, id)).returning();
+    } as any).where(eq(products.id, id)).returning();
     return updated;
   }
 
@@ -446,13 +446,13 @@ export class DatabaseStorage implements IStorage {
     let query = db.select().from(orders);
     
     if (whereConditions.length > 0) {
-      query = query.where(and(...whereConditions));
+      query = query.where(and(...whereConditions)) as any;
     }
     
-    query = query.orderBy(desc(orders.createdAt));
+    query = query.orderBy(desc(orders.createdAt)) as any;
     
     if (filters?.limit) {
-      query = query.limit(filters.limit);
+      query = query.limit(filters.limit) as any;
     }
     
     return await query;
@@ -634,18 +634,18 @@ export class DatabaseStorage implements IStorage {
     const existing = await this.getShopSettings();
     
     if (existing) {
-      const updateData = { 
+      const updateData: any = { 
         ...settings,
         updatedAt: new Date() 
       };
       const [updated] = await db.update(shopSettings).set(updateData).where(eq(shopSettings.id, existing.id)).returning();
       return updated;
     } else {
-      const insertData = {
+      const insertData: any = {
         shopEmail: settings.shopEmail || 'info@hibla.com',
         ...settings
       };
-      const [created] = await db.insert(shopSettings).values(insertData).returning();
+      const [created] = await db.insert(shopSettings).values([insertData]).returning();
       return created;
     }
   }
@@ -847,13 +847,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createStylist(stylist: InsertStylist): Promise<Stylist> {
-    const [newStylist] = await db.insert(stylists).values(stylist).returning();
+    const [newStylist] = await db.insert(stylists).values([stylist as any]).returning();
     return newStylist;
   }
 
   async updateStylist(id: string, stylist: Partial<InsertStylist>): Promise<Stylist | undefined> {
     const [updated] = await db.update(stylists)
-      .set({ ...stylist, updatedAt: new Date() })
+      .set({ ...stylist, updatedAt: new Date() } as any)
       .where(eq(stylists.id, id))
       .returning();
     return updated;
@@ -999,14 +999,14 @@ export class DatabaseStorage implements IStorage {
 
   // Payment proof management
   async createPaymentProof(proof: InsertPaymentProof): Promise<PaymentProof> {
-    const result = await db.insert(paymentProofs).values(proof).returning();
+    const result = await db.insert(paymentProofs).values([proof]).returning();
     return result[0];
   }
 
   async getPaymentProofs(status?: string): Promise<PaymentProof[]> {
     let query = db.select().from(paymentProofs);
     if (status) {
-      query = query.where(eq(paymentProofs.status, status));
+      query = query.where(eq(paymentProofs.status, status)) as any;
     }
     return await query.orderBy(desc(paymentProofs.createdAt));
   }
@@ -1112,7 +1112,7 @@ export class DatabaseStorage implements IStorage {
   async getStylingChallenges(isActive?: boolean): Promise<StylingChallenge[]> {
     let query = db.select().from(stylingChallenges);
     if (isActive !== undefined) {
-      query = query.where(eq(stylingChallenges.isActive, isActive));
+      query = query.where(eq(stylingChallenges.isActive, isActive)) as any;
     }
     return await query.orderBy(desc(stylingChallenges.createdAt));
   }
@@ -1124,13 +1124,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createStylingChallenge(challenge: InsertStylingChallenge): Promise<StylingChallenge> {
-    const [newChallenge] = await db.insert(stylingChallenges).values(challenge).returning();
+    const [newChallenge] = await db.insert(stylingChallenges).values([challenge as any]).returning();
     return newChallenge;
   }
 
   async updateStylingChallenge(id: string, updates: Partial<InsertStylingChallenge>): Promise<StylingChallenge> {
     const [updated] = await db.update(stylingChallenges)
-      .set({ ...updates, updatedAt: new Date() })
+      .set({ ...updates, updatedAt: new Date() } as any)
       .where(eq(stylingChallenges.id, id))
       .returning();
     return updated;
@@ -1231,7 +1231,7 @@ export class DatabaseStorage implements IStorage {
   async getAchievements(isActive?: boolean): Promise<Achievement[]> {
     let query = db.select().from(achievements);
     if (isActive !== undefined) {
-      query = query.where(eq(achievements.isActive, isActive));
+      query = query.where(eq(achievements.isActive, isActive)) as any;
     }
     return await query.orderBy(achievements.category, achievements.name);
   }
@@ -1334,7 +1334,7 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (conditions.length > 0) {
-      query = query.where(and(...conditions));
+      query = query.where(and(...conditions)) as any;
     }
     
     return await query.orderBy(loyaltyRewards.pointsCost);
@@ -1406,12 +1406,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAchievement(achievement: InsertAchievement): Promise<Achievement> {
-    const [newAchievement] = await db.insert(achievements).values(achievement).returning();
+    const [newAchievement] = await db.insert(achievements).values([achievement as any]).returning();
     return newAchievement;
   }
 
   async createLoyaltyReward(reward: InsertLoyaltyReward): Promise<LoyaltyReward> {
-    const [newReward] = await db.insert(loyaltyRewards).values(reward).returning();
+    const [newReward] = await db.insert(loyaltyRewards).values([reward]).returning();
     return newReward;
   }
 }
