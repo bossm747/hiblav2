@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-// import { insertProductSchema } from "@shared/schema"; // Will use simple form
+import { insertProductSchema } from "@shared/schema";
 import { z } from "zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -65,17 +65,25 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
     defaultValues: {
       name: "",
       description: "",
-      category: "",
-      brand: "",
+      categoryId: "",
+      hairType: "human",
+      texture: "",
+      length: 18,
+      color: "",
+      weight: "",
       sku: "",
-      barcode: "",
+      price: "0",
+      compareAtPrice: "0",
       costPrice: "0",
-      retailPrice: "0",
       currentStock: 0,
-      minStockLevel: 10,
-      maxStockLevel: 100,
-      unit: "pcs",
+      lowStockThreshold: 5,
       supplierId: "",
+      images: [],
+      featuredImage: "",
+      tags: [],
+      features: [],
+      careInstructions: "",
+      isFeatured: false,
       isActive: true,
     },
   });
@@ -134,13 +142,24 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
               
               <FormField
                 control={form.control}
-                name="brand"
+                name="categoryId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Brand</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter brand name" {...field} />
-                    </FormControl>
+                    <FormLabel>Category</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.value} value={category.value}>
+                            {category.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -154,21 +173,276 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Enter product description" 
-                      rows={3}
-                      {...field} 
-                    />
+                    <Textarea placeholder="Product description" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="hairType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hair Type</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select hair type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="human">Human Hair</SelectItem>
+                        <SelectItem value="synthetic">Synthetic</SelectItem>
+                        <SelectItem value="blend">Blend</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="texture"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Texture</FormLabel>
+                    <FormControl>
+                      <Input placeholder="straight, wavy, curly" {...field} value={field.value || ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="length"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Length (inches)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        placeholder="18"
+                        {...field}
+                        value={field.value || 0}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="category"
+                name="color"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Color</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Natural Black, Honey Blonde" {...field} value={field.value || ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="weight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Weight</FormLabel>
+                    <FormControl>
+                      <Input placeholder="100g, 150g" {...field} value={field.value || ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="sku"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SKU</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Auto-generated if empty" {...field} value={field.value || ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="supplierId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Supplier</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select supplier" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {(suppliers as any[])?.map((supplier: any) => (
+                          <SelectItem key={supplier.id} value={supplier.id}>
+                            {supplier.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Price (₱)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        value={field.value || "0"}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="compareAtPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Compare At Price (₱)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        value={field.value || "0"}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="costPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cost Price (₱)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        value={field.value || "0"}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="currentStock"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Current Stock</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        {...field}
+                        value={field.value || 0}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="lowStockThreshold"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Low Stock Threshold</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        placeholder="5"
+                        {...field}
+                        value={field.value || 0}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={createProductMutation.isPending}
+                className="flex-1"
+              >
+                {createProductMutation.isPending ? "Adding..." : "Add Product"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category *</FormLabel>
