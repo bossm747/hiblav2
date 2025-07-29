@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ShoppingCart, Trash2, CreditCard, DollarSign, Receipt, Search, Package2, Barcode as BarcodeIcon, Eye } from "lucide-react";
+import { ShoppingCart, Trash2, CreditCard, DollarSign, Receipt, Search, Package2, Barcode as BarcodeIcon, Eye, ArrowLeft } from "lucide-react";
 import Barcode from 'react-barcode';
 import { ProductDetailModal } from "@/components/product-detail-modal";
 import ThermalReceipt from "@/components/thermal-receipt";
@@ -211,7 +211,18 @@ export default function POSPage() {
       {/* Products Section */}
       <div className="lg:col-span-2 space-y-4 overflow-y-auto">
         <div className="sticky top-0 glass-dark z-10 pb-4 p-4 rounded-lg border border-white/10">
-          <h1 className="text-2xl font-bold mb-4 text-foreground neon-text-purple">Point of Sale</h1>
+          <div className="flex items-center gap-4 mb-4">
+            <Button
+              onClick={() => window.history.back()}
+              variant="outline"
+              size="sm"
+              className="border-white/20 hover:bg-purple-500/20 text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <h1 className="text-2xl font-bold text-foreground neon-text-purple">Point of Sale</h1>
+          </div>
           
           {/* Search Bar */}
           <div className="relative">
