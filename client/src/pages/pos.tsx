@@ -66,7 +66,10 @@ export default function POSPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       });
-      if (!response.ok) throw new Error("Failed to create sale");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create sale");
+      }
       return response.json();
     },
     onSuccess: (data: { order: any; change: number }) => {
@@ -80,10 +83,10 @@ export default function POSPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       queryClient.invalidateQueries({ queryKey: ["/api/pos/daily-sales"] });
     },
-    onError: () => {
+    onError: (error: any) => {
       toast({
-        title: "Error",
-        description: "Failed to complete sale",
+        title: "Sale Failed",
+        description: error.message || "Failed to complete sale",
         variant: "destructive"
       });
     }

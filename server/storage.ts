@@ -434,13 +434,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOrders(filters?: { status?: string; customerId?: string; limit?: number }): Promise<Order[]> {
-    let query = db.select().from(orders);
+    const whereConditions = [];
     
     if (filters?.status) {
-      query = query.where(eq(orders.status, filters.status));
+      whereConditions.push(eq(orders.status, filters.status));
     }
     if (filters?.customerId) {
-      query = query.where(eq(orders.customerId, filters.customerId));
+      whereConditions.push(eq(orders.customerId, filters.customerId));
+    }
+    
+    let query = db.select().from(orders);
+    
+    if (whereConditions.length > 0) {
+      query = query.where(and(...whereConditions));
     }
     
     query = query.orderBy(desc(orders.createdAt));
@@ -639,7 +645,7 @@ export class DatabaseStorage implements IStorage {
         shopEmail: settings.shopEmail || 'info@hibla.com',
         ...settings
       };
-      const [created] = await db.insert(shopSettings).values([insertData]).returning();
+      const [created] = await db.insert(shopSettings).values(insertData).returning();
       return created;
     }
   }
@@ -988,7 +994,7 @@ export class DatabaseStorage implements IStorage {
 
   async deletePaymentMethod(id: string): Promise<boolean> {
     const result = await db.delete(paymentMethods).where(eq(paymentMethods.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   // Payment proof management
@@ -1091,7 +1097,7 @@ export class DatabaseStorage implements IStorage {
     if (!customer) return;
 
     let tier = 'bronze';
-    const points = customer.loyaltyPoints;
+    const points = customer.loyaltyPoints || 0;
 
     if (points >= 10000) tier = 'platinum';
     else if (points >= 5000) tier = 'gold';
@@ -1267,7 +1273,7 @@ export class DatabaseStorage implements IStorage {
       if (reqs.totalSpent && parseFloat(customer.totalSpent || '0') >= reqs.totalSpent) {
         shouldUnlock = true;
       }
-      if (reqs.totalOrders && customer.totalOrders >= reqs.totalOrders) {
+      if (reqs.totalOrders && (customer.totalOrders ?? 0) >= reqs.totalOrders) {
         shouldUnlock = true;
       }
       if (reqs.challengesCompleted) {
@@ -1348,7 +1354,7 @@ export class DatabaseStorage implements IStorage {
     }
 
     // Check usage limits
-    if (reward.maxUses && reward.currentUses >= reward.maxUses) {
+    if (reward.maxUses && (reward.currentUses ?? 0) >= reward.maxUses) {
       throw new Error('Reward usage limit reached');
     }
 

@@ -872,6 +872,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { items, paymentMethod, amountPaid, customerId } = req.body;
       
+      // Validate stock availability before processing
+      for (const item of items) {
+        const product = await storage.getProduct(item.productId);
+        if (!product) {
+          return res.status(400).json({ message: `Product ${item.productName} not found` });
+        }
+        if ((product.currentStock ?? 0) < item.quantity) {
+          return res.status(400).json({ 
+            message: `Insufficient stock for ${item.productName}. Available: ${product.currentStock ?? 0}, Requested: ${item.quantity}` 
+          });
+        }
+      }
+      
       // Calculate totals
       const subtotal = items.reduce((sum: number, item: any) => 
         sum + (parseFloat(item.price) * item.quantity), 0
@@ -892,7 +905,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         shippingFee: "0"
       });
       
-      // Create order items
+      // Create order items and update inventory
       for (const item of items) {
         await storage.createOrderItem({
           orderId: order.id,
@@ -902,6 +915,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           price: item.price,
           quantity: item.quantity,
           total: (parseFloat(item.price) * item.quantity).toString()
+        });
+        
+        // Create inventory transaction to reduce stock
+        await storage.createInventoryTransaction({
+          productId: item.productId,
+          type: "sale",
+          quantity: item.quantity,
+          reason: `POS Sale - Order ${order.orderNumber}`,
+          reference: order.id,
+          staffId: "pos-system"
         });
       }
       
