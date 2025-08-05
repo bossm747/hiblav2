@@ -8,6 +8,7 @@ import { AuthGuard } from "@/components/auth-guard";
 
 // Pages
 import HomePage from "@/pages/home";
+import HiblaHomePage from "@/pages/hibla-home";
 import ProductsPage from "@/pages/products";
 import CartPage from "@/pages/cart";
 import CheckoutPage from "@/pages/checkout";
@@ -55,6 +56,11 @@ import AdminPaymentMethodsPage from "@/pages/admin/payment-methods";
 import AdminPaymentApprovalsPage from "@/pages/admin/payment-approvals";
 import LoyaltyPage from "@/pages/loyalty";
 import OrdersPage from "@/pages/orders";
+import QuotationsPage from "@/pages/quotations";
+import SalesOrdersPage from "@/pages/sales-orders";
+import JobOrdersPage from "@/pages/job-orders";
+import ManufacturingDashboardPage from "@/pages/manufacturing-dashboard";
+import SummaryReportsPage from "@/pages/summary-reports";
 
 function App() {
   return (
@@ -63,7 +69,8 @@ function App() {
         <Preloader />
         <div className="min-h-screen">
           <Switch>
-            <Route path="/" component={HomePage} />
+            <Route path="/" component={HiblaHomePage} />
+            <Route path="/old-home" component={HomePage} />
             <Route path="/products" component={ProductsPage} />
             <Route path="/cart" component={CartPage} />
             <Route path="/checkout" component={CheckoutPage} />
@@ -256,6 +263,33 @@ function App() {
             <Route path="/dashboard">
               <AuthGuard requiredRole="admin">
                 <DashboardPage />
+              </AuthGuard>
+            </Route>
+
+            {/* Hibla Manufacturing Routes */}
+            <Route path="/manufacturing-dashboard">
+              <AuthGuard requiredRole="admin">
+                <ManufacturingDashboardPage />
+              </AuthGuard>
+            </Route>
+            <Route path="/quotations">
+              <AuthGuard requiredRole="admin">
+                <QuotationsPage />
+              </AuthGuard>
+            </Route>
+            <Route path="/sales-orders">
+              <AuthGuard requiredRole="admin">
+                <SalesOrdersPage />
+              </AuthGuard>
+            </Route>
+            <Route path="/job-orders">
+              <AuthGuard requiredRole="admin">
+                <JobOrdersPage />
+              </AuthGuard>
+            </Route>
+            <Route path="/summary-reports">
+              <AuthGuard requiredRole="admin">
+                <SummaryReportsPage />
               </AuthGuard>
             </Route>
 

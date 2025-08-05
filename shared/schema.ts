@@ -4,13 +4,15 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-// Customers table (replacing clients)
+// Customers table - B2B clients for Hibla manufacturing
 export const customers = pgTable("customers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  customerCode: text("customer_code").notNull().unique(), // e.g., ABA, ABC, etc.
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   phone: text("phone"),
   password: text("password").notNull(), // for customer login
+  country: text("country").notNull(),
   shippingAddress: text("shipping_address"),
   billingAddress: text("billing_address"),
   city: text("city"),
@@ -21,8 +23,9 @@ export const customers = pgTable("customers", {
   lastOrder: timestamp("last_order"),
   status: text("status").default("active"), // active, inactive, suspended
   emailVerified: boolean("email_verified").default(false),
-  loyaltyPoints: integer("loyalty_points").default(0),
-  loyaltyTier: text("loyalty_tier").default("bronze"), // bronze, silver, gold, platinum
+  paymentTerms: text("payment_terms"), // NET30, COD, etc.
+  creditLimit: decimal("credit_limit", { precision: 12, scale: 2 }),
+  preferredShipping: text("preferred_shipping"), // DHL, UPS, FedEx, Agent, Pick Up
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -53,33 +56,38 @@ export const staff = pgTable("staff", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Products table optimized for hair extensions
+// Products table for Hibla hair manufacturing
 export const products = pgTable("products", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
+  name: text("name").notNull(), // e.g., "8\" Machine Weft Single Drawn, STRAIGHT"
   description: text("description"),
   categoryId: varchar("category_id").references(() => categories.id).notNull(),
-  hairType: text("hair_type").notNull(), // human, synthetic, blend
+  hairType: text("hair_type").notNull().default("human"), // human hair only for Hibla
   texture: text("texture"), // straight, wavy, curly, kinky
   length: integer("length"), // in inches
   color: text("color"),
   weight: text("weight"), // in grams
   sku: text("sku").unique(),
-  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  compareAtPrice: decimal("compare_at_price", { precision: 10, scale: 2 }), // for showing discounts
+  unit: text("unit").default("pcs"), // pcs, bundles, closures, frontals
+  // Multiple price lists support
+  priceListA: decimal("price_list_a", { precision: 10, scale: 2 }),
+  priceListB: decimal("price_list_b", { precision: 10, scale: 2 }),
+  priceListC: decimal("price_list_c", { precision: 10, scale: 2 }),
+  priceListD: decimal("price_list_d", { precision: 10, scale: 2 }),
   costPrice: decimal("cost_price", { precision: 10, scale: 2 }),
-  currentStock: integer("current_stock").default(0),
-  lowStockThreshold: integer("low_stock_threshold").default(5),
+  // Inventory across different warehouses
+  ngWarehouse: decimal("ng_warehouse", { precision: 10, scale: 2 }).default("0"),
+  phWarehouse: decimal("ph_warehouse", { precision: 10, scale: 2 }).default("0"),
+  reservedWarehouse: decimal("reserved_warehouse", { precision: 10, scale: 2 }).default("0"),
+  redWarehouse: decimal("red_warehouse", { precision: 10, scale: 2 }).default("0"),
+  adminWarehouse: decimal("admin_warehouse", { precision: 10, scale: 2 }).default("0"),
+  wipWarehouse: decimal("wip_warehouse", { precision: 10, scale: 2 }).default("0"),
+  lowStockThreshold: decimal("low_stock_threshold", { precision: 10, scale: 2 }).default("5"),
   supplierId: varchar("supplier_id").references(() => suppliers.id),
-  images: text("images").array(), // multiple product images
+  images: text("images").array(),
   featuredImage: text("featured_image"),
   tags: text("tags").array(),
-  features: jsonb("features").$type<string[]>(), // bullet points for product features
-  careInstructions: text("care_instructions"),
-  isFeatured: boolean("is_featured").default(false),
   isActive: boolean("is_active").default(true),
-  viewCount: integer("view_count").default(0),
-  soldCount: integer("sold_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -96,7 +104,137 @@ export const suppliers = pgTable("suppliers", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Orders table
+// Price Lists
+export const priceLists = pgTable("price_lists", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // A, B, C, D or custom names
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Quotations
+export const quotations = pgTable("quotations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  quotationNumber: text("quotation_number").notNull().unique(),
+  revisionNumber: text("revision_number").default("R0"),
+  customerId: varchar("customer_id").references(() => customers.id).notNull(),
+  customerCode: text("customer_code").notNull(),
+  country: text("country").notNull(),
+  priceListId: varchar("price_list_id").references(() => priceLists.id).notNull(),
+  subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
+  shippingFee: decimal("shipping_fee", { precision: 12, scale: 2 }).default("0"),
+  bankCharge: decimal("bank_charge", { precision: 12, scale: 2 }).default("0"),
+  discount: decimal("discount", { precision: 12, scale: 2 }).default("0"),
+  others: decimal("others", { precision: 12, scale: 2 }).default("0"),
+  total: decimal("total", { precision: 12, scale: 2 }).notNull(),
+  paymentMethod: text("payment_method"), // bank, agent, money transfer, cash
+  shippingMethod: text("shipping_method"), // DHL, UPS, Fed Ex, Agent, Pick Up
+  customerServiceInstructions: text("customer_service_instructions"),
+  status: text("status").default("draft"), // draft, sent, accepted, expired
+  createdBy: varchar("created_by").references(() => staff.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Quotation Items
+export const quotationItems = pgTable("quotation_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  quotationId: varchar("quotation_id").references(() => quotations.id).notNull(),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  productName: text("product_name").notNull(),
+  specification: text("specification"),
+  quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  lineTotal: decimal("line_total", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Sales Orders
+export const salesOrders = pgTable("sales_orders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  salesOrderNumber: text("sales_order_number").notNull().unique(), // Same as quotation number
+  revisionNumber: text("revision_number").default("R1"),
+  quotationId: varchar("quotation_id").references(() => quotations.id),
+  customerId: varchar("customer_id").references(() => customers.id).notNull(),
+  customerCode: text("customer_code").notNull(),
+  country: text("country").notNull(),
+  dueDate: timestamp("due_date").notNull(),
+  dateRevision: timestamp("date_revision"),
+  subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
+  shippingFee: decimal("shipping_fee", { precision: 12, scale: 2 }).default("0"),
+  bankCharge: decimal("bank_charge", { precision: 12, scale: 2 }).default("0"),
+  discount: decimal("discount", { precision: 12, scale: 2 }).default("0"),
+  others: decimal("others", { precision: 12, scale: 2 }).default("0"),
+  total: decimal("total", { precision: 12, scale: 2 }).notNull(),
+  paymentMethod: text("payment_method"),
+  shippingMethod: text("shipping_method"),
+  customerServiceInstructions: text("customer_service_instructions"),
+  status: text("status").default("draft"), // draft, confirmed, cancelled
+  isConfirmed: boolean("is_confirmed").default(false),
+  confirmedAt: timestamp("confirmed_at"),
+  createdBy: varchar("created_by").references(() => staff.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Sales Order Items
+export const salesOrderItems = pgTable("sales_order_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  salesOrderId: varchar("sales_order_id").references(() => salesOrders.id).notNull(),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  productName: text("product_name").notNull(),
+  specification: text("specification"),
+  quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
+  unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
+  lineTotal: decimal("line_total", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Job Orders
+export const jobOrders = pgTable("job_orders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  jobOrderNumber: text("job_order_number").notNull().unique(), // Same as sales order number
+  revisionNumber: text("revision_number").default("R1"),
+  salesOrderId: varchar("sales_order_id").references(() => salesOrders.id).notNull(),
+  customerId: varchar("customer_id").references(() => customers.id).notNull(),
+  customerCode: text("customer_code").notNull(),
+  dueDate: timestamp("due_date").notNull(),
+  dateCreated: timestamp("date_created").defaultNow(),
+  dateRevised: timestamp("date_revised"),
+  customerInstructions: text("customer_instructions"),
+  createdBy: varchar("created_by").references(() => staff.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Job Order Items
+export const jobOrderItems = pgTable("job_order_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  jobOrderId: varchar("job_order_id").references(() => jobOrders.id).notNull(),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  productName: text("product_name").notNull(),
+  specification: text("specification"),
+  quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
+  // Shipment columns (1-8)
+  shipment1: decimal("shipment_1", { precision: 10, scale: 2 }).default("0"),
+  shipment2: decimal("shipment_2", { precision: 10, scale: 2 }).default("0"),
+  shipment3: decimal("shipment_3", { precision: 10, scale: 2 }).default("0"),
+  shipment4: decimal("shipment_4", { precision: 10, scale: 2 }).default("0"),
+  shipment5: decimal("shipment_5", { precision: 10, scale: 2 }).default("0"),
+  shipment6: decimal("shipment_6", { precision: 10, scale: 2 }).default("0"),
+  shipment7: decimal("shipment_7", { precision: 10, scale: 2 }).default("0"),
+  shipment8: decimal("shipment_8", { precision: 10, scale: 2 }).default("0"),
+  // Calculated fields
+  shipped: decimal("shipped", { precision: 10, scale: 2 }).default("0"),
+  reserved: decimal("reserved", { precision: 10, scale: 2 }).default("0"),
+  ready: decimal("ready", { precision: 10, scale: 2 }).default("0"),
+  toProduce: decimal("to_produce", { precision: 10, scale: 2 }).default("0"),
+  orderBalance: decimal("order_balance", { precision: 10, scale: 2 }).default("0"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Orders table (keeping for legacy compatibility but updating for manufacturing)
 export const orders = pgTable("orders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   orderNumber: text("order_number").notNull().unique(),
@@ -178,16 +316,92 @@ export const reviews = pgTable("reviews", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Warehouse Locations
+export const warehouses = pgTable("warehouses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: text("code").notNull().unique(), // NG, PH, RESERVED, RED, ADMIN, WIP
+  name: text("name").notNull(),
+  description: text("description"),
+  managerId: varchar("manager_id").references(() => staff.id),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Inventory Transactions for warehouse movements
 export const inventoryTransactions = pgTable("inventory_transactions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   productId: varchar("product_id").references(() => products.id).notNull(),
-  type: text("type").notNull(), // purchase, sale, adjustment, return
-  quantity: integer("quantity").notNull(),
+  warehouseId: varchar("warehouse_id").references(() => warehouses.id).notNull(),
+  movementType: text("movement_type").notNull(), // deposit, withdrawal, transfer, adjustment
+  quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
   unitCost: decimal("unit_cost", { precision: 10, scale: 2 }),
   totalCost: decimal("total_cost", { precision: 10, scale: 2 }),
   reason: text("reason"),
-  reference: text("reference"), // order number, purchase order, etc.
+  reference: text("reference"), // sales order number, job order number, packing list number
+  referenceType: text("reference_type"), // sales_order, job_order, packing_list, manual
+  salesOrderId: varchar("sales_order_id").references(() => salesOrders.id),
+  jobOrderId: varchar("job_order_id").references(() => jobOrders.id),
+  packingListNumber: text("packing_list_number"),
+  fromWarehouseId: varchar("from_warehouse_id").references(() => warehouses.id), // for transfers
+  toWarehouseId: varchar("to_warehouse_id").references(() => warehouses.id), // for transfers
   staffId: varchar("staff_id").references(() => staff.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Production Receipts (attached to Job Orders)
+export const productionReceipts = pgTable("production_receipts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  receiptNumber: text("receipt_number").notNull().unique(),
+  jobOrderId: varchar("job_order_id").references(() => jobOrders.id).notNull(),
+  productId: varchar("product_id").references(() => products.id).notNull(),
+  quantityProduced: decimal("quantity_produced", { precision: 10, scale: 2 }).notNull(),
+  warehouseId: varchar("warehouse_id").references(() => warehouses.id).notNull(),
+  productionDate: timestamp("production_date").notNull(),
+  qualityStatus: text("quality_status").default("pending"), // pending, approved, rejected
+  notes: text("notes"),
+  createdBy: varchar("created_by").references(() => staff.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Invoices (same format as Sales Orders per requirements)
+export const invoices = pgTable("invoices", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  invoiceNumber: text("invoice_number").notNull().unique(), // Same series as sales order
+  salesOrderId: varchar("sales_order_id").references(() => salesOrders.id).notNull(),
+  customerId: varchar("customer_id").references(() => customers.id).notNull(),
+  customerCode: text("customer_code").notNull(),
+  country: text("country").notNull(),
+  dueDate: timestamp("due_date").notNull(),
+  subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
+  shippingFee: decimal("shipping_fee", { precision: 12, scale: 2 }).default("0"),
+  bankCharge: decimal("bank_charge", { precision: 12, scale: 2 }).default("0"),
+  discount: decimal("discount", { precision: 12, scale: 2 }).default("0"),
+  others: decimal("others", { precision: 12, scale: 2 }).default("0"),
+  total: decimal("total", { precision: 12, scale: 2 }).notNull(),
+  paymentMethod: text("payment_method"),
+  shippingMethod: text("shipping_method"),
+  paymentStatus: text("payment_status").default("pending"), // pending, paid, overdue
+  paidAmount: decimal("paid_amount", { precision: 12, scale: 2 }).default("0"),
+  paidAt: timestamp("paid_at"),
+  createdBy: varchar("created_by").references(() => staff.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Account Monitoring - Customer Payments
+export const customerPayments = pgTable("customer_payments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  paymentNumber: text("payment_number").notNull().unique(),
+  customerId: varchar("customer_id").references(() => customers.id).notNull(),
+  salesOrderId: varchar("sales_order_id").references(() => salesOrders.id),
+  invoiceId: varchar("invoice_id").references(() => invoices.id),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  paymentMethod: text("payment_method").notNull(),
+  referenceNumber: text("reference_number"),
+  paymentDate: timestamp("payment_date").notNull(),
+  notes: text("notes"),
+  status: text("status").default("confirmed"), // pending, confirmed, cancelled
+  createdBy: varchar("created_by").references(() => staff.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -401,8 +615,6 @@ export const insertStaffSchema = createInsertSchema(staff).omit({
 
 export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
-  viewCount: true,
-  soldCount: true,
   createdAt: true,
   updatedAt: true,
 });
@@ -443,6 +655,75 @@ export const insertReviewSchema = createInsertSchema(reviews).omit({
 
 export const insertInventoryTransactionSchema = createInsertSchema(inventoryTransactions).omit({
   id: true,
+  createdAt: true,
+});
+
+// Hibla Manufacturing Insert Schemas
+export const insertPriceListSchema = createInsertSchema(priceLists).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertQuotationSchema = createInsertSchema(quotations).omit({
+  id: true,
+  quotationNumber: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertQuotationItemSchema = createInsertSchema(quotationItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSalesOrderSchema = createInsertSchema(salesOrders).omit({
+  id: true,
+  salesOrderNumber: true,
+  confirmedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSalesOrderItemSchema = createInsertSchema(salesOrderItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertJobOrderSchema = createInsertSchema(jobOrders).omit({
+  id: true,
+  jobOrderNumber: true,
+  dateCreated: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertJobOrderItemSchema = createInsertSchema(jobOrderItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWarehouseSchema = createInsertSchema(warehouses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertProductionReceiptSchema = createInsertSchema(productionReceipts).omit({
+  id: true,
+  receiptNumber: true,
+  createdAt: true,
+});
+
+export const insertInvoiceSchema = createInsertSchema(invoices).omit({
+  id: true,
+  invoiceNumber: true,
+  paidAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCustomerPaymentSchema = createInsertSchema(customerPayments).omit({
+  id: true,
+  paymentNumber: true,
   createdAt: true,
 });
 
@@ -519,6 +800,30 @@ export type InventoryTransaction = typeof inventoryTransactions.$inferSelect;
 export type InsertInventoryTransaction = z.infer<typeof insertInventoryTransactionSchema>;
 export type ShopSettings = typeof shopSettings.$inferSelect;
 export type InsertShopSettings = z.infer<typeof insertShopSettingsSchema>;
+
+// Hibla Manufacturing Types
+export type PriceList = typeof priceLists.$inferSelect;
+export type InsertPriceList = z.infer<typeof insertPriceListSchema>;
+export type Quotation = typeof quotations.$inferSelect;
+export type InsertQuotation = z.infer<typeof insertQuotationSchema>;
+export type QuotationItem = typeof quotationItems.$inferSelect;
+export type InsertQuotationItem = z.infer<typeof insertQuotationItemSchema>;
+export type SalesOrder = typeof salesOrders.$inferSelect;
+export type InsertSalesOrder = z.infer<typeof insertSalesOrderSchema>;
+export type SalesOrderItem = typeof salesOrderItems.$inferSelect;
+export type InsertSalesOrderItem = z.infer<typeof insertSalesOrderItemSchema>;
+export type JobOrder = typeof jobOrders.$inferSelect;
+export type InsertJobOrder = z.infer<typeof insertJobOrderSchema>;
+export type JobOrderItem = typeof jobOrderItems.$inferSelect;
+export type InsertJobOrderItem = z.infer<typeof insertJobOrderItemSchema>;
+export type Warehouse = typeof warehouses.$inferSelect;
+export type InsertWarehouse = z.infer<typeof insertWarehouseSchema>;
+export type ProductionReceipt = typeof productionReceipts.$inferSelect;
+export type InsertProductionReceipt = z.infer<typeof insertProductionReceiptSchema>;
+export type Invoice = typeof invoices.$inferSelect;
+export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
+export type CustomerPayment = typeof customerPayments.$inferSelect;
+export type InsertCustomerPayment = z.infer<typeof insertCustomerPaymentSchema>;
 
 // Loyalty System Types
 export type LoyaltyPointsHistory = typeof loyaltyPointsHistory.$inferSelect;

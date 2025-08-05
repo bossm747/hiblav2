@@ -1,18 +1,28 @@
-# Hibla Filipino Hair - E-commerce Shop
+# Hibla Manufacturing & Supply System
 
 ## Overview
 
-This is an e-commerce platform for premium human hair extensions (piloka), built with a modern React frontend and Express.js backend, specifically for the Philippine market. The application provides a complete online shopping experience for hair extensions with product catalog, shopping cart, order management, and customer accounts. It features a clean, professional interface using ShadCN UI components with Philippine Peso (₱) currency support and follows a full-stack TypeScript architecture.
+This is a comprehensive manufacturing and supplier management system for Hibla, a manufacturer and supplier of real Filipino hair. The system has been completely transformed from an e-commerce platform to support manufacturing operations including quotations with automatic generation, sales orders, job orders for production management, inventory management with multiple warehouse locations, and summary reports with filtering capabilities by date, customer code, and order items.
+
+## Recent Major Transformation (August 2025)
+
+The system has been completely redesigned from a salon/e-commerce platform to a specialized manufacturing business management system:
+
+- **Business Focus**: Changed from hair extension retail to hair manufacturing and supply
+- **Core Workflow**: Quotations → Sales Orders → Job Orders → Inventory Management
+- **Database Schema**: Completely redesigned for manufacturing operations
+- **User Interface**: New manufacturing-focused pages and dashboard
+- **Reporting System**: Comprehensive summary reports with filtering capabilities
 
 ## User Preferences
 
 - Preferred communication style: Simple, everyday language
-- Market focus: Philippine hair extensions market
-- Business: Hibla Filipino Hair (Instagram: @hibla.filipinohumanhair)
-- Products: Premium human hair extensions ("piloka")
-- Currency: Philippine Peso (₱) instead of USD ($)
+- Market focus: Hair manufacturing and supply chain management
+- Business: Hibla Manufacturing - Real Filipino Hair Manufacturer and Supplier
+- Products: Premium real Filipino hair for global distribution
+- Currency: USD ($) for international business operations
 - Brand Assets: Hibla logo provided (circular design with elegant typography)
-- Transformation requested: Convert spa/salon system to e-commerce shop for hair extensions
+- Current Focus: Complete manufacturing workflow from quotations to shipment tracking
 
 ## System Architecture
 
@@ -41,38 +51,99 @@ This is an e-commerce platform for premium human hair extensions (piloka), built
 ## Key Components
 
 ### Database Schema (PostgreSQL + Drizzle)
-- **Customers**: Customer accounts with order history and spending tracking
-- **Categories**: Product categories with hierarchy support for hair types
-- **Products**: Hair extensions with attributes (type, texture, length, color, weight)
-- **Orders**: Order processing with payment and shipping management
-- **Cart**: Shopping cart functionality with quantity management
-- **Wishlist**: Saved products for later purchase
-- **Reviews**: Product ratings and customer feedback
-- **Shop Settings**: Store configuration and business information
-- **Barcodes**: Dynamic barcode generation for all products using SKU or product ID
+Manufacturing-focused database design:
+
+**Core Business Entities:**
+- **Quotations**: Customer quotations with automatic generation, items, pricing, and status tracking
+- **Sales Orders**: Confirmed orders from quotations with revision control and confirmation status
+- **Job Orders**: Production orders with customer instructions, due dates, and item tracking
+- **Job Order Items**: Individual items within job orders with quantity, ready status, and production tracking
+
+**Supporting Entities:**
+- **Warehouses**: Multiple warehouse locations with codes, names, and addresses
+- **Inventory Items**: Stock tracking across warehouses with current quantities
+- **Shipments**: Shipment tracking with dates, methods, and status updates
+- **Customers**: Business customer accounts with codes and contact information
+- **Products**: Hair product catalog with types, descriptions, and pricing
+
+**Legacy Entities (Maintained for Compatibility):**
+- Categories, Staff, Orders, Cart, Wishlist, Reviews, Shop Settings
 
 ### API Structure
-RESTful API with the following endpoints:
-- `/api/categories` - Product category management
-- `/api/products` - Product catalog with search and filtering
-- `/api/cart` - Shopping cart operations
-- `/api/orders` - Order processing and tracking
-- `/api/wishlist` - Wishlist management
-- `/api/reviews` - Product reviews and ratings
-- `/api/customers` - Customer account management
+Manufacturing-focused RESTful API:
+
+**Core Manufacturing APIs:**
+- `/api/quotations` - Quotation creation, management, and approval workflow
+- `/api/sales-orders` - Sales order processing from confirmed quotations
+- `/api/job-orders` - Production management and tracking
+- `/api/reports/*` - Comprehensive reporting system with filtering
+- `/api/dashboard/*` - Real-time business metrics and activity feeds
+
+**Supporting APIs:**
+- `/api/warehouses` - Warehouse management and inventory tracking
+- `/api/shipments` - Shipment creation and status tracking
+- `/api/customers` - Business customer relationship management
+- `/api/products` - Hair product catalog management
+
+**Legacy APIs (Maintained):**
+- `/api/categories`, `/api/cart`, `/api/orders`, `/api/wishlist`, `/api/reviews`
 
 ### Frontend Pages
-- **Home**: Landing page with featured products and categories
-- **Products**: Product catalog with filtering by type, texture, length
-- **Product Details**: Individual product pages with images and reviews
-- **Cart**: Shopping cart with quantity updates and checkout
-- **Checkout**: Order placement with shipping and payment
-- **Account**: Customer profile and order history
-- **Admin**: Product and order management (staff only)
+
+**Manufacturing Business Pages:**
+- **Home**: Hibla Manufacturing dashboard with business overview and quick actions
+- **Manufacturing Dashboard**: Real-time production metrics, efficiency tracking, and system status
+- **Quotations**: Customer quotation management with creation, approval, and tracking
+- **Sales Orders**: Confirmed order processing with revision control and shipment tracking
+- **Job Orders**: Production management with item tracking and customer instructions
+- **Summary Reports**: Comprehensive reporting with filtering by date, customer, and order items
+
+**Legacy Pages (Maintained):**
+- Products, Cart, Checkout, Account, various admin pages for compatibility
 
 ### UI Components Architecture
-- **Layout**: Responsive sidebar navigation with mobile support
-- **Modals**: Reusable modal components for creating/editing entities
+- **Navigation**: Manufacturing-focused navigation with quick access to core business functions
+- **Dashboard Cards**: Real-time metrics display for production, orders, and customer satisfaction
+- **Report Components**: Advanced filtering and export capabilities for business intelligence
+- **Status Tracking**: Visual progress indicators for production and shipment status
+- **Modals**: Reusable modal components for creating/editing manufacturing entities
+
+## Current System Capabilities
+
+**Quotation Management:**
+- Automatic quotation number generation (QT2025.08.XXX format)
+- Multi-item quotations with pricing and customer details
+- Status tracking (draft, sent, accepted, expired)
+- Integration with sales order generation
+
+**Production Management:**
+- Job order creation from confirmed sales orders
+- Production item tracking with ready/shipped status
+- Customer instruction handling
+- Due date and urgency management
+
+**Inventory & Warehouses:**
+- Multiple warehouse location support
+- Inventory valuation and stock tracking
+- Low stock alerts and reorder management
+- Cross-warehouse transfer capabilities
+
+**Reporting & Analytics:**
+- Summary reports with date range filtering
+- Customer-specific order tracking
+- Item-level production status
+- Payment tracking per sales order
+- Export capabilities (Excel/PDF)
+
+## Manufacturing Workflow
+
+1. **Quotation Creation**: Customer inquiries converted to formal quotations
+2. **Quote Approval**: Customer reviews and accepts quotations
+3. **Sales Order Generation**: Approved quotations become confirmed sales orders
+4. **Job Order Creation**: Sales orders trigger production job orders
+5. **Production Tracking**: Items manufactured and marked as ready
+6. **Shipment Management**: Ready items shipped to customers
+7. **Completion & Invoicing**: Orders completed with payment tracking
 - **Forms**: Validated forms using React Hook Form + Zod
 - **Data Display**: Cards, tables, and lists with loading states
 - **Theme System**: CSS custom properties for consistent theming
