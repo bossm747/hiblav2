@@ -11,38 +11,24 @@ import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 export function Navbar() {
   const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
   // Check if user is logged in
   const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem("user") || "null") : null;
   const isLoggedIn = !!user;
 
-  // Mock cart count - replace with actual cart state
-  const cartCount = 3;
 
-  // Optimized navigation without duplicates
+
+  // Manufacturing-focused navigation
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "Products", href: "/products" },
-    { name: "Categories", href: "/categories" },
-    { name: "Orders", href: "/orders", requiresAuth: true },
-    { name: "About", href: "/about" },
-    { name: "Contact", href: "/contact" },
+    { name: "Manufacturing", href: "/manufacturing-dashboard" },
+    { name: "Quotations", href: "/quotations" },
+    { name: "Sales Orders", href: "/sales-orders" },
+    { name: "Job Orders", href: "/job-orders" },
+    { name: "Inventory", href: "/inventory" },
+    { name: "Reports", href: "/summary-reports" },
   ];
 
-  // Staff-only navigation for admin/cashier users
-  const staffNavigation = [
-    { name: "Dashboard", href: user?.role === "admin" ? "/admin" : "/cashier", icon: "dashboard" },
-    { name: "Inventory", href: "/inventory", icon: "inventory" },
-    { name: "Analytics", href: "/analytics", icon: "analytics", adminOnly: true },
-  ];
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`;
-    }
-  };
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -59,16 +45,14 @@ export function Navbar() {
               <img src={logoPath} alt="Hibla Filipino Hair" className="h-10 w-10 object-contain" />
             </div>
             <span className="ml-3 text-lg xl:text-xl font-bold text-foreground neon-text-cyan hidden md:block">
-              Hibla Filipino Hair
+              Hibla Manufacturing
             </span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-4 xl:space-x-6">
-            {/* Regular Navigation */}
+            {/* Manufacturing Navigation */}
             {navigation.map((item) => {
-              // Skip auth-required items if user is not logged in
-              if (item.requiresAuth && !isLoggedIn) return null;
 
               return (
                 <Link
@@ -83,68 +67,13 @@ export function Navbar() {
               );
             })}
 
-            {/* Staff Navigation - Only for admin/cashier */}
-            {isLoggedIn && (user?.role === "admin" || user?.role === "cashier") && (
-              <>
-                <div className="w-px h-6 bg-white/20 mx-2" />
-                {staffNavigation.map((item) => {
-                  // Skip admin-only items for non-admin users
-                  if (item.adminOnly && user?.role !== "admin") return null;
 
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className={`text-sm xl:text-base text-foreground/80 hover:text-foreground hover:neon-text-purple transition-all font-medium ${
-                        location === item.href ? "text-foreground neon-text-purple" : ""
-                      }`}
-                    >
-                      {item.name}
-                    </Link>
-                  );
-                })}
-              </>
-            )}
           </nav>
-
-          {/* Search Bar */}
-          <div className="hidden md:block flex-1 max-w-sm lg:max-w-md mx-4 xl:mx-8">
-            <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                type="search"
-                placeholder="Search hair extensions..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 glass"
-              />
-            </form>
-          </div>
 
           {/* Right Actions */}
           <div className="flex items-center space-x-2 lg:space-x-4">
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center space-x-2 lg:space-x-3">
-              <Link href="/account">
-                <Button variant="ghost" size="sm" className="hover:neon-purple">
-                  <User className="h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="/wishlist">
-                <Button variant="ghost" size="sm" className="hover:neon-pink">
-                  <Heart className="h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="/cart">
-                <Button variant="ghost" size="sm" className="relative hover:neon-cyan">
-                  <ShoppingCart className="h-5 w-5" />
-                  {cartCount > 0 && (
-                    <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs bg-primary">
-                      {cartCount}
-                    </Badge>
-                  )}
-                </Button>
-              </Link>
               <div className="flex items-center space-x-3">
                 <ThemeToggle />
                 <div className="border-l border-white/20 pl-3">
