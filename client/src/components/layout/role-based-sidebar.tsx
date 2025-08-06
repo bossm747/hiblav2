@@ -1,26 +1,15 @@
-import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { 
   X, 
-  Home, 
-  ShoppingBag, 
-  Heart, 
-  User, 
-  Info, 
-  HelpCircle,
-  CreditCard,
-  Package,
-  Sparkles,
-  Settings,
-  LogOut,
   BarChart3,
-  Users,
-  TrendingUp,
-  DollarSign,
-  ChevronLeft,
-  ChevronRight,
-  CheckCircle
+  FileText,
+  ShoppingCart,
+  Briefcase,
+  Package,
+  Zap,
+  FileBarChart,
+  LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -36,22 +25,15 @@ interface MenuItem {
   name: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  badge?: string;
   description?: string;
-}
-
-interface MenuSection {
-  title: string;
-  items: MenuItem[];
 }
 
 export function RoleBasedSidebar({ isOpen, onClose, className }: RoleBasedSidebarProps) {
   const [location, setLocation] = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
   
-  // Check user role
+  // Check user authentication
   const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem("user") || "null") : null;
-  const userRole = user?.role || "guest";
+  const isLoggedIn = !!user;
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -59,70 +41,16 @@ export function RoleBasedSidebar({ isOpen, onClose, className }: RoleBasedSideba
     onClose();
   };
 
-  // Customer navigation sections
-  const customerSections: MenuSection[] = [
-    {
-      title: "Shop",
-      items: [
-        { name: "Home", href: "/", icon: Home, description: "Welcome & featured products" },
-        { name: "All Products", href: "/products", icon: ShoppingBag, description: "Browse complete catalog" },
-        { name: "Human Hair", href: "/products?category=human", icon: Sparkles, description: "Premium human hair extensions" },
-      ]
-    },
-    {
-      title: "Account",
-      items: [
-        { name: "Wishlist", href: "/wishlist", icon: Heart, badge: "3", description: "Saved favorites" },
-        { name: "My Account", href: "/account", icon: User, description: "Orders & profile" },
-        { name: "About Us", href: "/about", icon: Info, description: "Our story & mission" },
-        { name: "Help & Guides", href: "/docs", icon: HelpCircle, description: "Care guides & tutorials" },
-      ]
-    }
+  // Manufacturing navigation items
+  const manufacturingItems: MenuItem[] = [
+    { name: "Manufacturing Dashboard", href: "/manufacturing-dashboard", icon: BarChart3, description: "Production overview & metrics" },
+    { name: "Quotations", href: "/quotations", icon: FileText, description: "Customer quotation management" },
+    { name: "Sales Orders", href: "/sales-orders", icon: ShoppingCart, description: "Sales order processing" },
+    { name: "Job Orders", href: "/job-orders", icon: Briefcase, description: "Production job management" },
+    { name: "Inventory", href: "/inventory", icon: Package, description: "Stock management" },
+    { name: "AI Insights", href: "/inventory-insights", icon: Zap, description: "Predictive inventory analytics" },
+    { name: "Reports", href: "/summary-reports", icon: FileBarChart, description: "Manufacturing reports" },
   ];
-
-  // Admin navigation sections
-  const adminSections: MenuSection[] = [
-    {
-      title: "Dashboard",
-      items: [
-        { name: "Admin Dashboard", href: "/admin", icon: BarChart3, description: "Overview & analytics" },
-        { name: "Reports", href: "/reports", icon: TrendingUp, description: "Sales & performance" },
-      ]
-    },
-    {
-      title: "Inventory & Sales",
-      items: [
-        { name: "Inventory Management", href: "/inventory", icon: Package, description: "Stock management" },
-        { name: "Point of Sale", href: "/pos", icon: CreditCard, description: "Process sales" },
-        { name: "Order Management", href: "/admin/orders", icon: Package, description: "Customer orders" },
-        { name: "Products", href: "/product-management", icon: ShoppingBag, description: "Product catalog" },
-      ]
-    },
-    {
-      title: "Management",
-      items: [
-        { name: "Staff Management", href: "/staff", icon: Users, description: "Employee management" },
-        { name: "Customer Management", href: "/clients", icon: User, description: "Customer database" },
-        { name: "Payment Methods", href: "/admin/payment-methods", icon: CreditCard, description: "Configure payment options" },
-        { name: "Payment Approvals", href: "/admin/payment-approvals", icon: CheckCircle, description: "Review payment proofs" },
-        { name: "AI Image Generator", href: "/ai-images", icon: Sparkles, description: "Generate product photos" },
-        { name: "Settings", href: "/settings", icon: Settings, description: "System configuration" },
-      ]
-    },
-    {
-      title: "Store",
-      items: [
-        { name: "Storefront", href: "/", icon: Home, description: "View store" },
-        { name: "All Products", href: "/products", icon: ShoppingBag, description: "Browse catalog" },
-      ]
-    }
-  ];
-
-  // Cashier navigation sections
-  const cashierSections: MenuSection[] = [
-    {
-      title: "Daily Operations",
-      items: [
         { name: "Cashier Dashboard", href: "/cashier", icon: BarChart3, description: "Today's overview" },
         { name: "Point of Sale", href: "/pos", icon: CreditCard, description: "Process sales" },
         { name: "Inventory Check", href: "/inventory", icon: Package, description: "Check stock levels" },

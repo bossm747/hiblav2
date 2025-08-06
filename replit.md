@@ -70,6 +70,13 @@ Hibla Manufacturing & Supply System is a comprehensive manufacturing and supplie
 
 ### Manufacturing System Status
 - **Complete Transformation**: Successfully migrated from salon/spa system to dedicated manufacturing platform
-- **Removed Components**: All non-manufacturing pages eliminated (appointments, services, salon booking, e-commerce features)
-- **Active Routes**: Home, Manufacturing Dashboard, Quotations, Sales Orders, Job Orders, Inventory, Summary Reports
-- **Business Focus**: Pure B2B manufacturing and supply operations for Filipino hair products
+- **Removed Components**: All non-manufacturing pages eliminated (appointments, services, salon booking, e-commerce features, role-based navigation)
+- **Active Routes**: Manufacturing Dashboard (root), Quotations, Sales Orders, Job Orders, Inventory, AI Inventory Insights, Summary Reports
+- **Streamlined Navigation**: Clean manufacturing-focused navigation on desktop and mobile
+- **Business Focus**: Pure B2B manufacturing and supply operations for Filipino hair products with AI-powered inventory insights
+
+### Recent Updates (August 2025)
+- **Navigation Cleanup**: Removed all salon/spa navigation items and streamlined to manufacturing-only routes
+- **Mobile Navigation**: Implemented dedicated ManufacturingSidebar for mobile responsive views
+- **AI Integration**: Added Predictive Inventory Insights with OpenAI-powered demand forecasting
+- **Root Route**: Manufacturing Dashboard is now the default landing page (/) for immediate business focus

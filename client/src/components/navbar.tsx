@@ -4,7 +4,7 @@ import { ShoppingCart, Heart, User, Menu, X, Search, LogOut } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { RoleBasedSidebar } from "@/components/layout/role-based-sidebar";
+import { ManufacturingSidebar } from "@/components/layout/manufacturing-sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 
@@ -19,7 +19,6 @@ export function Navbar() {
 
   // Manufacturing-focused navigation
   const navigation = [
-    { name: "Home", href: "/" },
     { name: "Manufacturing", href: "/manufacturing-dashboard" },
     { name: "Quotations", href: "/quotations" },
     { name: "Sales Orders", href: "/sales-orders" },
@@ -118,7 +117,7 @@ export function Navbar() {
 
         {/* Mobile-Only Navigation Sidebar */}
         <div className="lg:hidden">
-          <RoleBasedSidebar 
+          <ManufacturingSidebar 
             isOpen={mobileMenuOpen} 
             onClose={() => setMobileMenuOpen(false)} 
           />
