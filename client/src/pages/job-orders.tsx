@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
 import { Navbar } from "@/components/navbar";
+import { JobOrderFormat } from "@/components/job-order-format";
 
 export default function JobOrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -253,7 +254,7 @@ export default function JobOrdersPage() {
                           <span className="text-xs text-gray-500">65% Complete</span>
                         </TableCell>
                         <TableCell>
-                          {new Date(order.dateCreated).toLocaleDateString()}
+                          {new Date(order.date || order.createdAt).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
@@ -363,6 +364,33 @@ export default function JobOrdersPage() {
               </Table>
             </CardContent>
           </Card>
+
+          {/* Job Order Detail Modal with PDF Format */}
+          {selectedJobOrder && selectedJobOrderDetails && (
+            <Dialog open={!!selectedJobOrder} onOpenChange={() => setSelectedJobOrder(null)}>
+              <DialogContent className="max-w-7xl h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Job Order Details</DialogTitle>
+                  <DialogDescription>
+                    View and print job order in official format with shipment tracking
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <JobOrderFormat 
+                  jobOrder={selectedJobOrderDetails}
+                  items={selectedJobOrderDetails.items || []}
+                  onShipmentUpdate={(itemId, shipmentNumber, value) => {
+                    updateShipmentMutation.mutate({
+                      itemId,
+                      shipmentNumber,
+                      quantity: value
+                    });
+                  }}
+                  isEditable={true}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
     </div>

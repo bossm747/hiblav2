@@ -150,30 +150,31 @@ export const quotationItems = pgTable("quotation_items", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Sales Orders
+// Sales Orders - following exact PDF format
 export const salesOrders = pgTable("sales_orders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  salesOrderNumber: text("sales_order_number").notNull().unique(), // Same as quotation number
+  salesOrderNumber: text("sales_order_number").notNull().unique(), // Format: 2025.08.001
   revisionNumber: text("revision_number").default("R1"),
   quotationId: varchar("quotation_id").references(() => quotations.id),
   customerId: varchar("customer_id").references(() => customers.id).notNull(),
-  customerCode: text("customer_code").notNull(),
+  customerCode: text("customer_code").notNull(), // Hair Tag (e.g., ABA)
   country: text("country").notNull(),
+  orderDate: timestamp("order_date").defaultNow(),
   dueDate: timestamp("due_date").notNull(),
-  dateRevision: timestamp("date_revision"),
+  shippingMethod: text("shipping_method"), // DHL, UPS, Fed Ex, Agent, Pick Up
+  paymentMethod: text("payment_method"), // bank, agent, money transfer, cash
+  createdBy: text("created_by").notNull(), // Creator initials (e.g., AAMA)
+  // Pricing fields matching PDF format
   subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
-  shippingFee: decimal("shipping_fee", { precision: 12, scale: 2 }).default("0"),
-  bankCharge: decimal("bank_charge", { precision: 12, scale: 2 }).default("0"),
-  discount: decimal("discount", { precision: 12, scale: 2 }).default("0"),
+  shippingChargeUsd: decimal("shipping_charge_usd", { precision: 12, scale: 2 }).default("0"),
+  bankChargeUsd: decimal("bank_charge_usd", { precision: 12, scale: 2 }).default("0"),
+  discountUsd: decimal("discount_usd", { precision: 12, scale: 2 }).default("0"),
   others: decimal("others", { precision: 12, scale: 2 }).default("0"),
-  total: decimal("total", { precision: 12, scale: 2 }).notNull(),
-  paymentMethod: text("payment_method"),
-  shippingMethod: text("shipping_method"),
+  pleasePayThisAmountUsd: decimal("please_pay_this_amount_usd", { precision: 12, scale: 2 }).notNull(),
   customerServiceInstructions: text("customer_service_instructions"),
   status: text("status").default("draft"), // draft, confirmed, cancelled
   isConfirmed: boolean("is_confirmed").default(false),
   confirmedAt: timestamp("confirmed_at"),
-  createdBy: varchar("created_by").references(() => staff.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -191,19 +192,21 @@ export const salesOrderItems = pgTable("sales_order_items", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Job Orders
+// Job Orders - following exact PDF format
 export const jobOrders = pgTable("job_orders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  jobOrderNumber: text("job_order_number").notNull().unique(), // Same as sales order number
+  jobOrderNumber: text("job_order_number").notNull().unique(), // Format: 2025.08.001
   revisionNumber: text("revision_number").default("R1"),
   salesOrderId: varchar("sales_order_id").references(() => salesOrders.id).notNull(),
   customerId: varchar("customer_id").references(() => customers.id).notNull(),
-  customerCode: text("customer_code").notNull(),
+  customerCode: text("customer_code").notNull(), // Hair Tag (e.g., ABA)
+  date: timestamp("date").defaultNow(),
   dueDate: timestamp("due_date").notNull(),
-  dateCreated: timestamp("date_created").defaultNow(),
-  dateRevised: timestamp("date_revised"),
-  customerInstructions: text("customer_instructions"),
-  createdBy: varchar("created_by").references(() => staff.id).notNull(),
+  createdBy: text("created_by").notNull(), // Creator initials (e.g., AAMA)
+  productionDate: timestamp("production_date"),
+  nameSignature: text("name_signature"), // Name/Signature field
+  received: text("received"), // Received field
+  orderInstructions: text("order_instructions"), // Customer instructions section
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -692,7 +695,7 @@ export const insertSalesOrderItemSchema = createInsertSchema(salesOrderItems).om
 export const insertJobOrderSchema = createInsertSchema(jobOrders).omit({
   id: true,
   jobOrderNumber: true,
-  dateCreated: true,
+  date: true,
   createdAt: true,
   updatedAt: true,
 });

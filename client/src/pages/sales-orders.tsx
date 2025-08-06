@@ -7,13 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { apiRequest } from "@/lib/queryClient";
 import { Navbar } from "@/components/navbar";
+import { SalesOrderFormat } from "@/components/sales-order-format";
 
 export default function SalesOrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [customerFilter, setCustomerFilter] = useState<string>("all");
+  const [selectedSalesOrder, setSelectedSalesOrder] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   // Fetch sales orders with filters
@@ -42,6 +45,13 @@ export default function SalesOrdersPage() {
   // Fetch customers for filter dropdown
   const { data: customers } = useQuery({
     queryKey: ["/api/customers"],
+  });
+
+  // Fetch sales order details including items
+  const { data: selectedSalesOrderDetails } = useQuery({
+    queryKey: ["/api/sales-orders", selectedSalesOrder],
+    queryFn: () => selectedSalesOrder ? apiRequest(`/api/sales-orders/${selectedSalesOrder}`) : null,
+    enabled: !!selectedSalesOrder,
   });
 
   // Confirm sales order mutation
@@ -244,24 +254,47 @@ export default function SalesOrdersPage() {
                         {new Date(order.dueDate).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="font-medium">
-                        ${parseFloat(order.total || "0").toLocaleString()}
+                        ${parseFloat(order.pleasePayThisAmountUsd || order.total || "0").toLocaleString()}
                       </TableCell>
                       <TableCell>
                         {new Date(order.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm">
-                            <Eye className="w-3 h-3" />
-                          </Button>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setSelectedSalesOrder(order.id)}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-6xl h-[90vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle>Sales Order Details</DialogTitle>
+                                <DialogDescription>
+                                  View and print sales order in official format
+                                </DialogDescription>
+                              </DialogHeader>
+                              {selectedSalesOrderDetails && (
+                                <SalesOrderFormat 
+                                  salesOrder={selectedSalesOrderDetails.salesOrder}
+                                  items={selectedSalesOrderDetails.items}
+                                />
+                              )}
+                            </DialogContent>
+                          </Dialog>
                           {!order.isConfirmed && (
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               onClick={() => confirmSalesOrderMutation.mutate(order.id)}
                               disabled={confirmSalesOrderMutation.isPending}
                             >
-                              <CheckCircle className="w-3 h-3" />
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Confirm
                             </Button>
                           )}
                         </div>

@@ -128,10 +128,10 @@ export class DatabaseStorage implements IStorage {
     let query = db.select().from(quotations);
     
     if (filters?.status) {
-      query = query.where(eq(quotations.status, filters.status));
+      query = query.where(eq(quotations.status, filters.status)) as any;
     }
     if (filters?.customer) {
-      query = query.where(eq(quotations.customerCode, filters.customer));
+      query = query.where(eq(quotations.customerCode, filters.customer)) as any;
     }
     
     return await query.orderBy(desc(quotations.createdAt));
@@ -143,7 +143,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createQuotation(insertQuotation: InsertQuotation): Promise<Quotation> {
-    const [quotation] = await db.insert(quotations).values(insertQuotation).returning();
+    const [quotation] = await db.insert(quotations).values([insertQuotation]).returning();
     return quotation;
   }
 
@@ -157,7 +157,7 @@ export class DatabaseStorage implements IStorage {
     let query = db.select().from(salesOrders);
     
     if (filters?.customer) {
-      query = query.where(eq(salesOrders.customerCode, filters.customer));
+      query = query.where(eq(salesOrders.customerCode, filters.customer)) as any;
     }
     
     return await query.orderBy(desc(salesOrders.createdAt));
@@ -169,7 +169,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createSalesOrder(insertSalesOrder: InsertSalesOrder): Promise<SalesOrder> {
-    const [salesOrder] = await db.insert(salesOrders).values(insertSalesOrder).returning();
+    const [salesOrder] = await db.insert(salesOrders).values([insertSalesOrder]).returning();
     return salesOrder;
   }
 
@@ -178,10 +178,10 @@ export class DatabaseStorage implements IStorage {
     let query = db.select().from(jobOrders);
     
     if (filters?.customer) {
-      query = query.where(eq(jobOrders.customerCode, filters.customer));
+      query = query.where(eq(jobOrders.customerCode, filters.customer)) as any;
     }
     
-    return await query.orderBy(desc(jobOrders.dateCreated));
+    return await query.orderBy(desc(jobOrders.createdAt));
   }
 
   async getJobOrder(id: string): Promise<JobOrder | undefined> {
@@ -190,7 +190,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createJobOrder(insertJobOrder: InsertJobOrder): Promise<JobOrder> {
-    const [jobOrder] = await db.insert(jobOrders).values(insertJobOrder).returning();
+    const [jobOrder] = await db.insert(jobOrders).values([insertJobOrder]).returning();
     return jobOrder;
   }
 }
