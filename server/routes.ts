@@ -3359,6 +3359,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Summary Reports API routes
+  app.get("/api/reports/job-order-summary", async (req, res) => {
+    try {
+      const { dateFrom, dateTo, customer, item } = req.query;
+      
+      // Get all job orders with items
+      const jobOrdersWithItems = await storage.getJobOrdersWithItems({
+        dateFrom: dateFrom as string,
+        dateTo: dateTo as string,
+        customer: customer as string,
+        item: item as string
+      });
+
+      // Process and categorize items
+      const ready: any[] = [];
+      const toProduce: any[] = [];
+      const reserved: any[] = [];
+      const shipped: any[] = [];
+
+      jobOrdersWithItems.forEach((jobOrder: any) => {
+        jobOrder.items?.forEach((item: any) => {
+          const baseItem = {
+            jobOrderNumber: jobOrder.jobOrderNumber,
+            customerCode: jobOrder.customerCode,
+            productName: item.productName,
+            specification: item.specification,
+            totalQuantity: item.quantity,
+            dueDate: jobOrder.dueDate,
+            dateCreated: jobOrder.date || jobOrder.createdAt,
+          };
+
+          // Add ready items
+          if (Number(item.ready) > 0) {
+            ready.push({
+              ...baseItem,
+              quantity: item.ready
+            });
+          }
+
+          // Add to produce items
+          if (Number(item.toProduce) > 0) {
+            toProduce.push({
+              ...baseItem,
+              quantity: item.toProduce
+            });
+          }
+
+          // Add reserved items
+          if (Number(item.reserved) > 0) {
+            reserved.push({
+              ...baseItem,
+              quantity: item.reserved
+            });
+          }
+
+          // Add shipped items
+          if (Number(item.shipped) > 0) {
+            shipped.push({
+              ...baseItem,
+              quantity: item.shipped
+            });
+          }
+        });
+      });
+
+      res.json({
+        ready,
+        toProduce,
+        reserved,
+        shipped
+      });
+    } catch (error) {
+      console.error("Error fetching job order summary:", error);
+      res.status(500).json({ message: "Failed to fetch job order summary" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

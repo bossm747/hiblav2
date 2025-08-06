@@ -70,6 +70,12 @@ export interface IStorage {
   getJobOrders(filters?: { customer?: string }): Promise<JobOrder[]>;
   getJobOrder(id: string): Promise<JobOrder | undefined>;
   createJobOrder(insertJobOrder: InsertJobOrder): Promise<JobOrder>;
+  getJobOrdersWithItems(filters?: { 
+    dateFrom?: string; 
+    dateTo?: string; 
+    customer?: string; 
+    item?: string; 
+  }): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -192,6 +198,94 @@ export class DatabaseStorage implements IStorage {
   async createJobOrder(insertJobOrder: InsertJobOrder): Promise<JobOrder> {
     const [jobOrder] = await db.insert(jobOrders).values([insertJobOrder]).returning();
     return jobOrder;
+  }
+
+  async getJobOrdersWithItems(filters?: { 
+    dateFrom?: string; 
+    dateTo?: string; 
+    customer?: string; 
+    item?: string; 
+  }): Promise<any[]> {
+    let query = db.select({
+      id: jobOrders.id,
+      jobOrderNumber: jobOrders.jobOrderNumber,
+      customerCode: jobOrders.customerCode,
+      dueDate: jobOrders.dueDate,
+      date: jobOrders.date,
+      createdAt: jobOrders.createdAt,
+      // Job order item fields
+      itemId: jobOrderItems.id,
+      productName: jobOrderItems.productName,
+      specification: jobOrderItems.specification,
+      quantity: jobOrderItems.quantity,
+      ready: jobOrderItems.ready,
+      toProduce: jobOrderItems.toProduce,
+      reserved: jobOrderItems.reserved,
+      shipped: jobOrderItems.shipped,
+    })
+    .from(jobOrders)
+    .leftJoin(jobOrderItems, eq(jobOrders.id, jobOrderItems.jobOrderId));
+
+    // Apply filters
+    const conditions = [];
+    
+    if (filters?.dateFrom) {
+      conditions.push(gte(jobOrders.createdAt, new Date(filters.dateFrom)));
+    }
+    
+    if (filters?.dateTo) {
+      const toDate = new Date(filters.dateTo);
+      toDate.setHours(23, 59, 59, 999); // End of day
+      conditions.push(sql`${jobOrders.createdAt} <= ${toDate}`);
+    }
+    
+    if (filters?.customer) {
+      conditions.push(eq(jobOrders.customerCode, filters.customer));
+    }
+    
+    if (filters?.item) {
+      conditions.push(like(jobOrderItems.productName, `%${filters.item}%`));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions)) as any;
+    }
+
+    const results = await query.orderBy(desc(jobOrders.createdAt));
+
+    // Group results by job order
+    const grouped = results.reduce((acc: any, row: any) => {
+      const jobOrderId = row.id;
+      
+      if (!acc[jobOrderId]) {
+        acc[jobOrderId] = {
+          id: row.id,
+          jobOrderNumber: row.jobOrderNumber,
+          customerCode: row.customerCode,
+          dueDate: row.dueDate,
+          date: row.date,
+          createdAt: row.createdAt,
+          items: []
+        };
+      }
+      
+      if (row.itemId) {
+        acc[jobOrderId].items.push({
+          id: row.itemId,
+          productName: row.productName,
+          specification: row.specification,
+          quantity: row.quantity,
+          ready: row.ready,
+          toProduce: row.toProduce,
+          reserved: row.reserved,
+          shipped: row.shipped,
+        });
+      }
+      
+      return acc;
+    }, {});
+
+    return Object.values(grouped);
   }
 }
 
