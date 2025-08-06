@@ -24,8 +24,10 @@ export function Navbar() {
     { name: "Sales Orders", href: "/sales-orders" },
     { name: "Job Orders", href: "/job-orders" },
     { name: "Inventory", href: "/inventory" },
+    { name: "Warehouses", href: "/warehouses" },
     { name: "AI Insights", href: "/inventory-insights" },
     { name: "Reports", href: "/summary-reports" },
+    { name: "Docs", href: "/documentation" },
   ];
 
 

@@ -15,6 +15,8 @@ import JobOrdersPage from "@/pages/job-orders";
 import ManufacturingDashboardPage from "@/pages/manufacturing-dashboard";
 import SummaryReportsPage from "@/pages/summary-reports";
 import InventoryInsightsPage from "@/pages/inventory-insights";
+import WarehousesPage from "@/pages/warehouses";
+import DocumentationPage from "@/pages/documentation";
 
 function App() {
   return (
@@ -30,8 +32,10 @@ function App() {
             <Route path="/sales-orders" component={SalesOrdersPage} />
             <Route path="/job-orders" component={JobOrdersPage} />
             <Route path="/inventory" component={InventoryPage} />
+            <Route path="/warehouses" component={WarehousesPage} />
             <Route path="/inventory-insights" component={InventoryInsightsPage} />
             <Route path="/summary-reports" component={SummaryReportsPage} />
+            <Route path="/documentation" component={DocumentationPage} />
             <Route path="/login" component={LoginPage} />
 
             {/* 404 */}

@@ -48,8 +48,10 @@ export function ManufacturingSidebar({ isOpen, onClose, className }: Manufacturi
     { name: "Sales Orders", href: "/sales-orders", icon: ShoppingCart, description: "Sales order processing" },
     { name: "Job Orders", href: "/job-orders", icon: Briefcase, description: "Production job management" },
     { name: "Inventory", href: "/inventory", icon: Package, description: "Stock management" },
+    { name: "Warehouses", href: "/warehouses", icon: Package, description: "Multi-warehouse management" },
     { name: "AI Insights", href: "/inventory-insights", icon: Zap, description: "Predictive inventory analytics" },
     { name: "Reports", href: "/summary-reports", icon: FileBarChart, description: "Manufacturing reports" },
+    { name: "Documentation", href: "/documentation", icon: FileText, description: "System documentation" },
   ];
 
   if (!isOpen) return null;
@@ -63,21 +65,21 @@ export function ManufacturingSidebar({ isOpen, onClose, className }: Manufacturi
     >
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/50"
+        className="absolute inset-0 bg-black"
         onClick={onClose}
       />
       
       {/* Sidebar */}
       <div 
         className={cn(
-          "absolute left-0 top-0 h-full w-72 max-w-[85vw] glass-dark shadow-2xl transition-transform duration-300 ease-out",
-          "border-r border-white/10"
+          "absolute left-0 top-0 h-full w-72 max-w-[85vw] bg-background shadow-2xl transition-transform duration-300 ease-out",
+          "border-r border-border"
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <Link href="/manufacturing-dashboard" onClick={onClose} className="flex items-center">
-            <div className="w-10 h-10 rounded-full overflow-hidden glass-card neon-glow-light flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 border border-primary/20 flex items-center justify-center">
               <img src={logoPath} alt="Hibla Manufacturing" className="h-8 w-8 object-contain" />
             </div>
             <span className="ml-3 text-lg font-bold text-foreground neon-text-cyan">
@@ -104,9 +106,9 @@ export function ManufacturingSidebar({ isOpen, onClose, className }: Manufacturi
                 onClick={onClose}
                 className={cn(
                   "flex items-center w-full p-3 rounded-lg text-left transition-all duration-200",
-                  "hover:bg-white/5 hover:neon-text-cyan group",
+                  "hover:bg-muted hover:text-primary group",
                   location === item.href 
-                    ? "bg-white/10 text-foreground neon-text-cyan border border-cyan-500/30" 
+                    ? "bg-primary/20 text-primary border border-primary/30" 
                     : "text-foreground/80"
                 )}
               >

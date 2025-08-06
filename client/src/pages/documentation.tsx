@@ -1,644 +1,483 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { 
-  Book, 
-  Calendar, 
+  BookOpen, 
   Users, 
+  Workflow, 
   Package, 
-  CreditCard, 
-  Settings,
+  FileText, 
+  ShoppingCart, 
+  Briefcase,
   BarChart3,
-  UserPlus,
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Download,
-  Upload,
-  Bell,
-  Shield,
-  Smartphone,
-  QrCode,
-  Banknote,
-  ArrowLeft,
-  ChevronRight,
-  Clock,
-  MapPin,
-  Phone,
-  Mail,
+  Zap,
+  Building2,
+  Star,
   CheckCircle,
-  AlertCircle,
-  Info
+  ArrowRight,
+  Download,
+  ExternalLink,
+  Clock,
+  Target,
+  TrendingUp
 } from "lucide-react";
+import { Navbar } from "@/components/navbar";
+import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 
-interface DocumentationProps {
-  onBack: () => void;
-}
+const features = [
+  {
+    icon: BarChart3,
+    title: "Manufacturing Dashboard",
+    description: "Real-time production metrics, order tracking, and performance analytics",
+    details: ["Production overview", "Key performance indicators", "Recent activity tracking", "Customer satisfaction metrics"]
+  },
+  {
+    icon: FileText,
+    title: "Quotation Management",
+    description: "Complete quotation lifecycle from creation to sales order conversion",
+    details: ["Automatic quotation numbering", "Multi-item quotations", "Revision tracking", "Price list integration"]
+  },
+  {
+    icon: ShoppingCart,
+    title: "Sales Order Processing",
+    description: "Streamlined order management with confirmation workflow",
+    details: ["System-generated order numbers", "Order confirmation process", "Due date management", "Invoice generation"]
+  },
+  {
+    icon: Briefcase,
+    title: "Job Order Management",
+    description: "Production tracking and order fulfillment monitoring",
+    details: ["Production reference forms", "Customer instruction handling", "Shipment tracking", "Order balance calculations"]
+  },
+  {
+    icon: Package,
+    title: "Multi-Warehouse Inventory",
+    description: "Comprehensive inventory tracking across 6 warehouse locations",
+    details: ["NG, PH, Reserved, Red, Admin, WIP warehouses", "Stock level monitoring", "Movement tracking", "Valuation reports"]
+  },
+  {
+    icon: Zap,
+    title: "AI-Powered Insights",
+    description: "Predictive analytics for demand forecasting and inventory optimization",
+    details: ["Demand prediction", "Seasonal pattern recognition", "Restock recommendations", "Market trend analysis"]
+  }
+];
 
-export default function Documentation({ onBack }: DocumentationProps) {
-  const [activeSection, setActiveSection] = useState("overview");
+const workflow = [
+  {
+    step: 1,
+    title: "Customer Inquiry",
+    description: "Customer requests pricing information",
+    icon: Users
+  },
+  {
+    step: 2,
+    title: "Quotation Creation",
+    description: "Generate detailed quotation with multiple price lists",
+    icon: FileText
+  },
+  {
+    step: 3,
+    title: "Quotation Approval",
+    description: "Customer approves quotation terms",
+    icon: CheckCircle
+  },
+  {
+    step: 4,
+    title: "Sales Order Generation",
+    description: "Convert approved quotation to confirmed sales order",
+    icon: ShoppingCart
+  },
+  {
+    step: 5,
+    title: "Production Planning",
+    description: "Create job orders for manufacturing",
+    icon: Briefcase
+  },
+  {
+    step: 6,
+    title: "Inventory Management",
+    description: "Track stock across multiple warehouses",
+    icon: Package
+  },
+  {
+    step: 7,
+    title: "Order Fulfillment",
+    description: "Ship products and update order status",
+    icon: TrendingUp
+  }
+];
 
-  const sections = [
-    { id: "overview", title: "Overview", icon: <Book className="h-4 w-4" /> },
-    { id: "getting-started", title: "Getting Started", icon: <CheckCircle className="h-4 w-4" /> },
-    { id: "appointments", title: "Appointments", icon: <Calendar className="h-4 w-4" /> },
-    { id: "clients", title: "Client Management", icon: <Users className="h-4 w-4" /> },
-    { id: "services", title: "Services", icon: <Edit className="h-4 w-4" /> },
-    { id: "inventory", title: "Inventory", icon: <Package className="h-4 w-4" /> },
-    { id: "pos", title: "Point of Sale", icon: <CreditCard className="h-4 w-4" /> },
-    { id: "reports", title: "Reports", icon: <BarChart3 className="h-4 w-4" /> },
-    { id: "settings", title: "Settings", icon: <Settings className="h-4 w-4" /> },
-    { id: "troubleshooting", title: "Troubleshooting", icon: <AlertCircle className="h-4 w-4" /> }
-  ];
+const showcaseStats = [
+  { label: "Manufacturing Efficiency", value: "95%", icon: Target },
+  { label: "Order Accuracy", value: "99.8%", icon: CheckCircle },
+  { label: "Warehouse Locations", value: "6", icon: Building2 },
+  { label: "AI Prediction Accuracy", value: "92%", icon: Zap }
+];
 
-  const renderContent = () => {
-    switch (activeSection) {
-      case "overview":
-        return (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-3xl font-bold text-slate-800 mb-4">System Overview</h2>
-              <p className="text-lg text-slate-600 leading-relaxed mb-6">
-                Serenity Spa & Salon Management System is a comprehensive solution designed specifically for Philippine beauty businesses. 
-                It provides all the tools needed to manage appointments, clients, services, inventory, and payments in one unified platform.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="spa-card-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-pink-500" />
-                    Smart Scheduling
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-slate-600">Advanced appointment booking with automated SMS/email reminders and conflict prevention.</p>
-                </CardContent>
-              </Card>
-
-              <Card className="spa-card-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5 text-pink-500" />
-                    Philippine Payments
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-slate-600">Full support for Cash, GCash, Maya, QR PH, and card payments with real-time processing.</p>
-                </CardContent>
-              </Card>
-
-              <Card className="spa-card-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5 text-pink-500" />
-                    Business Intelligence
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-slate-600">Comprehensive analytics and reports to track performance and growth opportunities.</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div>
-              <h3 className="text-2xl font-semibold text-slate-800 mb-4">Key Features</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Appointment scheduling and management</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Client database with visit history</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Service catalog with pricing</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Inventory tracking and alerts</span>
-                  </li>
-                </ul>
-                <ul className="space-y-2">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>POS system with cashier features</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Staff management and scheduling</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Automated notifications</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Mobile-responsive design</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        );
-
-      case "getting-started":
-        return (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-3xl font-bold text-slate-800 mb-4">Getting Started</h2>
-              <p className="text-lg text-slate-600 leading-relaxed mb-6">
-                Follow this step-by-step guide to set up your salon management system and start managing your business efficiently.
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              <Card className="spa-card-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-pink-500 text-white text-sm font-bold">1</span>
-                    Initial Setup
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Business Profile Configuration</h4>
-                    <p className="text-slate-600 mb-3">Navigate to Settings → Profile to configure your business information:</p>
-                    <ul className="list-disc list-inside text-slate-600 space-y-1">
-                      <li>Business name and logo</li>
-                      <li>Contact information (phone, email, address)</li>
-                      <li>Operating hours</li>
-                      <li>Tax settings (if applicable)</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="spa-card-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-pink-500 text-white text-sm font-bold">2</span>
-                    Add Services
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Service Catalog Setup</h4>
-                    <p className="text-slate-600 mb-3">Go to Services page and add your offerings:</p>
-                    <ul className="list-disc list-inside text-slate-600 space-y-1">
-                      <li>Facial treatments, massages, hair services</li>
-                      <li>Set pricing and duration for each service</li>
-                      <li>Organize services by categories</li>
-                      <li>Add service descriptions and requirements</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="spa-card-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-pink-500 text-white text-sm font-bold">3</span>
-                    Staff Management
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Add Team Members</h4>
-                    <p className="text-slate-600 mb-3">Register your staff in the Staff section:</p>
-                    <ul className="list-disc list-inside text-slate-600 space-y-1">
-                      <li>Add therapists, stylists, and other staff</li>
-                      <li>Set specialties and skill levels</li>
-                      <li>Configure working schedules</li>
-                      <li>Set commission rates (optional)</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="spa-card-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-full bg-pink-500 text-white text-sm font-bold">4</span>
-                    Inventory Setup
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Product Management</h4>
-                    <p className="text-slate-600 mb-3">Stock your inventory in the Inventory section:</p>
-                    <ul className="list-disc list-inside text-slate-600 space-y-1">
-                      <li>Add retail products and treatment supplies</li>
-                      <li>Set purchase and retail prices</li>
-                      <li>Configure low stock alerts</li>
-                      <li>Upload product images</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        );
-
-      case "appointments":
-        return (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-3xl font-bold text-slate-800 mb-4">Appointment Management</h2>
-              <p className="text-lg text-slate-600 leading-relaxed mb-6">
-                Comprehensive appointment booking and scheduling system with automated reminders and conflict prevention.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="spa-card-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Plus className="h-5 w-5 text-pink-500" />
-                    Creating Appointments
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-slate-600">To book a new appointment:</p>
-                  <ol className="list-decimal list-inside text-slate-600 space-y-1">
-                    <li>Click "New Appointment" button</li>
-                    <li>Select client (or create new)</li>
-                    <li>Choose service and staff member</li>
-                    <li>Pick date and time</li>
-                    <li>Add any special notes</li>
-                    <li>Confirm booking</li>
-                  </ol>
-                </CardContent>
-              </Card>
-
-              <Card className="spa-card-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-5 w-5 text-pink-500" />
-                    Automated Reminders
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-slate-600">Reminder system features:</p>
-                  <ul className="list-disc list-inside text-slate-600 space-y-1">
-                    <li>SMS reminders 24 hours before</li>
-                    <li>Email confirmations</li>
-                    <li>Customizable message templates</li>
-                    <li>Automatic follow-up messages</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card className="spa-card-shadow">
-              <CardHeader>
-                <CardTitle>Appointment Status Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="text-center">
-                    <Badge variant="outline" className="mb-2">Scheduled</Badge>
-                    <p className="text-sm text-slate-600">Confirmed booking</p>
-                  </div>
-                  <div className="text-center">
-                    <Badge variant="secondary" className="mb-2">In Progress</Badge>
-                    <p className="text-sm text-slate-600">Service ongoing</p>
-                  </div>
-                  <div className="text-center">
-                    <Badge variant="default" className="mb-2 bg-green-500">Completed</Badge>
-                    <p className="text-sm text-slate-600">Service finished</p>
-                  </div>
-                  <div className="text-center">
-                    <Badge variant="destructive" className="mb-2">Cancelled</Badge>
-                    <p className="text-sm text-slate-600">Booking cancelled</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <div className="flex items-start gap-3">
-                <Info className="h-5 w-5 text-blue-500 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-blue-800 mb-2">Pro Tips</h4>
-                  <ul className="text-blue-700 space-y-1">
-                    <li>• Use the calendar view to see daily/weekly schedules</li>
-                    <li>• Double-click appointments to quickly edit details</li>
-                    <li>• Set buffer time between appointments for preparation</li>
-                    <li>• Use the search function to quickly find specific bookings</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case "pos":
-        return (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-3xl font-bold text-slate-800 mb-4">Point of Sale System</h2>
-              <p className="text-lg text-slate-600 leading-relaxed mb-6">
-                Professional cashier system designed for walk-in customers with full Philippine payment method support.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card className="spa-card-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5 text-pink-500" />
-                    Processing Transactions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-slate-600">Steps to process a sale:</p>
-                  <ol className="list-decimal list-inside text-slate-600 space-y-1">
-                    <li>Browse services by category</li>
-                    <li>Add items to cart</li>
-                    <li>Select or create customer</li>
-                    <li>Choose staff member</li>
-                    <li>Select payment method</li>
-                    <li>Process payment</li>
-                    <li>Print receipt</li>
-                  </ol>
-                </CardContent>
-              </Card>
-
-              <Card className="spa-card-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <UserPlus className="h-5 w-5 text-pink-500" />
-                    Quick Customer Registration
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-slate-600">For new walk-in customers:</p>
-                  <ul className="list-disc list-inside text-slate-600 space-y-1">
-                    <li>Click "Add New Customer"</li>
-                    <li>Enter basic information</li>
-                    <li>Phone number required for SMS</li>
-                    <li>Customer automatically selected</li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
-
-            <Card className="spa-card-shadow">
-              <CardHeader>
-                <CardTitle>Philippine Payment Methods</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                  <div className="text-center">
-                    <Banknote className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                    <h4 className="font-medium">Cash</h4>
-                    <p className="text-sm text-slate-600">With change calculation</p>
-                  </div>
-                  <div className="text-center">
-                    <Smartphone className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                    <h4 className="font-medium">GCash</h4>
-                    <p className="text-sm text-slate-600">Digital wallet</p>
-                  </div>
-                  <div className="text-center">
-                    <Smartphone className="h-8 w-8 text-orange-600 mx-auto mb-2" />
-                    <h4 className="font-medium">Maya</h4>
-                    <p className="text-sm text-slate-600">PayMaya wallet</p>
-                  </div>
-                  <div className="text-center">
-                    <QrCode className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                    <h4 className="font-medium">QR PH</h4>
-                    <p className="text-sm text-slate-600">InstaPay QR</p>
-                  </div>
-                  <div className="text-center">
-                    <CreditCard className="h-8 w-8 text-gray-600 mx-auto mb-2" />
-                    <h4 className="font-medium">Cards</h4>
-                    <p className="text-sm text-slate-600">Credit/Debit</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <div className="flex items-start gap-3">
-                <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-green-800 mb-2">Cash Payment Features</h4>
-                  <ul className="text-green-700 space-y-1">
-                    <li>• Automatic change calculation</li>
-                    <li>• Amount paid tracking</li>
-                    <li>• Receipt with change amount</li>
-                    <li>• Overpayment protection</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case "troubleshooting":
-        return (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-3xl font-bold text-slate-800 mb-4">Troubleshooting Guide</h2>
-              <p className="text-lg text-slate-600 leading-relaxed mb-6">
-                Common issues and their solutions to keep your salon management system running smoothly.
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              <Card className="spa-card-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5 text-red-500" />
-                    Payment Processing Issues
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">GCash/Maya Not Working</h4>
-                    <ul className="list-disc list-inside text-slate-600 space-y-1">
-                      <li>Check internet connection</li>
-                      <li>Verify payment reference number</li>
-                      <li>Ensure sufficient wallet balance</li>
-                      <li>Contact customer support if issues persist</li>
-                    </ul>
-                  </div>
-                  <Separator />
-                  <div>
-                    <h4 className="font-medium mb-2">Receipt Not Printing</h4>
-                    <ul className="list-disc list-inside text-slate-600 space-y-1">
-                      <li>Check printer connection and power</li>
-                      <li>Verify paper is loaded correctly</li>
-                      <li>Use browser print function as backup</li>
-                      <li>Clear browser cache and retry</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="spa-card-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bell className="h-5 w-5 text-yellow-500" />
-                    Notification Problems
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">SMS Reminders Not Sending</h4>
-                    <ul className="list-disc list-inside text-slate-600 space-y-1">
-                      <li>Verify phone numbers include country code (+63)</li>
-                      <li>Check SMS service status in Settings</li>
-                      <li>Ensure sufficient SMS credits</li>
-                      <li>Test with your own number first</li>
-                    </ul>
-                  </div>
-                  <Separator />
-                  <div>
-                    <h4 className="font-medium mb-2">Email Notifications Failing</h4>
-                    <ul className="list-disc list-inside text-slate-600 space-y-1">
-                      <li>Check spam/junk folders</li>
-                      <li>Verify email addresses are correct</li>
-                      <li>Test email service in Settings</li>
-                      <li>Check internet connectivity</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="spa-card-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Package className="h-5 w-5 text-blue-500" />
-                    Inventory Issues
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Stock Numbers Incorrect</h4>
-                    <ul className="list-disc list-inside text-slate-600 space-y-1">
-                      <li>Manually adjust stock levels in Inventory</li>
-                      <li>Check for unreported sales/usage</li>
-                      <li>Verify product codes are unique</li>
-                      <li>Review transaction history</li>
-                    </ul>
-                  </div>
-                  <Separator />
-                  <div>
-                    <h4 className="font-medium mb-2">Low Stock Alerts Not Working</h4>
-                    <ul className="list-disc list-inside text-slate-600 space-y-1">
-                      <li>Check alert thresholds in product settings</li>
-                      <li>Verify notification preferences</li>
-                      <li>Update current stock quantities</li>
-                      <li>Test with a known low-stock item</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-red-500 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-red-800 mb-2">Need Additional Help?</h4>
-                  <div className="text-red-700 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      <span>Support Hotline: +63 917 123 4567</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      <span>Email: support@serenity-spa.ph</span>
-                    </div>
-                    <p className="text-sm">Available Monday-Friday, 8AM-6PM (PST)</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      default:
-        return <div>Select a section to view documentation</div>;
-    }
-  };
+export default function DocumentationPage() {
+  const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              onClick={onBack}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-slate-800">Documentation</h1>
-              <p className="text-slate-600">Complete guide to using your salon management system</p>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <main className="container mx-auto px-4 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">System Overview</TabsTrigger>
+            <TabsTrigger value="features">Features & Capabilities</TabsTrigger>
+            <TabsTrigger value="workflow">Business Workflow</TabsTrigger>
+            <TabsTrigger value="showcase">Client Showcase</TabsTrigger>
+          </TabsList>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="spa-card-shadow sticky top-4">
-              <CardHeader>
-                <CardTitle className="text-lg">Contents</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <nav className="space-y-1">
-                  {sections.map((section) => (
-                    <button
-                      key={section.id}
-                      onClick={() => setActiveSection(section.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors ${
-                        activeSection === section.id 
-                          ? 'bg-pink-50 text-pink-700 border-r-2 border-pink-500' 
-                          : 'text-slate-700'
-                      }`}
-                    >
-                      {section.icon}
-                      <span className="text-sm font-medium">{section.title}</span>
-                      {activeSection === section.id && (
-                        <ChevronRight className="h-4 w-4 ml-auto" />
-                      )}
-                    </button>
-                  ))}
-                </nav>
+          <TabsContent value="overview" className="space-y-8">
+            <div className="text-center py-12 bg-gradient-to-r from-purple-50 to-cyan-50 dark:from-purple-950/20 dark:to-cyan-950/20 rounded-xl">
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full overflow-hidden border-4 border-purple-200 dark:border-purple-800">
+                <img src={logoPath} alt="Hibla Manufacturing" className="w-full h-full object-contain" />
+              </div>
+              <h1 className="text-4xl font-bold text-foreground mb-4">
+                Hibla Manufacturing & Supply System
+              </h1>
+              <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+                A comprehensive manufacturing and supplier management platform designed specifically for Hibla, 
+                a manufacturer and supplier of premium real Filipino hair products for global distribution.
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Badge variant="outline" className="px-4 py-2">Manufacturing Excellence</Badge>
+                <Badge variant="outline" className="px-4 py-2">AI-Powered Insights</Badge>
+                <Badge variant="outline" className="px-4 py-2">Multi-Warehouse Support</Badge>
+                <Badge variant="outline" className="px-4 py-2">Real-time Analytics</Badge>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="h-5 w-5" />
+                    System Architecture
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Frontend Technology</h4>
+                    <p className="text-sm text-muted-foreground">
+                      React 18 with TypeScript, featuring modern UI components, responsive design, 
+                      and real-time data visualization for optimal user experience.
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2">Backend Infrastructure</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Node.js with Express.js, PostgreSQL database with Drizzle ORM, 
+                      ensuring scalable and reliable data management.
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2">AI Integration</h4>
+                    <p className="text-sm text-muted-foreground">
+                      OpenAI-powered predictive analytics for demand forecasting, 
+                      inventory optimization, and market trend analysis.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    Key Benefits
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold">Streamlined Operations</h4>
+                      <p className="text-sm text-muted-foreground">
+                        End-to-end workflow management from quotations to order fulfillment
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold">Multi-Warehouse Control</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Comprehensive inventory management across 6 warehouse locations
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold">Real-time Insights</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Live production metrics and predictive analytics for informed decisions
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="features" className="space-y-8">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-foreground mb-4">System Features & Capabilities</h2>
+              <p className="text-muted-foreground">
+                Comprehensive manufacturing management tools designed for efficiency and growth
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {features.map((feature, index) => (
+                <Card key={index} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <feature.icon className="h-6 w-6 text-primary" />
+                      </div>
+                      <CardTitle className="text-lg">{feature.title}</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-4">{feature.description}</p>
+                    <ul className="space-y-2">
+                      {feature.details.map((detail, i) => (
+                        <li key={i} className="flex items-center gap-2 text-sm">
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                          {detail}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Card className="bg-gradient-to-r from-purple-50 to-cyan-50 dark:from-purple-950/20 dark:to-cyan-950/20">
+              <CardContent className="p-8">
+                <div className="text-center">
+                  <h3 className="text-2xl font-bold text-foreground mb-4">Technical Specifications</h3>
+                  <div className="grid md:grid-cols-3 gap-6 mt-6">
+                    <div>
+                      <h4 className="font-semibold mb-2">Performance</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Optimized for high-volume manufacturing operations with real-time data processing
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-2">Scalability</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Cloud-ready architecture supporting business growth and expansion
+                      </p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-2">Security</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Enterprise-grade security with role-based access control and data encryption
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
-          </div>
+          </TabsContent>
 
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <motion.div
-              key={activeSection}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white rounded-lg shadow-lg border-0 p-8"
-            >
-              {renderContent()}
-            </motion.div>
-          </div>
-        </div>
-      </div>
+          <TabsContent value="workflow" className="space-y-8">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-foreground mb-4">Complete Business Workflow</h2>
+              <p className="text-muted-foreground">
+                From initial customer inquiry to order fulfillment - streamlined for efficiency
+              </p>
+            </div>
+
+            <div className="relative">
+              <div className="absolute left-4 md:left-8 top-8 bottom-8 w-0.5 bg-border"></div>
+              <div className="space-y-8">
+                {workflow.map((step, index) => (
+                  <div key={index} className="relative flex items-start gap-4 md:gap-8">
+                    <div className="flex-shrink-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-sm relative z-10">
+                      {step.step}
+                    </div>
+                    <Card className="flex-1">
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="p-2 bg-primary/10 rounded-lg">
+                            <step.icon className="h-6 w-6 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-xl font-semibold text-foreground mb-2">{step.title}</h3>
+                            <p className="text-muted-foreground">{step.description}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
+              <CardContent className="p-8">
+                <div className="text-center">
+                  <h3 className="text-2xl font-bold text-foreground mb-4">Workflow Automation</h3>
+                  <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+                    The system automates critical processes, reducing manual work and ensuring consistency 
+                    across all manufacturing operations while maintaining full traceability.
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Badge variant="outline" className="px-4 py-2">Automated Numbering</Badge>
+                    <Badge variant="outline" className="px-4 py-2">Real-time Updates</Badge>
+                    <Badge variant="outline" className="px-4 py-2">Document Generation</Badge>
+                    <Badge variant="outline" className="px-4 py-2">Status Tracking</Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="showcase" className="space-y-8">
+            <div className="text-center py-12 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-950/20 dark:via-purple-950/20 dark:to-pink-950/20 rounded-xl">
+              <div className="w-24 h-24 mx-auto mb-6 rounded-full overflow-hidden border-4 border-purple-200 dark:border-purple-800 p-2">
+                <img src={logoPath} alt="Hibla Manufacturing" className="w-full h-full object-contain" />
+              </div>
+              <h1 className="text-4xl font-bold text-foreground mb-4">
+                Transform Your Manufacturing Operations
+              </h1>
+              <p className="text-xl text-muted-foreground mb-8 max-w-4xl mx-auto">
+                Experience the power of integrated manufacturing management with Hibla's cutting-edge platform. 
+                Designed specifically for premium Filipino hair manufacturing and global distribution excellence.
+              </p>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button size="lg" className="px-8">
+                  <Star className="h-5 w-5 mr-2" />
+                  Start Your Journey
+                </Button>
+                <Button variant="outline" size="lg" className="px-8">
+                  <ExternalLink className="h-5 w-5 mr-2" />
+                  View Demo
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-4 gap-6">
+              {showcaseStats.map((stat, index) => (
+                <Card key={index} className="text-center hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="w-12 h-12 mx-auto mb-4 bg-primary/10 rounded-xl flex items-center justify-center">
+                      <stat.icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="text-3xl font-bold text-foreground mb-2">{stat.value}</div>
+                    <div className="text-sm text-muted-foreground">{stat.label}</div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Why Choose Hibla Manufacturing System?
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                    <div>
+                      <h4 className="font-semibold">Industry Expertise</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Specifically designed for Filipino hair manufacturing with deep industry knowledge
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                    <div>
+                      <h4 className="font-semibold">AI-Powered Intelligence</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Advanced predictive analytics for demand forecasting and inventory optimization
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                    <div>
+                      <h4 className="font-semibold">Global Scale Ready</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Multi-warehouse support designed for international distribution networks
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-primary rounded-full mt-2"></div>
+                    <div>
+                      <h4 className="font-semibold">Complete Integration</h4>
+                      <p className="text-sm text-muted-foreground">
+                        End-to-end workflow from quotations to fulfillment in one unified platform
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Expected Business Impact
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <span className="font-medium">Efficiency Improvement</span>
+                    <Badge className="bg-green-500">+40%</Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <span className="font-medium">Order Accuracy</span>
+                    <Badge className="bg-blue-500">+25%</Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <span className="font-medium">Inventory Optimization</span>
+                    <Badge className="bg-purple-500">+35%</Badge>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                    <span className="font-medium">Cost Reduction</span>
+                    <Badge className="bg-orange-500">+30%</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="bg-gradient-to-r from-cyan-500 to-purple-600 text-white">
+              <CardContent className="p-12 text-center">
+                <h2 className="text-3xl font-bold mb-4">Ready to Revolutionize Your Manufacturing?</h2>
+                <p className="text-cyan-100 mb-8 text-lg max-w-2xl mx-auto">
+                  Join the future of manufacturing excellence with Hibla's comprehensive platform. 
+                  Experience seamless operations, intelligent insights, and unprecedented growth potential.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button size="lg" variant="secondary" className="px-8">
+                    <Clock className="h-5 w-5 mr-2" />
+                    Schedule Demo
+                  </Button>
+                  <Button size="lg" variant="outline" className="px-8 text-white border-white hover:bg-white hover:text-purple-600">
+                    <Download className="h-5 w-5 mr-2" />
+                    Download Proposal
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </main>
     </div>
   );
 }

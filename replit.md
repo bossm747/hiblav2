@@ -80,3 +80,6 @@ Hibla Manufacturing & Supply System is a comprehensive manufacturing and supplie
 - **Mobile Navigation**: Implemented dedicated ManufacturingSidebar for mobile responsive views
 - **AI Integration**: Added Predictive Inventory Insights with OpenAI-powered demand forecasting
 - **Root Route**: Manufacturing Dashboard is now the default landing page (/) for immediate business focus
+- **Multi-Warehouse System**: Complete implementation of 6 warehouses (NG, PH, Reserved, Red, Admin, WIP) with inventory movement tracking
+- **Mobile UI Fix**: Replaced all transparent/translucent backgrounds with solid colors for better mobile visibility
+- **Documentation System**: Added comprehensive documentation with system overview, features, workflow, and client showcase sections
