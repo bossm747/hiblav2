@@ -28,6 +28,18 @@ import {
   insertChallengeParticipationSchema,
   insertAchievementSchema,
   insertLoyaltyRewardSchema,
+  // Manufacturing schemas
+  insertPriceListSchema,
+  insertQuotationSchema,
+  insertQuotationItemSchema,
+  insertSalesOrderSchema,
+  insertSalesOrderItemSchema,
+  insertJobOrderSchema,
+  insertJobOrderItemSchema,
+  insertWarehouseSchema,
+  insertProductionReceiptSchema,
+  insertInvoiceSchema,
+  insertCustomerPaymentSchema,
 } from "@shared/schema";
 import { aiStylistService } from "./ai-stylist-service";
 // import { sendAppointmentNotification } from "./notification-service";
@@ -2102,6 +2114,627 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(recommendations);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch stylist recommendations" });
+    }
+  });
+
+  // MANUFACTURING SYSTEM API ROUTES
+
+  // =====================================================
+  // PRICE LISTS MANAGEMENT
+  // =====================================================
+  
+  app.get("/api/price-lists", async (req, res) => {
+    try {
+      const priceLists = await storage.getPriceLists();
+      res.json(priceLists);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch price lists" });
+    }
+  });
+
+  app.post("/api/price-lists", async (req, res) => {
+    try {
+      const priceListData = insertPriceListSchema.parse(req.body);
+      const priceList = await storage.createPriceList(priceListData);
+      res.status(201).json(priceList);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid price list data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create price list" });
+    }
+  });
+
+  // =====================================================
+  // QUOTATIONS MANAGEMENT
+  // =====================================================
+
+  app.get("/api/quotations", async (req, res) => {
+    try {
+      const { customer, status, dateFrom, dateTo } = req.query;
+      let quotations;
+
+      if (customer && typeof customer === "string") {
+        quotations = await storage.getQuotationsByCustomer(customer);
+      } else if (status && typeof status === "string") {
+        quotations = await storage.getQuotationsByStatus(status);
+      } else {
+        quotations = await storage.getQuotations();
+      }
+
+      // Filter by date range if provided
+      if (dateFrom || dateTo) {
+        quotations = quotations.filter((q: any) => {
+          const quotationDate = new Date(q.createdAt);
+          if (dateFrom && quotationDate < new Date(dateFrom as string)) return false;
+          if (dateTo && quotationDate > new Date(dateTo as string)) return false;
+          return true;
+        });
+      }
+
+      res.json(quotations);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch quotations" });
+    }
+  });
+
+  app.get("/api/quotations/:id", async (req, res) => {
+    try {
+      const quotation = await storage.getQuotation(req.params.id);
+      if (!quotation) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+      const items = await storage.getQuotationItems(req.params.id);
+      res.json({ ...quotation, items });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch quotation" });
+    }
+  });
+
+  app.post("/api/quotations", async (req, res) => {
+    try {
+      const { quotation, items } = req.body;
+      
+      // Validate quotation data
+      const quotationData = insertQuotationSchema.parse(quotation);
+      
+      // Get current staff ID - in a real app, this would come from authentication
+      const staffList = await storage.getAllStaff();
+      const currentStaff = staffList.find((s: any) => s.role === 'admin') || staffList[0];
+      
+      if (!currentStaff) {
+        return res.status(400).json({ message: "No staff member found to create quotation" });
+      }
+
+      // Auto-generate quotation number if not provided
+      if (!quotationData.quotationNumber) {
+        const latestQuotation = await storage.getLatestQuotation();
+        const nextNumber = latestQuotation ? parseInt(latestQuotation.quotationNumber.replace(/\D/g, '')) + 1 : 1;
+        quotationData.quotationNumber = `Q${nextNumber.toString().padStart(4, '0')}`;
+      }
+
+      quotationData.createdBy = currentStaff.id;
+      
+      // Create quotation
+      const createdQuotation = await storage.createQuotation(quotationData);
+
+      // Create quotation items
+      if (items && items.length > 0) {
+        for (const item of items) {
+          const itemData = insertQuotationItemSchema.parse({
+            ...item,
+            quotationId: createdQuotation.id
+          });
+          await storage.createQuotationItem(itemData);
+        }
+      }
+
+      res.status(201).json(createdQuotation);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid quotation data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create quotation" });
+    }
+  });
+
+  app.put("/api/quotations/:id", async (req, res) => {
+    try {
+      const { quotation, items } = req.body;
+      const quotationData = insertQuotationSchema.partial().parse(quotation);
+      
+      const updatedQuotation = await storage.updateQuotation(req.params.id, quotationData);
+      if (!updatedQuotation) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+
+      // Update items if provided
+      if (items) {
+        // Delete existing items and recreate
+        await storage.deleteQuotationItems(req.params.id);
+        for (const item of items) {
+          const itemData = insertQuotationItemSchema.parse({
+            ...item,
+            quotationId: req.params.id
+          });
+          await storage.createQuotationItem(itemData);
+        }
+      }
+
+      res.json(updatedQuotation);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid quotation data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update quotation" });
+    }
+  });
+
+  app.delete("/api/quotations/:id", async (req, res) => {
+    try {
+      const deleted = await storage.deleteQuotation(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete quotation" });
+    }
+  });
+
+  // Generate Sales Order from Quotation
+  app.post("/api/quotations/:id/generate-sales-order", async (req, res) => {
+    try {
+      const quotation = await storage.getQuotation(req.params.id);
+      if (!quotation) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+
+      const quotationItems = await storage.getQuotationItems(req.params.id);
+      
+      // Generate sales order number (YYYY.MM.###)
+      const now = new Date();
+      const yearMonth = `${now.getFullYear()}.${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+      const latestSalesOrder = await storage.getLatestSalesOrderForMonth(yearMonth);
+      const nextSequence = latestSalesOrder ? 
+        parseInt(latestSalesOrder.salesOrderNumber.split('.')[2]) + 1 : 1;
+      const salesOrderNumber = `${yearMonth}.${nextSequence.toString().padStart(3, '0')}`;
+
+      // Create sales order
+      const salesOrderData = {
+        salesOrderNumber,
+        quotationId: quotation.id,
+        customerId: quotation.customerId,
+        customerCode: quotation.customerCode,
+        country: quotation.country,
+        dueDate: req.body.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days default
+        revisionNumber: "R1",
+        subtotal: quotation.subtotal,
+        shippingFee: quotation.shippingFee,
+        bankCharge: quotation.bankCharge,
+        discount: quotation.discount,
+        others: quotation.others,
+        total: quotation.total,
+        paymentMethod: quotation.paymentMethod,
+        shippingMethod: quotation.shippingMethod,
+        customerServiceInstructions: quotation.customerServiceInstructions,
+        createdBy: quotation.createdBy,
+        status: "draft"
+      };
+
+      const createdSalesOrder = await storage.createSalesOrder(salesOrderData);
+
+      // Create sales order items
+      for (const item of quotationItems) {
+        const salesOrderItemData = {
+          salesOrderId: createdSalesOrder.id,
+          productId: item.productId,
+          productName: item.productName,
+          specification: item.specification,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          lineTotal: item.lineTotal
+        };
+        await storage.createSalesOrderItem(salesOrderItemData);
+      }
+
+      // Update quotation status to accepted
+      await storage.updateQuotation(quotation.id, { status: "accepted" });
+
+      res.status(201).json(createdSalesOrder);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate sales order" });
+    }
+  });
+
+  // Duplicate Quotation
+  app.post("/api/quotations/:id/duplicate", async (req, res) => {
+    try {
+      const originalQuotation = await storage.getQuotation(req.params.id);
+      if (!originalQuotation) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+
+      const originalItems = await storage.getQuotationItems(req.params.id);
+      
+      // Generate new quotation number
+      const latestQuotation = await storage.getLatestQuotation();
+      const nextNumber = latestQuotation ? parseInt(latestQuotation.quotationNumber.replace(/\D/g, '')) + 1 : 1;
+      const newQuotationNumber = `Q${nextNumber.toString().padStart(4, '0')}`;
+
+      // Create duplicate quotation
+      const duplicateData = {
+        ...originalQuotation,
+        quotationNumber: newQuotationNumber,
+        revisionNumber: "R0",
+        status: "draft"
+      };
+      delete duplicateData.id;
+      delete duplicateData.createdAt;
+      delete duplicateData.updatedAt;
+
+      const duplicatedQuotation = await storage.createQuotation(duplicateData);
+
+      // Duplicate items
+      for (const item of originalItems) {
+        const itemData = {
+          ...item,
+          quotationId: duplicatedQuotation.id
+        };
+        delete itemData.id;
+        delete itemData.createdAt;
+        await storage.createQuotationItem(itemData);
+      }
+
+      res.status(201).json(duplicatedQuotation);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to duplicate quotation" });
+    }
+  });
+
+  // =====================================================
+  // SALES ORDERS MANAGEMENT
+  // =====================================================
+
+  app.get("/api/sales-orders", async (req, res) => {
+    try {
+      const { customer, status, dateFrom, dateTo } = req.query;
+      let salesOrders;
+
+      if (customer && typeof customer === "string") {
+        salesOrders = await storage.getSalesOrdersByCustomer(customer);
+      } else if (status && typeof status === "string") {
+        salesOrders = await storage.getSalesOrdersByStatus(status);
+      } else {
+        salesOrders = await storage.getSalesOrders();
+      }
+
+      // Filter by date range if provided
+      if (dateFrom || dateTo) {
+        salesOrders = salesOrders.filter((so: any) => {
+          const orderDate = new Date(so.createdAt);
+          if (dateFrom && orderDate < new Date(dateFrom as string)) return false;
+          if (dateTo && orderDate > new Date(dateTo as string)) return false;
+          return true;
+        });
+      }
+
+      res.json(salesOrders);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch sales orders" });
+    }
+  });
+
+  app.get("/api/sales-orders/:id", async (req, res) => {
+    try {
+      const salesOrder = await storage.getSalesOrder(req.params.id);
+      if (!salesOrder) {
+        return res.status(404).json({ message: "Sales order not found" });
+      }
+      const items = await storage.getSalesOrderItems(req.params.id);
+      res.json({ ...salesOrder, items });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch sales order" });
+    }
+  });
+
+  app.post("/api/sales-orders", async (req, res) => {
+    try {
+      const { salesOrder, items } = req.body;
+      const salesOrderData = insertSalesOrderSchema.parse(salesOrder);
+      
+      // Get current staff ID
+      const staffList = await storage.getAllStaff();
+      const currentStaff = staffList.find((s: any) => s.role === 'admin') || staffList[0];
+      salesOrderData.createdBy = currentStaff.id;
+
+      // Auto-generate sales order number if not provided (YYYY.MM.###)
+      if (!salesOrderData.salesOrderNumber) {
+        const now = new Date();
+        const yearMonth = `${now.getFullYear()}.${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+        const latestSalesOrder = await storage.getLatestSalesOrderForMonth(yearMonth);
+        const nextSequence = latestSalesOrder ? 
+          parseInt(latestSalesOrder.salesOrderNumber.split('.')[2]) + 1 : 1;
+        salesOrderData.salesOrderNumber = `${yearMonth}.${nextSequence.toString().padStart(3, '0')}`;
+      }
+
+      const createdSalesOrder = await storage.createSalesOrder(salesOrderData);
+
+      // Create sales order items
+      if (items && items.length > 0) {
+        for (const item of items) {
+          const itemData = insertSalesOrderItemSchema.parse({
+            ...item,
+            salesOrderId: createdSalesOrder.id
+          });
+          await storage.createSalesOrderItem(itemData);
+        }
+      }
+
+      res.status(201).json(createdSalesOrder);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid sales order data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create sales order" });
+    }
+  });
+
+  // Confirm Sales Order
+  app.post("/api/sales-orders/:id/confirm", async (req, res) => {
+    try {
+      const updatedSalesOrder = await storage.updateSalesOrder(req.params.id, {
+        isConfirmed: true,
+        confirmedAt: new Date(),
+        status: "confirmed"
+      });
+
+      if (!updatedSalesOrder) {
+        return res.status(404).json({ message: "Sales order not found" });
+      }
+
+      // Auto-generate Job Order when Sales Order is confirmed
+      const salesOrderItems = await storage.getSalesOrderItems(req.params.id);
+      
+      const jobOrderData = {
+        jobOrderNumber: updatedSalesOrder.salesOrderNumber, // Same number as sales order
+        revisionNumber: updatedSalesOrder.revisionNumber,
+        salesOrderId: updatedSalesOrder.id,
+        customerId: updatedSalesOrder.customerId,
+        customerCode: updatedSalesOrder.customerCode,
+        dueDate: updatedSalesOrder.dueDate,
+        customerInstructions: updatedSalesOrder.customerServiceInstructions,
+        createdBy: updatedSalesOrder.createdBy
+      };
+
+      const createdJobOrder = await storage.createJobOrder(jobOrderData);
+
+      // Create job order items
+      for (const item of salesOrderItems) {
+        const jobOrderItemData = {
+          jobOrderId: createdJobOrder.id,
+          productId: item.productId,
+          productName: item.productName,
+          specification: item.specification,
+          quantity: item.quantity
+        };
+        await storage.createJobOrderItem(jobOrderItemData);
+      }
+
+      res.json({ 
+        salesOrder: updatedSalesOrder, 
+        jobOrder: createdJobOrder 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to confirm sales order" });
+    }
+  });
+
+  // =====================================================
+  // JOB ORDERS MANAGEMENT
+  // =====================================================
+
+  app.get("/api/job-orders", async (req, res) => {
+    try {
+      const { customer, status, dateFrom, dateTo } = req.query;
+      let jobOrders;
+
+      if (customer && typeof customer === "string") {
+        jobOrders = await storage.getJobOrdersByCustomer(customer);
+      } else {
+        jobOrders = await storage.getJobOrders();
+      }
+
+      // Filter by date range if provided
+      if (dateFrom || dateTo) {
+        jobOrders = jobOrders.filter((jo: any) => {
+          const orderDate = new Date(jo.dateCreated);
+          if (dateFrom && orderDate < new Date(dateFrom as string)) return false;
+          if (dateTo && orderDate > new Date(dateTo as string)) return false;
+          return true;
+        });
+      }
+
+      res.json(jobOrders);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch job orders" });
+    }
+  });
+
+  app.get("/api/job-orders/:id", async (req, res) => {
+    try {
+      const jobOrder = await storage.getJobOrder(req.params.id);
+      if (!jobOrder) {
+        return res.status(404).json({ message: "Job order not found" });
+      }
+      const items = await storage.getJobOrderItems(req.params.id);
+      res.json({ ...jobOrder, items });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch job order" });
+    }
+  });
+
+  app.put("/api/job-orders/:id/items/:itemId/shipment", async (req, res) => {
+    try {
+      const { shipmentNumber, quantity } = req.body;
+      
+      if (!shipmentNumber || !quantity || shipmentNumber < 1 || shipmentNumber > 8) {
+        return res.status(400).json({ message: "Invalid shipment number or quantity" });
+      }
+
+      const updated = await storage.updateJobOrderItemShipment(
+        req.params.itemId, 
+        shipmentNumber, 
+        quantity
+      );
+
+      if (!updated) {
+        return res.status(404).json({ message: "Job order item not found" });
+      }
+
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update shipment" });
+    }
+  });
+
+  // =====================================================
+  // WAREHOUSES MANAGEMENT
+  // =====================================================
+
+  app.get("/api/warehouses", async (req, res) => {
+    try {
+      const warehouses = await storage.getWarehouses();
+      res.json(warehouses);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch warehouses" });
+    }
+  });
+
+  app.post("/api/warehouses", async (req, res) => {
+    try {
+      const warehouseData = insertWarehouseSchema.parse(req.body);
+      const warehouse = await storage.createWarehouse(warehouseData);
+      res.status(201).json(warehouse);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid warehouse data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create warehouse" });
+    }
+  });
+
+  // Inventory Movement Tracking
+  app.get("/api/inventory/movements", async (req, res) => {
+    try {
+      const { warehouseId, productId, dateFrom, dateTo, movementType } = req.query;
+      const movements = await storage.getInventoryMovements({
+        warehouseId: warehouseId as string,
+        productId: productId as string,
+        dateFrom: dateFrom as string,
+        dateTo: dateTo as string,
+        movementType: movementType as string
+      });
+      res.json(movements);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch inventory movements" });
+    }
+  });
+
+  app.post("/api/inventory/movements", async (req, res) => {
+    try {
+      const movementData = insertInventoryTransactionSchema.parse(req.body);
+      
+      // Get current staff ID
+      const staffList = await storage.getAllStaff();
+      const currentStaff = staffList.find((s: any) => s.role === 'admin') || staffList[0];
+      movementData.staffId = currentStaff.id;
+
+      const movement = await storage.createInventoryMovement(movementData);
+      res.status(201).json(movement);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid movement data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create inventory movement" });
+    }
+  });
+
+  // =====================================================
+  // REPORTS AND ANALYTICS
+  // =====================================================
+
+  // Manufacturing Dashboard Stats
+  app.get("/api/dashboard/manufacturing", async (req, res) => {
+    try {
+      const stats = await storage.getManufacturingStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch manufacturing stats" });
+    }
+  });
+
+  // Summary Reports with Filtering
+  app.get("/api/reports/summary", async (req, res) => {
+    try {
+      const { dateFrom, dateTo, customerCode, orderItems } = req.query;
+      const report = await storage.getSummaryReport({
+        dateFrom: dateFrom as string,
+        dateTo: dateTo as string,
+        customerCode: customerCode as string,
+        orderItems: orderItems as string
+      });
+      res.json(report);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate summary report" });
+    }
+  });
+
+  // Account Monitoring Reports
+  app.get("/api/reports/payments", async (req, res) => {
+    try {
+      const { customerId, salesOrderId, status } = req.query;
+      const payments = await storage.getPaymentReports({
+        customerId: customerId as string,
+        salesOrderId: salesOrderId as string,
+        status: status as string
+      });
+      res.json(payments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch payment reports" });
+    }
+  });
+
+  // Export functionality (placeholder for Excel/PDF generation)
+  app.post("/api/export/:type", async (req, res) => {
+    try {
+      const { type } = req.params; // quotation, sales-order, job-order, report
+      const { id, format } = req.body; // format: excel, pdf
+      
+      // In a real implementation, this would generate Excel/PDF files
+      // For now, return a success message
+      res.json({ 
+        message: `Export initiated for ${type} in ${format} format`,
+        downloadUrl: `/api/download/${type}-${id}.${format}`
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Export failed" });
+    }
+  });
+
+  // VLOOKUP Price functionality
+  app.get("/api/products/price-lookup", async (req, res) => {
+    try {
+      const { productId, priceListId } = req.query;
+      
+      if (!productId || !priceListId) {
+        return res.status(400).json({ message: "Product ID and Price List ID are required" });
+      }
+
+      const price = await storage.getProductPrice(productId as string, priceListId as string);
+      res.json({ price });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to lookup product price" });
     }
   });
 
