@@ -15,6 +15,7 @@ import SalesOrdersPage from "@/pages/sales-orders";
 import JobOrdersPage from "@/pages/job-orders";
 import ManufacturingDashboardPage from "@/pages/manufacturing-dashboard";
 import SummaryReportsPage from "@/pages/summary-reports";
+import InventoryInsightsPage from "@/pages/inventory-insights";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
             <Route path="/sales-orders" component={SalesOrdersPage} />
             <Route path="/job-orders" component={JobOrdersPage} />
             <Route path="/inventory" component={InventoryPage} />
+            <Route path="/inventory-insights" component={InventoryInsightsPage} />
             <Route path="/summary-reports" component={SummaryReportsPage} />
             <Route path="/login" component={LoginPage} />
 

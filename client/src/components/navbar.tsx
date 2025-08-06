@@ -25,6 +25,7 @@ export function Navbar() {
     { name: "Sales Orders", href: "/sales-orders" },
     { name: "Job Orders", href: "/job-orders" },
     { name: "Inventory", href: "/inventory" },
+    { name: "AI Insights", href: "/inventory-insights" },
     { name: "Reports", href: "/summary-reports" },
   ];
 
