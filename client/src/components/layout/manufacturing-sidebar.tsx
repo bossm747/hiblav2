@@ -82,7 +82,7 @@ export function ManufacturingSidebar({ isOpen, onClose, className }: Manufacturi
             <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10 border border-primary/20 flex items-center justify-center">
               <img src={logoPath} alt="Hibla Manufacturing" className="h-8 w-8 object-contain" />
             </div>
-            <span className="ml-3 text-lg font-bold text-foreground neon-text-cyan">
+            <span className="ml-3 header-text text-foreground">
               Hibla Manufacturing
             </span>
           </Link>

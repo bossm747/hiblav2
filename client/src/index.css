@@ -63,7 +63,6 @@
     background: hsl(var(--background));
     position: relative;
     min-height: 100vh;
-    overflow-x: hidden; /* Remove horizontal overflow on mobile */
   }
 
   /* Responsive typography */
@@ -239,6 +238,45 @@
 
 .dark .border {
   border-color: hsl(var(--border)) !important;
+}
+
+/* Header text visibility improvements for both themes */
+.header-text {
+  font-weight: 600;
+  font-size: 1.125rem;
+  line-height: 1.5;
+}
+
+.light .header-text {
+  color: hsl(0, 0%, 0%) !important;
+  text-shadow: none;
+}
+
+.dark .header-text {
+  color: hsl(0, 0%, 100%) !important;
+  text-shadow: none;
+}
+
+/* Navigation link visibility */
+.nav-link {
+  font-weight: 500;
+  transition: none;
+}
+
+.light .nav-link {
+  color: hsl(0, 0%, 20%) !important;
+}
+
+.dark .nav-link {
+  color: hsl(0, 0%, 90%) !important;
+}
+
+.light .nav-link:hover {
+  color: hsl(0, 0%, 0%) !important;
+}
+
+.dark .nav-link:hover {
+  color: hsl(0, 0%, 100%) !important;
 }
 
 .float-animation,
