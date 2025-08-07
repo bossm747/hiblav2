@@ -30,6 +30,29 @@
   --radius: 0.5rem;
 }
 
+.dark {
+  /* Dark theme with consistent white text */
+  --background: hsl(0, 0%, 10%);
+  --foreground: hsl(0, 0%, 100%);
+  --muted: hsl(0, 0%, 15%);
+  --muted-foreground: hsl(0, 0%, 85%);
+  --popover: hsl(0, 0%, 12%);
+  --popover-foreground: hsl(0, 0%, 100%);
+  --card: hsl(0, 0%, 12%);
+  --card-foreground: hsl(0, 0%, 100%);
+  --border: hsl(0, 0%, 25%);
+  --input: hsl(0, 0%, 18%);
+  --primary: hsl(0, 0%, 100%);
+  --primary-foreground: hsl(0, 0%, 0%);
+  --secondary: hsl(0, 0%, 18%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --accent: hsl(0, 0%, 18%);
+  --accent-foreground: hsl(0, 0%, 100%);
+  --destructive: hsl(0, 72%, 51%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --ring: hsl(0, 0%, 100%);
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -40,6 +63,7 @@
     background: hsl(var(--background));
     position: relative;
     min-height: 100vh;
+    overflow-x: hidden; /* Remove horizontal overflow on mobile */
   }
 
   /* Responsive typography */
@@ -152,6 +176,14 @@
     backdrop-filter: none !important;
   }
   
+  /* Mobile responsive fixes */
+  .container,
+  .max-w-7xl,
+  .max-w-full {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
   /* Override button hover effects to be plain */
   button:hover, .btn:hover {
     transform: none !important;
@@ -186,9 +218,27 @@
 .neon-text-pink,
 .neon-text-yellow,
 .neon-glow-light {
-  color: hsl(var(--foreground));
-  text-shadow: none;
-  box-shadow: none;
+  color: hsl(var(--foreground)) !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure all text elements use consistent colors */
+.dark * {
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark .text-muted,
+.dark .text-muted-foreground {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.dark .bg-card {
+  background: hsl(var(--card)) !important;
+}
+
+.dark .border {
+  border-color: hsl(var(--border)) !important;
 }
 
 .float-animation,
