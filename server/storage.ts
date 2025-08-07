@@ -81,17 +81,37 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   // Customer management
   async getCustomers(): Promise<Customer[]> {
-    return await db.select().from(customers).orderBy(desc(customers.createdAt));
+    try {
+      return await db.select().from(customers).orderBy(desc(customers.createdAt));
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+      throw new Error('Failed to fetch customers');
+    }
   }
 
   async getCustomer(id: string): Promise<Customer | undefined> {
-    const [customer] = await db.select().from(customers).where(eq(customers.id, id));
-    return customer || undefined;
+    try {
+      const [customer] = await db.select().from(customers).where(eq(customers.id, id));
+      return customer || undefined;
+    } catch (error) {
+      console.error('Error fetching customer:', error);
+      return undefined;
+    }
   }
 
   async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
-    const [customer] = await db.insert(customers).values(insertCustomer).returning();
-    return customer;
+    try {
+      const customerData = {
+        ...insertCustomer,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      const [customer] = await db.insert(customers).values(customerData).returning();
+      return customer;
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      throw new Error('Failed to create customer');
+    }
   }
 
   // Product management
@@ -160,44 +180,87 @@ export class DatabaseStorage implements IStorage {
 
   // Sales order management
   async getSalesOrders(filters?: { status?: string; customer?: string }): Promise<SalesOrder[]> {
-    let query = db.select().from(salesOrders);
-    
-    if (filters?.customer) {
-      query = query.where(eq(salesOrders.customerCode, filters.customer)) as any;
+    try {
+      let query = db.select().from(salesOrders);
+      
+      if (filters?.status) {
+        query = query.where(eq(salesOrders.status, filters.status)) as any;
+      }
+      if (filters?.customer) {
+        query = query.where(eq(salesOrders.customerCode, filters.customer)) as any;
+      }
+      
+      return await query.orderBy(desc(salesOrders.createdAt));
+    } catch (error) {
+      console.error('Error fetching sales orders:', error);
+      throw new Error('Failed to fetch sales orders');
     }
-    
-    return await query.orderBy(desc(salesOrders.createdAt));
   }
 
   async getSalesOrder(id: string): Promise<SalesOrder | undefined> {
-    const [salesOrder] = await db.select().from(salesOrders).where(eq(salesOrders.id, id));
-    return salesOrder || undefined;
+    try {
+      const [salesOrder] = await db.select().from(salesOrders).where(eq(salesOrders.id, id));
+      return salesOrder || undefined;
+    } catch (error) {
+      console.error('Error fetching sales order:', error);
+      return undefined;
+    }
   }
 
   async createSalesOrder(insertSalesOrder: InsertSalesOrder): Promise<SalesOrder> {
-    const [salesOrder] = await db.insert(salesOrders).values([insertSalesOrder]).returning();
-    return salesOrder;
+    try {
+      const salesOrderData = {
+        ...insertSalesOrder,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      const [salesOrder] = await db.insert(salesOrders).values([salesOrderData]).returning();
+      return salesOrder;
+    } catch (error) {
+      console.error('Error creating sales order:', error);
+      throw new Error('Failed to create sales order');
+    }
   }
 
   // Job order management
   async getJobOrders(filters?: { customer?: string }): Promise<JobOrder[]> {
-    let query = db.select().from(jobOrders);
-    
-    if (filters?.customer) {
-      query = query.where(eq(jobOrders.customerCode, filters.customer)) as any;
+    try {
+      let query = db.select().from(jobOrders);
+      
+      if (filters?.customer) {
+        query = query.where(eq(jobOrders.customerCode, filters.customer)) as any;
+      }
+      
+      return await query.orderBy(desc(jobOrders.createdAt));
+    } catch (error) {
+      console.error('Error fetching job orders:', error);
+      throw new Error('Failed to fetch job orders');
     }
-    
-    return await query.orderBy(desc(jobOrders.createdAt));
   }
 
   async getJobOrder(id: string): Promise<JobOrder | undefined> {
-    const [jobOrder] = await db.select().from(jobOrders).where(eq(jobOrders.id, id));
-    return jobOrder || undefined;
+    try {
+      const [jobOrder] = await db.select().from(jobOrders).where(eq(jobOrders.id, id));
+      return jobOrder || undefined;
+    } catch (error) {
+      console.error('Error fetching job order:', error);
+      return undefined;
+    }
   }
 
   async createJobOrder(insertJobOrder: InsertJobOrder): Promise<JobOrder> {
-    const [jobOrder] = await db.insert(jobOrders).values([insertJobOrder]).returning();
-    return jobOrder;
+    try {
+      const jobOrderData = {
+        ...insertJobOrder,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      const [jobOrder] = await db.insert(jobOrders).values([jobOrderData]).returning();
+      return jobOrder;
+    } catch (error) {
+      console.error('Error creating job order:', error);
+      throw new Error('Failed to create job order');
+    }
   }
 
   async getJobOrdersWithItems(filters?: { 
@@ -206,6 +269,7 @@ export class DatabaseStorage implements IStorage {
     customer?: string; 
     item?: string; 
   }): Promise<any[]> {
+    try {
     let query = db.select({
       id: jobOrders.id,
       jobOrderNumber: jobOrders.jobOrderNumber,
@@ -268,6 +332,29 @@ export class DatabaseStorage implements IStorage {
           items: []
         };
       }
+      
+      if (row.itemId) {
+        acc[jobOrderId].items.push({
+          id: row.itemId,
+          productName: row.productName,
+          specification: row.specification,
+          quantity: row.quantity,
+          ready: row.ready,
+          toProduce: row.toProduce,
+          reserved: row.reserved,
+          shipped: row.shipped
+        });
+      }
+      
+      return acc;
+    }, {});
+
+    return Object.values(grouped);
+    } catch (error) {
+      console.error('Error fetching job orders with items:', error);
+      throw new Error('Failed to fetch job orders with items');
+    }
+  }
       
       if (row.itemId) {
         acc[jobOrderId].items.push({
