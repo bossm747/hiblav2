@@ -1,96 +1,126 @@
 import { db } from "./db";
 import { eq, desc, and, like, gte, sql } from "drizzle-orm";
 import {
-  users,
   customers,
   products,
-  categories,
-  suppliers,
-  orders,
-  orderItems,
-  cart,
-  wishlist,
-  reviews,
-  inventoryTransactions,
-  shopSettings
+  quotations,
+  quotationItems,
+  salesOrders,
+  salesOrderItems,
+  jobOrders,
+  jobOrderItems,
+  priceLists,
+  warehouses
 } from "@shared/schema";
 
 import type {
-  User,
   Customer,
   Product,
-  InsertUser,
+  Quotation,
+  QuotationItem,
+  SalesOrder,
+  SalesOrderItem,
+  JobOrder,
+  JobOrderItem,
+  PriceList,
+  Warehouse,
   InsertCustomer,
-  InsertProduct
+  InsertProduct,
+  InsertQuotation,
+  InsertQuotationItem,
+  InsertSalesOrder,
+  InsertSalesOrderItem,
+  InsertJobOrder,
+  InsertJobOrderItem,
+  InsertPriceList,
+  InsertWarehouse
 } from "@shared/schema";
 
 export interface IStorage {
-  // User management
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(insertUser: InsertUser): Promise<User>;
-
   // Customer management
   getCustomers(): Promise<Customer[]>;
   getCustomer(id: string): Promise<Customer | undefined>;
   createCustomer(insertCustomer: InsertCustomer): Promise<Customer>;
-  updateCustomer(id: string, updates: Partial<InsertCustomer>): Promise<Customer>;
-  deleteCustomer(id: string): Promise<void>;
 
   // Product management
   getProducts(): Promise<Product[]>;
   getProduct(id: string): Promise<Product | undefined>;
   createProduct(insertProduct: InsertProduct): Promise<Product>;
-  updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product>;
-  deleteProduct(id: string): Promise<void>;
 
-  // Quotation management (placeholder for now)
-  getQuotations(filters?: { status?: string; customer?: string }): Promise<any[]>;
-  getSalesOrders(filters?: { status?: string; customer?: string }): Promise<any[]>;
-  getJobOrders(filters?: { customer?: string }): Promise<any[]>;
-  getPriceLists(): Promise<any[]>;
-  getWarehouses(): Promise<any[]>;
+  // Price list management
+  getPriceLists(): Promise<PriceList[]>;
+  createPriceList(insertPriceList: InsertPriceList): Promise<PriceList>;
+
+  // Warehouse management
+  getWarehouses(): Promise<Warehouse[]>;
+  createWarehouse(insertWarehouse: InsertWarehouse): Promise<Warehouse>;
+
+  // Quotation management
+  getQuotations(filters?: { status?: string; customer?: string }): Promise<Quotation[]>;
+  getQuotation(id: string): Promise<Quotation | undefined>;
+  createQuotation(insertQuotation: InsertQuotation): Promise<Quotation>;
+  createQuotationItem(insertQuotationItem: InsertQuotationItem): Promise<QuotationItem>;
+
+  // Sales order management
+  getSalesOrders(filters?: { status?: string; customer?: string }): Promise<SalesOrder[]>;
+  getSalesOrder(id: string): Promise<SalesOrder | undefined>;
+  createSalesOrder(insertSalesOrder: InsertSalesOrder): Promise<SalesOrder>;
+
+  // Job order management
+  getJobOrders(filters?: { customer?: string }): Promise<JobOrder[]>;
+  getJobOrder(id: string): Promise<JobOrder | undefined>;
+  createJobOrder(insertJobOrder: InsertJobOrder): Promise<JobOrder>;
+  getJobOrdersWithItems(filters?: { 
+    dateFrom?: string; 
+    dateTo?: string; 
+    customer?: string; 
+    item?: string; 
+  }): Promise<any[]>;
+
+  // Analytics methods
+  getManufacturingStats(): Promise<any>;
+  getSummaryReport(filters: {
+    dateFrom?: string;
+    dateTo?: string;
+    customerCode?: string;
+    orderItems?: string;
+  }): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
-  // User management
-  async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
-    return user;
-  }
-
   // Customer management
   async getCustomers(): Promise<Customer[]> {
-    return await db.select().from(customers).orderBy(desc(customers.createdAt));
+    try {
+      return await db.select().from(customers).orderBy(desc(customers.createdAt));
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+      throw new Error('Failed to fetch customers');
+    }
   }
 
   async getCustomer(id: string): Promise<Customer | undefined> {
-    const [customer] = await db.select().from(customers).where(eq(customers.id, id));
-    return customer || undefined;
+    try {
+      const [customer] = await db.select().from(customers).where(eq(customers.id, id));
+      return customer || undefined;
+    } catch (error) {
+      console.error('Error fetching customer:', error);
+      return undefined;
+    }
   }
 
   async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
-    const [customer] = await db.insert(customers).values(insertCustomer).returning();
-    return customer;
-  }
-
-  async updateCustomer(id: string, updates: Partial<InsertCustomer>): Promise<Customer> {
-    const [customer] = await db.update(customers).set(updates).where(eq(customers.id, id)).returning();
-    return customer;
-  }
-
-  async deleteCustomer(id: string): Promise<void> {
-    await db.delete(customers).where(eq(customers.id, id));
+    try {
+      const customerData = {
+        ...insertCustomer,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      const [customer] = await db.insert(customers).values(customerData).returning();
+      return customer;
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      throw new Error('Failed to create customer');
+    }
   }
 
   // Product management
@@ -108,29 +138,9 @@ export class DatabaseStorage implements IStorage {
     return product;
   }
 
-  async updateProduct(id: string, updates: Partial<InsertProduct>): Promise<Product> {
-    const [product] = await db.update(products).set(updates).where(eq(products.id, id)).returning();
-    return product;
-  }
-
-  async deleteProduct(id: string): Promise<void> {
-    await db.delete(products).where(eq(products.id, id));
-  }
-
-  async getProductPrice(productId: string, priceListId: string): Promise<number> {
-    // Implementation for VLOOKUP price functionality
-    // This would typically query a price_list_items table or similar
-    return 0; // Placeholder
-  }
-
   // Price list management
   async getPriceLists(): Promise<PriceList[]> {
     return await db.select().from(priceLists).orderBy(desc(priceLists.createdAt));
-  }
-
-  async getPriceList(id: string): Promise<PriceList | undefined> {
-    const [priceList] = await db.select().from(priceLists).where(eq(priceLists.id, id));
-    return priceList || undefined;
   }
 
   async createPriceList(insertPriceList: InsertPriceList): Promise<PriceList> {
@@ -138,13 +148,14 @@ export class DatabaseStorage implements IStorage {
     return priceList;
   }
 
-  async updatePriceList(id: string, updates: Partial<InsertPriceList>): Promise<PriceList> {
-    const [priceList] = await db.update(priceLists).set(updates).where(eq(priceLists.id, id)).returning();
-    return priceList;
+  // Warehouse management
+  async getWarehouses(): Promise<Warehouse[]> {
+    return await db.select().from(warehouses).orderBy(desc(warehouses.createdAt));
   }
 
-  async deletePriceList(id: string): Promise<void> {
-    await db.delete(priceLists).where(eq(priceLists.id, id));
+  async createWarehouse(insertWarehouse: InsertWarehouse): Promise<Warehouse> {
+    const [warehouse] = await db.insert(warehouses).values(insertWarehouse).returning();
+    return warehouse;
   }
 
   // Quotation management
@@ -152,10 +163,10 @@ export class DatabaseStorage implements IStorage {
     let query = db.select().from(quotations);
     
     if (filters?.status) {
-      query = query.where(eq(quotations.status, filters.status));
+      query = query.where(eq(quotations.status, filters.status)) as any;
     }
     if (filters?.customer) {
-      query = query.where(eq(quotations.customerCode, filters.customer));
+      query = query.where(eq(quotations.customerCode, filters.customer)) as any;
     }
     
     return await query.orderBy(desc(quotations.createdAt));
@@ -166,70 +177,9 @@ export class DatabaseStorage implements IStorage {
     return quotation || undefined;
   }
 
-  async getQuotationWithItems(id: string): Promise<(Quotation & { items: QuotationItem[] }) | undefined> {
-    const quotation = await this.getQuotation(id);
-    if (!quotation) return undefined;
-    
-    const items = await this.getQuotationItems(id);
-    return { ...quotation, items };
-  }
-
   async createQuotation(insertQuotation: InsertQuotation): Promise<Quotation> {
-    const [quotation] = await db.insert(quotations).values(insertQuotation).returning();
+    const [quotation] = await db.insert(quotations).values([insertQuotation]).returning();
     return quotation;
-  }
-
-  async updateQuotation(id: string, updates: Partial<InsertQuotation>): Promise<Quotation> {
-    const [quotation] = await db.update(quotations).set(updates).where(eq(quotations.id, id)).returning();
-    return quotation;
-  }
-
-  async deleteQuotation(id: string): Promise<void> {
-    await db.delete(quotations).where(eq(quotations.id, id));
-  }
-
-  async duplicateQuotation(id: string): Promise<Quotation> {
-    const original = await this.getQuotationWithItems(id);
-    if (!original) throw new Error("Quotation not found");
-    
-    // Create new quotation with incremented number
-    const newQuotation = await this.createQuotation({
-      quotationNumber: `${original.quotationNumber}-COPY`,
-      revisionNumber: "R0",
-      customerCode: original.customerCode,
-      country: original.country,
-      priceListId: original.priceListId,
-      paymentMethod: original.paymentMethod,
-      shippingMethod: original.shippingMethod,
-      shippingFee: original.shippingFee,
-      bankCharge: original.bankCharge,
-      discount: original.discount,
-      others: original.others,
-      subtotal: original.subtotal,
-      total: original.total,
-      customerServiceInstructions: original.customerServiceInstructions,
-      status: "draft"
-    });
-
-    // Duplicate items
-    for (const item of original.items) {
-      await this.createQuotationItem({
-        quotationId: newQuotation.id,
-        productId: item.productId,
-        productName: item.productName,
-        specification: item.specification,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        lineTotal: item.lineTotal
-      });
-    }
-
-    return newQuotation;
-  }
-
-  // Quotation items management
-  async getQuotationItems(quotationId: string): Promise<QuotationItem[]> {
-    return await db.select().from(quotationItems).where(eq(quotationItems.quotationId, quotationId));
   }
 
   async createQuotationItem(insertQuotationItem: InsertQuotationItem): Promise<QuotationItem> {
@@ -237,235 +187,281 @@ export class DatabaseStorage implements IStorage {
     return item;
   }
 
-  async updateQuotationItem(id: string, updates: Partial<InsertQuotationItem>): Promise<QuotationItem> {
-    const [item] = await db.update(quotationItems).set(updates).where(eq(quotationItems.id, id)).returning();
-    return item;
-  }
-
-  async deleteQuotationItem(id: string): Promise<void> {
-    await db.delete(quotationItems).where(eq(quotationItems.id, id));
-  }
-
   // Sales order management
   async getSalesOrders(filters?: { status?: string; customer?: string }): Promise<SalesOrder[]> {
-    let query = db.select().from(salesOrders);
-    
-    if (filters?.customer) {
-      query = query.where(eq(salesOrders.customerCode, filters.customer));
+    try {
+      let query = db.select().from(salesOrders);
+      
+      if (filters?.status) {
+        query = query.where(eq(salesOrders.status, filters.status)) as any;
+      }
+      if (filters?.customer) {
+        query = query.where(eq(salesOrders.customerCode, filters.customer)) as any;
+      }
+      
+      return await query.orderBy(desc(salesOrders.createdAt));
+    } catch (error) {
+      console.error('Error fetching sales orders:', error);
+      throw new Error('Failed to fetch sales orders');
     }
-    
-    return await query.orderBy(desc(salesOrders.createdAt));
   }
 
   async getSalesOrder(id: string): Promise<SalesOrder | undefined> {
-    const [salesOrder] = await db.select().from(salesOrders).where(eq(salesOrders.id, id));
-    return salesOrder || undefined;
-  }
-
-  async getSalesOrderWithItems(id: string): Promise<(SalesOrder & { items: SalesOrderItem[] }) | undefined> {
-    const salesOrder = await this.getSalesOrder(id);
-    if (!salesOrder) return undefined;
-    
-    const items = await this.getSalesOrderItems(id);
-    return { ...salesOrder, items };
+    try {
+      const [salesOrder] = await db.select().from(salesOrders).where(eq(salesOrders.id, id));
+      return salesOrder || undefined;
+    } catch (error) {
+      console.error('Error fetching sales order:', error);
+      return undefined;
+    }
   }
 
   async createSalesOrder(insertSalesOrder: InsertSalesOrder): Promise<SalesOrder> {
-    const [salesOrder] = await db.insert(salesOrders).values(insertSalesOrder).returning();
-    return salesOrder;
-  }
-
-  async updateSalesOrder(id: string, updates: Partial<InsertSalesOrder>): Promise<SalesOrder> {
-    const [salesOrder] = await db.update(salesOrders).set(updates).where(eq(salesOrders.id, id)).returning();
-    return salesOrder;
-  }
-
-  async deleteSalesOrder(id: string): Promise<void> {
-    await db.delete(salesOrders).where(eq(salesOrders.id, id));
-  }
-
-  async confirmSalesOrder(id: string): Promise<SalesOrder> {
-    const [salesOrder] = await db.update(salesOrders)
-      .set({ isConfirmed: true })
-      .where(eq(salesOrders.id, id))
-      .returning();
-    return salesOrder;
-  }
-
-  // Sales order items management
-  async getSalesOrderItems(salesOrderId: string): Promise<SalesOrderItem[]> {
-    return await db.select().from(salesOrderItems).where(eq(salesOrderItems.salesOrderId, salesOrderId));
-  }
-
-  async createSalesOrderItem(insertSalesOrderItem: InsertSalesOrderItem): Promise<SalesOrderItem> {
-    const [item] = await db.insert(salesOrderItems).values(insertSalesOrderItem).returning();
-    return item;
-  }
-
-  async updateSalesOrderItem(id: string, updates: Partial<InsertSalesOrderItem>): Promise<SalesOrderItem> {
-    const [item] = await db.update(salesOrderItems).set(updates).where(eq(salesOrderItems.id, id)).returning();
-    return item;
-  }
-
-  async deleteSalesOrderItem(id: string): Promise<void> {
-    await db.delete(salesOrderItems).where(eq(salesOrderItems.id, id));
+    try {
+      const salesOrderData = {
+        ...insertSalesOrder,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      const [salesOrder] = await db.insert(salesOrders).values([salesOrderData]).returning();
+      return salesOrder;
+    } catch (error) {
+      console.error('Error creating sales order:', error);
+      throw new Error('Failed to create sales order');
+    }
   }
 
   // Job order management
   async getJobOrders(filters?: { customer?: string }): Promise<JobOrder[]> {
-    let query = db.select().from(jobOrders);
-    
-    if (filters?.customer) {
-      query = query.where(eq(jobOrders.customerCode, filters.customer));
+    try {
+      let query = db.select().from(jobOrders);
+      
+      if (filters?.customer) {
+        query = query.where(eq(jobOrders.customerCode, filters.customer)) as any;
+      }
+      
+      return await query.orderBy(desc(jobOrders.createdAt));
+    } catch (error) {
+      console.error('Error fetching job orders:', error);
+      throw new Error('Failed to fetch job orders');
     }
-    
-    return await query.orderBy(desc(jobOrders.dateCreated));
   }
 
   async getJobOrder(id: string): Promise<JobOrder | undefined> {
-    const [jobOrder] = await db.select().from(jobOrders).where(eq(jobOrders.id, id));
-    return jobOrder || undefined;
-  }
-
-  async getJobOrderWithItems(id: string): Promise<(JobOrder & { items: JobOrderItem[] }) | undefined> {
-    const jobOrder = await this.getJobOrder(id);
-    if (!jobOrder) return undefined;
-    
-    const items = await this.getJobOrderItems(id);
-    return { ...jobOrder, items };
+    try {
+      const [jobOrder] = await db.select().from(jobOrders).where(eq(jobOrders.id, id));
+      return jobOrder || undefined;
+    } catch (error) {
+      console.error('Error fetching job order:', error);
+      return undefined;
+    }
   }
 
   async createJobOrder(insertJobOrder: InsertJobOrder): Promise<JobOrder> {
-    const [jobOrder] = await db.insert(jobOrders).values(insertJobOrder).returning();
-    return jobOrder;
+    try {
+      const jobOrderData = {
+        ...insertJobOrder,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      const [jobOrder] = await db.insert(jobOrders).values([jobOrderData]).returning();
+      return jobOrder;
+    } catch (error) {
+      console.error('Error creating job order:', error);
+      throw new Error('Failed to create job order');
+    }
   }
 
-  async updateJobOrder(id: string, updates: Partial<InsertJobOrder>): Promise<JobOrder> {
-    const [jobOrder] = await db.update(jobOrders).set(updates).where(eq(jobOrders.id, id)).returning();
-    return jobOrder;
-  }
+  async getJobOrdersWithItems(filters?: { 
+    dateFrom?: string; 
+    dateTo?: string; 
+    customer?: string; 
+    item?: string; 
+  }): Promise<any[]> {
+    try {
+    let query = db.select({
+      id: jobOrders.id,
+      jobOrderNumber: jobOrders.jobOrderNumber,
+      customerCode: jobOrders.customerCode,
+      dueDate: jobOrders.dueDate,
+      date: jobOrders.date,
+      createdAt: jobOrders.createdAt,
+      // Job order item fields
+      itemId: jobOrderItems.id,
+      productName: jobOrderItems.productName,
+      specification: jobOrderItems.specification,
+      quantity: jobOrderItems.quantity,
+      ready: jobOrderItems.ready,
+      toProduce: jobOrderItems.toProduce,
+      reserved: jobOrderItems.reserved,
+      shipped: jobOrderItems.shipped,
+    })
+    .from(jobOrders)
+    .leftJoin(jobOrderItems, eq(jobOrders.id, jobOrderItems.jobOrderId));
 
-  async deleteJobOrder(id: string): Promise<void> {
-    await db.delete(jobOrders).where(eq(jobOrders.id, id));
-  }
-
-  // Job order items management
-  async getJobOrderItems(jobOrderId: string): Promise<JobOrderItem[]> {
-    return await db.select().from(jobOrderItems).where(eq(jobOrderItems.jobOrderId, jobOrderId));
-  }
-
-  async createJobOrderItem(insertJobOrderItem: InsertJobOrderItem): Promise<JobOrderItem> {
-    const [item] = await db.insert(jobOrderItems).values(insertJobOrderItem).returning();
-    return item;
-  }
-
-  async updateJobOrderItem(id: string, updates: Partial<InsertJobOrderItem>): Promise<JobOrderItem> {
-    const [item] = await db.update(jobOrderItems).set(updates).where(eq(jobOrderItems.id, id)).returning();
-    return item;
-  }
-
-  async deleteJobOrderItem(id: string): Promise<void> {
-    await db.delete(jobOrderItems).where(eq(jobOrderItems.id, id));
-  }
-
-  async updateJobOrderItemShipment(itemId: string, shipmentNumber: number, quantity: number): Promise<JobOrderItem> {
-    const updates = { [`shipment${shipmentNumber}`]: quantity } as any;
-    const [item] = await db.update(jobOrderItems).set(updates).where(eq(jobOrderItems.id, itemId)).returning();
-    return item;
-  }
-
-  // Warehouse management
-  async getWarehouses(): Promise<Warehouse[]> {
-    return await db.select().from(warehouses).orderBy(desc(warehouses.createdAt));
-  }
-
-  async getWarehouse(id: string): Promise<Warehouse | undefined> {
-    const [warehouse] = await db.select().from(warehouses).where(eq(warehouses.id, id));
-    return warehouse || undefined;
-  }
-
-  async createWarehouse(insertWarehouse: InsertWarehouse): Promise<Warehouse> {
-    const [warehouse] = await db.insert(warehouses).values(insertWarehouse).returning();
-    return warehouse;
-  }
-
-  async updateWarehouse(id: string, updates: Partial<InsertWarehouse>): Promise<Warehouse> {
-    const [warehouse] = await db.update(warehouses).set(updates).where(eq(warehouses.id, id)).returning();
-    return warehouse;
-  }
-
-  async deleteWarehouse(id: string): Promise<void> {
-    await db.delete(warehouses).where(eq(warehouses.id, id));
-  }
-
-  // Inventory management
-  async getInventoryItems(warehouseId?: string): Promise<InventoryItem[]> {
-    let query = db.select().from(inventoryItems);
+    // Apply filters
+    const conditions = [];
     
-    if (warehouseId) {
-      query = query.where(eq(inventoryItems.warehouseId, warehouseId));
+    if (filters?.dateFrom) {
+      conditions.push(gte(jobOrders.createdAt, new Date(filters.dateFrom)));
     }
     
-    return await query.orderBy(desc(inventoryItems.createdAt));
+    if (filters?.dateTo) {
+      const toDate = new Date(filters.dateTo);
+      toDate.setHours(23, 59, 59, 999); // End of day
+      conditions.push(sql`${jobOrders.createdAt} <= ${toDate}`);
+    }
+    
+    if (filters?.customer) {
+      conditions.push(eq(jobOrders.customerCode, filters.customer));
+    }
+    
+    if (filters?.item) {
+      conditions.push(like(jobOrderItems.productName, `%${filters.item}%`));
+    }
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions)) as any;
+    }
+
+    const results = await query.orderBy(desc(jobOrders.createdAt));
+
+    // Group results by job order
+    const grouped = results.reduce((acc: any, row: any) => {
+      const jobOrderId = row.id;
+      
+      if (!acc[jobOrderId]) {
+        acc[jobOrderId] = {
+          id: row.id,
+          jobOrderNumber: row.jobOrderNumber,
+          customerCode: row.customerCode,
+          dueDate: row.dueDate,
+          date: row.date,
+          createdAt: row.createdAt,
+          items: []
+        };
+      }
+      
+      if (row.itemId) {
+        acc[jobOrderId].items.push({
+          id: row.itemId,
+          productName: row.productName,
+          specification: row.specification,
+          quantity: row.quantity,
+          ready: row.ready,
+          toProduce: row.toProduce,
+          reserved: row.reserved,
+          shipped: row.shipped
+        });
+      }
+      
+      return acc;
+    }, {});
+
+    return Object.values(grouped);
+    } catch (error) {
+      console.error('Error fetching job orders with items:', error);
+      throw new Error('Failed to fetch job orders with items');
+    }
   }
 
-  async getInventoryItem(id: string): Promise<InventoryItem | undefined> {
-    const [item] = await db.select().from(inventoryItems).where(eq(inventoryItems.id, id));
-    return item || undefined;
+  // Add missing getManufacturingStats method
+  async getManufacturingStats(): Promise<any> {
+    try {
+      const [quotations, salesOrders, jobOrders, products, warehouses] = await Promise.all([
+        this.getQuotations(),
+        this.getSalesOrders(),
+        this.getJobOrders(),
+        this.getProducts(),
+        this.getWarehouses()
+      ]);
+
+      const totalRevenue = salesOrders.reduce((sum, so) => sum + parseFloat(so.totalAmount || '0'), 0);
+
+      return {
+        totalQuotations: quotations.length,
+        pendingQuotations: quotations.filter(q => q.status === 'pending').length,
+        approvedQuotations: quotations.filter(q => q.status === 'approved').length,
+        totalSalesOrders: salesOrders.length,
+        confirmedSalesOrders: salesOrders.filter(so => so.status === 'confirmed').length,
+        totalJobOrders: jobOrders.length,
+        activeJobOrders: jobOrders.filter(jo => jo.status === 'active' || jo.status === 'in_progress').length,
+        totalProducts: products.length,
+        totalWarehouses: warehouses.length,
+        revenue: totalRevenue,
+        averageOrderValue: salesOrders.length > 0 ? totalRevenue / salesOrders.length : 0
+      };
+    } catch (error) {
+      console.error('Error fetching manufacturing stats:', error);
+      throw new Error('Failed to fetch manufacturing stats');
+    }
   }
 
-  async createInventoryItem(insertInventoryItem: InsertInventoryItem): Promise<InventoryItem> {
-    const [item] = await db.insert(inventoryItems).values(insertInventoryItem).returning();
-    return item;
-  }
+  // Add missing getSummaryReport method
+  async getSummaryReport(filters: {
+    dateFrom?: string;
+    dateTo?: string;
+    customerCode?: string;
+    orderItems?: string;
+  }): Promise<any> {
+    try {
+      const jobOrdersWithItems = await this.getJobOrdersWithItems({
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+        customer: filters.customerCode,
+        item: filters.orderItems
+      });
 
-  async updateInventoryItem(id: string, updates: Partial<InsertInventoryItem>): Promise<InventoryItem> {
-    const [item] = await db.update(inventoryItems).set(updates).where(eq(inventoryItems.id, id)).returning();
-    return item;
-  }
+      const summary = {
+        totalOrders: jobOrdersWithItems.length,
+        totalItems: jobOrdersWithItems.reduce((sum, order) => sum + order.items.length, 0),
+        ordersByCustomer: {},
+        itemsByProduct: {},
+        orders: jobOrdersWithItems
+      };
 
-  async deleteInventoryItem(id: string): Promise<void> {
-    await db.delete(inventoryItems).where(eq(inventoryItems.id, id));
-  }
+      // Group by customer
+      jobOrdersWithItems.forEach(order => {
+        if (!summary.ordersByCustomer[order.customerCode]) {
+          summary.ordersByCustomer[order.customerCode] = 0;
+        }
+        summary.ordersByCustomer[order.customerCode]++;
+      });
 
-  // Production receipts
-  async getProductionReceipts(): Promise<ProductionReceipt[]> {
-    return await db.select().from(productionReceipts).orderBy(desc(productionReceipts.createdAt));
-  }
+      // Group by product
+      jobOrdersWithItems.forEach(order => {
+        order.items.forEach(item => {
+          if (!summary.itemsByProduct[item.productName]) {
+            summary.itemsByProduct[item.productName] = 0;
+          }
+          summary.itemsByProduct[item.productName] += item.quantity;
+        });
+      });
 
-  async createProductionReceipt(insertProductionReceipt: InsertProductionReceipt): Promise<ProductionReceipt> {
-    const [receipt] = await db.insert(productionReceipts).values(insertProductionReceipt).returning();
-    return receipt;
+      return summary;
+    } catch (error) {
+      console.error('Error generating summary report:', error);
+      throw new Error('Failed to generate summary report');
+    }
   }
+      
+      if (row.itemId) {
+        acc[jobOrderId].items.push({
+          id: row.itemId,
+          productName: row.productName,
+          specification: row.specification,
+          quantity: row.quantity,
+          ready: row.ready,
+          toProduce: row.toProduce,
+          reserved: row.reserved,
+          shipped: row.shipped,
+        });
+      }
+      
+      return acc;
+    }, {});
 
-  // Invoices
-  async getInvoices(): Promise<Invoice[]> {
-    return await db.select().from(invoices).orderBy(desc(invoices.createdAt));
-  }
-
-  async createInvoice(insertInvoice: InsertInvoice): Promise<Invoice> {
-    const [invoice] = await db.insert(invoices).values(insertInvoice).returning();
-    return invoice;
-  }
-
-  // Customer payments
-  async getCustomerPayments(): Promise<CustomerPayment[]> {
-    return await db.select().from(customerPayments).orderBy(desc(customerPayments.createdAt));
-  }
-
-  async createCustomerPayment(insertCustomerPayment: InsertCustomerPayment): Promise<CustomerPayment> {
-    const [payment] = await db.insert(customerPayments).values(insertCustomerPayment).returning();
-    return payment;
-  }
-
-  // Shipments
-  async getShipments(): Promise<Shipment[]> {
-    return await db.select().from(shipments).orderBy(desc(shipments.createdAt));
-  }
-
-  async createShipment(insertShipment: InsertShipment): Promise<Shipment> {
-    const [shipment] = await db.insert(shipments).values(insertShipment).returning();
-    return shipment;
+    return Object.values(grouped);
   }
 }
 

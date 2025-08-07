@@ -76,6 +76,15 @@ export interface IStorage {
     customer?: string; 
     item?: string; 
   }): Promise<any[]>;
+
+  // Analytics methods
+  getManufacturingStats(): Promise<any>;
+  getSummaryReport(filters: {
+    dateFrom?: string;
+    dateTo?: string;
+    customerCode?: string;
+    orderItems?: string;
+  }): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -275,7 +284,7 @@ export class DatabaseStorage implements IStorage {
       jobOrderNumber: jobOrders.jobOrderNumber,
       customerCode: jobOrders.customerCode,
       dueDate: jobOrders.dueDate,
-      date: jobOrders.date,
+      dateCreated: jobOrders.createdAt,
       createdAt: jobOrders.createdAt,
       // Job order item fields
       itemId: jobOrderItems.id,
@@ -327,8 +336,7 @@ export class DatabaseStorage implements IStorage {
           jobOrderNumber: row.jobOrderNumber,
           customerCode: row.customerCode,
           dueDate: row.dueDate,
-          date: row.date,
-          createdAt: row.createdAt,
+          dateCreated: row.dateCreated,
           items: []
         };
       }
@@ -355,24 +363,85 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Failed to fetch job orders with items');
     }
   }
-      
-      if (row.itemId) {
-        acc[jobOrderId].items.push({
-          id: row.itemId,
-          productName: row.productName,
-          specification: row.specification,
-          quantity: row.quantity,
-          ready: row.ready,
-          toProduce: row.toProduce,
-          reserved: row.reserved,
-          shipped: row.shipped,
-        });
-      }
-      
-      return acc;
-    }, {});
 
-    return Object.values(grouped);
+  // Add missing getManufacturingStats method
+  async getManufacturingStats(): Promise<any> {
+    try {
+      const [quotations, salesOrders, jobOrders, products, warehouses] = await Promise.all([
+        this.getQuotations(),
+        this.getSalesOrders(),
+        this.getJobOrders(),
+        this.getProducts(),
+        this.getWarehouses()
+      ]);
+
+      const totalRevenue = salesOrders.reduce((sum, so) => sum + parseFloat(so.pleasePayThisAmountUsd || '0'), 0);
+
+      return {
+        totalQuotations: quotations.length,
+        pendingQuotations: quotations.filter(q => q.status === 'pending').length,
+        approvedQuotations: quotations.filter(q => q.status === 'approved').length,
+        totalSalesOrders: salesOrders.length,
+        confirmedSalesOrders: salesOrders.filter(so => so.status === 'confirmed').length,
+        totalJobOrders: jobOrders.length,
+        activeJobOrders: jobOrders.filter(jo => jo.status === 'active' || jo.status === 'in_progress').length,
+        totalProducts: products.length,
+        totalWarehouses: warehouses.length,
+        revenue: totalRevenue,
+        averageOrderValue: salesOrders.length > 0 ? totalRevenue / salesOrders.length : 0
+      };
+    } catch (error) {
+      console.error('Error fetching manufacturing stats:', error);
+      throw new Error('Failed to fetch manufacturing stats');
+    }
+  }
+
+  // Add missing getSummaryReport method
+  async getSummaryReport(filters: {
+    dateFrom?: string;
+    dateTo?: string;
+    customerCode?: string;
+    orderItems?: string;
+  }): Promise<any> {
+    try {
+      const jobOrdersWithItems = await this.getJobOrdersWithItems({
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+        customer: filters.customerCode,
+        item: filters.orderItems
+      });
+
+      const summary = {
+        totalOrders: jobOrdersWithItems.length,
+        totalItems: jobOrdersWithItems.reduce((sum, order) => sum + order.items.length, 0),
+        ordersByCustomer: {},
+        itemsByProduct: {},
+        orders: jobOrdersWithItems
+      };
+
+      // Group by customer
+      jobOrdersWithItems.forEach(order => {
+        if (!summary.ordersByCustomer[order.customerCode]) {
+          summary.ordersByCustomer[order.customerCode] = 0;
+        }
+        summary.ordersByCustomer[order.customerCode]++;
+      });
+
+      // Group by product
+      jobOrdersWithItems.forEach(order => {
+        order.items.forEach(item => {
+          if (!summary.itemsByProduct[item.productName]) {
+            summary.itemsByProduct[item.productName] = 0;
+          }
+          summary.itemsByProduct[item.productName] += item.quantity;
+        });
+      });
+
+      return summary;
+    } catch (error) {
+      console.error('Error generating summary report:', error);
+      throw new Error('Failed to generate summary report');
+    }
   }
 }
 
