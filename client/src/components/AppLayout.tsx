@@ -23,15 +23,15 @@ interface AppLayoutProps {
 }
 
 const navigationItems = [
-  { path: '/', label: 'Dashboard', icon: Home },
+  { path: '/', label: 'Manufacturing Dashboard', icon: Home },
   { path: '/quotations', label: 'Quotations', icon: FileText },
-  { path: '/quotations-vlookup', label: 'VLOOKUP Quotations', icon: FileText },
+  { path: '/quotations-vlookup', label: 'New Quotation', icon: FileText },
   { path: '/sales-orders', label: 'Sales Orders', icon: ShoppingCart },
   { path: '/job-orders', label: 'Job Orders', icon: Factory },
-  { path: '/inventory', label: 'Inventory', icon: Package },
-  { path: '/customers', label: 'Customers', icon: User },
-  { path: '/staff', label: 'Staff', icon: User },
-  { path: '/reports', label: 'Reports', icon: BarChart3 },
+  { path: '/inventory', label: 'Inventory Management', icon: Package },
+  { path: '/customers', label: 'Customer Management', icon: User },
+  { path: '/staff', label: 'Staff Management', icon: User },
+  { path: '/reports', label: 'Summary Reports', icon: BarChart3 },
 ];
 
 export function AppLayout({ children }: AppLayoutProps) {
