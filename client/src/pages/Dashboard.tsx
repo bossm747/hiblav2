@@ -20,31 +20,67 @@ export function Dashboard() {
     queryKey: ['/api/dashboard/analytics'],
   });
 
+  // Type-safe data access with fallbacks
+  const safeAnalytics = analytics as {
+    overview?: {
+      quotationsCount?: number;
+      salesOrdersCount?: number;
+      jobOrdersCount?: number;
+      customersCount?: number;
+      staffCount?: number;
+      productsCount?: number;
+    };
+    inventory?: {
+      lowStockCount?: number;
+      totalProducts?: number;
+    };
+    revenue?: {
+      total?: number;
+      trend?: string;
+      growth?: string;
+    };
+    orders?: {
+      total?: number;
+      trend?: string;
+      growth?: string;
+    };
+    conversion?: {
+      rate?: number;
+      trend?: string;
+      growth?: string;
+    };
+    avgOrderValue?: {
+      value?: number;
+      trend?: string;
+      growth?: string;
+    };
+  } | undefined;
+
   const metrics = [
     {
       title: 'Active Quotations',
-      value: analytics?.overview?.quotationsCount || 0,
+      value: safeAnalytics?.overview?.quotationsCount || 0,
       icon: FileText,
       description: '+12% from last month',
       trend: 'up'
     },
     {
       title: 'Sales Orders',
-      value: analytics?.overview?.salesOrdersCount || 0,
+      value: safeAnalytics?.overview?.salesOrdersCount || 0,
       icon: ShoppingCart,
       description: 'Processing orders',
       trend: 'stable'
     },
     {
       title: 'Job Orders',
-      value: analytics?.overview?.jobOrdersCount || 0,
+      value: safeAnalytics?.overview?.jobOrdersCount || 0,
       icon: Factory,
       description: 'In production',
       trend: 'up'
     },
     {
       title: 'Total Products',
-      value: analytics?.overview?.productsCount || 0,
+      value: safeAnalytics?.overview?.productsCount || 0,
       icon: Package,
       description: 'Active catalog items',
       trend: 'stable'
@@ -121,23 +157,23 @@ export function Dashboard() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">Active Job Orders</span>
-                    <span className="text-sm text-muted-foreground">{analytics?.overview?.jobOrdersCount || 0}</span>
+                    <span className="text-sm text-muted-foreground">{safeAnalytics?.overview?.jobOrdersCount || 0}</span>
                   </div>
-                  <Progress value={Math.min((analytics?.overview?.jobOrdersCount || 0) * 10, 100)} className="h-2" />
+                  <Progress value={Math.min((safeAnalytics?.overview?.jobOrdersCount || 0) * 10, 100)} className="h-2" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">Sales Orders Processing</span>
-                    <span className="text-sm text-muted-foreground">{analytics?.overview?.salesOrdersCount || 0}</span>
+                    <span className="text-sm text-muted-foreground">{safeAnalytics?.overview?.salesOrdersCount || 0}</span>
                   </div>
-                  <Progress value={Math.min((analytics?.overview?.salesOrdersCount || 0) * 10, 100)} className="h-2" />
+                  <Progress value={Math.min((safeAnalytics?.overview?.salesOrdersCount || 0) * 10, 100)} className="h-2" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">Pending Quotations</span>
-                    <span className="text-sm text-muted-foreground">{analytics?.overview?.quotationsCount || 0}</span>
+                    <span className="text-sm text-muted-foreground">{safeAnalytics?.overview?.quotationsCount || 0}</span>
                   </div>
-                  <Progress value={Math.min((analytics?.overview?.quotationsCount || 0) * 5, 100)} className="h-2" />
+                  <Progress value={Math.min((safeAnalytics?.overview?.quotationsCount || 0) * 5, 100)} className="h-2" />
                 </div>
               </div>
             )}
@@ -169,21 +205,21 @@ export function Dashboard() {
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
                   <div className="text-sm">
-                    <p className="font-medium">{analytics?.overview?.quotationsCount || 0} Active Quotations</p>
+                    <p className="font-medium">{safeAnalytics?.overview?.quotationsCount || 0} Active Quotations</p>
                     <p className="text-muted-foreground">Manufacturing pipeline</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-blue-500 rounded-full" />
                   <div className="text-sm">
-                    <p className="font-medium">{analytics?.overview?.salesOrdersCount || 0} Sales Orders</p>
+                    <p className="font-medium">{safeAnalytics?.overview?.salesOrdersCount || 0} Sales Orders</p>
                     <p className="text-muted-foreground">Processing orders</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-yellow-500 rounded-full" />
                   <div className="text-sm">
-                    <p className="font-medium">{analytics?.inventory?.lowStockCount || 0} Low Stock Items</p>
+                    <p className="font-medium">{safeAnalytics?.inventory?.lowStockCount || 0} Low Stock Items</p>
                     <p className="text-muted-foreground">Inventory alerts</p>
                   </div>
                 </div>
