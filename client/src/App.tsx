@@ -3,6 +3,7 @@ import { Switch, Route, Router } from 'wouter';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
 // Simple functional component for testing
+import { VLOOKUPQuotationTest } from '@/components/VLOOKUPQuotationTest';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,10 +30,13 @@ function App() {
             </div>
             <div className="mt-6">
               <p className="text-sm text-gray-600">
-                Server is running on port 5000. Navigate to /quotations-vlookup for VLOOKUP testing.
+                Server is running on port 5000. Test the VLOOKUP interface below:
               </p>
             </div>
           </div>
+          
+          {/* VLOOKUP Testing Interface */}
+          <VLOOKUPQuotationTest />
         </div>
       </div>
       <Toaster />
