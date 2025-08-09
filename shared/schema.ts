@@ -72,14 +72,9 @@ export const products = pgTable("products", {
   weight: text("weight"), // in grams
   sku: text("sku").unique(),
   unit: text("unit").default("pcs"), // pcs, bundles, closures, frontals
-  // Tiered pricing system - base price multiplied by price list multipliers
+  // Simplified pricing system - only base price and SRP in product management
   basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(), // Regular customer price (multiplier = 1.0)
-  costPrice: decimal("cost_price", { precision: 10, scale: 2 }),
-  // Legacy price lists for backward compatibility (will be deprecated)
-  priceListA: decimal("price_list_a", { precision: 10, scale: 2 }),
-  priceListB: decimal("price_list_b", { precision: 10, scale: 2 }),
-  priceListC: decimal("price_list_c", { precision: 10, scale: 2 }),
-  priceListD: decimal("price_list_d", { precision: 10, scale: 2 }),
+  srp: decimal("srp", { precision: 10, scale: 2 }), // Suggested Retail Price
   // Inventory across different warehouses
   ngWarehouse: decimal("ng_warehouse", { precision: 10, scale: 2 }).default("0"),
   phWarehouse: decimal("ph_warehouse", { precision: 10, scale: 2 }).default("0"),

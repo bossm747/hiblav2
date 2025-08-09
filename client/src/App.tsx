@@ -16,7 +16,7 @@ import { InventoryPage } from '@/pages/InventoryPage';
 import { CustomerManagementPage } from '@/pages/CustomerManagementPage';
 import { StaffManagementPage } from '@/pages/StaffManagementPage';
 import { ReportsPage } from '@/pages/ReportsPage';
-import PriceManagement from '@/pages/PriceManagement';
+import PriceManagementPage from '@/pages/PriceManagementPage';
 import { ProductsManagementPage } from '@/pages/ProductsManagementPage';
 
 function App() {
@@ -35,7 +35,7 @@ function App() {
               <Route path="/products" component={ProductsManagementPage} />
               <Route path="/customers" component={CustomerManagementPage} />
               <Route path="/staff" component={StaffManagementPage} />
-              <Route path="/price-management" component={PriceManagement} />
+              <Route path="/price-management" component={PriceManagementPage} />
               <Route path="/reports" component={ReportsPage} />
             </Switch>
           </AppLayout>

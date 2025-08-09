@@ -40,11 +40,7 @@ const productFormSchema = z.object({
   weight: z.string().optional(),
   unit: z.string().min(1, 'Unit is required'),
   basePrice: z.string().min(1, 'Base price is required'),
-  costPrice: z.string().optional(),
-  priceListA: z.string().optional(),
-  priceListB: z.string().optional(),
-  priceListC: z.string().optional(),
-  priceListD: z.string().optional(),
+  srp: z.string().optional(),
   lowStockThreshold: z.string().optional(),
   categoryId: z.string().min(1, 'Category is required'),
   isActive: z.boolean().default(true),
@@ -83,11 +79,7 @@ export function ProductForm({ productId, onSuccess }: ProductFormProps) {
       weight: '',
       unit: 'pcs',
       basePrice: '',
-      costPrice: '',
-      priceListA: '',
-      priceListB: '',
-      priceListC: '',
-      priceListD: '',
+      srp: '',
       lowStockThreshold: '10',
       categoryId: '',
       isActive: true,
@@ -107,12 +99,8 @@ export function ProductForm({ productId, onSuccess }: ProductFormProps) {
         color: product.color || '',
         weight: product.weight || '',
         unit: product.unit || 'pcs',
-        basePrice: product.basePrice || '',
-        costPrice: product.costPrice || '',
-        priceListA: product.priceListA || '',
-        priceListB: product.priceListB || '',
-        priceListC: product.priceListC || '',
-        priceListD: product.priceListD || '',
+        basePrice: product.basePrice?.toString() || '',
+        srp: product.srp?.toString() || '',
         lowStockThreshold: product.lowStockThreshold || '10',
         categoryId: product.categoryId || '',
         isActive: product.isActive ?? true,
@@ -131,11 +119,7 @@ export function ProductForm({ productId, onSuccess }: ProductFormProps) {
           ...data,
           length: data.length ? parseInt(data.length) : null,
           basePrice: parseFloat(data.basePrice),
-          costPrice: data.costPrice ? parseFloat(data.costPrice) : null,
-          priceListA: data.priceListA ? parseFloat(data.priceListA) : null,
-          priceListB: data.priceListB ? parseFloat(data.priceListB) : null,
-          priceListC: data.priceListC ? parseFloat(data.priceListC) : null,
-          priceListD: data.priceListD ? parseFloat(data.priceListD) : null,
+          srp: data.srp ? parseFloat(data.srp) : null,
           lowStockThreshold: data.lowStockThreshold ? parseFloat(data.lowStockThreshold) : 10,
         }),
       });
@@ -451,66 +435,10 @@ export function ProductForm({ productId, onSuccess }: ProductFormProps) {
 
             <FormField
               control={form.control}
-              name="costPrice"
+              name="srp"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cost Price</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.01" placeholder="0.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="priceListA"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price List A</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.01" placeholder="0.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="priceListB"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price List B</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.01" placeholder="0.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="priceListC"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price List C</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.01" placeholder="0.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="priceListD"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price List D</FormLabel>
+                  <FormLabel>SRP (Suggested Retail Price)</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" placeholder="0.00" {...field} />
                   </FormControl>

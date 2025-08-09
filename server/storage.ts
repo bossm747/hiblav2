@@ -77,6 +77,9 @@ export interface IStorage {
 
   // Price list management
   getAllPriceLists(): Promise<any[]>;
+  getProductPriceLists(productId?: string, priceListId?: string): Promise<any[]>;
+  createProductPriceList(data: any): Promise<any>;
+  bulkUpdateProductPrices(data: any): Promise<number>;
   createPriceList(data: any): Promise<any>;
   ensurePriceListsExist(): Promise<void>;
 

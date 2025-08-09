@@ -481,21 +481,15 @@ Style: Professional product photography, clean white background, high-quality st
 
         for (const part of content.parts) {
           if (part.inlineData && part.inlineData.data) {
-            // Save image to uploads directory
+            // Store image in object storage
             const imageBuffer = Buffer.from(part.inlineData.data, "base64");
-            const filename = `product-${productData.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
-            const imagePath = `uploads/${filename}`;
+            const { ObjectStorageService } = await import('./objectStorage');
+            const objectStorageService = new ObjectStorageService();
             
-            // Ensure uploads directory exists
-            const fs = require('fs');
-            if (!fs.existsSync('uploads')) {
-              fs.mkdirSync('uploads', { recursive: true });
-            }
-            
-            fs.writeFileSync(imagePath, imageBuffer);
+            const objectPath = await objectStorageService.storeAIGeneratedImage(imageBuffer, productData);
             
             return {
-              imageUrl: `/api/uploads/${filename}`,
+              imageUrl: objectPath,
               altText: `Professional image of ${productData.name} - ${productData.hairType} Filipino hair, ${productData.length ? productData.length + ' inches' : 'premium length'}, ${productData.color || 'natural color'}`
             };
           }

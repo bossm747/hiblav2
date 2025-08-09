@@ -1044,6 +1044,77 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // Object storage routes - inline implementation to avoid module issues
+  app.get("/objects/:objectPath(*)", async (req, res) => {
+    try {
+      const { ObjectStorageService, ObjectNotFoundError } = await import('./objectStorage');
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error accessing object:", error);
+      if (error.name === 'ObjectNotFoundError') {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  app.get("/public-objects/:filePath(*)", async (req, res) => {
+    try {
+      const { ObjectStorageService } = await import('./objectStorage');
+      const filePath = req.params.filePath;
+      const objectStorageService = new ObjectStorageService();
+      const file = await objectStorageService.searchPublicObject(filePath);
+      if (!file) {
+        return res.status(404).json({ error: "File not found" });
+      }
+      objectStorageService.downloadObject(file, res);
+    } catch (error) {
+      console.error("Error searching for public object:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Price Management API routes
+  app.get("/api/price-lists", async (req, res) => {
+    try {
+      const priceLists = await storage.getAllPriceLists();
+      res.json(priceLists);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch price lists" });
+    }
+  });
+
+  app.get("/api/product-price-lists", async (req, res) => {
+    try {
+      const { productId, priceListId } = req.query;
+      const productPrices = await storage.getProductPriceLists(productId as string, priceListId as string);
+      res.json(productPrices);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch product price lists" });
+    }
+  });
+
+  app.post("/api/product-price-lists", async (req, res) => {
+    try {
+      const productPriceList = await storage.createProductPriceList(req.body);
+      res.status(201).json(productPriceList);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create product price list" });
+    }
+  });
+
+  app.post("/api/product-price-lists/bulk-update", async (req, res) => {
+    try {
+      const { categoryId, priceListId, action, value } = req.body;
+      const result = await storage.bulkUpdateProductPrices({ categoryId, priceListId, action, value });
+      res.json({ updated: result });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to perform bulk price update" });
+    }
+  });
+
   // AI-powered product enhancement routes
   app.post("/api/products/ai/generate-details", async (req, res) => {
     try {
