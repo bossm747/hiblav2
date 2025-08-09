@@ -12,6 +12,8 @@ import { VLOOKUPQuotationsPage } from '@/pages/VLOOKUPQuotationsPage';
 import { SalesOrdersPage } from '@/pages/SalesOrdersPage';
 import { JobOrdersPage } from '@/pages/JobOrdersPage';
 import { InventoryPage } from '@/pages/InventoryPage';
+import { CustomerManagementPage } from '@/pages/CustomerManagementPage';
+import { StaffManagementPage } from '@/pages/StaffManagementPage';
 import { ReportsPage } from '@/pages/ReportsPage';
 
 const queryClient = new QueryClient({
@@ -36,6 +38,8 @@ function App() {
               <Route path="/sales-orders" component={SalesOrdersPage} />
               <Route path="/job-orders" component={JobOrdersPage} />
               <Route path="/inventory" component={InventoryPage} />
+              <Route path="/customers" component={CustomerManagementPage} />
+              <Route path="/staff" component={StaffManagementPage} />
               <Route path="/reports" component={ReportsPage} />
             </Switch>
           </AppLayout>

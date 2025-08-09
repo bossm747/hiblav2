@@ -29,6 +29,8 @@ const navigationItems = [
   { path: '/sales-orders', label: 'Sales Orders', icon: ShoppingCart },
   { path: '/job-orders', label: 'Job Orders', icon: Factory },
   { path: '/inventory', label: 'Inventory', icon: Package },
+  { path: '/customers', label: 'Customers', icon: User },
+  { path: '/staff', label: 'Staff', icon: User },
   { path: '/reports', label: 'Reports', icon: BarChart3 },
 ];
 
