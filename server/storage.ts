@@ -178,7 +178,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createQuotation(insertQuotation: InsertQuotation): Promise<Quotation> {
-    const [quotation] = await db.insert(quotations).values([insertQuotation]).returning();
+    // Generate quotation number if not provided
+    const quotationData = {
+      ...insertQuotation,
+      quotationNumber: insertQuotation.quotationNumber || await this.generateQuotationNumber(),
+    };
+    const [quotation] = await db.insert(quotations).values(quotationData).returning();
     return quotation;
   }
 
@@ -220,10 +225,11 @@ export class DatabaseStorage implements IStorage {
     try {
       const salesOrderData = {
         ...insertSalesOrder,
+        salesOrderNumber: insertSalesOrder.salesOrderNumber || await this.generateSalesOrderNumber(),
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      const [salesOrder] = await db.insert(salesOrders).values([salesOrderData]).returning();
+      const [salesOrder] = await db.insert(salesOrders).values(salesOrderData).returning();
       return salesOrder;
     } catch (error) {
       console.error('Error creating sales order:', error);
@@ -261,10 +267,11 @@ export class DatabaseStorage implements IStorage {
     try {
       const jobOrderData = {
         ...insertJobOrder,
+        jobOrderNumber: insertJobOrder.jobOrderNumber || await this.generateJobOrderNumber(),
         createdAt: new Date(),
         updatedAt: new Date()
       };
-      const [jobOrder] = await db.insert(jobOrders).values([jobOrderData]).returning();
+      const [jobOrder] = await db.insert(jobOrders).values(jobOrderData).returning();
       return jobOrder;
     } catch (error) {
       console.error('Error creating job order:', error);
@@ -442,6 +449,61 @@ export class DatabaseStorage implements IStorage {
       console.error('Error generating summary report:', error);
       throw new Error('Failed to generate summary report');
     }
+  }
+  // Generate unique numbers for entities
+  private async generateQuotationNumber(): Promise<string> {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    
+    // Get count of quotations for this month
+    const startOfMonth = new Date(year, now.getMonth(), 1);
+    const endOfMonth = new Date(year, now.getMonth() + 1, 0);
+    
+    const count = await db.select().from(quotations)
+      .where(and(
+        gte(quotations.createdAt, startOfMonth),
+        gte(endOfMonth, quotations.createdAt)
+      ));
+    
+    const nextNumber = count.length + 1;
+    return `${year}.${month}.${String(nextNumber).padStart(3, '0')}`;
+  }
+
+  private async generateSalesOrderNumber(): Promise<string> {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    
+    const startOfMonth = new Date(year, now.getMonth(), 1);
+    const endOfMonth = new Date(year, now.getMonth() + 1, 0);
+    
+    const count = await db.select().from(salesOrders)
+      .where(and(
+        gte(salesOrders.createdAt, startOfMonth),
+        gte(endOfMonth, salesOrders.createdAt)
+      ));
+    
+    const nextNumber = count.length + 1;
+    return `SO${year}${month}${String(nextNumber).padStart(3, '0')}`;
+  }
+
+  private async generateJobOrderNumber(): Promise<string> {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    
+    const startOfMonth = new Date(year, now.getMonth(), 1);
+    const endOfMonth = new Date(year, now.getMonth() + 1, 0);
+    
+    const count = await db.select().from(jobOrders)
+      .where(and(
+        gte(jobOrders.createdAt, startOfMonth),
+        gte(endOfMonth, jobOrders.createdAt)
+      ));
+    
+    const nextNumber = count.length + 1;
+    return `JO${year}${month}${String(nextNumber).padStart(3, '0')}`;
   }
 }
 

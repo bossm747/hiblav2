@@ -188,14 +188,16 @@ export function Preloader() {
               </div>
             </motion.div>
 
-            {/* Brand name with flowing text effect */}
+            {/* Brand name with enhanced visibility */}
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 1 }}
               className="text-4xl font-bold mb-2 relative"
             >
-              <span className="neon-text-purple">Hibla Filipino Hair</span>
+              <span className="text-white drop-shadow-lg shadow-purple-500/50">
+                Hibla Manufacturing
+              </span>
               {/* Flowing text underlays */}
               <motion.div
                 className="absolute inset-0 text-4xl font-bold text-purple-400/20"
@@ -209,7 +211,7 @@ export function Preloader() {
                   ease: "easeInOut",
                 }}
               >
-                Hibla Filipino Hair
+                Hibla Manufacturing
               </motion.div>
             </motion.h1>
 
@@ -217,9 +219,9 @@ export function Preloader() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1, duration: 0.8 }}
-              className="text-lg text-foreground/80 mb-8 neon-text-cyan"
+              className="text-lg text-white/90 mb-8 drop-shadow-md"
             >
-              Premium Hair Extensions
+              Premium Filipino Hair Manufacturing & Supply
             </motion.p>
 
             {/* Enhanced progress bar with hair-like effects */}
@@ -274,9 +276,9 @@ export function Preloader() {
               </div>
               
               <motion.div 
-                className="text-center mt-3 text-sm text-foreground/60"
+                className="text-center mt-3 text-sm text-white/80 drop-shadow-sm"
                 animate={{
-                  opacity: [0.6, 1, 0.6],
+                  opacity: [0.8, 1, 0.8],
                 }}
                 transition={{
                   duration: 1.5,
@@ -284,7 +286,7 @@ export function Preloader() {
                   ease: "easeInOut",
                 }}
               >
-                Loading beautiful hair extensions... {progress}%
+                Loading manufacturing system... {Math.round(progress)}%
               </motion.div>
             </motion.div>
 
@@ -296,9 +298,9 @@ export function Preloader() {
               className="mt-6"
             >
               <motion.p
-                className="text-xs text-foreground/40"
+                className="text-xs text-white/70 drop-shadow-sm"
                 animate={{
-                  opacity: [0.4, 0.8, 0.4],
+                  opacity: [0.7, 0.9, 0.7],
                 }}
                 transition={{
                   duration: 2,
@@ -306,7 +308,7 @@ export function Preloader() {
                   ease: "easeInOut",
                 }}
               >
-                Preparing your premium shopping experience
+                Initializing production dashboard and inventory systems
               </motion.p>
             </motion.div>
           </div>

@@ -51,11 +51,10 @@ export default function QuotationsPage() {
   const queryClient = useQueryClient();
 
   // Fetch quotations with filters
-  const { data: quotations, isLoading } = useQuery({
+  const { data: quotations = [], isLoading } = useQuery({
     queryKey: ["/api/quotations", { search: searchTerm, status: statusFilter, customer: customerFilter }],
-    queryFn: ({ queryKey }) => {
-      const [_, filters] = queryKey as [string, any];
-      let url = "/api/quotations";
+    queryFn: async ({ queryKey }) => {
+      const [url, filters] = queryKey as [string, any];
       const params = new URLSearchParams();
       
       if (filters.status && filters.status !== "all") {
@@ -65,11 +64,8 @@ export default function QuotationsPage() {
         params.append("customer", filters.customer);
       }
       
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-      
-      return apiRequest(url);
+      const finalUrl = params.toString() ? `${url}?${params.toString()}` : url;
+      return apiRequest(finalUrl);
     },
   });
 
