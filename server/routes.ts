@@ -40,6 +40,7 @@ import {
   insertProductionReceiptSchema,
   insertInvoiceSchema,
   insertCustomerPaymentSchema,
+  insertCategorySchema,
 } from "@shared/schema";
 import { aiStylistService } from "./ai-stylist-service";
 // import { sendAppointmentNotification } from "./notification-service";
@@ -48,7 +49,7 @@ import path from "path";
 import { promises as fs } from "fs";
 import { z } from "zod";
 
-export async function registerRoutes(app: Express): Promise<Server> {
+export function registerRoutes(app: Express): void {
   // Serve uploaded files statically
   app.use('/uploads', express.static(path.resolve('uploads')));
 
@@ -149,6 +150,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(products);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch products" });
+    }
+  });
+
+  // VLOOKUP Price Lookup API - Must come before /:id route
+  app.get("/api/products/price-lookup", async (req, res) => {
+    try {
+      const { productId, priceListId } = req.query;
+      
+      if (!productId || !priceListId) {
+        return res.status(400).json({ 
+          message: "Both productId and priceListId query parameters are required" 
+        });
+      }
+
+      const product = await storage.getProduct(productId as string);
+      
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      // Get price based on price list
+      let price = "0.00";
+      switch (priceListId) {
+        case 'A':
+          price = product.priceListA || "0.00";
+          break;
+        case 'B':
+          price = product.priceListB || "0.00";
+          break;
+        case 'C':
+          price = product.priceListC || "0.00";
+          break;
+        case 'D':
+          price = product.priceListD || "0.00";
+          break;
+        default:
+          return res.status(400).json({ message: "Invalid price list. Use A, B, C, or D" });
+      }
+
+      res.json({
+        productId: product.id,
+        productName: product.name,
+        priceList: priceListId,
+        price: price,
+        currency: "USD"
+      });
+    } catch (error) {
+      console.error('Price lookup error:', error);
+      res.status(500).json({ message: "Failed to lookup price" });
     }
   });
 
@@ -683,6 +733,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid order data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to update order" });
+    }
+  });
+
+  // VLOOKUP Price Lookup API - Must come before /:id route
+  app.get("/api/products/price-lookup", async (req, res) => {
+    try {
+      const { productId, priceListId } = req.query;
+      
+      if (!productId || !priceListId) {
+        return res.status(400).json({ 
+          message: "Both productId and priceListId query parameters are required" 
+        });
+      }
+
+      const product = await storage.getProduct(productId as string);
+      
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      // Get price based on price list
+      let price = "0.00";
+      switch (priceListId) {
+        case 'A':
+          price = product.priceListA || "0.00";
+          break;
+        case 'B':
+          price = product.priceListB || "0.00";
+          break;
+        case 'C':
+          price = product.priceListC || "0.00";
+          break;
+        case 'D':
+          price = product.priceListD || "0.00";
+          break;
+        default:
+          return res.status(400).json({ message: "Invalid price list. Use A, B, C, or D" });
+      }
+
+      res.json({
+        productId: product.id,
+        productName: product.name,
+        priceList: priceListId,
+        price: price,
+        currency: "USD"
+      });
+    } catch (error) {
+      console.error('Price lookup error:', error);
+      res.status(500).json({ message: "Failed to lookup price" });
     }
   });
 
@@ -2118,6 +2217,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // MANUFACTURING SYSTEM API ROUTES
+
+  // =====================================================
+  // CUSTOMER MANAGEMENT
+  // =====================================================
+  
+  app.get("/api/customers", async (req, res) => {
+    try {
+      const customers = await storage.getCustomers();
+      res.json(customers);
+    } catch (error) {
+      console.error('Customer fetch error:', error);
+      res.status(500).json({ message: "Failed to fetch customers" });
+    }
+  });
+
+  app.post("/api/customers", async (req, res) => {
+    try {
+      const customerData = insertCustomerSchema.parse(req.body);
+      const customer = await storage.createCustomer(customerData);
+      res.status(201).json(customer);
+    } catch (error) {
+      console.error('Customer creation error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid customer data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create customer" });
+    }
+  });
+
+  app.get("/api/customers/:id", async (req, res) => {
+    try {
+      const customer = await storage.getCustomer(req.params.id);
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+      res.json(customer);
+    } catch (error) {
+      console.error('Customer fetch error:', error);
+      res.status(500).json({ message: "Failed to fetch customer" });
+    }
+  });
 
   // =====================================================
   // PRICE LISTS MANAGEMENT
@@ -3670,7 +3810,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch job order summary" });
     }
   });
-
-  const httpServer = createServer(app);
-  return httpServer;
 }

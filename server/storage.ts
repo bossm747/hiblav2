@@ -1,7 +1,8 @@
 import { db } from "./db";
-import { eq, desc, and, like, gte, sql } from "drizzle-orm";
+import { eq, desc, and, like, gte, lte, sql } from "drizzle-orm";
 import {
   customers,
+  categories,
   products,
   quotations,
   quotationItems,
@@ -43,6 +44,12 @@ export interface IStorage {
   getCustomer(id: string): Promise<Customer | undefined>;
   getCustomerByCode(customerCode: string): Promise<Customer | undefined>;
   createCustomer(insertCustomer: InsertCustomer): Promise<Customer>;
+
+  // Category management
+  getCategories(): Promise<any[]>;
+  getCategory(id: string): Promise<any | undefined>;
+  createCategory(insertCategory: any): Promise<any>;
+  updateCategory(id: string, data: any): Promise<any>;
 
   // Product management
   getProducts(): Promise<Product[]>;
@@ -100,6 +107,46 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // Category management implementation
+  async getCategories(): Promise<any[]> {
+    try {
+      return await db.select().from(categories).orderBy(categories.name);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      throw new Error('Failed to fetch categories');
+    }
+  }
+
+  async getCategory(id: string): Promise<any | undefined> {
+    try {
+      const [result] = await db.select().from(categories).where(eq(categories.id, id));
+      return result || undefined;
+    } catch (error) {
+      console.error('Error fetching category:', error);
+      return undefined;
+    }
+  }
+
+  async createCategory(insertCategory: any): Promise<any> {
+    try {
+      const [result] = await db.insert(categories).values(insertCategory).returning();
+      return result;
+    } catch (error) {
+      console.error('Error creating category:', error);
+      throw new Error('Failed to create category');
+    }
+  }
+
+  async updateCategory(id: string, data: any): Promise<any> {
+    try {
+      const [result] = await db.update(categories).set(data).where(eq(categories.id, id)).returning();
+      return result;
+    } catch (error) {
+      console.error('Error updating category:', error);
+      throw new Error('Failed to update category');
+    }
+  }
+
   // Customer management
   async getCustomers(): Promise<Customer[]> {
     try {

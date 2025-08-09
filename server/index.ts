@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { createServer } from "http";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 // import { startReminderScheduler } from "./notification-service";
@@ -69,9 +70,12 @@ function setupGracefulShutdown(server: any) {
     // Validate environment variables first
     validateEnvironment();
     
-    // Register routes and get server instance
-    const server = await registerRoutes(app);
+    // Register API routes BEFORE static/vite setup
+    registerRoutes(app);
     log('Routes registered successfully');
+    
+    // Create HTTP server
+    const server = createServer(app);
 
     // Global error handler
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
