@@ -1044,6 +1044,55 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // AI-powered product enhancement routes
+  app.post("/api/products/ai/generate-details", async (req, res) => {
+    try {
+      const { aiServiceGemini } = await import('./ai-service-gemini');
+      const productData = req.body;
+      
+      const aiDetails = await aiServiceGemini.generateMissingProductDetails(productData);
+      res.json(aiDetails);
+    } catch (error) {
+      console.error('AI product details generation error:', error);
+      res.status(500).json({ 
+        message: "Failed to generate product details with AI",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/products/ai/generate-image", async (req, res) => {
+    try {
+      const { aiServiceGemini } = await import('./ai-service-gemini');
+      const productData = req.body;
+      
+      const imageResult = await aiServiceGemini.generateProductImage(productData);
+      res.json(imageResult);
+    } catch (error) {
+      console.error('AI product image generation error:', error);
+      res.status(500).json({ 
+        message: "Failed to generate product image with AI",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/products/ai/enhance-description", async (req, res) => {
+    try {
+      const { aiServiceGemini } = await import('./ai-service-gemini');
+      const productData = req.body;
+      
+      const enhancedContent = await aiServiceGemini.generateProductDescription(productData);
+      res.json(enhancedContent);
+    } catch (error) {
+      console.error('AI product description enhancement error:', error);
+      res.status(500).json({ 
+        message: "Failed to enhance product description with AI",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Suppliers routes
   app.get("/api/suppliers", async (req, res) => {
     try {

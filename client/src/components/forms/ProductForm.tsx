@@ -23,8 +23,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AIProductEnhancer } from '@/components/AIProductEnhancer';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { Bot, Package } from 'lucide-react';
 
 const productFormSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
@@ -164,12 +167,77 @@ export function ProductForm({ productId, onSuccess }: ProductFormProps) {
     slug: string;
   }>;
 
+  const handleAIEnhancedData = (aiData: any) => {
+    // Apply AI-generated data to form
+    if (aiData.description) {
+      form.setValue('description', aiData.description);
+    }
+    if (aiData.hairType) {
+      form.setValue('hairType', aiData.hairType);
+    }
+    if (aiData.texture) {
+      form.setValue('texture', aiData.texture);
+    }
+    if (aiData.color) {
+      form.setValue('color', aiData.color);
+    }
+    if (aiData.weight) {
+      form.setValue('weight', aiData.weight.toString());
+    }
+    if (aiData.unit) {
+      form.setValue('unit', aiData.unit);
+    }
+    if (aiData.lowStockThreshold) {
+      form.setValue('lowStockThreshold', aiData.lowStockThreshold.toString());
+    }
+    if (aiData.suggestedPrice) {
+      form.setValue('basePrice', aiData.suggestedPrice.toString());
+    }
+  };
+
+  const handleImageGenerated = (imageData: { imageUrl: string; altText: string }) => {
+    toast({
+      title: 'Image Generated Successfully',
+      description: 'Product image has been created and can be used for this product.',
+    });
+  };
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Basic Information */}
-          <div className="space-y-4">
+    <div className="space-y-6">
+      <Tabs defaultValue="form" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="form" className="flex items-center gap-2">
+            <Package className="h-4 w-4" />
+            Product Details
+          </TabsTrigger>
+          <TabsTrigger value="ai" className="flex items-center gap-2">
+            <Bot className="h-4 w-4" />
+            AI Enhancement
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="ai" className="mt-6">
+          <AIProductEnhancer
+            productData={{
+              name: form.watch('name') || '',
+              category: safeCategories?.find(cat => cat.id === form.watch('categoryId'))?.name || '',
+              hairType: form.watch('hairType') || '',
+              length: form.watch('length') ? parseFloat(form.watch('length')) : undefined,
+              texture: form.watch('texture') || '',
+              color: form.watch('color') || '',
+              description: form.watch('description') || '',
+            }}
+            onEnhancedData={handleAIEnhancedData}
+            onImageGenerated={handleImageGenerated}
+          />
+        </TabsContent>
+
+        <TabsContent value="form" className="mt-6">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Basic Information */}
+                <div className="space-y-4">
             <h3 className="text-lg font-medium">Basic Information</h3>
             
             <FormField
@@ -238,10 +306,10 @@ export function ProductForm({ productId, onSuccess }: ProductFormProps) {
                 </FormItem>
               )}
             />
-          </div>
+                </div>
 
-          {/* Specifications */}
-          <div className="space-y-4">
+                {/* Specifications */}
+                <div className="space-y-4">
             <h3 className="text-lg font-medium">Specifications</h3>
             
             <FormField
@@ -451,10 +519,10 @@ export function ProductForm({ productId, onSuccess }: ProductFormProps) {
               )}
             />
           </div>
-        </div>
+              </div>
 
-        {/* Settings */}
-        <div className="space-y-4">
+              {/* Settings */}
+              <div className="space-y-4">
           <h3 className="text-lg font-medium">Settings</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
@@ -508,8 +576,11 @@ export function ProductForm({ productId, onSuccess }: ProductFormProps) {
               : (isEdit ? 'Update Product' : 'Create Product')
             }
           </Button>
-        </div>
-      </form>
-    </Form>
+              </div>
+            </form>
+          </Form>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

@@ -339,6 +339,179 @@ Emphasize the authenticity, premium quality, and ethical sourcing of Filipino ha
       });
     }
   }
+
+  async generateMissingProductDetails(productData: {
+    name: string;
+    category?: string;
+    hairType?: string;
+    length?: number;
+    texture?: string;
+    color?: string;
+    description?: string;
+  }): Promise<{
+    description: string;
+    hairType: string;
+    texture: string;
+    color: string;
+    weight: number;
+    unit: string;
+    lowStockThreshold: number;
+    tags: string[];
+    careInstructions: string[];
+    suggestedPrice: number;
+    marketingDescription: string;
+  }> {
+    const prompt = `
+Generate missing product details for this Filipino hair product based on the provided information:
+
+Product Name: ${productData.name}
+Category: ${productData.category || 'Not specified'}
+Hair Type: ${productData.hairType || 'Not specified'}
+Length: ${productData.length ? `${productData.length} inches` : 'Not specified'}
+Texture: ${productData.texture || 'Not specified'}
+Color: ${productData.color || 'Not specified'}
+Description: ${productData.description || 'Not specified'}
+
+Fill in missing details with realistic, authentic specifications for Filipino hair products. Use your knowledge of hair manufacturing and beauty industry standards.
+
+Generate comprehensive product details in JSON format:
+{
+  "description": "professional product description if missing",
+  "hairType": "body_wave|deep_wave|straight|curly|water_wave|loose_wave",
+  "texture": "silky|coarse|medium|fine",
+  "color": "natural_black|dark_brown|medium_brown|light_brown|blonde",
+  "weight": "typical weight in grams for this length and type",
+  "unit": "grams|ounces|pieces",
+  "lowStockThreshold": "recommended minimum stock level",
+  "tags": ["relevant product tags for search and categorization"],
+  "careInstructions": ["step-by-step care instructions"],
+  "suggestedPrice": "market-appropriate price in USD",
+  "marketingDescription": "compelling marketing copy highlighting Filipino hair quality"
+}
+
+Base suggestions on authentic Filipino hair characteristics: naturally strong, silky texture, excellent color retention, minimal processing needed, ethically sourced from Filipino donors.`;
+
+    try {
+      return await this.useGemini(async () => {
+        const response = await gemini.models.generateContent({
+          model: "gemini-2.5-pro",
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "object",
+              properties: {
+                description: { type: "string" },
+                hairType: { type: "string" },
+                texture: { type: "string" },
+                color: { type: "string" },
+                weight: { type: "number" },
+                unit: { type: "string" },
+                lowStockThreshold: { type: "number" },
+                tags: {
+                  type: "array",
+                  items: { type: "string" }
+                },
+                careInstructions: {
+                  type: "array",
+                  items: { type: "string" }
+                },
+                suggestedPrice: { type: "number" },
+                marketingDescription: { type: "string" }
+              }
+            }
+          },
+          contents: prompt,
+        });
+
+        return JSON.parse(response.text);
+      });
+    } catch (geminiError) {
+      // Fallback to OpenAI
+      return await this.useOpenAIFallback(async () => {
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [{ role: "user", content: prompt }],
+          response_format: { type: "json_object" },
+          temperature: 0.7
+        });
+
+        return JSON.parse(response.choices[0].message.content!);
+      });
+    }
+  }
+
+  async generateProductImage(productData: {
+    name: string;
+    category: string;
+    hairType: string;
+    length?: number;
+    texture?: string;
+    color?: string;
+  }): Promise<{ imageUrl: string; altText: string }> {
+    const prompt = `Create a professional product photography image of Filipino hair with these specifications:
+
+Product: ${productData.name}
+Category: ${productData.category}
+Hair Type: ${productData.hairType}
+Length: ${productData.length ? `${productData.length} inches` : 'Standard length'}
+Texture: ${productData.texture || 'Natural texture'}
+Color: ${productData.color || 'Natural black'}
+
+Style: Professional product photography, clean white background, high-quality studio lighting, hair displayed elegantly showing texture and length, premium packaging visible if applicable. The hair should look lustrous, healthy, and authentic Filipino hair quality. Emphasize the natural shine and movement of the hair.`;
+
+    try {
+      return await this.useGemini(async () => {
+        const response = await gemini.models.generateContent({
+          model: "gemini-2.0-flash-preview-image-generation",
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          config: {
+            responseModalities: ["TEXT", "IMAGE"],
+          },
+        });
+
+        const candidates = response.candidates;
+        if (!candidates || candidates.length === 0) {
+          throw new Error("No image generated");
+        }
+
+        const content = candidates[0].content;
+        if (!content || !content.parts) {
+          throw new Error("No content in response");
+        }
+
+        for (const part of content.parts) {
+          if (part.inlineData && part.inlineData.data) {
+            // Save image to uploads directory
+            const imageBuffer = Buffer.from(part.inlineData.data, "base64");
+            const filename = `product-${productData.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
+            const imagePath = `uploads/${filename}`;
+            
+            // Ensure uploads directory exists
+            const fs = require('fs');
+            if (!fs.existsSync('uploads')) {
+              fs.mkdirSync('uploads', { recursive: true });
+            }
+            
+            fs.writeFileSync(imagePath, imageBuffer);
+            
+            return {
+              imageUrl: `/api/uploads/${filename}`,
+              altText: `Professional image of ${productData.name} - ${productData.hairType} Filipino hair, ${productData.length ? productData.length + ' inches' : 'premium length'}, ${productData.color || 'natural color'}`
+            };
+          }
+        }
+
+        throw new Error("No image data in response");
+      });
+    } catch (geminiError) {
+      console.error('Gemini image generation failed:', geminiError);
+      // Return placeholder for now since OpenAI image generation requires different setup
+      return {
+        imageUrl: `/api/placeholder-product-image?product=${encodeURIComponent(productData.name)}`,
+        altText: `${productData.name} - ${productData.hairType} Filipino hair product`
+      };
+    }
+  }
 }
 
 export const aiServiceGemini = new AIServiceGemini();
