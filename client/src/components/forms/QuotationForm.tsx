@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -23,8 +23,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2, Calculator } from 'lucide-react';
+import { Plus, Trash2, Calculator, UserPlus, Search } from 'lucide-react';
+import { CustomerForm } from './CustomerForm';
 
 const quotationItemSchema = z.object({
   productId: z.string().min(1, 'Product is required'),
@@ -69,6 +77,26 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
       specification: '',
     },
   ]);
+
+  // Customer search state
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [showCustomerSuggestions, setShowCustomerSuggestions] = useState(false);
+  const customerSearchRef = useRef<HTMLDivElement>(null);
+
+  // Click outside handler for customer suggestions
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (customerSearchRef.current && !customerSearchRef.current.contains(event.target as Node)) {
+        setShowCustomerSuggestions(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -151,6 +179,20 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
   
   // Check for any dropdown errors
   const hasDropdownErrors = productsError || customersError || priceListsError || staffError;
+  
+  // Filter customers based on search input
+  const filteredCustomers = useMemo(() => {
+    if (!customerSearch.trim()) return [];
+    return (customers as any[]).filter((customer: any) =>
+      customer.customerCode.toLowerCase().includes(customerSearch.toLowerCase()) ||
+      customer.name.toLowerCase().includes(customerSearch.toLowerCase())
+    );
+  }, [customers, customerSearch]);
+
+  // Check if exact customer code match exists
+  const exactCustomerMatch = (customers as any[])?.find((customer: any) => 
+    customer.customerCode.toLowerCase() === customerSearch.toLowerCase()
+  );
   
   // All dropdowns should now load data successfully
 
@@ -323,28 +365,98 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Customer</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <div className="relative" ref={customerSearchRef}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select customer" />
-                        </SelectTrigger>
+                        <div className="relative">
+                          <Input
+                            placeholder="Enter customer code or search customers..."
+                            value={customerSearch}
+                            onChange={(e) => {
+                              setCustomerSearch(e.target.value);
+                              setShowCustomerSuggestions(e.target.value.trim().length > 0);
+                              if (exactCustomerMatch) {
+                                field.onChange(exactCustomerMatch.customerCode);
+                              } else {
+                                field.onChange(e.target.value);
+                              }
+                            }}
+                            onFocus={() => setShowCustomerSuggestions(customerSearch.trim().length > 0)}
+                            className="pr-10"
+                          />
+                          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        </div>
                       </FormControl>
-                      <SelectContent>
-                        {customersLoading ? (
-                          <SelectItem value="loading" disabled>Loading customers...</SelectItem>
-                        ) : customersError ? (
-                          <SelectItem value="error" disabled>Error: {(customersError as Error)?.message || 'Failed to load customers'}</SelectItem>
-                        ) : !customers || (customers as any[]).length === 0 ? (
-                          <SelectItem value="empty" disabled>No customers found</SelectItem>
-                        ) : (
-                          (customers as any[]).map((customer: any) => (
-                            <SelectItem key={customer.id} value={customer.customerCode}>
-                              {customer.customerCode} - {customer.name}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
+                      
+                      {/* Customer suggestions dropdown */}
+                      {showCustomerSuggestions && (
+                        <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                          {customersLoading ? (
+                            <div className="p-3 text-sm text-muted-foreground">Loading customers...</div>
+                          ) : filteredCustomers.length > 0 ? (
+                            <>
+                              {filteredCustomers.map((customer: any) => (
+                                <button
+                                  key={customer.id}
+                                  type="button"
+                                  className="w-full text-left px-3 py-2 hover:bg-muted border-b last:border-b-0 transition-colors"
+                                  onClick={() => {
+                                    setCustomerSearch(customer.customerCode);
+                                    field.onChange(customer.customerCode);
+                                    setShowCustomerSuggestions(false);
+                                    
+                                    // Auto-fill country from customer data
+                                    if (customer.country) {
+                                      form.setValue('country', customer.country);
+                                    }
+                                  }}
+                                >
+                                  <div className="font-medium">{customer.customerCode}</div>
+                                  <div className="text-sm text-muted-foreground">{customer.name}</div>
+                                  <div className="text-xs text-muted-foreground">{customer.country}</div>
+                                </button>
+                              ))}
+                            </>
+                          ) : customerSearch.trim() ? (
+                            <div className="p-3">
+                              <div className="text-sm text-muted-foreground mb-2">No customer match found</div>
+                              <Dialog open={showCustomerModal} onOpenChange={setShowCustomerModal}>
+                                <DialogTrigger asChild>
+                                  <Button 
+                                    type="button" 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="w-full"
+                                    onClick={() => setShowCustomerModal(true)}
+                                  >
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Create New Customer: {customerSearch}
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                                  <DialogHeader>
+                                    <DialogTitle>Create New Customer</DialogTitle>
+                                  </DialogHeader>
+                                  <CustomerForm
+                                    defaultCustomerCode={customerSearch}
+                                    onSuccess={() => {
+                                      setShowCustomerModal(false);
+                                      setShowCustomerSuggestions(false);
+                                      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+                                      // Set the customer code in the form after creation
+                                      field.onChange(customerSearch);
+                                      toast({
+                                        title: "Success",
+                                        description: "New customer created successfully",
+                                      });
+                                    }}
+                                  />
+                                </DialogContent>
+                              </Dialog>
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -48,17 +48,18 @@ type CustomerFormData = z.infer<typeof customerFormSchema>;
 
 interface CustomerFormProps {
   customerId?: string;
+  defaultCustomerCode?: string;
   onSuccess?: () => void;
 }
 
-export function CustomerForm({ customerId, onSuccess }: CustomerFormProps) {
+export function CustomerForm({ customerId, defaultCustomerCode, onSuccess }: CustomerFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerFormSchema),
     defaultValues: {
-      customerCode: '',
+      customerCode: defaultCustomerCode || '',
       name: '',
       email: '',
       phone: '',
