@@ -70,6 +70,127 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* Enhanced mobile experience */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Prevent horizontal scrolling on mobile */
+    overflow-x: hidden;
+  }
+  
+  /* Mobile-first responsive design */
+  html {
+    /* Better touch scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent zoom on form inputs on iOS */
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  /* Better touch targets for mobile */
+  button, 
+  a, 
+  [role="button"], 
+  [role="link"],
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+  }
+  
+  /* Enhanced focus states for better accessibility */
+  *:focus {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  
+  /* Improved scrollbar styling */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground)) transparent;
+  }
+  
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  *::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 4px;
+  }
+  
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.5);
+  }
+  
+  /* Mobile-first table responsiveness */
+  @media (max-width: 768px) {
+    .mobile-table-wrapper {
+      @apply overflow-x-auto -mx-4 px-4;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    
+    .mobile-table-wrapper::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .mobile-card-layout {
+      @apply space-y-4;
+    }
+    
+    .mobile-card {
+      @apply p-4 rounded-lg border bg-card shadow-sm;
+    }
+    
+    .mobile-summary-grid {
+      @apply grid grid-cols-1 gap-4;
+    }
+    
+    .mobile-action-buttons {
+      @apply flex flex-col gap-2 w-full;
+    }
+    
+    .mobile-action-buttons button {
+      @apply w-full min-h-[2.75rem];
+    }
+    
+    /* Better form inputs on mobile */
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="password"],
+    textarea,
+    select {
+      @apply min-h-[2.75rem] text-base;
+      /* Prevent zoom on iOS */
+      font-size: 16px !important;
+    }
+  }
+  
+  /* Enhanced mobile touch targets */
+  .touch-friendly {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px;
+  }
+  
+  /* Better mobile modals */
+  @media (max-width: 640px) {
+    [role="dialog"] {
+      @apply max-w-[95vw] max-h-[90vh] m-4;
+    }
+    
+    .modal-content {
+      @apply p-4;
+    }
+    
+    .modal-header {
+      @apply pb-3 mb-4 border-b;
+    }
   }
   
   /* Manufacturing-specific styles */

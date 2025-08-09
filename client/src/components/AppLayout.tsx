@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { HiblaLogo } from '@/components/HiblaLogo';
 import {
   Factory,
   FileText,
@@ -17,7 +18,11 @@ import {
   Bell,
   User,
   DollarSign,
-  Boxes
+  Boxes,
+  Zap,
+  FileBarChart,
+  UserCheck,
+  Users
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -29,12 +34,12 @@ const navigationItems = [
   { path: '/quotations', label: 'Quotations', icon: FileText },
   { path: '/sales-orders', label: 'Sales Orders', icon: ShoppingCart },
   { path: '/job-orders', label: 'Job Orders', icon: Factory },
-  { path: '/inventory', label: 'Inventory Management', icon: Package },
-  { path: '/products', label: 'Products Management', icon: Boxes },
-  { path: '/customers', label: 'Customer Management', icon: User },
-  { path: '/staff', label: 'Staff Management', icon: User },
+  { path: '/inventory', label: 'Inventory', icon: Package },
+  { path: '/inventory-insights', label: 'AI Insights', icon: Zap },
+  { path: '/summary-reports', label: 'Reports', icon: FileBarChart },
   { path: '/price-management', label: 'Price Management', icon: DollarSign },
-  { path: '/reports', label: 'Summary Reports', icon: BarChart3 },
+  { path: '/customer-management', label: 'Customers', icon: Users },
+  { path: '/staff-management', label: 'Staff', icon: UserCheck },
 ];
 
 export function AppLayout({ children }: AppLayoutProps) {
@@ -42,7 +47,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const NavItems = ({ mobile = false }: { mobile?: boolean }) => (
-    <div className={cn('space-y-1', mobile && 'px-4')}>
+    <div className={cn('space-y-2', mobile && 'px-4')}>
       {navigationItems.map((item) => {
         const Icon = item.icon;
         const isActive = location === item.path;
@@ -51,14 +56,19 @@ export function AppLayout({ children }: AppLayoutProps) {
           <Link key={item.path} href={item.path}>
             <Button
               variant={isActive ? 'default' : 'ghost'}
+              size={mobile ? 'lg' : 'default'}
               className={cn(
-                'w-full justify-start',
-                isActive && 'bg-primary text-primary-foreground'
+                'w-full justify-start touch-target',
+                mobile && 'min-h-[3rem] text-left p-4',
+                isActive && 'bg-primary text-primary-foreground shadow-lg'
               )}
               onClick={() => mobile && setSidebarOpen(false)}
             >
-              <Icon className="h-4 w-4 mr-3" />
-              {item.label}
+              <Icon className={cn(
+                mobile ? "h-5 w-5 mr-4" : "h-4 w-4 mr-3",
+                "flex-shrink-0"
+              )} />
+              <span className="truncate">{item.label}</span>
             </Button>
           </Link>
         );
@@ -72,9 +82,10 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:bg-card md:border-r">
         <div className="flex flex-col flex-1">
           {/* Logo */}
-          <div className="flex items-center h-16 px-4 border-b">
-            <Package2 className="h-6 w-6 text-primary mr-2" />
-            <span className="font-semibold">Hibla Manufacturing</span>
+          <div className="flex items-center h-16 px-4 border-b bg-gradient-to-r from-primary/5 to-cyan-500/5">
+            <Link href="/" className="hover:opacity-90 transition-opacity">
+              <HiblaLogo size="md" showText />
+            </Link>
           </div>
           
           {/* Navigation */}
@@ -97,9 +108,10 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-64 p-0">
-                <div className="flex items-center h-16 px-4 border-b">
-                  <Package2 className="h-6 w-6 text-primary mr-2" />
-                  <span className="font-semibold">Hibla Manufacturing</span>
+                <div className="flex items-center h-16 px-4 border-b bg-gradient-to-r from-primary/5 to-cyan-500/5">
+                  <Link href="/" onClick={() => setSidebarOpen(false)} className="hover:opacity-90 transition-opacity">
+                    <HiblaLogo size="md" showText />
+                  </Link>
                 </div>
                 <nav className="flex-1 px-4 py-6">
                   <NavItems mobile />
@@ -107,8 +119,11 @@ export function AppLayout({ children }: AppLayoutProps) {
               </SheetContent>
             </Sheet>
 
-            <div className="ml-4 md:ml-0">
-              <h1 className="text-lg font-semibold">
+            <div className="ml-4 md:ml-0 flex items-center">
+              <div className="md:hidden">
+                <HiblaLogo size="sm" showText />
+              </div>
+              <h1 className="hidden md:block text-lg font-semibold">
                 Real Filipino Hair Manufacturer & Global Supplier
               </h1>
             </div>
