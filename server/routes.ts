@@ -2795,9 +2795,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Product ID and Price List ID are required" });
       }
 
-      const price = await storage.getProductPrice(productId as string, priceListId as string);
-      res.json({ price });
+      const product = await storage.getProduct(productId as string);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      // VLOOKUP price based on price list
+      let price = "0.00";
+      switch (priceListId) {
+        case "A":
+          price = product.priceListA || "0.00";
+          break;
+        case "B":
+          price = product.priceListB || "0.00";
+          break;
+        case "C":
+          price = product.priceListC || "0.00";
+          break;
+        case "D":
+          price = product.priceListD || "0.00";
+          break;
+        default:
+          price = product.priceListA || "0.00";
+      }
+
+      res.json({
+        productId: product.id,
+        productName: product.name,
+        unit: product.unit || "pcs",
+        price: price,
+        priceList: priceListId,
+        sku: product.sku
+      });
+      
     } catch (error) {
+      console.error('Error in price lookup:', error);
       res.status(500).json({ message: "Failed to lookup product price" });
     }
   });
