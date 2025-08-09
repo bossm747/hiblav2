@@ -25,7 +25,6 @@ interface AppLayoutProps {
 const navigationItems = [
   { path: '/', label: 'Manufacturing Dashboard', icon: Home },
   { path: '/quotations', label: 'Quotations', icon: FileText },
-  { path: '/quotations-vlookup', label: 'Create Quotation', icon: FileText },
   { path: '/sales-orders', label: 'Sales Orders', icon: ShoppingCart },
   { path: '/job-orders', label: 'Job Orders', icon: Factory },
   { path: '/inventory', label: 'Inventory Management', icon: Package },
