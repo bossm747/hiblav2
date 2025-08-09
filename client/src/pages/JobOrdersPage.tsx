@@ -28,6 +28,27 @@ export function JobOrdersPage() {
     queryKey: ['/api/job-orders'],
   });
 
+  // Type-safe data access with fallbacks
+  const safeJobOrders = jobOrders as Array<{
+    id?: string;
+    jobOrderNumber?: string;
+    revisionNumber?: string;
+    customerCode?: string;
+    date?: string;
+    dueDate?: string;
+    createdBy?: string;
+    orderInstructions?: string;
+    createdAt?: string;
+    items?: Array<{
+      id?: string;
+      productName?: string;
+      specification?: string;
+      quantity?: string;
+      shipped?: string;
+      orderBalance?: string;
+    }>;
+  }> || [];
+
   if (isLoading) {
     return (
       <div className="space-y-6">

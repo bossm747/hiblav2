@@ -16,7 +16,8 @@ import {
   Home,
   Bell,
   User,
-  DollarSign
+  DollarSign,
+  Boxes
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -29,6 +30,7 @@ const navigationItems = [
   { path: '/sales-orders', label: 'Sales Orders', icon: ShoppingCart },
   { path: '/job-orders', label: 'Job Orders', icon: Factory },
   { path: '/inventory', label: 'Inventory Management', icon: Package },
+  { path: '/products', label: 'Products Management', icon: Boxes },
   { path: '/customers', label: 'Customer Management', icon: User },
   { path: '/staff', label: 'Staff Management', icon: User },
   { path: '/price-management', label: 'Price Management', icon: DollarSign },

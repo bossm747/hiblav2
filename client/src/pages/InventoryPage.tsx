@@ -32,11 +32,33 @@ export function InventoryPage() {
     queryKey: ['/api/warehouses'],
   });
 
+  // Type-safe data access with fallbacks
+  const safeProducts = products as Array<{
+    id?: string;
+    name?: string;
+    sku?: string;
+    ngWarehouse?: string;
+    phWarehouse?: string;
+    reservedWarehouse?: string;
+    redWarehouse?: string;
+    adminWarehouse?: string;
+    wipWarehouse?: string;
+    lowStockThreshold?: string;
+    basePrice?: string;
+    isActive?: boolean;
+  }> || [];
+
+  const safeWarehouses = warehouses as Array<{
+    id?: string;
+    name?: string;
+    code?: string;
+  }> || [];
+
   // Fallback warehouse data with proper typing
-  const warehouseDisplayData = warehouses.length > 0 ? warehouses.map((w: any) => ({
-    id: w.id,
-    name: w.name,
-    color: getWarehouseColor(w.name)
+  const warehouseDisplayData = safeWarehouses.length > 0 ? safeWarehouses.map((w) => ({
+    id: w.id || '',
+    name: w.name || '',
+    color: getWarehouseColor(w.name || '')
   })) : [
     { id: 'NG', name: 'NG Warehouse', color: 'bg-blue-500' },
     { id: 'PH', name: 'PH Warehouse', color: 'bg-green-500' },
@@ -72,7 +94,7 @@ export function InventoryPage() {
     );
   }
 
-  const lowStockItems = products.filter((p: any) => 
+  const lowStockItems = safeProducts.filter((p) => 
     parseFloat(p.ngWarehouse || '0') + parseFloat(p.phWarehouse || '0') < parseFloat(p.lowStockThreshold || '10')
   );
 
@@ -117,9 +139,9 @@ export function InventoryPage() {
                 <div>
                   <p className="text-sm font-medium">{warehouse.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {products.filter((p: any) => {
+                    {safeProducts.filter((p) => {
                       const warehouseKey = warehouse.id.toLowerCase() + 'Warehouse';
-                      return parseFloat(p[warehouseKey] || '0') > 0;
+                      return parseFloat((p as any)[warehouseKey] || '0') > 0;
                     }).length} items
                   </p>
                 </div>
@@ -163,7 +185,7 @@ export function InventoryPage() {
         <CardHeader>
           <CardTitle className="flex items-center">
             <Package className="h-5 w-5 mr-2" />
-            Product Inventory ({products.length} items)
+            Product Inventory ({safeProducts.length} items)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -181,7 +203,7 @@ export function InventoryPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.length === 0 ? (
+              {safeProducts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8">
                     <div className="flex flex-col items-center">
@@ -191,7 +213,7 @@ export function InventoryPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                products.map((product: any) => {
+                safeProducts.map((product) => {
                   const totalStock = parseFloat(product.ngWarehouse || '0') + 
                                    parseFloat(product.phWarehouse || '0');
                   const isLowStock = totalStock < parseFloat(product.lowStockThreshold || '10');

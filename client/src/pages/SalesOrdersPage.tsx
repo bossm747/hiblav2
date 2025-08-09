@@ -27,6 +27,21 @@ export function SalesOrdersPage() {
     queryKey: ['/api/sales-orders'],
   });
 
+  // Type-safe data access with fallbacks
+  const safeSalesOrders = salesOrders as Array<{
+    id?: string;
+    salesOrderNumber?: string;
+    revisionNumber?: string;
+    customerCode?: string;
+    orderDate?: string;
+    dueDate?: string;
+    status?: string;
+    isConfirmed?: boolean;
+    pleasePayThisAmountUsd?: string;
+    createdBy?: string;
+    createdAt?: string;
+  }> || [];
+
   if (isLoading) {
     return (
       <div className="space-y-6">

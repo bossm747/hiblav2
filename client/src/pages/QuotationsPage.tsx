@@ -19,6 +19,19 @@ export function QuotationsPage() {
     queryKey: ['/api/quotations'],
   });
 
+  // Type-safe data access with fallbacks
+  const safeQuotations = quotations as Array<{
+    id?: string;
+    quotationNumber?: string;
+    revisionNumber?: string;
+    customerCode?: string;
+    country?: string;
+    total?: string;
+    status?: string;
+    createdAt?: string;
+    createdBy?: string;
+  }> || [];
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':

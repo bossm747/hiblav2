@@ -17,6 +17,7 @@ import { CustomerManagementPage } from '@/pages/CustomerManagementPage';
 import { StaffManagementPage } from '@/pages/StaffManagementPage';
 import { ReportsPage } from '@/pages/ReportsPage';
 import PriceManagement from '@/pages/PriceManagement';
+import { ProductsManagementPage } from '@/pages/ProductsManagementPage';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
               <Route path="/sales-orders" component={SalesOrdersPage} />
               <Route path="/job-orders" component={JobOrdersPage} />
               <Route path="/inventory" component={InventoryPage} />
+              <Route path="/products" component={ProductsManagementPage} />
               <Route path="/customers" component={CustomerManagementPage} />
               <Route path="/staff" component={StaffManagementPage} />
               <Route path="/price-management" component={PriceManagement} />
