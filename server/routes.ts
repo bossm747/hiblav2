@@ -67,36 +67,84 @@ export function registerRoutes(app: Express): void {
   // Dashboard analytics endpoint
   app.get("/api/dashboard/analytics", async (req, res) => {
     try {
-      const [quotations, salesOrders, jobOrders, products, customers] = await Promise.all([
-        storage.getQuotations(),
-        storage.getSalesOrders(), 
-        storage.getJobOrders(),
-        storage.getProducts(),
-        storage.getCustomers()
-      ]);
+      console.log('Dashboard analytics endpoint called');
+      
+      // Get data with error handling for each method
+      let quotations = [];
+      let salesOrders = [];
+      let jobOrders = [];
+      let products = [];
+      let customers = [];
+
+      try {
+        quotations = await storage.getQuotations() || [];
+        console.log('Quotations fetched:', quotations.length);
+      } catch (error) {
+        console.error('Error fetching quotations:', error);
+      }
+
+      try {
+        salesOrders = await storage.getSalesOrders() || [];
+        console.log('Sales orders fetched:', salesOrders.length);
+      } catch (error) {
+        console.error('Error fetching sales orders:', error);
+      }
+
+      try {
+        jobOrders = await storage.getJobOrders() || [];
+        console.log('Job orders fetched:', jobOrders.length);
+      } catch (error) {
+        console.error('Error fetching job orders:', error);
+      }
+
+      try {
+        products = await storage.getProducts() || [];
+        console.log('Products fetched:', products.length);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+
+      try {
+        customers = await storage.getCustomers() || [];
+        console.log('Customers fetched:', customers.length);
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+      }
 
       // Calculate real-time analytics with safe data handling
-      const confirmedSalesOrders = salesOrders.filter((order: any) => order.status === 'confirmed' || order.status === 'completed');
+      const confirmedSalesOrders = salesOrders.filter((order: any) => 
+        order && (order.status === 'confirmed' || order.status === 'completed')
+      );
+      
       const totalRevenue = confirmedSalesOrders.reduce((sum: number, order: any) => {
+        if (!order) return sum;
         const orderTotal = parseFloat(order.total || order.pleasePayThisAmountUsd || '0');
-        return sum + orderTotal;
+        return sum + (isNaN(orderTotal) ? 0 : orderTotal);
       }, 0);
 
-      const completedJobOrders = jobOrders.filter((order: any) => order.status === 'completed').length;
+      const completedJobOrders = jobOrders.filter((order: any) => 
+        order && order.status === 'completed'
+      ).length;
+      
       const totalSalesOrders = salesOrders.length;
       const conversionRate = quotations.length > 0 ? (totalSalesOrders / quotations.length * 100) : 0;
       const avgOrderValue = totalSalesOrders > 0 ? (totalRevenue / totalSalesOrders) : 0;
 
-      // Low stock calculation
+      // Low stock calculation with safe parsing
       const lowStockItems = products.filter((p: any) => {
-        const ngStock = parseFloat(p.ngWarehouse || '0');
-        const phStock = parseFloat(p.phWarehouse || '0');
-        const totalStock = ngStock + phStock;
-        const threshold = parseFloat(p.lowStockThreshold || '5');
-        return totalStock < threshold;
+        if (!p) return false;
+        try {
+          const ngStock = parseFloat(p.ngWarehouse || '0') || 0;
+          const phStock = parseFloat(p.phWarehouse || '0') || 0;
+          const totalStock = ngStock + phStock;
+          const threshold = parseFloat(p.lowStockThreshold || '5') || 5;
+          return totalStock < threshold;
+        } catch (error) {
+          return false;
+        }
       });
 
-      res.json({
+      const analyticsData = {
         revenue: {
           total: Math.round(totalRevenue * 100) / 100,
           trend: totalRevenue > 0 ? '+15%' : 'No data',
@@ -129,10 +177,49 @@ export function registerRoutes(app: Express): void {
           staffCount: 0,
           productsCount: products.length
         }
-      });
+      };
+
+      console.log('Analytics data prepared:', analyticsData.overview);
+      res.json(analyticsData);
+      
     } catch (error) {
-      console.error('Error fetching dashboard analytics:', error);
-      res.status(500).json({ message: "Failed to fetch dashboard analytics" });
+      console.error('Critical error in dashboard analytics:', error);
+      
+      // Return default data structure to prevent frontend crashes
+      res.json({
+        revenue: {
+          total: 0,
+          trend: 'No data',
+          growth: 'stable'
+        },
+        orders: {
+          total: 0,
+          trend: 'No data',
+          growth: 'stable'
+        },
+        conversion: {
+          rate: 0,
+          trend: 'No data',
+          growth: 'stable'
+        },
+        avgOrderValue: {
+          value: 0,
+          trend: 'No data',
+          growth: 'stable'
+        },
+        inventory: {
+          lowStockCount: 0,
+          totalProducts: 0
+        },
+        overview: {
+          quotationsCount: 0,
+          salesOrdersCount: 0,
+          jobOrdersCount: 0,
+          customersCount: 0,
+          staffCount: 0,
+          productsCount: 0
+        }
+      });
     }
   });
 

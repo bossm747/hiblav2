@@ -74,7 +74,7 @@ export interface IStorage {
   getLatestQuotation(): Promise<Quotation | undefined>;
   createQuotation(insertQuotation: InsertQuotation): Promise<Quotation>;
   createQuotationItem(insertQuotationItem: InsertQuotationItem): Promise<QuotationItem>;
-  
+
   // Price list management
   getAllPriceLists(): Promise<any[]>;
   createPriceList(data: any): Promise<any>;
@@ -203,7 +203,7 @@ export class DatabaseStorage implements IStorage {
         creditLimit: insertCustomer.creditLimit || null,
         preferredShipping: insertCustomer.preferredShipping || null
       };
-      
+
       console.log('Creating customer with complete data:', customerData);
       const [customer] = await db.insert(customers).values(customerData).returning();
       console.log('Customer created successfully:', customer.id);
@@ -308,14 +308,14 @@ export class DatabaseStorage implements IStorage {
   // Quotation management
   async getQuotations(filters?: { status?: string; customer?: string }): Promise<Quotation[]> {
     let query = db.select().from(quotations);
-    
+
     if (filters?.status) {
       query = query.where(eq(quotations.status, filters.status)) as any;
     }
     if (filters?.customer) {
       query = query.where(eq(quotations.customerCode, filters.customer)) as any;
     }
-    
+
     return await query.orderBy(desc(quotations.createdAt));
   }
 
@@ -353,15 +353,16 @@ export class DatabaseStorage implements IStorage {
   async getSalesOrders(filters?: { status?: string; customer?: string }): Promise<SalesOrder[]> {
     try {
       let query = db.select().from(salesOrders);
-      
+
       if (filters?.status) {
         query = query.where(eq(salesOrders.status, filters.status)) as any;
       }
       if (filters?.customer) {
         query = query.where(eq(salesOrders.customerCode, filters.customer)) as any;
       }
-      
-      return await query.orderBy(desc(salesOrders.createdAt));
+
+      const result = await query.orderBy(desc(salesOrders.createdAt));
+      return result || [];
     } catch (error) {
       console.error('Error fetching sales orders:', error);
       throw new Error('Failed to fetch sales orders');
@@ -398,12 +399,13 @@ export class DatabaseStorage implements IStorage {
   async getJobOrders(filters?: { customer?: string }): Promise<JobOrder[]> {
     try {
       let query = db.select().from(jobOrders);
-      
+
       if (filters?.customer) {
         query = query.where(eq(jobOrders.customerCode, filters.customer)) as any;
       }
-      
-      return await query.orderBy(desc(jobOrders.createdAt));
+
+      const result = await query.orderBy(desc(jobOrders.createdAt));
+      return result || [];
     } catch (error) {
       console.error('Error fetching job orders:', error);
       throw new Error('Failed to fetch job orders');
@@ -465,21 +467,21 @@ export class DatabaseStorage implements IStorage {
 
     // Apply filters
     const conditions = [];
-    
+
     if (filters?.dateFrom) {
       conditions.push(gte(jobOrders.createdAt, new Date(filters.dateFrom)));
     }
-    
+
     if (filters?.dateTo) {
       const toDate = new Date(filters.dateTo);
       toDate.setHours(23, 59, 59, 999); // End of day
       conditions.push(sql`${jobOrders.createdAt} <= ${toDate}`);
     }
-    
+
     if (filters?.customer) {
       conditions.push(eq(jobOrders.customerCode, filters.customer));
     }
-    
+
     if (filters?.item) {
       conditions.push(like(jobOrderItems.productName, `%${filters.item}%`));
     }
@@ -493,7 +495,7 @@ export class DatabaseStorage implements IStorage {
     // Group results by job order
     const grouped = results.reduce((acc: any, row: any) => {
       const jobOrderId = row.id;
-      
+
       if (!acc[jobOrderId]) {
         acc[jobOrderId] = {
           id: row.id,
@@ -504,7 +506,7 @@ export class DatabaseStorage implements IStorage {
           items: []
         };
       }
-      
+
       if (row.itemId) {
         acc[jobOrderId].items.push({
           id: row.itemId,
@@ -517,7 +519,7 @@ export class DatabaseStorage implements IStorage {
           shipped: row.shipped
         });
       }
-      
+
       return acc;
     }, {});
 
@@ -629,7 +631,7 @@ export class DatabaseStorage implements IStorage {
   async ensurePriceListsExist(): Promise<void> {
     try {
       const existing = await db.select().from(priceLists);
-      
+
       if (existing.length === 0) {
         // Create default price lists
         const defaultLists = [
@@ -642,7 +644,7 @@ export class DatabaseStorage implements IStorage {
         for (const list of defaultLists) {
           await db.insert(priceLists).values(list);
         }
-        
+
         console.log('Default price lists created');
       }
     } catch (error) {
@@ -712,17 +714,17 @@ export class DatabaseStorage implements IStorage {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
-    
+
     // Get count of quotations for this month
     const startOfMonth = new Date(year, now.getMonth(), 1);
     const endOfMonth = new Date(year, now.getMonth() + 1, 0);
-    
+
     const count = await db.select().from(quotations)
       .where(and(
         gte(quotations.createdAt, startOfMonth),
         lte(quotations.createdAt, endOfMonth)
       ));
-    
+
     const nextNumber = count.length + 1;
     const timestamp = Date.now().toString().slice(-3);
     return `${year}.${month}.${String(nextNumber).padStart(3, '0')}-${timestamp}`;
@@ -732,16 +734,16 @@ export class DatabaseStorage implements IStorage {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
-    
+
     const startOfMonth = new Date(year, now.getMonth(), 1);
     const endOfMonth = new Date(year, now.getMonth() + 1, 0);
-    
+
     const count = await db.select().from(salesOrders)
       .where(and(
         gte(salesOrders.createdAt, startOfMonth),
         gte(salesOrders.createdAt, endOfMonth)
       ));
-    
+
     const nextNumber = count.length + 1;
     return `${year}.${month}.${String(nextNumber).padStart(3, '0')}`;
   }
@@ -750,16 +752,16 @@ export class DatabaseStorage implements IStorage {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
-    
+
     const startOfMonth = new Date(year, now.getMonth(), 1);
     const endOfMonth = new Date(year, now.getMonth() + 1, 0);
-    
+
     const count = await db.select().from(jobOrders)
       .where(and(
         gte(jobOrders.createdAt, startOfMonth),
         gte(jobOrders.createdAt, endOfMonth)
       ));
-    
+
     const nextNumber = count.length + 1;
     return `JO${year}${month}${String(nextNumber).padStart(3, '0')}`;
   }
