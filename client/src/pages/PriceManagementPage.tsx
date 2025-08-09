@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertTriangle, DollarSign, Edit, Package, Plus, Settings, TrendingUp, Calculator, Eye } from 'lucide-react';
+import { AlertTriangle, DollarSign, Edit, Package, Plus, Settings, TrendingUp, Calculator, Eye, Trash2, Pencil } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
@@ -52,8 +52,9 @@ interface ProductPriceList {
 export default function PriceManagementPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedPriceList, setSelectedPriceList] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [isPriceListCrudModalOpen, setIsPriceListCrudModalOpen] = useState(false);
+  const [editingPriceList, setEditingPriceList] = useState<PriceList | null>(null);
   const [isAddPriceListModalOpen, setIsAddPriceListModalOpen] = useState(false);
   const [isBulkPricingModalOpen, setIsBulkPricingModalOpen] = useState(false);
   const [isCustomPricingModalOpen, setIsCustomPricingModalOpen] = useState(false);
@@ -80,19 +81,12 @@ export default function PriceManagementPage() {
     queryKey: ['/api/price-lists'],
   });
 
-  const { data: categories = [] } = useQuery<Category[]>({
-    queryKey: ['/api/categories'],
-  });
-
   const { data: productPrices = [] } = useQuery<ProductPriceList[]>({
     queryKey: ['/api/product-price-lists'],
   });
 
-  // Filter products
-  const filteredProducts = products.filter(product => {
-    if (selectedCategory && selectedCategory !== 'all' && product.categoryId !== selectedCategory) return false;
-    return true;
-  });
+  // All products (no filtering needed)
+  const filteredProducts = products;
 
   // Calculate pricing statistics
   const pricingStats = {
@@ -253,6 +247,59 @@ export default function PriceManagementPage() {
     },
   });
 
+  const updatePriceListMutation = useMutation({
+    mutationFn: async (data: {
+      id: string;
+      name: string;
+      code: string;
+      description?: string;
+      priceMultiplier: number;
+    }) => {
+      return apiRequest(`/api/price-lists/${data.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/price-lists'] });
+      toast({
+        title: 'Price List Updated',
+        description: 'Price list has been successfully updated.',
+      });
+      setEditingPriceList(null);
+      setIsPriceListCrudModalOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: 'Failed to Update',
+        description: 'Failed to update price list.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const deletePriceListMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest(`/api/price-lists/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/price-lists'] });
+      toast({
+        title: 'Price List Deleted',
+        description: 'Price list has been successfully deleted.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Failed to Delete',
+        description: 'Failed to delete price list.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -274,6 +321,10 @@ export default function PriceManagementPage() {
           <Button variant="outline" onClick={() => setIsCustomPricingModalOpen(true)}>
             <Edit className="h-4 w-4 mr-2" />
             Custom Pricing
+          </Button>
+          <Button variant="outline" onClick={() => setIsPriceListCrudModalOpen(true)}>
+            <Settings className="h-4 w-4 mr-2" />
+            Manage Price Lists
           </Button>
         </div>
       </div>
@@ -333,31 +384,15 @@ export default function PriceManagementPage() {
         </TabsList>
 
         <TabsContent value="products" className="space-y-4">
-          {/* Filters */}
+          {/* Price List Filter */}
           <Card>
             <CardContent className="p-4">
               <div className="flex gap-4 items-end">
                 <div className="flex-1">
-                  <Label>Category Filter</Label>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Categories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex-1">
-                  <Label>Price List</Label>
+                  <Label>Price List Filter</Label>
                   <Select value={selectedPriceList} onValueChange={setSelectedPriceList}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select Price List" />
+                      <SelectValue placeholder="Select Price List to View Pricing" />
                     </SelectTrigger>
                     <SelectContent>
                       {priceLists.map((priceList) => (
@@ -370,12 +405,9 @@ export default function PriceManagementPage() {
                 </div>
                 <Button 
                   variant="outline"
-                  onClick={() => {
-                    setSelectedCategory('all');
-                    setSelectedPriceList('');
-                  }}
+                  onClick={() => setSelectedPriceList('')}
                 >
-                  Clear Filters
+                  Clear Filter
                 </Button>
               </div>
             </CardContent>
@@ -807,6 +839,200 @@ export default function PriceManagementPage() {
               disabled={!selectedPriceList || Object.keys(customPrices).length === 0 || customPricingMutation.isPending}
             >
               {customPricingMutation.isPending ? 'Saving...' : 'Save Custom Prices'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Price List CRUD Management Modal */}
+      <Dialog open={isPriceListCrudModalOpen} onOpenChange={setIsPriceListCrudModalOpen}>
+        <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Manage Price Lists</DialogTitle>
+            <DialogDescription>
+              Create, edit, and delete price lists for your products
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Price Lists Table */}
+            <div className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Code</TableHead>
+                    <TableHead>Multiplier</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {priceLists.map((priceList) => (
+                    <TableRow key={priceList.id}>
+                      <TableCell>
+                        <div className="font-medium">{priceList.name}</div>
+                        {priceList.isDefault && (
+                          <Badge variant="outline" className="text-xs">Default</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <code className="px-2 py-1 bg-muted rounded text-sm">
+                          {priceList.code}
+                        </code>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-center">
+                          {Number(priceList.priceMultiplier).toFixed(2)}x
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {Number(priceList.priceMultiplier) > 1 
+                            ? `+${((Number(priceList.priceMultiplier) - 1) * 100).toFixed(0)}%`
+                            : Number(priceList.priceMultiplier) < 1
+                            ? `-${((1 - Number(priceList.priceMultiplier)) * 100).toFixed(0)}%`
+                            : 'Base Price'
+                          }
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="max-w-xs truncate">
+                          {priceList.description || 'No description'}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={priceList.isActive ? 'default' : 'secondary'}>
+                          {priceList.isActive ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setEditingPriceList(priceList);
+                              setNewPriceListData({
+                                name: priceList.name,
+                                code: priceList.code,
+                                description: priceList.description || '',
+                                priceMultiplier: Number(priceList.priceMultiplier),
+                              });
+                            }}
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          {!priceList.isDefault && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deletePriceListMutation.mutate(priceList.id)}
+                              disabled={deletePriceListMutation.isPending}
+                            >
+                              <Trash2 className="h-3 w-3 text-red-500" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Edit Price List Form */}
+            {editingPriceList && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Edit Price List: {editingPriceList.name}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="edit-name">Name</Label>
+                      <Input
+                        id="edit-name"
+                        value={newPriceListData.name}
+                        onChange={(e) => setNewPriceListData(prev => ({ ...prev, name: e.target.value }))}
+                        placeholder="e.g., Premium Customer Pricing"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-code">Code</Label>
+                      <Input
+                        id="edit-code"
+                        value={newPriceListData.code}
+                        onChange={(e) => setNewPriceListData(prev => ({ ...prev, code: e.target.value }))}
+                        placeholder="e.g., PREMIUM"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-multiplier">Price Multiplier</Label>
+                      <Input
+                        id="edit-multiplier"
+                        type="number"
+                        step="0.01"
+                        min="0.1"
+                        max="10"
+                        value={newPriceListData.priceMultiplier}
+                        onChange={(e) => setNewPriceListData(prev => ({ ...prev, priceMultiplier: Number(e.target.value) }))}
+                        placeholder="1.0"
+                        required
+                      />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {newPriceListData.priceMultiplier > 1 
+                          ? `${((newPriceListData.priceMultiplier - 1) * 100).toFixed(0)}% markup`
+                          : newPriceListData.priceMultiplier < 1
+                          ? `${((1 - newPriceListData.priceMultiplier) * 100).toFixed(0)}% discount`
+                          : 'Base pricing'
+                        }
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor="edit-description">Description</Label>
+                      <Input
+                        id="edit-description"
+                        value={newPriceListData.description}
+                        onChange={(e) => setNewPriceListData(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Optional description"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Button
+                      onClick={() => {
+                        updatePriceListMutation.mutate({
+                          id: editingPriceList.id,
+                          ...newPriceListData,
+                        });
+                      }}
+                      disabled={!newPriceListData.name || !newPriceListData.code || updatePriceListMutation.isPending}
+                    >
+                      {updatePriceListMutation.isPending ? 'Updating...' : 'Update Price List'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setEditingPriceList(null);
+                        setNewPriceListData({
+                          name: '',
+                          code: '',
+                          description: '',
+                          priceMultiplier: 1.0,
+                        });
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsPriceListCrudModalOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1086,6 +1086,28 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  app.put("/api/price-lists/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updatedPriceList = await storage.updatePriceList(id, req.body);
+      res.json(updatedPriceList);
+    } catch (error) {
+      console.error('Error updating price list:', error);
+      res.status(500).json({ message: "Failed to update price list" });
+    }
+  });
+
+  app.delete("/api/price-lists/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deletePriceList(id);
+      res.json({ message: "Price list deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting price list:', error);
+      res.status(500).json({ message: "Failed to delete price list" });
+    }
+  });
+
   app.get("/api/product-price-lists", async (req, res) => {
     try {
       const { productId, priceListId } = req.query;
