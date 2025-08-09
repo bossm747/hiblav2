@@ -1105,15 +1105,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/product-price-lists/bulk-update", async (req, res) => {
-    try {
-      const { categoryId, priceListId, action, value } = req.body;
-      const result = await storage.bulkUpdateProductPrices({ categoryId, priceListId, action, value });
-      res.json({ updated: result });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to perform bulk price update" });
-    }
-  });
+
 
   // AI-powered product enhancement routes
   app.post("/api/products/ai/generate-details", async (req, res) => {

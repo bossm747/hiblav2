@@ -835,16 +835,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async bulkUpdateProductPrices(data: any): Promise<number> {
-    try {
-      // Placeholder implementation for showcase
-      // Would update multiple products in real implementation
-      return 0;
-    } catch (error) {
-      console.error('Error bulk updating product prices:', error);
-      throw new Error('Failed to bulk update product prices');
-    }
-  }
+
 }
 
 export const storage = new DatabaseStorage();

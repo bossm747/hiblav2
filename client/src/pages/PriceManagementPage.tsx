@@ -54,7 +54,13 @@ export default function PriceManagementPage() {
   const [selectedPriceList, setSelectedPriceList] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-  const [isBulkUpdateModalOpen, setIsBulkUpdateModalOpen] = useState(false);
+  const [isAddPriceListModalOpen, setIsAddPriceListModalOpen] = useState(false);
+  const [newPriceListData, setNewPriceListData] = useState({
+    name: '',
+    code: '',
+    description: '',
+    priceMultiplier: 1.0,
+  });
   const { toast } = useToast();
 
   // Fetch data
@@ -137,30 +143,40 @@ export default function PriceManagementPage() {
     },
   });
 
-  const bulkUpdatePricesMutation = useMutation({
+  const addPriceListMutation = useMutation({
     mutationFn: async (data: {
-      categoryId?: string;
-      priceListId: string;
-      action: 'percentage' | 'fixed_amount';
-      value: number;
+      name: string;
+      code: string;
+      description?: string;
+      priceMultiplier: number;
     }) => {
-      return apiRequest('/api/product-price-lists/bulk-update', {
+      return apiRequest('/api/price-lists', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          isDefault: false,
+          isActive: true,
+        }),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/product-price-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/price-lists'] });
       toast({
-        title: 'Bulk Update Complete',
-        description: 'Pricing has been updated for selected products.',
+        title: 'Price List Added',
+        description: 'New price list has been successfully created.',
       });
-      setIsBulkUpdateModalOpen(false);
+      setIsAddPriceListModalOpen(false);
+      setNewPriceListData({
+        name: '',
+        code: '',
+        description: '',
+        priceMultiplier: 1.0,
+      });
     },
     onError: () => {
       toast({
-        title: 'Update Failed',
-        description: 'Failed to perform bulk price update.',
+        title: 'Failed to Create',
+        description: 'Failed to create new price list.',
         variant: 'destructive',
       });
     },
@@ -176,9 +192,9 @@ export default function PriceManagementPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setIsBulkUpdateModalOpen(true)}>
-            <Calculator className="h-4 w-4 mr-2" />
-            Bulk Update
+          <Button onClick={() => setIsAddPriceListModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Price List
           </Button>
         </div>
       </div>
@@ -483,69 +499,70 @@ export default function PriceManagementPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Bulk Update Modal */}
-      <Dialog open={isBulkUpdateModalOpen} onOpenChange={setIsBulkUpdateModalOpen}>
+      {/* Add Price List Modal */}
+      <Dialog open={isAddPriceListModalOpen} onOpenChange={setIsAddPriceListModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Bulk Price Update</DialogTitle>
+            <DialogTitle>Add New Price List</DialogTitle>
             <DialogDescription>
-              Apply pricing changes to multiple products at once
+              Create a new price list for customer tier pricing
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Category (Optional)</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="price-list-name">Price List Name</Label>
+              <Input
+                id="price-list-name"
+                value={newPriceListData.name}
+                onChange={(e) => setNewPriceListData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., VIP Customer, Wholesale"
+                required
+              />
             </div>
             <div>
-              <Label>Price List</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Price List" />
-                </SelectTrigger>
-                <SelectContent>
-                  {priceLists.map((priceList) => (
-                    <SelectItem key={priceList.id} value={priceList.id}>
-                      {priceList.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="price-list-code">Code</Label>
+              <Input
+                id="price-list-code"
+                value={newPriceListData.code}
+                onChange={(e) => setNewPriceListData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                placeholder="e.g., VIP, WSL"
+                required
+              />
             </div>
             <div>
-              <Label>Update Type</Label>
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select update type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="percentage">Percentage Increase/Decrease</SelectItem>
-                  <SelectItem value="fixed_amount">Fixed Amount Increase/Decrease</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="price-multiplier">Price Multiplier</Label>
+              <Input
+                id="price-multiplier"
+                type="number"
+                step="0.01"
+                min="0.1"
+                max="10"
+                value={newPriceListData.priceMultiplier}
+                onChange={(e) => setNewPriceListData(prev => ({ ...prev, priceMultiplier: Number(e.target.value) }))}
+                placeholder="1.0 = SRP, 0.85 = 15% discount, 1.25 = 25% markup"
+                required
+              />
             </div>
             <div>
-              <Label>Value</Label>
-              <Input type="number" placeholder="Enter value" />
+              <Label htmlFor="price-list-description">Description (Optional)</Label>
+              <Input
+                id="price-list-description"
+                value={newPriceListData.description}
+                onChange={(e) => setNewPriceListData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Brief description of this price tier"
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsBulkUpdateModalOpen(false)}>
+            <Button variant="outline" onClick={() => setIsAddPriceListModalOpen(false)}>
               Cancel
             </Button>
-            <Button>Apply Update</Button>
+            <Button 
+              onClick={() => addPriceListMutation.mutate(newPriceListData)}
+              disabled={!newPriceListData.name || !newPriceListData.code || addPriceListMutation.isPending}
+            >
+              {addPriceListMutation.isPending ? 'Creating...' : 'Create Price List'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
