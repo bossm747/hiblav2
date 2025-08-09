@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,9 +11,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { SalesOrderForm } from '@/components/forms/SalesOrderForm';
 import { ShoppingCart, Plus, FileText } from 'lucide-react';
 
 export function SalesOrdersPage() {
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const { data: salesOrders = [], isLoading } = useQuery({
     queryKey: ['/api/sales-orders'],
   });
@@ -40,10 +49,20 @@ export function SalesOrdersPage() {
             Track and manage all sales orders from confirmed quotations
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Sales Order
-        </Button>
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Sales Order
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create New Sales Order</DialogTitle>
+            </DialogHeader>
+            <SalesOrderForm onSuccess={() => setShowCreateDialog(false)} />
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,9 +12,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { JobOrderForm } from '@/components/forms/JobOrderForm';
 import { Factory, Plus, Package } from 'lucide-react';
 
 export function JobOrdersPage() {
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const { data: jobOrders = [], isLoading } = useQuery({
     queryKey: ['/api/job-orders'],
   });
@@ -41,10 +50,20 @@ export function JobOrdersPage() {
             Production tracking and manufacturing management
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Job Order
-        </Button>
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Job Order
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create New Job Order</DialogTitle>
+            </DialogHeader>
+            <JobOrderForm onSuccess={() => setShowCreateDialog(false)} />
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Production Summary */}

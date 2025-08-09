@@ -1,7 +1,5 @@
 import React from 'react';
-import { VLOOKUPQuotationTest } from '@/components/VLOOKUPQuotationTest';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calculator } from 'lucide-react';
+import { QuotationForm } from '@/components/forms/QuotationForm';
 
 export function VLOOKUPQuotationsPage() {
   return (
@@ -15,17 +13,7 @@ export function VLOOKUPQuotationsPage() {
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Calculator className="h-5 w-5 mr-2" />
-            Quotation Builder with VLOOKUP
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <VLOOKUPQuotationTest />
-        </CardContent>
-      </Card>
+      <QuotationForm />
     </div>
   );
 }
