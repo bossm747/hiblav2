@@ -32,6 +32,8 @@ import {
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { ProductForm } from '@/components/forms/ProductForm';
+import { ProductDetailModal } from '@/components/ProductDetailModal';
 
 interface Product {
   id: string;
@@ -57,6 +59,10 @@ interface Product {
 
 export function ProductsManagementPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
@@ -118,6 +124,44 @@ export function ProductsManagementPage() {
     },
   });
 
+  const deleteProduct = useMutation({
+    mutationFn: async (id: string) => {
+      return apiRequest(`/api/products/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      toast({
+        title: 'Success',
+        description: 'Product deleted successfully',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete product',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleEdit = (productId: string) => {
+    setEditingProductId(productId);
+    setShowEditDialog(true);
+  };
+
+  const handleView = (productId: string) => {
+    setSelectedProductId(productId);
+    setShowDetailModal(true);
+  };
+
+  const handleDelete = (productId: string) => {
+    if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+      deleteProduct.mutate(productId);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -147,24 +191,11 @@ export function ProductsManagementPage() {
               Add Product
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Product</DialogTitle>
             </DialogHeader>
-            <div className="p-4">
-              <p className="text-sm text-muted-foreground mb-4">
-                Create a new Filipino hair product with specifications and pricing
-              </p>
-              {/* Product form would go here */}
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => setShowCreateDialog(false)}>
-                  Save Product
-                </Button>
-              </div>
-            </div>
+            <ProductForm onSuccess={() => setShowCreateDialog(false)} />
           </DialogContent>
         </Dialog>
       </div>
@@ -284,7 +315,12 @@ export function ProductsManagementPage() {
                   <TableRow key={product.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{product.name}</p>
+                        <button
+                          onClick={() => handleView(product.id)}
+                          className="font-medium text-left hover:text-primary cursor-pointer"
+                        >
+                          {product.name}
+                        </button>
                         <p className="text-sm text-muted-foreground">
                           {product.description || 'Premium Filipino hair'}
                         </p>
@@ -344,6 +380,20 @@ export function ProductsManagementPage() {
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => handleView(product.id)}
+                        >
+                          View
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(product.id)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => toggleProductStatus.mutate({
                             id: product.id,
                             isActive: !product.isActive
@@ -352,8 +402,13 @@ export function ProductsManagementPage() {
                         >
                           {product.isActive ? 'Deactivate' : 'Activate'}
                         </Button>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(product.id)}
+                          disabled={deleteProduct.isPending}
+                        >
+                          Delete
                         </Button>
                       </div>
                     </TableCell>
@@ -364,6 +419,32 @@ export function ProductsManagementPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Edit Product Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Product</DialogTitle>
+          </DialogHeader>
+          <ProductForm
+            productId={editingProductId || undefined}
+            onSuccess={() => {
+              setShowEditDialog(false);
+              setEditingProductId(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        productId={selectedProductId}
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedProductId(null);
+        }}
+      />
     </div>
   );
 }

@@ -236,6 +236,39 @@ export class DatabaseStorage implements IStorage {
     return product;
   }
 
+  async updateProduct(id: string, updateData: Partial<InsertProduct>): Promise<Product | undefined> {
+    try {
+      const [product] = await db.update(products)
+        .set(updateData)
+        .where(eq(products.id, id))
+        .returning();
+      return product || undefined;
+    } catch (error) {
+      console.error('Error updating product:', error);
+      throw error;
+    }
+  }
+
+  async deleteProduct(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(products).where(eq(products.id, id));
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      throw error;
+    }
+  }
+
+  async deleteCategory(id: string): Promise<boolean> {
+    try {
+      const result = await db.delete(categories).where(eq(categories.id, id));
+      return (result.rowCount || 0) > 0;
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      throw error;
+    }
+  }
+
   // Price list management
   async getPriceLists(): Promise<PriceList[]> {
     return await db.select().from(priceLists).orderBy(desc(priceLists.createdAt));
