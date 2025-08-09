@@ -28,7 +28,16 @@ export function InventoryPage() {
     queryKey: ['/api/products'],
   });
 
-  const warehouses = [
+  const { data: warehouses = [] } = useQuery({
+    queryKey: ['/api/warehouses'],
+  });
+
+  // Fallback warehouse data with proper typing
+  const warehouseDisplayData = warehouses.length > 0 ? warehouses.map((w: any) => ({
+    id: w.id,
+    name: w.name,
+    color: getWarehouseColor(w.name)
+  })) : [
     { id: 'NG', name: 'NG Warehouse', color: 'bg-blue-500' },
     { id: 'PH', name: 'PH Warehouse', color: 'bg-green-500' },
     { id: 'Reserved', name: 'Reserved', color: 'bg-yellow-500' },
@@ -36,6 +45,19 @@ export function InventoryPage() {
     { id: 'Admin', name: 'Admin', color: 'bg-purple-500' },
     { id: 'WIP', name: 'Work in Progress', color: 'bg-orange-500' }
   ];
+
+  function getWarehouseColor(name: string): string {
+    const colorMap: { [key: string]: string } = {
+      'NG Warehouse': 'bg-blue-500',
+      'PH Warehouse': 'bg-green-500',
+      'Reserved': 'bg-yellow-500',
+      'Red Warehouse': 'bg-red-500',
+      'Admin': 'bg-purple-500',
+      'Work in Progress': 'bg-orange-500',
+      'WIP': 'bg-orange-500'
+    };
+    return colorMap[name] || 'bg-gray-500';
+  }
 
   if (isLoading) {
     return (
@@ -87,7 +109,7 @@ export function InventoryPage() {
 
       {/* Warehouse Overview */}
       <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-        {warehouses.map((warehouse) => (
+        {warehouseDisplayData.map((warehouse) => (
           <Card key={warehouse.id}>
             <CardContent className="pt-4">
               <div className="flex items-center space-x-2">
@@ -95,7 +117,10 @@ export function InventoryPage() {
                 <div>
                   <p className="text-sm font-medium">{warehouse.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {Math.floor(Math.random() * 100)} items
+                    {products.filter((p: any) => {
+                      const warehouseKey = warehouse.id.toLowerCase() + 'Warehouse';
+                      return parseFloat(p[warehouseKey] || '0') > 0;
+                    }).length} items
                   </p>
                 </div>
               </div>

@@ -1,10 +1,15 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BarChart3, FileText, Download, TrendingUp, DollarSign } from 'lucide-react';
 
 export function ReportsPage() {
+  const { data: analytics, isLoading } = useQuery({
+    queryKey: ['/api/dashboard/analytics'],
+  });
+
   const reportTypes = [
     {
       title: 'Quotation Summary Report',
@@ -52,8 +57,19 @@ export function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$12,450</div>
-            <div className="text-xs text-green-600">↗ +15% from last month</div>
+            {isLoading ? (
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-20 mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">${analytics?.revenue?.total?.toLocaleString() || '0'}</div>
+                <div className={`text-xs ${analytics?.revenue?.growth === 'up' ? 'text-green-600' : 'text-blue-600'}`}>
+                  {analytics?.revenue?.growth === 'up' ? '↗' : '→'} {analytics?.revenue?.trend || 'No data'}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
         
@@ -64,8 +80,19 @@ export function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">48</div>
-            <div className="text-xs text-green-600">↗ +8% from last month</div>
+            {isLoading ? (
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16 mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{analytics?.orders?.total || '0'}</div>
+                <div className={`text-xs ${analytics?.orders?.growth === 'up' ? 'text-green-600' : 'text-blue-600'}`}>
+                  {analytics?.orders?.growth === 'up' ? '↗' : '→'} {analytics?.orders?.trend || 'No data'}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
         
@@ -76,8 +103,19 @@ export function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">78%</div>
-            <div className="text-xs text-green-600">↗ +3% from last month</div>
+            {isLoading ? (
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-12 mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{analytics?.conversion?.rate || '0'}%</div>
+                <div className={`text-xs ${analytics?.conversion?.growth === 'up' ? 'text-green-600' : 'text-blue-600'}`}>
+                  {analytics?.conversion?.growth === 'up' ? '↗' : '→'} {analytics?.conversion?.trend || 'No data'}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
         
@@ -88,8 +126,19 @@ export function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$1,087</div>
-            <div className="text-xs text-blue-600">→ Stable</div>
+            {isLoading ? (
+              <div className="animate-pulse">
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-20 mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">${analytics?.avgOrderValue?.value?.toLocaleString() || '0'}</div>
+                <div className={`text-xs ${analytics?.avgOrderValue?.growth === 'up' ? 'text-green-600' : 'text-blue-600'}`}>
+                  {analytics?.avgOrderValue?.growth === 'up' ? '↗' : '→'} {analytics?.avgOrderValue?.trend || 'Stable'}
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

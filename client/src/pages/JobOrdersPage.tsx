@@ -89,20 +89,24 @@ export function JobOrdersPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">75%</div>
-            <Progress value={75} className="mt-2" />
+            <div className="text-2xl font-bold">
+              {jobOrders.length > 0 ? Math.round((jobOrders.filter((job: any) => job.status === 'completed').length / jobOrders.length) * 100) : 0}%
+            </div>
+            <Progress value={jobOrders.length > 0 ? (jobOrders.filter((job: any) => job.status === 'completed').length / jobOrders.length) * 100 : 0} className="mt-2" />
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              On-Time Delivery
+              Total Job Orders
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">98%</div>
-            <div className="text-xs text-green-600 mt-1">↗ +2% this month</div>
+            <div className="text-2xl font-bold">{jobOrders.length}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              {jobOrders.filter((job: any) => job.status === 'completed').length} completed
+            </div>
           </CardContent>
         </Card>
       </div>

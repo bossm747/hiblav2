@@ -16,47 +16,35 @@ import {
 } from 'lucide-react';
 
 export function Dashboard() {
-  const { data: quotations = [] } = useQuery({
-    queryKey: ['/api/quotations'],
-  });
-
-  const { data: salesOrders = [] } = useQuery({
-    queryKey: ['/api/sales-orders'],
-  });
-
-  const { data: jobOrders = [] } = useQuery({
-    queryKey: ['/api/job-orders'],
-  });
-
-  const { data: products = [] } = useQuery({
-    queryKey: ['/api/products'],
+  const { data: analytics, isLoading } = useQuery({
+    queryKey: ['/api/dashboard/analytics'],
   });
 
   const metrics = [
     {
       title: 'Active Quotations',
-      value: quotations.length,
+      value: analytics?.overview?.quotationsCount || 0,
       icon: FileText,
       description: '+12% from last month',
       trend: 'up'
     },
     {
       title: 'Sales Orders',
-      value: salesOrders.length,
+      value: analytics?.overview?.salesOrdersCount || 0,
       icon: ShoppingCart,
       description: 'Processing orders',
       trend: 'stable'
     },
     {
       title: 'Job Orders',
-      value: jobOrders.length,
+      value: analytics?.overview?.jobOrdersCount || 0,
       icon: Factory,
       description: 'In production',
       trend: 'up'
     },
     {
       title: 'Total Products',
-      value: products.length,
+      value: analytics?.overview?.productsCount || 0,
       icon: Package,
       description: 'Active catalog items',
       trend: 'stable'
@@ -119,29 +107,40 @@ export function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Machine Weft Production</span>
-                  <span className="text-sm text-muted-foreground">75%</span>
-                </div>
-                <Progress value={75} className="h-2" />
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse">
+                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                    <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  </div>
+                ))}
               </div>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Lace Closure Production</span>
-                  <span className="text-sm text-muted-foreground">60%</span>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Active Job Orders</span>
+                    <span className="text-sm text-muted-foreground">{analytics?.overview?.jobOrdersCount || 0}</span>
+                  </div>
+                  <Progress value={Math.min((analytics?.overview?.jobOrdersCount || 0) * 10, 100)} className="h-2" />
                 </div>
-                <Progress value={60} className="h-2" />
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Quality Control</span>
-                  <span className="text-sm text-muted-foreground">95%</span>
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Sales Orders Processing</span>
+                    <span className="text-sm text-muted-foreground">{analytics?.overview?.salesOrdersCount || 0}</span>
+                  </div>
+                  <Progress value={Math.min((analytics?.overview?.salesOrdersCount || 0) * 10, 100)} className="h-2" />
                 </div>
-                <Progress value={95} className="h-2" />
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Pending Quotations</span>
+                    <span className="text-sm text-muted-foreground">{analytics?.overview?.quotationsCount || 0}</span>
+                  </div>
+                  <Progress value={Math.min((analytics?.overview?.quotationsCount || 0) * 5, 100)} className="h-2" />
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -153,29 +152,43 @@ export function Dashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                <div className="text-sm">
-                  <p className="font-medium">Quotation Q001 approved</p>
-                  <p className="text-muted-foreground">2 hours ago</p>
+            {isLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-gray-300 dark:bg-gray-600 rounded-full" />
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-1"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <div className="text-sm">
+                    <p className="font-medium">{analytics?.overview?.quotationsCount || 0} Active Quotations</p>
+                    <p className="text-muted-foreground">Manufacturing pipeline</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                  <div className="text-sm">
+                    <p className="font-medium">{analytics?.overview?.salesOrdersCount || 0} Sales Orders</p>
+                    <p className="text-muted-foreground">Processing orders</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full" />
+                  <div className="text-sm">
+                    <p className="font-medium">{analytics?.inventory?.lowStockCount || 0} Low Stock Items</p>
+                    <p className="text-muted-foreground">Inventory alerts</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                <div className="text-sm">
-                  <p className="font-medium">New order from ABA Hair</p>
-                  <p className="text-muted-foreground">4 hours ago</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full" />
-                <div className="text-sm">
-                  <p className="font-medium">Inventory alert: Low stock</p>
-                  <p className="text-muted-foreground">6 hours ago</p>
-                </div>
-              </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>
