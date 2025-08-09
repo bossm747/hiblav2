@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { generateSalesOrderHTML, generateJobOrderHTML } from "./pdf-generator";
 // import { aiService } from "./ai-service";
 import { aiImageService, type ImageGenerationRequest } from "./ai-image-service";
 import {
@@ -2734,6 +2735,57 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // Generate Sales Order PDF
+  app.get("/api/sales-orders/:id/pdf", async (req, res) => {
+    try {
+      const salesOrder = await storage.getSalesOrder(req.params.id);
+      if (!salesOrder) {
+        return res.status(404).json({ message: "Sales order not found" });
+      }
+
+      const salesOrderItems = await storage.getSalesOrderItems(req.params.id);
+      const customer = await storage.getCustomer(salesOrder.customerId);
+
+      const pdfData = {
+        orderNumber: salesOrder.salesOrderNumber,
+        revision: salesOrder.revisionNumber || "R1",
+        date: new Date(salesOrder.createdAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        customerCode: salesOrder.customerCode,
+        customerName: customer?.name || salesOrder.customerCode,
+        country: salesOrder.country,
+        paymentMethod: salesOrder.paymentMethod,
+        shippingMethod: salesOrder.shippingMethod,
+        items: salesOrderItems.map(item => ({
+          productName: item.productName,
+          quantity: parseFloat(item.quantity),
+          unitPrice: item.unitPrice,
+          totalPrice: item.lineTotal,
+          specification: item.specification || ''
+        })),
+        subtotal: salesOrder.subtotal,
+        shippingFee: salesOrder.shippingFee,
+        bankCharge: salesOrder.bankCharge,
+        discount: salesOrder.discount,
+        others: salesOrder.others,
+        total: salesOrder.total,
+        customerServiceInstructions: salesOrder.customerServiceInstructions
+      };
+
+      const htmlContent = generateSalesOrderHTML(pdfData);
+      
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Disposition', `inline; filename="Sales_Order_${salesOrder.salesOrderNumber}.html"`);
+      res.send(htmlContent);
+    } catch (error) {
+      console.error('Error generating sales order PDF:', error);
+      res.status(500).json({ message: "Failed to generate sales order PDF" });
+    }
+  });
+
   // =====================================================
   // JOB ORDERS MANAGEMENT
   // =====================================================
@@ -2799,6 +2851,55 @@ export function registerRoutes(app: Express): void {
       res.json(updated);
     } catch (error) {
       res.status(500).json({ message: "Failed to update shipment" });
+    }
+  });
+
+  // Generate Job Order PDF
+  app.get("/api/job-orders/:id/pdf", async (req, res) => {
+    try {
+      const jobOrder = await storage.getJobOrder(req.params.id);
+      if (!jobOrder) {
+        return res.status(404).json({ message: "Job order not found" });
+      }
+
+      const jobOrderItems = await storage.getJobOrderItems(req.params.id);
+      const customer = await storage.getCustomer(jobOrder.customerId);
+
+      const pdfData = {
+        jobOrderNumber: jobOrder.jobOrderNumber,
+        revision: jobOrder.revisionNumber || "R1",
+        date: new Date(jobOrder.createdAt).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        dueDate: new Date(jobOrder.dueDate).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        }),
+        customerCode: jobOrder.customerCode,
+        customerName: customer?.name || jobOrder.customerCode,
+        salesOrderNumber: jobOrder.salesOrderNumber || 'N/A',
+        items: jobOrderItems.map(item => ({
+          productName: item.productName,
+          quantity: parseFloat(item.quantity),
+          specification: item.specification || 'Standard',
+          status: item.status || 'pending'
+        })),
+        customerInstructions: jobOrder.customerInstructions,
+        productionStatus: jobOrder.status || 'pending',
+        shipmentStatus: jobOrder.shipmentStatus || 'pending'
+      };
+
+      const htmlContent = generateJobOrderHTML(pdfData);
+      
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Disposition', `inline; filename="Job_Order_${jobOrder.jobOrderNumber}.html"`);
+      res.send(htmlContent);
+    } catch (error) {
+      console.error('Error generating job order PDF:', error);
+      res.status(500).json({ message: "Failed to generate job order PDF" });
     }
   });
 

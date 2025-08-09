@@ -1,323 +1,224 @@
-import { db } from "./db";
-import { 
-  jobOrders,
-  jobOrderItems,
-  salesOrders,
-  products,
-  customers,
-  staff
-} from "@shared/schema";
+#!/usr/bin/env tsx
 
-// Exact Job Order data from JO PDF matching the Sales Order
-export const exactJobOrderData = {
-  // Job Order header information
-  jobOrder: {
-    id: "jo-2025-08-001-r1",
-    jobOrderNumber: "JO-2025.08.001",
-    revisionNumber: "R1",
-    salesOrderId: "so-2025-08-001-r1", // Links to the Sales Order
-    salesOrderNumber: "2025.08.001",
-    customerId: "customer-aba-001",
-    customerCode: "ABA",
-    customerName: "ABA Hair International",
-    orderDate: "2025-08-01",
-    dueDate: "2025-08-30",
-    status: "in_production",
-    priority: "high",
-    createdBy: "staff-aama-real",
-    assignedTo: "staff-production-team",
-    productionNotes: "Premium quality hair extensions for ABA - ensure proper brushing and silky finish",
-    customerServiceInstructions: "Silky Bundles\nBrushed Back Closure/Frontal",
-    estimatedCompletionDate: "2025-08-25",
-    actualStartDate: "2025-08-02",
-    isActive: true
-  },
+// Create the exact Job Order from the PDF document provided by client
+import { db } from './db';
+import { customers, salesOrders, jobOrders, jobOrderItems, products } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
-  // Exact Job Order Items matching the Sales Order products
-  jobOrderItems: [
-    {
-      id: "joi-001",
-      jobOrderId: "jo-2025-08-001-r1",
-      productId: "prod-mw8-straight-real",
-      productName: "8\" Machine Weft Single Drawn, STRAIGHT",
-      sku: "MW-8-STR-SD",
-      quantity: "1.00",
-      unit: "pcs",
-      unitPrice: "120.00",
-      totalPrice: "120.00",
-      specification: "8-inch length, single drawn, straight texture",
-      productionInstructions: "Ensure silky finish and proper weft construction",
-      status: "pending",
-      estimatedHours: "2.0",
-      actualHours: null,
-      qualityCheck: "pending",
-      notes: "Priority item for ABA customer"
-    },
-    {
-      id: "joi-002", 
-      jobOrderId: "jo-2025-08-001-r1",
-      productId: "prod-mw10-straight-real",
-      productName: "10\" Machine Weft Single Drawn, STRAIGHT",
-      sku: "MW-10-STR-SD",
-      quantity: "0.60",
-      unit: "pcs",
-      unitPrice: "130.00",
-      totalPrice: "78.00",
-      specification: "10-inch length, single drawn, straight texture",
-      productionInstructions: "Fractional quantity - cut to precise 0.6 portion",
-      status: "pending",
-      estimatedHours: "1.5",
-      actualHours: null,
-      qualityCheck: "pending",
-      notes: "Partial quantity order"
-    },
-    {
-      id: "joi-003",
-      jobOrderId: "jo-2025-08-001-r1", 
-      productId: "prod-mw16-straight-real",
-      productName: "16\" Machine Weft Single Drawn, STRAIGHT",
-      sku: "MW-16-STR-SD",
-      quantity: "1.00",
-      unit: "pcs",
-      unitPrice: "140.00",
-      totalPrice: "140.00",
-      specification: "16-inch length, single drawn, straight texture",
-      productionInstructions: "Standard weft construction with quality finish",
-      status: "pending",
-      estimatedHours: "2.5",
-      actualHours: null,
-      qualityCheck: "pending",
-      notes: "Mid-length popular item"
-    },
-    {
-      id: "joi-004",
-      jobOrderId: "jo-2025-08-001-r1",
-      productId: "prod-mw20-straight-real", 
-      productName: "20\" Machine Weft Single Drawn, STRAIGHT",
-      sku: "MW-20-STR-SD",
-      quantity: "0.50",
-      unit: "pcs",
-      unitPrice: "150.00",
-      totalPrice: "75.00",
-      specification: "20-inch length, single drawn, straight texture",
-      productionInstructions: "Half quantity - ensure precise cutting and finishing",
-      status: "pending",
-      estimatedHours: "2.0",
-      actualHours: null,
-      qualityCheck: "pending",
-      notes: "Long length premium hair"
-    },
-    {
-      id: "joi-005",
-      jobOrderId: "jo-2025-08-001-r1",
-      productId: "prod-mw22-straight-real",
-      productName: "22\" Machine Weft Single Drawn, STRAIGHT",
-      sku: "MW-22-STR-SD", 
-      quantity: "0.20",
-      unit: "pcs",
-      unitPrice: "80.00",
-      totalPrice: "16.00",
-      specification: "22-inch length, single drawn, straight texture",
-      productionInstructions: "Small quantity - premium extra long hair",
-      status: "pending",
-      estimatedHours: "1.0",
-      actualHours: null,
-      qualityCheck: "pending",
-      notes: "Extra length specialty item"
-    },
-    {
-      id: "joi-006",
-      jobOrderId: "jo-2025-08-001-r1",
-      productId: "prod-mw10-double-real",
-      productName: "10\" Machine Weft, Double Drawn, Straight",
-      sku: "MW-10-DD-STR",
-      quantity: "0.10",
-      unit: "pcs", 
-      unitPrice: "90.00",
-      totalPrice: "9.00",
-      specification: "10-inch length, double drawn, straight texture",
-      productionInstructions: "Premium double drawn construction - extra fullness",
-      status: "pending",
-      estimatedHours: "1.5",
-      actualHours: null,
-      qualityCheck: "pending",
-      notes: "Double drawn premium quality"
-    },
-    {
-      id: "joi-007",
-      jobOrderId: "jo-2025-08-001-r1",
-      productId: "prod-mw18-double-real",
-      productName: "18\" Machine Weft, Double Drawn, Straight", 
-      sku: "MW-18-DD-STR",
-      quantity: "0.20",
-      unit: "pcs",
-      unitPrice: "70.00",
-      totalPrice: "14.00",
-      specification: "18-inch length, double drawn, straight texture",
-      productionInstructions: "Double drawn premium with silky finish",
-      status: "pending",
-      estimatedHours: "2.0",
-      actualHours: null,
-      qualityCheck: "pending",
-      notes: "Mid-length double drawn"
-    },
-    {
-      id: "joi-008",
-      jobOrderId: "jo-2025-08-001-r1",
-      productId: "prod-closure-12-2x6-real",
-      productName: "12\" Korean HD Lace Closure 2X6\", STRAIGHT (Improved Hairline)",
-      sku: "LC-12-2X6-STR-HD",
-      quantity: "1.00",
-      unit: "pcs",
-      unitPrice: "45.00",
-      totalPrice: "45.00",
-      specification: "2x6 inch Korean HD lace with improved hairline technology",
-      productionInstructions: "Careful lace work with natural hairline finish",
-      status: "pending",
-      estimatedHours: "3.0",
-      actualHours: null,
-      qualityCheck: "pending",
-      notes: "Korean HD lace specialty"
-    },
-    {
-      id: "joi-009", 
-      jobOrderId: "jo-2025-08-001-r1",
-      productId: "prod-closure-12-4x4-real",
-      productName: "12\" Korean HD Lace Closure 4X4\", STRAIGHT (Improved Hairline)",
-      sku: "LC-12-4X4-STR-HD",
-      quantity: "1.00",
-      unit: "pcs",
-      unitPrice: "100.00",
-      totalPrice: "100.00",
-      specification: "4x4 inch Korean HD lace with improved hairline technology",
-      productionInstructions: "Premium lace construction with natural part",
-      status: "pending", 
-      estimatedHours: "4.0",
-      actualHours: null,
-      qualityCheck: "pending",
-      notes: "Standard 4x4 closure"
-    },
-    {
-      id: "joi-010",
-      jobOrderId: "jo-2025-08-001-r1",
-      productId: "prod-closure-20-4x4-real",
-      productName: "20\" Korean HD Lace Closure 4X4\", STRAIGHT (Improved Hairline)",
-      sku: "LC-20-4X4-STR-HD",
-      quantity: "1.00",
-      unit: "pcs",
-      unitPrice: "100.00",
-      totalPrice: "100.00",
-      specification: "20-inch 4x4 inch Korean HD lace with improved hairline",
-      productionInstructions: "Long length closure with premium lace work",
-      status: "pending",
-      estimatedHours: "4.5",
-      actualHours: null,
-      qualityCheck: "pending", 
-      notes: "Long length closure"
-    },
-    {
-      id: "joi-011",
-      jobOrderId: "jo-2025-08-001-r1",
-      productId: "prod-closure-22-4x4-real",
-      productName: "22\" Korean HD Lace Closure 4X4\", STRAIGHT (Improved Hairline)",
-      sku: "LC-22-4X4-STR-HD",
-      quantity: "1.00",
-      unit: "pcs",
-      unitPrice: "120.00",
-      totalPrice: "120.00",
-      specification: "22-inch 4x4 inch Korean HD lace with improved hairline",
-      productionInstructions: "Extra long premium closure with detailed lace work",
-      status: "pending",
-      estimatedHours: "5.0",
-      actualHours: null,
-      qualityCheck: "pending",
-      notes: "Premium long closure"
-    },
-    {
-      id: "joi-012",
-      jobOrderId: "jo-2025-08-001-r1",
-      productId: "prod-frontal-22-9x6-real", 
-      productName: "22\" Korean HD Lace Frontal 9X6\", STRAIGHT (Improved Hairline)",
-      sku: "LF-22-9X6-STR-HD",
-      quantity: "1.00",
-      unit: "pcs",
-      unitPrice: "130.00",
-      totalPrice: "130.00",
-      specification: "22-inch 9x6 inch Korean HD frontal with improved hairline",
-      productionInstructions: "Premium frontal construction with natural hairline and baby hairs",
-      status: "pending",
-      estimatedHours: "6.0",
-      actualHours: null,
-      qualityCheck: "pending",
-      notes: "Premium frontal piece"
-    }
-  ],
+async function createExactJobOrder() {
+  console.log('📋 CREATING EXACT JOB ORDER FROM PDF DATA');
+  console.log('=========================================');
 
-  // Production summary
-  productionSummary: {
-    totalItems: 12,
-    totalQuantity: "9.50", // Sum of all quantities
-    totalValue: "947.00", // Matches Sales Order subtotal
-    estimatedTotalHours: "34.5",
-    estimatedCompletionDate: "2025-08-25",
-    priorityLevel: "high",
-    specialInstructions: [
-      "All items must have silky finish",
-      "Brushed back technique for closures and frontals",
-      "Quality control check required for each item",
-      "Package carefully for international shipping to ABA"
-    ]
-  }
-};
-
-export async function seedExactJobOrderData() {
   try {
-    console.log('🏭 Seeding exact Job Order data from JO PDF...');
-
-    // Create the Job Order
-    await db.insert(jobOrders).values({
-      id: exactJobOrderData.jobOrder.id,
-      jobOrderNumber: exactJobOrderData.jobOrder.jobOrderNumber,
-      salesOrderId: exactJobOrderData.jobOrder.salesOrderId,
-      customerId: exactJobOrderData.jobOrder.customerId,
-      customerCode: exactJobOrderData.jobOrder.customerCode,
-      dueDate: new Date(exactJobOrderData.jobOrder.dueDate),
-      status: exactJobOrderData.jobOrder.status,
-      priority: exactJobOrderData.jobOrder.priority,
-      createdBy: exactJobOrderData.jobOrder.createdBy,
-      customerServiceInstructions: exactJobOrderData.jobOrder.customerServiceInstructions,
-      isActive: exactJobOrderData.jobOrder.isActive
-    }).onConflictDoNothing();
-
-    // Create all Job Order Items
-    for (const item of exactJobOrderData.jobOrderItems) {
-      await db.insert(jobOrderItems).values({
-        id: item.id,
-        jobOrderId: item.jobOrderId,
-        productId: item.productId,
-        productName: item.productName,
-        sku: item.sku,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        totalPrice: item.totalPrice,
-        specification: item.specification,
-        productionInstructions: item.productionInstructions,
-        status: item.status,
-        notes: item.notes
-      }).onConflictDoNothing();
+    // Get ABA customer
+    const [abaCustomer] = await db.select().from(customers).where(eq(customers.customerCode, 'ABA'));
+    if (!abaCustomer) {
+      throw new Error('ABA customer not found. Run seed-real-customers-only.ts first.');
     }
 
-    console.log('✅ Exact Job Order data seeded successfully');
-    console.log('   🏭 Job Order NO: JO-2025.08.001 R1');
-    console.log('   📋 Sales Order: 2025.08.001 R1');
-    console.log('   👤 Customer: ABA Hair International');
-    console.log('   📅 Due Date: August 30, 2025');
-    console.log(`   📦 ${exactJobOrderData.jobOrderItems.length} production items`);
-    console.log(`   💰 Total Value: $${exactJobOrderData.productionSummary.totalValue}`);
-    console.log(`   ⏱️ Estimated Hours: ${exactJobOrderData.productionSummary.estimatedTotalHours}`);
+    // Get the sales order
+    const [salesOrder] = await db.select().from(salesOrders).where(eq(salesOrders.salesOrderNumber, '2025.08.001'));
+    if (!salesOrder) {
+      throw new Error('Sales Order 2025.08.001 not found. Run seed-exact-sales-order.ts first.');
+    }
+
+    // Check if job order already exists
+    const existingJobOrder = await db.select().from(jobOrders).where(eq(jobOrders.jobOrderNumber, '2025.08.001'));
+    if (existingJobOrder.length > 0) {
+      console.log('✅ Job Order 2025.08.001 R1 already exists');
+      return existingJobOrder[0];
+    }
+
+    // Create the exact job order from PDF
+    const jobOrderData = {
+      jobOrderNumber: '2025.08.001',
+      revisionNumber: 'R1',
+      salesOrderId: salesOrder.id,
+      salesOrderNumber: salesOrder.salesOrderNumber,
+      customerId: abaCustomer.id,
+      customerCode: 'ABA',
+      dueDate: new Date('2025-08-30'),
+      customerInstructions: 'Silky Bundles\nBrushed Back Closure/Frontal',
+      createdBy: 'AAMA', // as per PDF
+      status: 'in-progress',
+      shipmentStatus: 'partial'
+    };
+
+    const [createdJobOrder] = await db.insert(jobOrders).values(jobOrderData).returning();
+    console.log(`✅ Created Job Order: ${createdJobOrder.jobOrderNumber}`);
+
+    // Create job order items exactly as in PDF with shipment tracking
+    const exactJobOrderItems = [
+      { 
+        name: '8" Machine Weft Single Drawn, STRAIGHT', 
+        quantity: '1', 
+        shipped: '0.1', 
+        reserved: '0.2', 
+        ready: '0.1', 
+        toProduce: '0.8',
+        shipment1: '0.1'
+      },
+      { 
+        name: '10" Machine Weft Single Drawn, STRAIGHT', 
+        quantity: '0.6', 
+        shipped: '0.1', 
+        reserved: '0.2', 
+        ready: '0.1', 
+        toProduce: '0.4',
+        shipment2: '0.1'
+      },
+      { 
+        name: '16" Machine Weft Single Drawn, STRAIGHT', 
+        quantity: '1', 
+        shipped: '0.3', 
+        reserved: '0.3', 
+        ready: '0', 
+        toProduce: '0.7',
+        shipment1: '0.2',
+        shipment3: '0.1'
+      },
+      { 
+        name: '20" Machine Weft Single Drawn, STRAIGHT', 
+        quantity: '0.5', 
+        shipped: '0', 
+        reserved: '0.4', 
+        ready: '0.4', 
+        toProduce: '0.1'
+      },
+      { 
+        name: '22" Machine Weft Single Drawn, STRAIGHT', 
+        quantity: '0.2', 
+        shipped: '0', 
+        reserved: '0', 
+        ready: '0', 
+        toProduce: '0.2'
+      },
+      { 
+        name: '10" Machine Weft, Double Drawn, Straight', 
+        quantity: '0.1', 
+        shipped: '0', 
+        reserved: '0', 
+        ready: '0', 
+        toProduce: '0.1'
+      },
+      { 
+        name: '18" Machine Weft, Double Drawn, Straight', 
+        quantity: '0.2', 
+        shipped: '0', 
+        reserved: '0', 
+        ready: '0', 
+        toProduce: '0.2'
+      },
+      { 
+        name: '12" Korean HD Lace Closure 2X6", STRAIGHT (Improved Hairline)', 
+        quantity: '1', 
+        shipped: '0', 
+        reserved: '0', 
+        ready: '0', 
+        toProduce: '1'
+      },
+      { 
+        name: '12" Korean HD Lace Closure 4X4", STRAIGHT (Improved Hairline)', 
+        quantity: '1', 
+        shipped: '0', 
+        reserved: '0', 
+        ready: '0', 
+        toProduce: '1'
+      },
+      { 
+        name: '20" Korean HD Lace Closure 4X4", STRAIGHT (Improved Hairline)', 
+        quantity: '1', 
+        shipped: '0', 
+        reserved: '0', 
+        ready: '0', 
+        toProduce: '1'
+      },
+      { 
+        name: '22" Korean HD Lace Closure 4X4", STRAIGHT (Improved Hairline)', 
+        quantity: '1', 
+        shipped: '0', 
+        reserved: '0', 
+        ready: '0', 
+        toProduce: '1'
+      },
+      { 
+        name: '22" Korean HD Lace Frontal 9X6", STRAIGHT (Improved Hairline)', 
+        quantity: '1', 
+        shipped: '0', 
+        reserved: '0', 
+        ready: '0', 
+        toProduce: '1'
+      }
+    ];
+
+    // Find matching products in database
+    const allProducts = await db.select().from(products);
+    
+    for (const item of exactJobOrderItems) {
+      // Try to find matching product by name similarity
+      const matchingProduct = allProducts.find(p => 
+        p.name.toLowerCase().includes(item.name.toLowerCase().substring(0, 10)) ||
+        item.name.toLowerCase().includes(p.name.toLowerCase().substring(0, 10))
+      );
+
+      const jobOrderItemData = {
+        jobOrderId: createdJobOrder.id,
+        productId: matchingProduct?.id || 'product-placeholder',
+        productName: item.name,
+        specification: '', // Standard specification
+        quantity: item.quantity,
+        status: parseFloat(item.toProduce) > 0 ? 'pending' : 'in-progress',
+        shipment1: item.shipment1 || '0',
+        shipment2: item.shipment2 || '0',
+        shipment3: item.shipment3 || '0',
+        shipment4: '0',
+        shipment5: '0',
+        shipment6: '0',
+        shipment7: '0',
+        shipment8: '0',
+        orderBalance: item.toProduce,
+        shipped: item.shipped,
+        reserved: item.reserved,
+        ready: item.ready,
+        toProduce: item.toProduce
+      };
+
+      await db.insert(jobOrderItems).values(jobOrderItemData);
+      console.log(`  ✓ ${item.name} - Total: ${item.quantity} | Shipped: ${item.shipped} | To Produce: ${item.toProduce}`);
+    }
+
+    console.log(`\n📊 JOB ORDER STATUS:`);
+    console.log(`   Total Items: ${exactJobOrderItems.length}`);
+    console.log(`   Status: ${jobOrderData.status}`);
+    console.log(`   Shipment Status: ${jobOrderData.shipmentStatus}`);
+    console.log(`   Customer Instructions: ${jobOrderData.customerInstructions}`);
+
+    console.log(`\n🎯 Job Order 2025.08.001 R1 created exactly as per PDF!`);
+    console.log(`   Linked to Sales Order: ${salesOrder.salesOrderNumber}`);
+    console.log(`   Customer: ${abaCustomer.name} (${abaCustomer.customerCode})`);
+    console.log(`   Production tracking with 8 shipment columns`);
+    console.log(`   Shipment status reflects partial completion`);
+    
+    return createdJobOrder;
 
   } catch (error) {
-    console.error('❌ Error seeding exact Job Order data:', error);
+    console.error('❌ Error creating exact job order:', error);
     throw error;
   }
 }
+
+// Run if this file is executed directly
+const isMain = import.meta.url === `file://${process.argv[1]}`;
+if (isMain) {
+  createExactJobOrder()
+    .then(() => {
+      console.log('\n✅ Exact job order creation completed successfully');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('❌ Exact job order creation failed:', error);
+      process.exit(1);
+    });
+}
+
+export { createExactJobOrder };
