@@ -449,6 +449,11 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                                         description: "New customer created successfully",
                                       });
                                     }}
+                                    onCancel={() => {
+                                      setShowCustomerModal(false);
+                                      // Keep the customer search visible so user can edit or try again
+                                      setShowCustomerSuggestions(true);
+                                    }}
                                   />
                                 </DialogContent>
                               </Dialog>

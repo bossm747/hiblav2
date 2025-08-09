@@ -50,9 +50,10 @@ interface CustomerFormProps {
   customerId?: string;
   defaultCustomerCode?: string;
   onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-export function CustomerForm({ customerId, defaultCustomerCode, onSuccess }: CustomerFormProps) {
+export function CustomerForm({ customerId, defaultCustomerCode, onSuccess, onCancel }: CustomerFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -417,7 +418,12 @@ export function CustomerForm({ customerId, defaultCustomerCode, onSuccess }: Cus
                   : (customerId ? 'Update Customer' : 'Create Customer')
                 }
               </Button>
-              <Button type="button" variant="outline" onClick={() => form.reset()}>
+              {onCancel && (
+                <Button type="button" variant="outline" onClick={onCancel}>
+                  Cancel
+                </Button>
+              )}
+              <Button type="button" variant="ghost" onClick={() => form.reset()}>
                 Reset Form
               </Button>
             </div>
