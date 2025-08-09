@@ -93,22 +93,36 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
     },
   });
 
-  // Fetch all dropdown data from database
-  const { data: products = [] } = useQuery({
+  // Fetch all dropdown data from database with proper error handling
+  const { data: products = [], isLoading: productsLoading, error: productsError } = useQuery({
     queryKey: ['/api/products'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  const { data: customers = [] } = useQuery({
+  const { data: customers = [], isLoading: customersLoading, error: customersError } = useQuery({
     queryKey: ['/api/customers'],
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
   });
 
-  const { data: priceLists = [] } = useQuery({
+  const { data: priceLists = [], isLoading: priceListsLoading, error: priceListsError } = useQuery({
     queryKey: ['/api/price-lists'],
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
   });
 
-  const { data: staff = [] } = useQuery({
+  const { data: staff = [], isLoading: staffLoading, error: staffError } = useQuery({
     queryKey: ['/api/staff'],
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
   });
+
+  // Check if any dropdown data is loading
+  const isLoadingDropdownData = productsLoading || customersLoading || priceListsLoading || staffLoading;
+  
+  // Check for any dropdown errors
+  const hasDropdownErrors = productsError || customersError || priceListsError || staffError;
 
   const createQuotationMutation = useMutation({
     mutationFn: async (data: QuotationFormData) => {
@@ -286,11 +300,19 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {customers.map((customer: any) => (
-                          <SelectItem key={customer.id} value={customer.customerCode}>
-                            {customer.customerCode} - {customer.name}
-                          </SelectItem>
-                        ))}
+                        {customersLoading ? (
+                          <SelectItem value="loading" disabled>Loading customers...</SelectItem>
+                        ) : customersError ? (
+                          <SelectItem value="error" disabled>Error loading customers</SelectItem>
+                        ) : customers.length === 0 ? (
+                          <SelectItem value="empty" disabled>No customers available</SelectItem>
+                        ) : (
+                          customers.map((customer: any) => (
+                            <SelectItem key={customer.id} value={customer.customerCode}>
+                              {customer.customerCode} - {customer.name}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -341,11 +363,19 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {priceLists.map((priceList: any) => (
-                          <SelectItem key={priceList.id} value={priceList.name}>
-                            Price List {priceList.name} - {priceList.description}
-                          </SelectItem>
-                        ))}
+                        {priceListsLoading ? (
+                          <SelectItem value="loading" disabled>Loading price lists...</SelectItem>
+                        ) : priceListsError ? (
+                          <SelectItem value="error" disabled>Error loading price lists</SelectItem>
+                        ) : priceLists.length === 0 ? (
+                          <SelectItem value="empty" disabled>No price lists available</SelectItem>
+                        ) : (
+                          priceLists.map((priceList: any) => (
+                            <SelectItem key={priceList.id} value={priceList.name}>
+                              Price List {priceList.name} - {priceList.description}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -366,11 +396,19 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {staff.map((member: any) => (
-                          <SelectItem key={member.id} value={member.id}>
-                            {member.name} ({member.role})
-                          </SelectItem>
-                        ))}
+                        {staffLoading ? (
+                          <SelectItem value="loading" disabled>Loading staff...</SelectItem>
+                        ) : staffError ? (
+                          <SelectItem value="error" disabled>Error loading staff</SelectItem>
+                        ) : staff.length === 0 ? (
+                          <SelectItem value="empty" disabled>No staff available</SelectItem>
+                        ) : (
+                          staff.map((member: any) => (
+                            <SelectItem key={member.id} value={member.id}>
+                              {member.name} ({member.role})
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -401,11 +439,19 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                         <SelectValue placeholder="Select product" />
                       </SelectTrigger>
                       <SelectContent>
-                        {products.map((product: any) => (
-                          <SelectItem key={product.id} value={product.id}>
-                            {product.name}
-                          </SelectItem>
-                        ))}
+                        {productsLoading ? (
+                          <SelectItem value="loading" disabled>Loading products...</SelectItem>
+                        ) : productsError ? (
+                          <SelectItem value="error" disabled>Error loading products</SelectItem>
+                        ) : products.length === 0 ? (
+                          <SelectItem value="empty" disabled>No products available</SelectItem>
+                        ) : (
+                          products.map((product: any) => (
+                            <SelectItem key={product.id} value={product.id}>
+                              {product.name}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
