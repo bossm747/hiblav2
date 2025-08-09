@@ -97,25 +97,21 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
   const { data: products = [], isLoading: productsLoading, error: productsError } = useQuery({
     queryKey: ['/api/products'],
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 
   const { data: customers = [], isLoading: customersLoading, error: customersError } = useQuery({
-    queryKey: ['/api/customers'],
+    queryKey: ['/api/customers'], 
     staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
   });
 
   const { data: priceLists = [], isLoading: priceListsLoading, error: priceListsError } = useQuery({
     queryKey: ['/api/price-lists'],
     staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
   });
 
   const { data: staff = [], isLoading: staffLoading, error: staffError } = useQuery({
     queryKey: ['/api/staff'],
     staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
   });
 
   // Check if any dropdown data is loading
@@ -185,7 +181,7 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
   });
 
   const handleProductChange = async (index: number, productId: string) => {
-    const product = products.find((p: any) => p.id === productId);
+    const product = (products as any[]).find((p: any) => p.id === productId);
     if (product) {
       const priceListId = form.getValues('priceListId');
       
@@ -304,10 +300,10 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                           <SelectItem value="loading" disabled>Loading customers...</SelectItem>
                         ) : customersError ? (
                           <SelectItem value="error" disabled>Error loading customers</SelectItem>
-                        ) : customers.length === 0 ? (
+                        ) : (customers as any[]).length === 0 ? (
                           <SelectItem value="empty" disabled>No customers available</SelectItem>
                         ) : (
-                          customers.map((customer: any) => (
+                          (customers as any[]).map((customer: any) => (
                             <SelectItem key={customer.id} value={customer.customerCode}>
                               {customer.customerCode} - {customer.name}
                             </SelectItem>
@@ -367,10 +363,10 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                           <SelectItem value="loading" disabled>Loading price lists...</SelectItem>
                         ) : priceListsError ? (
                           <SelectItem value="error" disabled>Error loading price lists</SelectItem>
-                        ) : priceLists.length === 0 ? (
+                        ) : (priceLists as any[]).length === 0 ? (
                           <SelectItem value="empty" disabled>No price lists available</SelectItem>
                         ) : (
-                          priceLists.map((priceList: any) => (
+                          (priceLists as any[]).map((priceList: any) => (
                             <SelectItem key={priceList.id} value={priceList.name}>
                               Price List {priceList.name} - {priceList.description}
                             </SelectItem>
@@ -400,10 +396,10 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                           <SelectItem value="loading" disabled>Loading staff...</SelectItem>
                         ) : staffError ? (
                           <SelectItem value="error" disabled>Error loading staff</SelectItem>
-                        ) : staff.length === 0 ? (
+                        ) : (staff as any[]).length === 0 ? (
                           <SelectItem value="empty" disabled>No staff available</SelectItem>
                         ) : (
-                          staff.map((member: any) => (
+                          (staff as any[]).map((member: any) => (
                             <SelectItem key={member.id} value={member.id}>
                               {member.name} ({member.role})
                             </SelectItem>
@@ -443,10 +439,10 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                           <SelectItem value="loading" disabled>Loading products...</SelectItem>
                         ) : productsError ? (
                           <SelectItem value="error" disabled>Error loading products</SelectItem>
-                        ) : products.length === 0 ? (
+                        ) : (products as any[]).length === 0 ? (
                           <SelectItem value="empty" disabled>No products available</SelectItem>
                         ) : (
-                          products.map((product: any) => (
+                          (products as any[]).map((product: any) => (
                             <SelectItem key={product.id} value={product.id}>
                               {product.name}
                             </SelectItem>
