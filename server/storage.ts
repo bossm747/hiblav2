@@ -288,16 +288,11 @@ export class DatabaseStorage implements IStorage {
       }
 
       const result = await db.delete(priceLists).where(eq(priceLists.id, id));
-      return result.rowCount > 0;
+      return (result.rowCount || 0) > 0;
     } catch (error) {
       console.error('Error deleting price list:', error);
       throw error;
     }
-  }
-
-  async createPriceList(insertPriceList: InsertPriceList): Promise<PriceList> {
-    const [priceList] = await db.insert(priceLists).values(insertPriceList).returning();
-    return priceList;
   }
 
   // Warehouse management

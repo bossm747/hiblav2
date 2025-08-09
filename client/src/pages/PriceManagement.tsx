@@ -152,8 +152,8 @@ export default function PriceManagement() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this price list?")) {
+  const handleDelete = (id: string, name: string) => {
+    if (window.confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
       deleteMutation.mutate(id);
     }
   };
@@ -325,7 +325,7 @@ export default function PriceManagement() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDelete(priceList.id)}
+                        onClick={() => handleDelete(priceList.id, priceList.name)}
                         disabled={priceList.isDefault}
                       >
                         <Trash2 className="h-4 w-4" />
