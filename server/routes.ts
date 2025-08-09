@@ -2195,18 +2195,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { quotation, items } = req.body;
       
-      // Validate quotation data
-      const quotationData = insertQuotationSchema.parse(quotation);
+      // Ensure price lists and staff exist first
+      await storage.ensurePriceListsExist();
       
-      // Get or create customer
-      let customer = await storage.getCustomerByCode(quotationData.customerCode);
+      // Get or create customer first, then validate with all required fields
+      let customer = await storage.getCustomerByCode(quotation.customerCode);
       if (!customer) {
         // Create new customer with basic information
         customer = await storage.createCustomer({
-          customerCode: quotationData.customerCode,
-          name: quotationData.customerCode, // Use code as temporary name
-          email: `${quotationData.customerCode.toLowerCase()}@customer.com`,
-          country: quotationData.country || "Philippines",
+          customerCode: quotation.customerCode,
+          name: quotation.customerCode, // Use code as temporary name
+          email: `${quotation.customerCode.toLowerCase()}@customer.com`,
+          password: "temp-password-123", // Required field
+          phone: "",
+          country: quotation.country || "Philippines",
           status: "active"
         });
       }
@@ -2233,37 +2235,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Auto-generate quotation number if not provided
-      if (!quotationData.quotationNumber) {
+      if (!quotation.quotationNumber) {
         const latestQuotation = await storage.getLatestQuotation();
         const nextNumber = latestQuotation ? parseInt(latestQuotation.quotationNumber.replace(/\D/g, '')) + 1 : 1;
-        quotationData.quotationNumber = `Q${nextNumber.toString().padStart(4, '0')}`;
+        quotation.quotationNumber = `Q${nextNumber.toString().padStart(4, '0')}`;
       }
 
-      // Ensure required fields are set before validation
-      quotationData.customerId = customer.id;
-      quotationData.createdBy = currentStaff.id;
+      // Get price list ID by name
+      const priceLists = await storage.getAllPriceLists();
+      const priceList = priceLists.find(pl => pl.name === quotation.priceListId);
       
-      console.log('Final quotation data before creation:', {
-        customerId: quotationData.customerId,
-        createdBy: quotationData.createdBy,
-        customerCode: quotationData.customerCode
-      });
+      if (!priceList) {
+        return res.status(400).json({ message: `Price list '${quotation.priceListId}' not found` });
+      }
       
-      // Create quotation
-      const createdQuotation = await storage.createQuotation(quotationData);
-
-      // Create quotation items
-      if (items && items.length > 0) {
-        for (const item of items) {
-          const itemData = insertQuotationItemSchema.parse({
-            ...item,
-            quotationId: createdQuotation.id
-          });
-          await storage.createQuotationItem(itemData);
+      // Build complete quotation data with all required fields
+      const completeQuotationData = {
+        ...quotation,
+        priceListId: priceList.id, // Use actual price list ID instead of name
+        customerId: customer.id,
+        createdBy: currentStaff.id,
+        quotationNumber: quotation.quotationNumber || `Q${Date.now()}`
+      };
+      
+      console.log('Complete quotation data:', completeQuotationData);
+      
+      // Now validate with all fields present
+      console.log('About to validate quotation data:', completeQuotationData);
+      
+      try {
+        const quotationData = insertQuotationSchema.parse(completeQuotationData);
+        console.log('Validation successful, creating quotation...');
+        
+        // Create quotation
+        const createdQuotation = await storage.createQuotation(quotationData);
+        console.log('Quotation created successfully:', createdQuotation.id);
+        
+        // Create quotation items
+        if (items && items.length > 0) {
+          for (const item of items) {
+            const itemData = insertQuotationItemSchema.parse({
+              ...item,
+              quotationId: createdQuotation.id
+            });
+            await storage.createQuotationItem(itemData);
+          }
         }
+        
+        return res.status(201).json(createdQuotation);
+      } catch (validationError) {
+        console.error('Quotation validation error:', validationError);
+        if (validationError instanceof z.ZodError) {
+          return res.status(400).json({ 
+            message: "Invalid quotation data", 
+            errors: validationError.errors,
+            receivedData: completeQuotationData
+          });
+        }
+        throw validationError;
       }
-
-      res.status(201).json(createdQuotation);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid quotation data", errors: error.errors });

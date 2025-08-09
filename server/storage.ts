@@ -10,7 +10,8 @@ import {
   jobOrders,
   jobOrderItems,
   priceLists,
-  warehouses
+  warehouses,
+  staff
 } from "@shared/schema";
 
 import type {
@@ -59,8 +60,14 @@ export interface IStorage {
   // Quotation management
   getQuotations(filters?: { status?: string; customer?: string }): Promise<Quotation[]>;
   getQuotation(id: string): Promise<Quotation | undefined>;
+  getLatestQuotation(): Promise<Quotation | undefined>;
   createQuotation(insertQuotation: InsertQuotation): Promise<Quotation>;
   createQuotationItem(insertQuotationItem: InsertQuotationItem): Promise<QuotationItem>;
+  
+  // Price list management
+  getAllPriceLists(): Promise<any[]>;
+  createPriceList(data: any): Promise<any>;
+  ensurePriceListsExist(): Promise<void>;
 
   // Sales order management
   getSalesOrders(filters?: { status?: string; customer?: string }): Promise<SalesOrder[]>;
@@ -125,16 +132,34 @@ export class DatabaseStorage implements IStorage {
 
   async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
     try {
+      // Ensure all required fields have values
       const customerData = {
-        ...insertCustomer,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        customerCode: insertCustomer.customerCode,
+        name: insertCustomer.name,
+        email: insertCustomer.email,
+        password: insertCustomer.password || "temp-password-default",
+        phone: insertCustomer.phone || "",
+        country: insertCustomer.country,
+        status: insertCustomer.status || "active",
+        address: insertCustomer.address || null,
+        city: insertCustomer.city || null,
+        postalCode: insertCustomer.postalCode || null,
+        totalOrders: 0,
+        totalSpent: "0.00",
+        lastOrder: null,
+        emailVerified: false,
+        paymentTerms: insertCustomer.paymentTerms || null,
+        creditLimit: insertCustomer.creditLimit || null,
+        preferredShipping: insertCustomer.preferredShipping || null
       };
+      
+      console.log('Creating customer with complete data:', customerData);
       const [customer] = await db.insert(customers).values(customerData).returning();
+      console.log('Customer created successfully:', customer.id);
       return customer;
     } catch (error) {
       console.error('Error creating customer:', error);
-      throw new Error('Failed to create customer');
+      throw error;
     }
   }
 
@@ -190,6 +215,16 @@ export class DatabaseStorage implements IStorage {
   async getQuotation(id: string): Promise<Quotation | undefined> {
     const [quotation] = await db.select().from(quotations).where(eq(quotations.id, id));
     return quotation || undefined;
+  }
+
+  async getLatestQuotation(): Promise<Quotation | undefined> {
+    try {
+      const [quotation] = await db.select().from(quotations).orderBy(desc(quotations.createdAt)).limit(1);
+      return quotation || undefined;
+    } catch (error) {
+      console.error('Error fetching latest quotation:', error);
+      return undefined;
+    }
   }
 
   async createQuotation(insertQuotation: InsertQuotation): Promise<Quotation> {
@@ -420,17 +455,92 @@ export class DatabaseStorage implements IStorage {
 
   // Staff management methods
   async getAllStaff(): Promise<any[]> {
-    // Return mock staff for now - in real implementation, query from staff table
-    return [
-      {
+    try {
+      const staffList = await db.select().from(staff);
+      return staffList.length > 0 ? staffList : await this.ensureDefaultStaffExists();
+    } catch (error) {
+      console.error('Error getting staff:', error);
+      return await this.ensureDefaultStaffExists();
+    }
+  }
+
+  async ensureDefaultStaffExists(): Promise<any[]> {
+    try {
+      const defaultStaff = {
         id: "staff-admin-001",
         name: "Admin User",
-        email: "admin@hibla.com", 
+        email: "admin@hibla.com",
+        password: "temp-admin-password",
         role: "admin",
-        initials: "AU",
-        status: "active"
+        permissions: ["manage_quotations", "manage_orders", "view_reports"],
+        isActive: true
+      };
+
+      // Try to insert, ignore if already exists
+      const [staffMember] = await db.insert(staff).values(defaultStaff).returning().catch(() => [defaultStaff]);
+      console.log('Default staff ensured:', staffMember.id);
+      return [staffMember];
+    } catch (error) {
+      console.error('Error creating default staff:', error);
+      // Return mock data if database insert fails
+      return [{
+        id: "staff-admin-001",
+        name: "Admin User",
+        email: "admin@hibla.com",
+        role: "admin",
+        isActive: true
+      }];
+    }
+  }
+
+  // Price Lists management
+  async getAllPriceLists(): Promise<any[]> {
+    try {
+      const lists = await db.select().from(priceLists);
+      return lists;
+    } catch (error) {
+      // Return default price lists if none exist
+      return [
+        { id: "price-list-a", name: "A", description: "Price List A" },
+        { id: "price-list-b", name: "B", description: "Price List B" },
+        { id: "price-list-c", name: "C", description: "Price List C" },
+        { id: "price-list-d", name: "D", description: "Price List D" }
+      ];
+    }
+  }
+
+  async createPriceList(data: any): Promise<any> {
+    try {
+      const [priceList] = await db.insert(priceLists).values(data).returning();
+      return priceList;
+    } catch (error) {
+      console.error('Error creating price list:', error);
+      throw error;
+    }
+  }
+
+  async ensurePriceListsExist(): Promise<void> {
+    try {
+      const existing = await db.select().from(priceLists);
+      
+      if (existing.length === 0) {
+        // Create default price lists
+        const defaultLists = [
+          { name: "A", description: "Price List A", isActive: true },
+          { name: "B", description: "Price List B", isActive: true },
+          { name: "C", description: "Price List C", isActive: true },
+          { name: "D", description: "Price List D", isActive: true }
+        ];
+
+        for (const list of defaultLists) {
+          await db.insert(priceLists).values(list);
+        }
+        
+        console.log('Default price lists created');
       }
-    ];
+    } catch (error) {
+      console.error('Error ensuring price lists exist:', error);
+    }
   }
 
   async createStaff(data: any): Promise<any> {

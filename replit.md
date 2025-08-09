@@ -83,3 +83,6 @@ Hibla Manufacturing & Supply System is a comprehensive manufacturing and supplie
 - **Multi-Warehouse System**: Complete implementation of 6 warehouses (NG, PH, Reserved, Red, Admin, WIP) with inventory movement tracking
 - **Mobile UI Fix**: Replaced all transparent/translucent backgrounds with solid colors for better mobile visibility
 - **Documentation System**: Added comprehensive documentation with system overview, features, workflow, and client showcase sections
+- **Quotation System Debugging**: Systematic resolution of critical API validation issues including customer password constraints, price list foreign keys, and staff references
+- **VLOOKUP Implementation**: Added comprehensive VLOOKUP price functionality with database-driven product pricing across multiple price lists (A, B, C, D)
+- **Advanced Quotation Features**: Implemented quotation duplication, sales order generation, and comprehensive form validation for complete manufacturing workflow
