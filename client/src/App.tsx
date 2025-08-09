@@ -17,7 +17,9 @@ import { CustomerManagementPage } from '@/pages/CustomerManagementPage';
 import { StaffManagementPage } from '@/pages/StaffManagementPage';
 import { ReportsPage } from '@/pages/ReportsPage';
 import PriceManagementPage from '@/pages/PriceManagementPage';
-import { ProductsManagementPage } from '@/pages/ProductsManagementPage';
+import ProductManagementPage from '@/pages/ProductManagementPage';
+import WarehouseManagementPage from '@/pages/WarehouseManagementPage';
+import { InventoryInsightsPage } from '@/pages/InventoryInsightsPage';
 
 function App() {
   return (
@@ -32,11 +34,13 @@ function App() {
               <Route path="/sales-orders" component={SalesOrdersPage} />
               <Route path="/job-orders" component={JobOrdersPage} />
               <Route path="/inventory" component={InventoryPage} />
-              <Route path="/products" component={ProductsManagementPage} />
-              <Route path="/customers" component={CustomerManagementPage} />
-              <Route path="/staff" component={StaffManagementPage} />
+              <Route path="/products" component={ProductManagementPage} />
+              <Route path="/warehouses" component={WarehouseManagementPage} />
+              <Route path="/inventory-insights" component={InventoryInsightsPage} />
+              <Route path="/customer-management" component={CustomerManagementPage} />
+              <Route path="/staff-management" component={StaffManagementPage} />
               <Route path="/price-management" component={PriceManagementPage} />
-              <Route path="/reports" component={ReportsPage} />
+              <Route path="/summary-reports" component={ReportsPage} />
             </Switch>
           </AppLayout>
         </Router>
