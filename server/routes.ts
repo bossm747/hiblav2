@@ -211,6 +211,78 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // Price List Management CRUD Operations
+  app.get("/api/price-lists", async (req, res) => {
+    try {
+      const priceLists = await storage.getPriceLists();
+      res.json(priceLists);
+    } catch (error) {
+      console.error('Error fetching price lists:', error);
+      res.status(500).json({ message: "Failed to fetch price lists" });
+    }
+  });
+
+  app.get("/api/price-lists/:id", async (req, res) => {
+    try {
+      const priceList = await storage.getPriceList(req.params.id);
+      if (!priceList) {
+        return res.status(404).json({ message: "Price list not found" });
+      }
+      res.json(priceList);
+    } catch (error) {
+      console.error('Error fetching price list:', error);
+      res.status(500).json({ message: "Failed to fetch price list" });
+    }
+  });
+
+  app.post("/api/price-lists", async (req, res) => {
+    try {
+      const priceListData = insertPriceListSchema.parse(req.body);
+      const priceList = await storage.createPriceList(priceListData);
+      res.status(201).json(priceList);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid price list data", errors: error.errors });
+      }
+      // Handle database validation errors (e.g., invalid numeric format)
+      if (error.code === '22P02') {
+        return res.status(400).json({ message: "Invalid data format. Please check numeric fields." });
+      }
+      console.error('Error creating price list:', error);
+      res.status(500).json({ message: "Failed to create price list" });
+    }
+  });
+
+  app.put("/api/price-lists/:id", async (req, res) => {
+    try {
+      const priceListData = insertPriceListSchema.partial().parse(req.body);
+      const priceList = await storage.updatePriceList(req.params.id, priceListData);
+      if (!priceList) {
+        return res.status(404).json({ message: "Price list not found" });
+      }
+      res.json(priceList);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid price list data", errors: error.errors });
+      }
+      console.error('Error updating price list:', error);
+      res.status(500).json({ message: "Failed to update price list" });
+    }
+  });
+
+  app.delete("/api/price-lists/:id", async (req, res) => {
+    try {
+      const success = await storage.deletePriceList(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Price list not found" });
+      }
+      res.json({ message: "Price list deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting price list:', error);
+      res.status(500).json({ message: "Failed to delete price list" });
+    }
+  });
+
   app.get("/api/products/:id", async (req, res) => {
     try {
       const product = await storage.getProduct(req.params.id);

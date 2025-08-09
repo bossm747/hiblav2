@@ -61,6 +61,8 @@ export interface IStorage {
   getPriceList(id: string): Promise<PriceList | undefined>;
   getPriceListByCode(code: string): Promise<PriceList | undefined>;
   createPriceList(insertPriceList: InsertPriceList): Promise<PriceList>;
+  updatePriceList(id: string, data: Partial<InsertPriceList>): Promise<PriceList | undefined>;
+  deletePriceList(id: string): Promise<boolean>;
 
   // Warehouse management
   getWarehouses(): Promise<Warehouse[]>;
@@ -247,6 +249,50 @@ export class DatabaseStorage implements IStorage {
   async getPriceListByCode(code: string): Promise<PriceList | undefined> {
     const [priceList] = await db.select().from(priceLists).where(eq(priceLists.code, code));
     return priceList || undefined;
+  }
+
+  async createPriceList(insertPriceList: InsertPriceList): Promise<PriceList> {
+    const priceListData = {
+      ...insertPriceList,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    const [priceList] = await db.insert(priceLists).values(priceListData).returning();
+    return priceList;
+  }
+
+  async updatePriceList(id: string, data: Partial<InsertPriceList>): Promise<PriceList | undefined> {
+    const updateData = {
+      ...data,
+      updatedAt: new Date()
+    };
+    const [priceList] = await db
+      .update(priceLists)
+      .set(updateData)
+      .where(eq(priceLists.id, id))
+      .returning();
+    return priceList || undefined;
+  }
+
+  async deletePriceList(id: string): Promise<boolean> {
+    try {
+      // Check if price list is in use by customers
+      const customersUsingPriceList = await db
+        .select()
+        .from(customers)
+        .where(eq(customers.priceListId, id))
+        .limit(1);
+
+      if (customersUsingPriceList.length > 0) {
+        throw new Error("Cannot delete price list that is in use by customers");
+      }
+
+      const result = await db.delete(priceLists).where(eq(priceLists.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error('Error deleting price list:', error);
+      throw error;
+    }
   }
 
   async createPriceList(insertPriceList: InsertPriceList): Promise<PriceList> {

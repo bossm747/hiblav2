@@ -15,6 +15,7 @@ import { InventoryPage } from '@/pages/InventoryPage';
 import { CustomerManagementPage } from '@/pages/CustomerManagementPage';
 import { StaffManagementPage } from '@/pages/StaffManagementPage';
 import { ReportsPage } from '@/pages/ReportsPage';
+import PriceManagement from '@/pages/PriceManagement';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,6 +41,7 @@ function App() {
               <Route path="/inventory" component={InventoryPage} />
               <Route path="/customers" component={CustomerManagementPage} />
               <Route path="/staff" component={StaffManagementPage} />
+              <Route path="/price-management" component={PriceManagement} />
               <Route path="/reports" component={ReportsPage} />
             </Switch>
           </AppLayout>
