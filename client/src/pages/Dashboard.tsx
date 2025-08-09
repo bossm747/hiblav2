@@ -16,9 +16,16 @@ import {
 } from 'lucide-react';
 
 export function Dashboard() {
-  const { data: analytics, isLoading } = useQuery({
+  const { data: analytics, isLoading, error } = useQuery({
     queryKey: ['/api/dashboard/analytics'],
+    refetchInterval: 30000, // Refetch every 30 seconds
+    staleTime: 0, // Always consider data stale
   });
+
+  // Debug logging
+  console.log('Dashboard - Analytics data:', analytics);
+  console.log('Dashboard - Loading state:', isLoading);
+  console.log('Dashboard - Error:', error);
 
   // Type-safe data access with fallbacks
   const safeAnalytics = analytics as {
@@ -102,11 +109,13 @@ export function Dashboard() {
           <h1 className="text-3xl font-bold tracking-tight">Manufacturing Dashboard</h1>
           <p className="text-muted-foreground">
             Real-time overview of your manufacturing operations
+            {isLoading && " (Loading...)"}
+            {analytics && ` (Last updated: ${new Date().toLocaleTimeString()})`}
           </p>
         </div>
         <Badge variant="outline" className="text-sm">
-          <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
-          System Online
+          <div className={`w-2 h-2 ${isLoading ? 'bg-yellow-500' : 'bg-green-500'} rounded-full mr-2`} />
+          {isLoading ? 'Loading...' : 'System Online'}
         </Badge>
       </div>
 
