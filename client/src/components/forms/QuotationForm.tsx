@@ -41,6 +41,7 @@ const quotationFormSchema = z.object({
   priceListId: z.string().min(1, 'Price list is required'),
   paymentMethod: z.enum(['bank', 'cash', 'credit']),
   shippingMethod: z.enum(['DHL', 'FedEx', 'EMS', 'Sea']),
+  createdBy: z.string().min(1, 'Created by is required'),
   subtotal: z.string().default('0.00'),
   shippingFee: z.string().default('0.00'),
   bankCharge: z.string().default('0.00'),
@@ -80,6 +81,7 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
       priceListId: 'A',
       paymentMethod: 'bank',
       shippingMethod: 'DHL',
+      createdBy: 'staff-aama-real',
       subtotal: '0.00',
       shippingFee: '0.00',
       bankCharge: '0.00',
@@ -91,8 +93,21 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
     },
   });
 
+  // Fetch all dropdown data from database
   const { data: products = [] } = useQuery({
     queryKey: ['/api/products'],
+  });
+
+  const { data: customers = [] } = useQuery({
+    queryKey: ['/api/customers'],
+  });
+
+  const { data: priceLists = [] } = useQuery({
+    queryKey: ['/api/price-lists'],
+  });
+
+  const { data: staff = [] } = useQuery({
+    queryKey: ['/api/staff'],
   });
 
   const createQuotationMutation = useMutation({
@@ -107,6 +122,7 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
             priceListId: data.priceListId,
             paymentMethod: data.paymentMethod,
             shippingMethod: data.shippingMethod,
+            createdBy: data.createdBy,
             subtotal: data.subtotal,
             shippingFee: data.shippingFee,
             bankCharge: data.bankCharge,
@@ -256,16 +272,27 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
         <Form {...form}>
           <form onSubmit={form.handleSubmit((data) => createQuotationMutation.mutate(data))} className="space-y-6">
             {/* Customer Information */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <FormField
                 control={form.control}
                 name="customerCode"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Customer Code</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., ABA" {...field} />
-                    </FormControl>
+                    <FormLabel>Customer</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select customer" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {customers.map((customer: any) => (
+                          <SelectItem key={customer.id} value={customer.customerCode}>
+                            {customer.customerCode} - {customer.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -277,9 +304,25 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Country</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Philippines" {...field} />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select country" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Philippines">Philippines</SelectItem>
+                        <SelectItem value="USA">USA</SelectItem>
+                        <SelectItem value="Canada">Canada</SelectItem>
+                        <SelectItem value="Australia">Australia</SelectItem>
+                        <SelectItem value="UK">United Kingdom</SelectItem>
+                        <SelectItem value="Germany">Germany</SelectItem>
+                        <SelectItem value="Japan">Japan</SelectItem>
+                        <SelectItem value="Singapore">Singapore</SelectItem>
+                        <SelectItem value="Malaysia">Malaysia</SelectItem>
+                        <SelectItem value="Thailand">Thailand</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -298,10 +341,36 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="A">Price List A - Premium</SelectItem>
-                        <SelectItem value="B">Price List B - Standard</SelectItem>
-                        <SelectItem value="C">Price List C - Bulk</SelectItem>
-                        <SelectItem value="D">Price List D - Wholesale</SelectItem>
+                        {priceLists.map((priceList: any) => (
+                          <SelectItem key={priceList.id} value={priceList.name}>
+                            Price List {priceList.name} - {priceList.description}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="createdBy"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Created By</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select staff member" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {staff.map((member: any) => (
+                          <SelectItem key={member.id} value={member.id}>
+                            {member.name} ({member.role})
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
