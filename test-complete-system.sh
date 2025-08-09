@@ -89,9 +89,10 @@ run_test "Customers API - GET All" \
 
 # Test creating a new customer
 customer_data='{
-  "customerCode": "TEST001",
-  "name": "Test Customer Ltd",
-  "email": "test@testcustomer.com",
+  "customerCode": "NEWTEST123", 
+  "name": "New Test Customer Ltd",
+  "email": "newtest@testcustomer.com",
+  "password": "test-customer-password",
   "country": "Philippines",
   "customerType": "standard",
   "creditLimit": "5000.00",
@@ -101,7 +102,7 @@ customer_data='{
 
 run_test "Customer Creation - POST" \
     "curl -s -X POST -H 'Content-Type: application/json' -d '$customer_data' $BASE_URL/api/customers" \
-    '"customerCode":"TEST001"'
+    '"customerCode":"NEWTEST123"'
 
 echo ""
 
@@ -117,6 +118,7 @@ run_test "Staff API - GET All" \
 staff_data='{
   "name": "Test Employee",
   "email": "test@hibla.com",
+  "password": "test-password-123",
   "employeeId": "EMP999",
   "position": "Test Manager",
   "department": "sales",
@@ -128,7 +130,7 @@ staff_data='{
 
 run_test "Staff Creation - POST" \
     "curl -s -X POST -H 'Content-Type: application/json' -d '$staff_data' $BASE_URL/api/staff" \
-    '"employeeId":"EMP999"'
+    '"name":"Test Employee"'
 
 echo ""
 
@@ -163,25 +165,25 @@ quotation_data='{
   "quotation": {
     "customerCode": "TEST001",
     "country": "Philippines",
-    "priceListId": "A",
+    "priceListId": "A", 
     "paymentMethod": "bank",
     "shippingMethod": "DHL",
     "subtotal": "100.00",
     "shippingFee": "20.00",
     "bankCharge": "5.00",
     "discount": "0.00",
-    "others": "0.00",
+    "others": "0.00", 
     "total": "125.00",
     "customerServiceInstructions": "Test quotation for system validation"
   },
   "items": [
     {
       "productId": "1",
-      "productName": "Test Product",
+      "productName": "Test Filipino Hair Bundle",
       "quantity": "2",
       "unitPrice": "50.00",
-      "lineTotal": "100.00",
-      "specification": "Test specification"
+      "lineTotal": "100.00", 
+      "specification": "Premium quality hair"
     }
   ]
 }'
@@ -200,7 +202,7 @@ echo "-------------------------------"
 product_data='{
   "name": "Test Hair Product",
   "description": "Test product for system validation",
-  "sku": "TEST-HAIR-001",
+  "sku": "TEST-HAIR-UNIQUE-003",
   "categoryId": "cat-weft",
   "hairType": "human",
   "priceListA": "75.00",
@@ -220,7 +222,7 @@ product_data='{
 
 run_test "Product Creation with Multi-Warehouse Stock" \
     "curl -s -X POST -H 'Content-Type: application/json' -d '$product_data' $BASE_URL/api/products" \
-    '"sku":"TEST-HAIR-001"'
+    '"sku":"TEST-HAIR-UNIQUE-003"'
 
 echo ""
 
