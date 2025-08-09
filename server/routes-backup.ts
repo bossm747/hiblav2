@@ -154,60 +154,52 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  // VLOOKUP Price Lookup API - Must come before /:id route (NOW WITH TIERED PRICING)
+  // VLOOKUP Price Lookup API - Must come before /:id route
   app.get("/api/products/price-lookup", async (req, res) => {
     try {
-      const { productId, priceListId, customerCode } = req.query;
+      const { productId, priceListId } = req.query;
       
-      if (!productId) {
+      if (!productId || !priceListId) {
         return res.status(400).json({ 
-          message: "productId query parameter is required" 
+          message: "Both productId and priceListId query parameters are required" 
         });
       }
 
-      const { tieredPricingService } = await import("./tiered-pricing-service");
+      const product = await storage.getProduct(productId as string);
       
-      const result = await tieredPricingService.calculatePrice({
-        productId: productId as string,
-        customerCode: customerCode as string,
-        priceListId: priceListId as string
-      });
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
 
-      res.json(result);
+      // Get price based on price list
+      let price = "0.00";
+      switch (priceListId) {
+        case 'A':
+          price = product.priceListA || "0.00";
+          break;
+        case 'B':
+          price = product.priceListB || "0.00";
+          break;
+        case 'C':
+          price = product.priceListC || "0.00";
+          break;
+        case 'D':
+          price = product.priceListD || "0.00";
+          break;
+        default:
+          return res.status(400).json({ message: "Invalid price list. Use A, B, C, or D" });
+      }
+
+      res.json({
+        productId: product.id,
+        productName: product.name,
+        priceList: priceListId,
+        price: price,
+        currency: "USD"
+      });
     } catch (error) {
       console.error('Price lookup error:', error);
-      if (error.message.includes("not found") || error.message.includes("Invalid")) {
-        return res.status(400).json({ message: error.message });
-      }
       res.status(500).json({ message: "Failed to lookup price" });
-    }
-  });
-
-  // Tiered pricing management routes
-  app.get("/api/price-tiers", async (req, res) => {
-    try {
-      const { tieredPricingService } = await import("./tiered-pricing-service");
-      const tiers = await tieredPricingService.getPriceTiers();
-      res.json(tiers);
-    } catch (error) {
-      console.error('Error fetching price tiers:', error);
-      res.status(500).json({ message: "Failed to fetch price tiers" });
-    }
-  });
-
-  app.get("/api/customer-pricing/:customerCode", async (req, res) => {
-    try {
-      const { tieredPricingService } = await import("./tiered-pricing-service");
-      const pricing = await tieredPricingService.getCustomerPricing(req.params.customerCode);
-      
-      if (!pricing) {
-        return res.status(404).json({ message: "Customer pricing not found" });
-      }
-
-      res.json(pricing);
-    } catch (error) {
-      console.error('Error fetching customer pricing:', error);
-      res.status(500).json({ message: "Failed to fetch customer pricing" });
     }
   });
 
@@ -746,6 +738,53 @@ export function registerRoutes(app: Express): void {
   });
 
   // VLOOKUP Price Lookup API - Must come before /:id route
+  app.get("/api/products/price-lookup", async (req, res) => {
+    try {
+      const { productId, priceListId } = req.query;
+      
+      if (!productId || !priceListId) {
+        return res.status(400).json({ 
+          message: "Both productId and priceListId query parameters are required" 
+        });
+      }
+
+      const product = await storage.getProduct(productId as string);
+      
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      // Get price based on price list
+      let price = "0.00";
+      switch (priceListId) {
+        case 'A':
+          price = product.priceListA || "0.00";
+          break;
+        case 'B':
+          price = product.priceListB || "0.00";
+          break;
+        case 'C':
+          price = product.priceListC || "0.00";
+          break;
+        case 'D':
+          price = product.priceListD || "0.00";
+          break;
+        default:
+          return res.status(400).json({ message: "Invalid price list. Use A, B, C, or D" });
+      }
+
+      res.json({
+        productId: product.id,
+        productName: product.name,
+        priceList: priceListId,
+        price: price,
+        currency: "USD"
+      });
+    } catch (error) {
+      console.error('Price lookup error:', error);
+      res.status(500).json({ message: "Failed to lookup price" });
+    }
+  });
 
   app.get("/api/products/:id", async (req, res) => {
     try {
@@ -2956,18 +2995,48 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/products/vlookup-price", async (req, res) => {
+  // Account Monitoring Reports
+  app.get("/api/reports/payments", async (req, res) => {
+    try {
+      const { customerId, salesOrderId, status } = req.query;
+      const payments = await storage.getPaymentReports({
+        customerId: customerId as string,
+        salesOrderId: salesOrderId as string,
+        status: status as string
+      });
+      res.json(payments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch payment reports" });
+    }
+  });
+
+  // Export functionality (placeholder for Excel/PDF generation)
+  app.post("/api/export/:type", async (req, res) => {
+    try {
+      const { type } = req.params; // quotation, sales-order, job-order, report
+      const { id, format } = req.body; // format: excel, pdf
+      
+      // In a real implementation, this would generate Excel/PDF files
+      // For now, return a success message
+      res.json({ 
+        message: `Export initiated for ${type} in ${format} format`,
+        downloadUrl: `/api/download/${type}-${id}.${format}`
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Export failed" });
+    }
+  });
+
+  // VLOOKUP Price functionality
+  app.get("/api/products/price-lookup", async (req, res) => {
     try {
       const { productId, priceListId } = req.query;
       
       if (!productId || !priceListId) {
-        return res.status(400).json({ 
-          message: "Both productId and priceListId query parameters are required" 
-        });
+        return res.status(400).json({ message: "Product ID and Price List ID are required" });
       }
 
       const product = await storage.getProduct(productId as string);
-      
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }

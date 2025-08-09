@@ -58,6 +58,8 @@ export interface IStorage {
 
   // Price list management
   getPriceLists(): Promise<PriceList[]>;
+  getPriceList(id: string): Promise<PriceList | undefined>;
+  getPriceListByCode(code: string): Promise<PriceList | undefined>;
   createPriceList(insertPriceList: InsertPriceList): Promise<PriceList>;
 
   // Warehouse management
@@ -235,6 +237,16 @@ export class DatabaseStorage implements IStorage {
   // Price list management
   async getPriceLists(): Promise<PriceList[]> {
     return await db.select().from(priceLists).orderBy(desc(priceLists.createdAt));
+  }
+
+  async getPriceList(id: string): Promise<PriceList | undefined> {
+    const [priceList] = await db.select().from(priceLists).where(eq(priceLists.id, id));
+    return priceList || undefined;
+  }
+
+  async getPriceListByCode(code: string): Promise<PriceList | undefined> {
+    const [priceList] = await db.select().from(priceLists).where(eq(priceLists.code, code));
+    return priceList || undefined;
   }
 
   async createPriceList(insertPriceList: InsertPriceList): Promise<PriceList> {

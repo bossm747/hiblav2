@@ -26,6 +26,9 @@ export const customers = pgTable("customers", {
   paymentTerms: text("payment_terms"), // NET30, COD, etc.
   creditLimit: decimal("credit_limit", { precision: 12, scale: 2 }),
   preferredShipping: text("preferred_shipping"), // DHL, UPS, FedEx, Agent, Pick Up
+  // Add price category for customer
+  priceCategory: text("price_category").default("REGULAR"), // NEW, REGULAR, PREMIER, CUSTOM
+  priceListId: varchar("price_list_id").references(() => priceLists.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -69,12 +72,14 @@ export const products = pgTable("products", {
   weight: text("weight"), // in grams
   sku: text("sku").unique(),
   unit: text("unit").default("pcs"), // pcs, bundles, closures, frontals
-  // Multiple price lists support
+  // Tiered pricing system - base price multiplied by price list multipliers
+  basePrice: decimal("base_price", { precision: 10, scale: 2 }).notNull(), // Regular customer price (multiplier = 1.0)
+  costPrice: decimal("cost_price", { precision: 10, scale: 2 }),
+  // Legacy price lists for backward compatibility (will be deprecated)
   priceListA: decimal("price_list_a", { precision: 10, scale: 2 }),
   priceListB: decimal("price_list_b", { precision: 10, scale: 2 }),
   priceListC: decimal("price_list_c", { precision: 10, scale: 2 }),
   priceListD: decimal("price_list_d", { precision: 10, scale: 2 }),
-  costPrice: decimal("cost_price", { precision: 10, scale: 2 }),
   // Inventory across different warehouses
   ngWarehouse: decimal("ng_warehouse", { precision: 10, scale: 2 }).default("0"),
   phWarehouse: decimal("ph_warehouse", { precision: 10, scale: 2 }).default("0"),
@@ -104,12 +109,16 @@ export const suppliers = pgTable("suppliers", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Price Lists
+// Price Lists - Tiered pricing system
 export const priceLists = pgTable("price_lists", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(), // A, B, C, D or custom names
+  name: text("name").notNull(), // "New Customer", "Regular Customer", "Premier Customer", "Custom Pricing"
+  code: text("code").notNull().unique(), // "NEW", "REGULAR", "PREMIER", "CUSTOM"
   description: text("description"),
+  priceMultiplier: decimal("price_multiplier", { precision: 5, scale: 4 }).default("1.0000"), // 1.15 for new, 1.0 for regular, 0.85 for premier
+  isDefault: boolean("is_default").default(false), // Regular Customer should be default
   isActive: boolean("is_active").default(true),
+  displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
