@@ -620,11 +620,12 @@ export class DatabaseStorage implements IStorage {
     const count = await db.select().from(quotations)
       .where(and(
         gte(quotations.createdAt, startOfMonth),
-        gte(quotations.createdAt, endOfMonth)
+        lte(quotations.createdAt, endOfMonth)
       ));
     
     const nextNumber = count.length + 1;
-    return `${year}.${month}.${String(nextNumber).padStart(3, '0')}`;
+    const timestamp = Date.now().toString().slice(-3);
+    return `${year}.${month}.${String(nextNumber).padStart(3, '0')}-${timestamp}`;
   }
 
   private async generateSalesOrderNumber(): Promise<string> {
