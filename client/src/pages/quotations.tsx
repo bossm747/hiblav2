@@ -29,9 +29,10 @@ const quotationSchema = z.object({
   shippingMethod: z.string().min(1, "Shipping method is required"),
   shippingFee: z.string().default("0"),
   bankCharge: z.string().default("0"),
-  discount: z.string().default("0"),
+  discount: z.string().refine((val) => parseFloat(val) <= 0, "Discount must be negative or zero"),
   others: z.string().default("0"),
   customerServiceInstructions: z.string().optional(),
+  createdBy: z.string().min(1, "Creator initials required"),
   items: z.array(z.object({
     productId: z.string(),
     productName: z.string().min(1, "Product name is required"),
@@ -134,6 +135,7 @@ export default function QuotationsPage() {
       discount: "0",
       others: "0",
       customerServiceInstructions: "",
+      createdBy: "",
       items: [
         {
           productId: "",
@@ -290,7 +292,13 @@ export default function QuotationsPage() {
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                       {/* Basic Information */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <FormField label="Date">
+                          <div className="p-2 bg-gray-50 dark:bg-gray-800 rounded border">
+                            {new Date().toLocaleDateString()}
+                          </div>
+                        </FormField>
+
                         <FormField
                           label="Quotation Number"
                           required
@@ -301,7 +309,7 @@ export default function QuotationsPage() {
                             render={({ field }) => (
                               <FormItem>
                                 <FormControl>
-                                  <Input placeholder="Q0001" {...field} />
+                                  <Input placeholder="2025.01.001" {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
