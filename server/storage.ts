@@ -801,6 +801,50 @@ export class DatabaseStorage implements IStorage {
     const nextNumber = count.length + 1;
     return `JO${year}${month}${String(nextNumber).padStart(3, '0')}`;
   }
+
+  // Price Management methods
+  async getAllPriceLists(): Promise<PriceList[]> {
+    try {
+      const result = await db.select().from(priceLists).where(eq(priceLists.isActive, true));
+      return result || [];
+    } catch (error) {
+      console.error('Error fetching price lists:', error);
+      throw new Error('Failed to fetch price lists');
+    }
+  }
+
+  async getProductPriceLists(productId?: string, priceListId?: string): Promise<any[]> {
+    try {
+      // Return empty array for now since productPriceLists table doesn't exist yet
+      // This is for the Price Management showcase demonstration
+      return [];
+    } catch (error) {
+      console.error('Error fetching product price lists:', error);
+      throw new Error('Failed to fetch product price lists');
+    }
+  }
+
+  async createProductPriceList(data: any): Promise<any> {
+    try {
+      // Placeholder implementation for showcase
+      // Would create entry in productPriceLists table in real implementation
+      return { id: 'placeholder', ...data };
+    } catch (error) {
+      console.error('Error creating product price list:', error);
+      throw new Error('Failed to create product price list');
+    }
+  }
+
+  async bulkUpdateProductPrices(data: any): Promise<number> {
+    try {
+      // Placeholder implementation for showcase
+      // Would update multiple products in real implementation
+      return 0;
+    } catch (error) {
+      console.error('Error bulk updating product prices:', error);
+      throw new Error('Failed to bulk update product prices');
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

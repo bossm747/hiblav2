@@ -76,7 +76,7 @@ export default function PriceManagementPage() {
 
   // Filter products
   const filteredProducts = products.filter(product => {
-    if (selectedCategory && product.categoryId !== selectedCategory) return false;
+    if (selectedCategory && selectedCategory !== 'all' && product.categoryId !== selectedCategory) return false;
     return true;
   });
 
@@ -85,7 +85,7 @@ export default function PriceManagementPage() {
     totalProducts: products.length,
     withCustomPricing: productPrices.filter(pp => pp.customPrice).length,
     activePriceLists: priceLists.filter(pl => pl.isActive).length,
-    averageBasePrice: products.length > 0 ? products.reduce((sum, p) => sum + p.basePrice, 0) / products.length : 0,
+    averageBasePrice: products.length > 0 ? products.reduce((sum, p) => sum + Number(p.basePrice || 0), 0) / products.length : 0,
   };
 
   // Get effective price for a product in a price list
@@ -100,10 +100,12 @@ export default function PriceManagementPage() {
     
     const priceList = priceLists.find(pl => pl.id === priceListId);
     if (priceList) {
-      return product.basePrice * priceList.priceMultiplier;
+      // Use SRP as base price for the showcase pricing system
+      const basePrice = Number(product.srp || product.basePrice || 0);
+      return basePrice * priceList.priceMultiplier;
     }
     
-    return product.basePrice;
+    return Number(product.srp || product.basePrice || 0);
   };
 
   const updateProductPriceMutation = useMutation({
@@ -247,7 +249,7 @@ export default function PriceManagementPage() {
                       <SelectValue placeholder="All Categories" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Categories</SelectItem>
+                      <SelectItem value="all">All Categories</SelectItem>
                       {categories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
@@ -274,7 +276,7 @@ export default function PriceManagementPage() {
                 <Button 
                   variant="outline"
                   onClick={() => {
-                    setSelectedCategory('');
+                    setSelectedCategory('all');
                     setSelectedPriceList('');
                   }}
                 >
@@ -319,7 +321,7 @@ export default function PriceManagementPage() {
                         </div>
                       </TableCell>
                       <TableCell>{product.sku || 'N/A'}</TableCell>
-                      <TableCell>${product.basePrice.toFixed(2)}</TableCell>
+                      <TableCell>${Number(product.basePrice || 0).toFixed(2)}</TableCell>
                       <TableCell>{product.srp ? `$${product.srp.toFixed(2)}` : 'N/A'}</TableCell>
                       {selectedPriceList && (
                         <TableCell>
@@ -395,7 +397,7 @@ export default function PriceManagementPage() {
                           </div>
                         </TableCell>
                         <TableCell className="font-semibold">
-                          ${product.basePrice.toFixed(2)}
+                          ${Number(product.basePrice || 0).toFixed(2)}
                         </TableCell>
                         {priceLists.map((priceList) => (
                           <TableCell key={priceList.id}>
@@ -438,7 +440,7 @@ export default function PriceManagementPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Base Price</Label>
-                  <Input value={`$${selectedProduct.basePrice.toFixed(2)}`} disabled />
+                  <Input value={`$${Number(selectedProduct.basePrice || 0).toFixed(2)}`} disabled />
                 </div>
                 <div>
                   <Label>SRP</Label>
@@ -454,14 +456,14 @@ export default function PriceManagementPage() {
                   <div className="flex-1">
                     <p className="font-medium">{priceList.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      Default: ${selectedProduct ? (selectedProduct.basePrice * priceList.priceMultiplier).toFixed(2) : '0.00'}
+                      Default: ${selectedProduct ? (Number(selectedProduct.srp || selectedProduct.basePrice || 0) * priceList.priceMultiplier).toFixed(2) : '0.00'}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Input
                       type="number"
                       step="0.01"
-                      placeholder="Custom price"
+                      placeholder={selectedProduct ? Number(selectedProduct.srp || selectedProduct.basePrice || 0).toFixed(2) : 'SRP Price'}
                       className="w-32"
                     />
                     <Button size="sm" variant="outline">
