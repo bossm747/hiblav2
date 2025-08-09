@@ -1,52 +1,53 @@
-import { useState, useEffect } from "react";
+import { Moon, Sun, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useTheme } from "@/components/theme/theme-provider";
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
-
-  useEffect(() => {
-    // Check for saved theme preference or default to dark
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    const preferredTheme = savedTheme || "dark";
-    setTheme(preferredTheme);
-    applyTheme(preferredTheme);
-    
-    // Ensure document has dark class by default
-    if (!savedTheme) {
-      document.documentElement.classList.add("dark");
-    }
-  }, []);
-
-  const applyTheme = (newTheme: "light" | "dark") => {
-    const root = document.documentElement;
-    root.classList.remove("light", "dark");
-    root.classList.add(newTheme);
-    
-    // CSS custom properties are already defined in index.css
-    // The class-based approach will handle the theme switching
-  };
-
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-    applyTheme(newTheme);
-  };
+  const { setTheme, theme } = useTheme();
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={toggleTheme}
-      className="border-white/20 hover:bg-primary/20 hover:neon-text-cyan transition-all"
-    >
-      {theme === "light" ? (
-        <Moon className="h-4 w-4" />
-      ) : (
-        <Sun className="h-4 w-4" />
-      )}
-      <span className="sr-only">Toggle theme</span>
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="h-9 w-9 p-0 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="Toggle theme"
+        >
+          <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-[140px]">
+        <DropdownMenuItem 
+          onClick={() => setTheme("light")}
+          className={theme === "light" ? "bg-accent text-accent-foreground" : ""}
+        >
+          <Sun className="mr-2 h-4 w-4" />
+          <span>Light</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setTheme("dark")}
+          className={theme === "dark" ? "bg-accent text-accent-foreground" : ""}
+        >
+          <Moon className="mr-2 h-4 w-4" />
+          <span>Dark</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setTheme("system")}
+          className={theme === "system" ? "bg-accent text-accent-foreground" : ""}
+        >
+          <Monitor className="mr-2 h-4 w-4" />
+          <span>System</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

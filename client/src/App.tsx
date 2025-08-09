@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Preloader } from "@/components/preloader";
 
 // Manufacturing & Supply Management Pages
@@ -21,29 +22,31 @@ import DocumentationPage from "@/pages/documentation";
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Preloader />
-        <div className="min-h-screen">
-          <Switch>
-            {/* Manufacturing & Supply Management Routes */}
-            <Route path="/" component={ManufacturingDashboardPage} />
-            <Route path="/manufacturing-dashboard" component={ManufacturingDashboardPage} />
-            <Route path="/quotations" component={QuotationsPage} />
-            <Route path="/sales-orders" component={SalesOrdersPage} />
-            <Route path="/job-orders" component={JobOrdersPage} />
-            <Route path="/inventory" component={InventoryPage} />
-            <Route path="/warehouses" component={WarehousesPage} />
-            <Route path="/inventory-insights" component={InventoryInsightsPage} />
-            <Route path="/summary-reports" component={SummaryReportsPage} />
-            <Route path="/documentation" component={DocumentationPage} />
-            <Route path="/login" component={LoginPage} />
+      <ThemeProvider defaultTheme="system" storageKey="hibla-theme">
+        <TooltipProvider>
+          <Preloader />
+          <div className="min-h-screen">
+            <Switch>
+              {/* Manufacturing & Supply Management Routes */}
+              <Route path="/" component={ManufacturingDashboardPage} />
+              <Route path="/manufacturing-dashboard" component={ManufacturingDashboardPage} />
+              <Route path="/quotations" component={QuotationsPage} />
+              <Route path="/sales-orders" component={SalesOrdersPage} />
+              <Route path="/job-orders" component={JobOrdersPage} />
+              <Route path="/inventory" component={InventoryPage} />
+              <Route path="/warehouses" component={WarehousesPage} />
+              <Route path="/inventory-insights" component={InventoryInsightsPage} />
+              <Route path="/summary-reports" component={SummaryReportsPage} />
+              <Route path="/documentation" component={DocumentationPage} />
+              <Route path="/login" component={LoginPage} />
 
-            {/* 404 */}
-            <Route component={NotFound} />
-          </Switch>
-        </div>
-        <Toaster />
-      </TooltipProvider>
+              {/* 404 */}
+              <Route component={NotFound} />
+            </Switch>
+          </div>
+          <Toaster />
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
