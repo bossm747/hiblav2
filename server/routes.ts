@@ -1105,6 +1105,57 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // Bulk Pricing endpoint
+  app.post("/api/product-price-lists/bulk-pricing", async (req, res) => {
+    try {
+      const { priceListId, action, percentage } = req.body;
+      
+      if (!priceListId || !action || !percentage) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const result = await storage.applyBulkPricing({
+        priceListId,
+        action, // 'add' or 'discount'
+        percentage: Number(percentage)
+      });
+
+      res.json({ 
+        message: "Bulk pricing applied successfully",
+        updatedProducts: result.updatedProducts,
+        priceListId: priceListId
+      });
+    } catch (error) {
+      console.error('Error applying bulk pricing:', error);
+      res.status(500).json({ message: "Failed to apply bulk pricing" });
+    }
+  });
+
+  // Custom Pricing endpoint
+  app.post("/api/product-price-lists/custom-pricing", async (req, res) => {
+    try {
+      const { priceListId, customPrices } = req.body;
+      
+      if (!priceListId || !customPrices) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const result = await storage.applyCustomPricing({
+        priceListId,
+        customPrices
+      });
+
+      res.json({ 
+        message: "Custom pricing applied successfully",
+        updatedProducts: result.updatedProducts,
+        priceListId: priceListId
+      });
+    } catch (error) {
+      console.error('Error applying custom pricing:', error);
+      res.status(500).json({ message: "Failed to apply custom pricing" });
+    }
+  });
+
 
 
   // AI-powered product enhancement routes

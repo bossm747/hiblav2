@@ -55,12 +55,20 @@ export default function PriceManagementPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isAddPriceListModalOpen, setIsAddPriceListModalOpen] = useState(false);
+  const [isBulkPricingModalOpen, setIsBulkPricingModalOpen] = useState(false);
+  const [isCustomPricingModalOpen, setIsCustomPricingModalOpen] = useState(false);
   const [newPriceListData, setNewPriceListData] = useState({
     name: '',
     code: '',
     description: '',
     priceMultiplier: 1.0,
   });
+  const [bulkPricingData, setBulkPricingData] = useState({
+    priceListId: '',
+    action: 'add', // 'add', 'discount', 'custom'
+    percentage: 0,
+  });
+  const [customPrices, setCustomPrices] = useState<{[productId: string]: number}>({});
   const { toast } = useToast();
 
   // Fetch data
@@ -182,6 +190,69 @@ export default function PriceManagementPage() {
     },
   });
 
+  const bulkPricingMutation = useMutation({
+    mutationFn: async (data: {
+      priceListId: string;
+      action: string;
+      percentage: number;
+    }) => {
+      return apiRequest('/api/product-price-lists/bulk-pricing', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/product-price-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      toast({
+        title: 'Bulk Pricing Applied',
+        description: 'Pricing changes have been successfully applied to all products.',
+      });
+      setIsBulkPricingModalOpen(false);
+      setBulkPricingData({
+        priceListId: '',
+        action: 'add',
+        percentage: 0,
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Failed to Apply',
+        description: 'Failed to apply bulk pricing changes.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const customPricingMutation = useMutation({
+    mutationFn: async (data: {
+      priceListId: string;
+      customPrices: {[productId: string]: number};
+    }) => {
+      return apiRequest('/api/product-price-lists/custom-pricing', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/product-price-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      toast({
+        title: 'Custom Pricing Saved',
+        description: 'Individual product prices have been successfully updated.',
+      });
+      setIsCustomPricingModalOpen(false);
+      setCustomPrices({});
+    },
+    onError: () => {
+      toast({
+        title: 'Failed to Save',
+        description: 'Failed to save custom pricing changes.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -195,6 +266,14 @@ export default function PriceManagementPage() {
           <Button onClick={() => setIsAddPriceListModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Price List
+          </Button>
+          <Button variant="outline" onClick={() => setIsBulkPricingModalOpen(true)}>
+            <Calculator className="h-4 w-4 mr-2" />
+            Bulk Pricing
+          </Button>
+          <Button variant="outline" onClick={() => setIsCustomPricingModalOpen(true)}>
+            <Edit className="h-4 w-4 mr-2" />
+            Custom Pricing
           </Button>
         </div>
       </div>
@@ -562,6 +641,172 @@ export default function PriceManagementPage() {
               disabled={!newPriceListData.name || !newPriceListData.code || addPriceListMutation.isPending}
             >
               {addPriceListMutation.isPending ? 'Creating...' : 'Create Price List'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Pricing Modal */}
+      <Dialog open={isBulkPricingModalOpen} onOpenChange={setIsBulkPricingModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Bulk Pricing Management</DialogTitle>
+            <DialogDescription>
+              Apply percentage-based pricing changes to all products in a price list
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="bulk-price-list">Select Price List</Label>
+              <Select 
+                value={bulkPricingData.priceListId}
+                onValueChange={(value) => setBulkPricingData(prev => ({ ...prev, priceListId: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a price list" />
+                </SelectTrigger>
+                <SelectContent>
+                  {priceLists.map((priceList) => (
+                    <SelectItem key={priceList.id} value={priceList.id}>
+                      {priceList.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="bulk-action">Pricing Action</Label>
+              <Select 
+                value={bulkPricingData.action}
+                onValueChange={(value) => setBulkPricingData(prev => ({ ...prev, action: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="add">Bulk Price Add (%)</SelectItem>
+                  <SelectItem value="discount">Bulk Price Discount (%)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="bulk-percentage">
+                {bulkPricingData.action === 'add' ? 'Increase Percentage' : 'Discount Percentage'}
+              </Label>
+              <Input
+                id="bulk-percentage"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={bulkPricingData.percentage}
+                onChange={(e) => setBulkPricingData(prev => ({ ...prev, percentage: Number(e.target.value) }))}
+                placeholder="e.g., 15 for 15%"
+                required
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                {bulkPricingData.action === 'add' 
+                  ? `All products will be increased by ${bulkPricingData.percentage}%`
+                  : `All products will be discounted by ${bulkPricingData.percentage}%`
+                }
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsBulkPricingModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => bulkPricingMutation.mutate(bulkPricingData)}
+              disabled={!bulkPricingData.priceListId || !bulkPricingData.percentage || bulkPricingMutation.isPending}
+            >
+              {bulkPricingMutation.isPending ? 'Applying...' : 'Apply Bulk Pricing'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Custom Pricing Modal */}
+      <Dialog open={isCustomPricingModalOpen} onOpenChange={setIsCustomPricingModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Custom Pricing Management</DialogTitle>
+            <DialogDescription>
+              Set individual prices for each product manually
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="custom-price-list">Select Price List</Label>
+              <Select value={selectedPriceList} onValueChange={setSelectedPriceList}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a price list for custom pricing" />
+                </SelectTrigger>
+                <SelectContent>
+                  {priceLists.map((priceList) => (
+                    <SelectItem key={priceList.id} value={priceList.id}>
+                      {priceList.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {selectedPriceList && (
+              <div className="border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Current SRP</TableHead>
+                      <TableHead>Custom Price</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProducts.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{product.name}</p>
+                            <p className="text-sm text-muted-foreground">{product.sku || 'No SKU'}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          ${Number(product.srp || product.basePrice || 0).toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder={Number(product.srp || product.basePrice || 0).toFixed(2)}
+                            value={customPrices[product.id] || ''}
+                            onChange={(e) => setCustomPrices(prev => ({
+                              ...prev,
+                              [product.id]: Number(e.target.value)
+                            }))}
+                            className="w-32"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCustomPricingModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => customPricingMutation.mutate({
+                priceListId: selectedPriceList,
+                customPrices
+              })}
+              disabled={!selectedPriceList || Object.keys(customPrices).length === 0 || customPricingMutation.isPending}
+            >
+              {customPricingMutation.isPending ? 'Saving...' : 'Save Custom Prices'}
             </Button>
           </DialogFooter>
         </DialogContent>
