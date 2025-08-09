@@ -87,22 +87,29 @@ export default function QuotationsPage() {
 
   // Create quotation mutation
   const createQuotationMutation = useMutation({
-    mutationFn: (data: any) => apiRequest("/api/quotations", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+    mutationFn: async (data: any) => {
+      return await apiRequest("/api/quotations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quotations"] });
       setShowCreateModal(false);
+      form.reset();
     },
   });
 
   // Generate sales order mutation
   const generateSalesOrderMutation = useMutation({
-    mutationFn: (quotationId: string) => apiRequest(`/api/quotations/${quotationId}/generate-sales-order`, {
-      method: "POST",
-      body: JSON.stringify({ dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }),
-    }),
+    mutationFn: async (quotationId: string) => {
+      return await apiRequest(`/api/quotations/${quotationId}/generate-sales-order`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quotations"] });
       queryClient.invalidateQueries({ queryKey: ["/api/sales-orders"] });
@@ -111,9 +118,12 @@ export default function QuotationsPage() {
 
   // Duplicate quotation mutation
   const duplicateQuotationMutation = useMutation({
-    mutationFn: (quotationId: string) => apiRequest(`/api/quotations/${quotationId}/duplicate`, {
-      method: "POST",
-    }),
+    mutationFn: async (quotationId: string) => {
+      return await apiRequest(`/api/quotations/${quotationId}/duplicate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/quotations"] });
     },

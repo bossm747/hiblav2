@@ -2198,12 +2198,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate quotation data
       const quotationData = insertQuotationSchema.parse(quotation);
       
+      // Get or create customer
+      let customer = await storage.getCustomerByCode(quotationData.customerCode);
+      if (!customer) {
+        // Create new customer with basic information
+        customer = await storage.createCustomer({
+          customerCode: quotationData.customerCode,
+          name: quotationData.customerCode, // Use code as temporary name
+          email: `${quotationData.customerCode.toLowerCase()}@customer.com`,
+          country: quotationData.country || "Philippines",
+          status: "active"
+        });
+      }
+
       // Get current staff ID - in a real app, this would come from authentication
-      const staffList = await storage.getAllStaff();
-      const currentStaff = staffList.find((s: any) => s.role === 'admin') || staffList[0];
-      
-      if (!currentStaff) {
-        return res.status(400).json({ message: "No staff member found to create quotation" });
+      let currentStaff;
+      try {
+        const staffList = await storage.getAllStaff();
+        currentStaff = staffList.find((s: any) => s.role === 'admin') || staffList[0];
+        
+        if (!currentStaff) {
+          // Create default admin staff if none exists
+          currentStaff = await storage.createStaff({
+            name: 'Admin User',
+            email: 'admin@hibla.com',
+            role: 'admin',
+            initials: 'AU',
+            status: 'active'
+          });
+        }
+      } catch (error) {
+        console.error('Staff error:', error);
+        return res.status(500).json({ message: "Failed to get or create staff member" });
       }
 
       // Auto-generate quotation number if not provided
@@ -2213,7 +2239,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         quotationData.quotationNumber = `Q${nextNumber.toString().padStart(4, '0')}`;
       }
 
+      // Ensure required fields are set before validation
+      quotationData.customerId = customer.id;
       quotationData.createdBy = currentStaff.id;
+      
+      console.log('Final quotation data before creation:', {
+        customerId: quotationData.customerId,
+        createdBy: quotationData.createdBy,
+        customerCode: quotationData.customerCode
+      });
       
       // Create quotation
       const createdQuotation = await storage.createQuotation(quotationData);

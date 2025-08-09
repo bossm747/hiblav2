@@ -40,6 +40,7 @@ export interface IStorage {
   // Customer management
   getCustomers(): Promise<Customer[]>;
   getCustomer(id: string): Promise<Customer | undefined>;
+  getCustomerByCode(customerCode: string): Promise<Customer | undefined>;
   createCustomer(insertCustomer: InsertCustomer): Promise<Customer>;
 
   // Product management
@@ -77,6 +78,10 @@ export interface IStorage {
     item?: string; 
   }): Promise<any[]>;
 
+  // Staff management
+  getAllStaff(): Promise<any[]>;
+  createStaff(data: any): Promise<any>;
+
   // Analytics methods
   getManufacturingStats(): Promise<any>;
   getSummaryReport(filters: {
@@ -104,6 +109,16 @@ export class DatabaseStorage implements IStorage {
       return customer || undefined;
     } catch (error) {
       console.error('Error fetching customer:', error);
+      return undefined;
+    }
+  }
+
+  async getCustomerByCode(customerCode: string): Promise<Customer | undefined> {
+    try {
+      const [customer] = await db.select().from(customers).where(eq(customers.customerCode, customerCode));
+      return customer || undefined;
+    } catch (error) {
+      console.error('Error fetching customer by code:', error);
       return undefined;
     }
   }
@@ -403,6 +418,31 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Staff management methods
+  async getAllStaff(): Promise<any[]> {
+    // Return mock staff for now - in real implementation, query from staff table
+    return [
+      {
+        id: "staff-admin-001",
+        name: "Admin User",
+        email: "admin@hibla.com", 
+        role: "admin",
+        initials: "AU",
+        status: "active"
+      }
+    ];
+  }
+
+  async createStaff(data: any): Promise<any> {
+    // Return created staff - in real implementation, insert to staff table
+    return {
+      id: "staff-" + Date.now(),
+      ...data,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+  }
+
   // Add missing getSummaryReport method
   async getSummaryReport(filters: {
     dateFrom?: string;
@@ -463,7 +503,7 @@ export class DatabaseStorage implements IStorage {
     const count = await db.select().from(quotations)
       .where(and(
         gte(quotations.createdAt, startOfMonth),
-        gte(endOfMonth, quotations.createdAt)
+        gte(quotations.createdAt, endOfMonth)
       ));
     
     const nextNumber = count.length + 1;
@@ -481,11 +521,11 @@ export class DatabaseStorage implements IStorage {
     const count = await db.select().from(salesOrders)
       .where(and(
         gte(salesOrders.createdAt, startOfMonth),
-        gte(endOfMonth, salesOrders.createdAt)
+        gte(salesOrders.createdAt, endOfMonth)
       ));
     
     const nextNumber = count.length + 1;
-    return `SO${year}${month}${String(nextNumber).padStart(3, '0')}`;
+    return `${year}.${month}.${String(nextNumber).padStart(3, '0')}`;
   }
 
   private async generateJobOrderNumber(): Promise<string> {
@@ -499,7 +539,7 @@ export class DatabaseStorage implements IStorage {
     const count = await db.select().from(jobOrders)
       .where(and(
         gte(jobOrders.createdAt, startOfMonth),
-        gte(endOfMonth, jobOrders.createdAt)
+        gte(jobOrders.createdAt, endOfMonth)
       ));
     
     const nextNumber = count.length + 1;
