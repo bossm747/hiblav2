@@ -102,7 +102,7 @@ export default function PriceManagementPage() {
     if (priceList) {
       // Use SRP as base price for the showcase pricing system
       const basePrice = Number(product.srp || product.basePrice || 0);
-      return basePrice * priceList.priceMultiplier;
+      return basePrice * Number(priceList.priceMultiplier);
     }
     
     return Number(product.srp || product.basePrice || 0);
@@ -322,11 +322,11 @@ export default function PriceManagementPage() {
                       </TableCell>
                       <TableCell>{product.sku || 'N/A'}</TableCell>
                       <TableCell>${Number(product.basePrice || 0).toFixed(2)}</TableCell>
-                      <TableCell>{product.srp ? `$${product.srp.toFixed(2)}` : 'N/A'}</TableCell>
+                      <TableCell>{product.srp ? `$${Number(product.srp).toFixed(2)}` : 'N/A'}</TableCell>
                       {selectedPriceList && (
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <span>${getEffectivePrice(product, selectedPriceList).toFixed(2)}</span>
+                            <span>${Number(getEffectivePrice(product, selectedPriceList)).toFixed(2)}</span>
                             {productPrices.find(pp => 
                               pp.productId === product.id && pp.priceListId === selectedPriceList && pp.customPrice
                             ) && (
@@ -381,7 +381,7 @@ export default function PriceManagementPage() {
                           {priceList.name}
                           <br />
                           <span className="text-xs text-muted-foreground">
-                            ({priceList.priceMultiplier}x)
+                            ({Number(priceList.priceMultiplier)}x)
                           </span>
                         </TableHead>
                       ))}
@@ -402,7 +402,7 @@ export default function PriceManagementPage() {
                         {priceLists.map((priceList) => (
                           <TableCell key={priceList.id}>
                             <div className="flex items-center gap-1">
-                              <span>${getEffectivePrice(product, priceList.id).toFixed(2)}</span>
+                              <span>${Number(getEffectivePrice(product, priceList.id)).toFixed(2)}</span>
                               {productPrices.find(pp => 
                                 pp.productId === product.id && pp.priceListId === priceList.id && pp.customPrice
                               ) && (
@@ -444,7 +444,7 @@ export default function PriceManagementPage() {
                 </div>
                 <div>
                   <Label>SRP</Label>
-                  <Input value={selectedProduct.srp ? `$${selectedProduct.srp.toFixed(2)}` : 'Not set'} disabled />
+                  <Input value={selectedProduct.srp ? `$${Number(selectedProduct.srp).toFixed(2)}` : 'Not set'} disabled />
                 </div>
               </div>
             )}
@@ -456,7 +456,7 @@ export default function PriceManagementPage() {
                   <div className="flex-1">
                     <p className="font-medium">{priceList.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      Default: ${selectedProduct ? (Number(selectedProduct.srp || selectedProduct.basePrice || 0) * priceList.priceMultiplier).toFixed(2) : '0.00'}
+                      Default: ${selectedProduct ? (Number(selectedProduct.srp || selectedProduct.basePrice || 0) * Number(priceList.priceMultiplier)).toFixed(2) : '0.00'}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
