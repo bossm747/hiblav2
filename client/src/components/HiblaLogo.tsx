@@ -47,7 +47,7 @@ export function HiblaLogo({ className, showText = false, size = 'md' }: HiblaLog
             'text-muted-foreground font-medium tracking-wider',
             size === 'sm' ? 'text-xs' : size === 'md' ? 'text-xs' : 'text-sm'
           )}>
-            MANUFACTURING
+            FILIPINO HAIR
           </span>
         </div>
       )}

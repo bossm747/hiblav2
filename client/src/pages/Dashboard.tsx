@@ -107,7 +107,7 @@ export function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Manufacturing Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
             Real-time overview of your manufacturing operations
             {isLoading && " (Loading...)"}
@@ -125,7 +125,7 @@ export function Dashboard() {
         {metrics.map((metric) => {
           const Icon = metric.icon;
           return (
-            <Card key={metric.title} className="border-l-4 border-l-primary">
+            <Card key={metric.title} className="border-l-4 border-l-primary floating-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   {metric.title}
@@ -145,7 +145,7 @@ export function Dashboard() {
 
       {/* Charts Row */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+        <Card className="col-span-4 elevated-container">
           <CardHeader>
             <CardTitle className="flex items-center">
               <TrendingUp className="h-5 w-5 mr-2" />
@@ -190,7 +190,7 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="col-span-3">
+        <Card className="col-span-3 elevated-container">
           <CardHeader>
             <CardTitle className="flex items-center">
               <Clock className="h-5 w-5 mr-2" />
@@ -240,7 +240,7 @@ export function Dashboard() {
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className="container-shadow">
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>

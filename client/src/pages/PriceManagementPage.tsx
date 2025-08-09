@@ -331,7 +331,7 @@ export default function PriceManagementPage() {
 
       {/* Pricing Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="floating-card">
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <Package className="h-4 w-4 text-blue-500" />
@@ -342,7 +342,7 @@ export default function PriceManagementPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="floating-card">
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <Settings className="h-4 w-4 text-green-500" />
@@ -353,7 +353,7 @@ export default function PriceManagementPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="floating-card">
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-purple-500" />
@@ -364,7 +364,7 @@ export default function PriceManagementPage() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="floating-card">
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-yellow-500" />

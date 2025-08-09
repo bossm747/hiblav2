@@ -46,7 +46,7 @@ export function ManufacturingSidebar({ isOpen, onClose, className }: Manufacturi
 
   // Manufacturing navigation items
   const manufacturingItems: MenuItem[] = [
-    { name: "Manufacturing Dashboard", href: "/", icon: BarChart3, description: "Production overview & metrics" },
+    { name: "Dashboard", href: "/", icon: BarChart3, description: "Production overview & metrics" },
     { name: "Quotations", href: "/quotations", icon: FileText, description: "Customer quotation management" },
     { name: "Sales Orders", href: "/sales-orders", icon: ShoppingCart, description: "Sales order processing" },
     { name: "Job Orders", href: "/job-orders", icon: Briefcase, description: "Production job management" },

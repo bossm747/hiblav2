@@ -30,7 +30,7 @@ interface AppLayoutProps {
 }
 
 const navigationItems = [
-  { path: '/', label: 'Manufacturing Dashboard', icon: Home },
+  { path: '/', label: 'Dashboard', icon: Home },
   { path: '/quotations', label: 'Quotations', icon: FileText },
   { path: '/sales-orders', label: 'Sales Orders', icon: ShoppingCart },
   { path: '/job-orders', label: 'Job Orders', icon: Factory },
@@ -124,7 +124,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <HiblaLogo size="sm" showText />
               </div>
               <h1 className="hidden md:block text-lg font-semibold">
-                Real Filipino Hair Manufacturer & Global Supplier
+                Hibla Filipino Hair
               </h1>
             </div>
           </div>

@@ -85,7 +85,7 @@ export function QuotationsPage() {
       </div>
 
       {/* Search and Filters */}
-      <Card>
+      <Card className="container-shadow">
         <CardContent className="pt-6">
           <div className="flex items-center space-x-4">
             <div className="relative flex-1 max-w-sm">
@@ -97,7 +97,7 @@ export function QuotationsPage() {
       </Card>
 
       {/* Quotations Table */}
-      <Card>
+      <Card className="elevated-container">
         <CardHeader>
           <CardTitle className="flex items-center">
             <FileText className="h-5 w-5 mr-2" />
