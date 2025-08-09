@@ -96,22 +96,54 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
   // Fetch all dropdown data from database with proper error handling
   const { data: products = [], isLoading: productsLoading, error: productsError } = useQuery({
     queryKey: ['/api/products'],
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    queryFn: async () => {
+      const response = await fetch('/api/products');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch products: ${response.statusText}`);
+      }
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 
   const { data: customers = [], isLoading: customersLoading, error: customersError } = useQuery({
-    queryKey: ['/api/customers'], 
+    queryKey: ['/api/customers'],
+    queryFn: async () => {
+      const response = await fetch('/api/customers');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch customers: ${response.statusText}`);
+      }
+      return response.json();
+    },
     staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 
   const { data: priceLists = [], isLoading: priceListsLoading, error: priceListsError } = useQuery({
     queryKey: ['/api/price-lists'],
+    queryFn: async () => {
+      const response = await fetch('/api/price-lists');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch price lists: ${response.statusText}`);
+      }
+      return response.json();
+    },
     staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 
   const { data: staff = [], isLoading: staffLoading, error: staffError } = useQuery({
     queryKey: ['/api/staff'],
+    queryFn: async () => {
+      const response = await fetch('/api/staff');
+      if (!response.ok) {
+        throw new Error(`Failed to fetch staff: ${response.statusText}`);
+      }
+      return response.json();
+    },
     staleTime: 5 * 60 * 1000,
+    retry: 2,
   });
 
   // Check if any dropdown data is loading
@@ -119,6 +151,8 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
   
   // Check for any dropdown errors
   const hasDropdownErrors = productsError || customersError || priceListsError || staffError;
+  
+  // All dropdowns should now load data successfully
 
   const createQuotationMutation = useMutation({
     mutationFn: async (data: QuotationFormData) => {
@@ -299,9 +333,9 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                         {customersLoading ? (
                           <SelectItem value="loading" disabled>Loading customers...</SelectItem>
                         ) : customersError ? (
-                          <SelectItem value="error" disabled>Error loading customers</SelectItem>
-                        ) : (customers as any[]).length === 0 ? (
-                          <SelectItem value="empty" disabled>No customers available</SelectItem>
+                          <SelectItem value="error" disabled>Error: {(customersError as Error)?.message || 'Failed to load customers'}</SelectItem>
+                        ) : !customers || (customers as any[]).length === 0 ? (
+                          <SelectItem value="empty" disabled>No customers found</SelectItem>
                         ) : (
                           (customers as any[]).map((customer: any) => (
                             <SelectItem key={customer.id} value={customer.customerCode}>
@@ -362,7 +396,7 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                         {priceListsLoading ? (
                           <SelectItem value="loading" disabled>Loading price lists...</SelectItem>
                         ) : priceListsError ? (
-                          <SelectItem value="error" disabled>Error loading price lists</SelectItem>
+                          <SelectItem value="error" disabled>Error: {(priceListsError as Error)?.message || 'Failed to load price lists'}</SelectItem>
                         ) : (priceLists as any[]).length === 0 ? (
                           <SelectItem value="empty" disabled>No price lists available</SelectItem>
                         ) : (
@@ -395,7 +429,7 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                         {staffLoading ? (
                           <SelectItem value="loading" disabled>Loading staff...</SelectItem>
                         ) : staffError ? (
-                          <SelectItem value="error" disabled>Error loading staff</SelectItem>
+                          <SelectItem value="error" disabled>Error: {(staffError as Error)?.message || 'Failed to load staff'}</SelectItem>
                         ) : (staff as any[]).length === 0 ? (
                           <SelectItem value="empty" disabled>No staff available</SelectItem>
                         ) : (
@@ -438,9 +472,9 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                         {productsLoading ? (
                           <SelectItem value="loading" disabled>Loading products...</SelectItem>
                         ) : productsError ? (
-                          <SelectItem value="error" disabled>Error loading products</SelectItem>
-                        ) : (products as any[]).length === 0 ? (
-                          <SelectItem value="empty" disabled>No products available</SelectItem>
+                          <SelectItem value="error" disabled>Error: {(productsError as Error)?.message || 'Failed to load products'}</SelectItem>
+                        ) : !products || (products as any[]).length === 0 ? (
+                          <SelectItem value="empty" disabled>No products found</SelectItem>
                         ) : (
                           (products as any[]).map((product: any) => (
                             <SelectItem key={product.id} value={product.id}>
