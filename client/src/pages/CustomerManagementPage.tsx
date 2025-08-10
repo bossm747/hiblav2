@@ -88,11 +88,18 @@ export function CustomerManagementPage() {
               Add Customer
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent 
+            className="max-w-4xl max-h-[90vh] overflow-y-auto"
+            onInteractOutside={(e) => e.preventDefault()}
+            onEscapeKeyDown={(e) => e.preventDefault()}
+          >
             <DialogHeader>
               <DialogTitle>Add New Customer</DialogTitle>
             </DialogHeader>
-            <CustomerForm onSuccess={() => setShowCreateDialog(false)} />
+            <CustomerForm 
+              onSuccess={() => setShowCreateDialog(false)} 
+              onCancel={() => setShowCreateDialog(false)}
+            />
           </DialogContent>
         </Dialog>
       </div>

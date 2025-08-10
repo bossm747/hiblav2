@@ -488,7 +488,6 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                                     variant="outline" 
                                     size="sm" 
                                     className="w-full"
-                                    onClick={() => setShowCustomerModal(true)}
                                   >
                                     <UserPlus className="h-4 w-4 mr-2" />
                                     Create New Customer: {customerSearch}
