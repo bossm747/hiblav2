@@ -17,7 +17,7 @@ import { CustomerManagementPage } from '@/pages/CustomerManagementPage';
 import { StaffManagementPage } from '@/pages/StaffManagementPage';
 import { ReportsPage } from '@/pages/ReportsPage';
 import PriceManagementPage from '@/pages/PriceManagementPage';
-import ProductManagementPage from '@/pages/ProductManagementPage';
+import { ProductsManagementPage } from '@/pages/ProductsManagementPage';
 import WarehouseManagementPage from '@/pages/WarehouseManagementPage';
 import { InventoryInsightsPage } from '@/pages/InventoryInsightsPage';
 
@@ -34,7 +34,7 @@ function App() {
               <Route path="/sales-orders" component={SalesOrdersPage} />
               <Route path="/job-orders" component={JobOrdersPage} />
               <Route path="/inventory" component={InventoryPage} />
-              <Route path="/products" component={ProductManagementPage} />
+              <Route path="/products" component={ProductsManagementPage} />
               <Route path="/warehouses" component={WarehouseManagementPage} />
               <Route path="/inventory-insights" component={InventoryInsightsPage} />
               <Route path="/customer-management" component={CustomerManagementPage} />
