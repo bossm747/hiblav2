@@ -74,6 +74,7 @@ export interface IStorage {
   getLatestQuotation(): Promise<Quotation | undefined>;
   createQuotation(insertQuotation: InsertQuotation): Promise<Quotation>;
   createQuotationItem(insertQuotationItem: InsertQuotationItem): Promise<QuotationItem>;
+  getQuotationItems(quotationId: string): Promise<QuotationItem[]>;
 
   // Price list management
   getAllPriceLists(): Promise<any[]>;
@@ -383,6 +384,16 @@ export class DatabaseStorage implements IStorage {
   async createQuotationItem(insertQuotationItem: InsertQuotationItem): Promise<QuotationItem> {
     const [item] = await db.insert(quotationItems).values(insertQuotationItem).returning();
     return item;
+  }
+
+  async getQuotationItems(quotationId: string): Promise<QuotationItem[]> {
+    try {
+      const items = await db.select().from(quotationItems).where(eq(quotationItems.quotationId, quotationId));
+      return items || [];
+    } catch (error) {
+      console.error('Error fetching quotation items:', error);
+      return [];
+    }
   }
 
   // Sales order management
