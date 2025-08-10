@@ -78,6 +78,9 @@ export default function SupplierModal({ open, onOpenChange }: SupplierModalProps
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add New Supplier</DialogTitle>
+          <DialogDescription>
+            Add a new supplier to the manufacturing system
+          </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>

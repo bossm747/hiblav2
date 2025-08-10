@@ -86,6 +86,9 @@ export default function ClientModal({ open, onOpenChange }: ClientModalProps) {
       <DialogContent className="modal-responsive max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-responsive-lg">Add New Client</DialogTitle>
+          <DialogDescription>
+            Create a new client profile for the manufacturing system
+          </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>

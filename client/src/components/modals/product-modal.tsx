@@ -120,6 +120,9 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
+          <DialogDescription>
+            Add a new hair product to the inventory system
+          </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>

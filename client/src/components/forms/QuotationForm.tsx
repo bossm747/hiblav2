@@ -107,12 +107,14 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
   const form = useForm<QuotationFormData>({
     resolver: zodResolver(quotationFormSchema),
     defaultValues: {
+      quotationNumber: '',
+      revisionNumber: 'R0',
       customerCode: '',
       country: '',
       priceListId: 'A',
       paymentMethod: 'bank',
       shippingMethod: 'DHL',
-      createdBy: 'staff-aama-real',
+      createdBy: '',
       subtotal: '0.00',
       shippingFee: '0.00',
       bankCharge: '0.00',
@@ -638,9 +640,9 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
               </div>
               
               {items.map((item, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 border rounded-lg mb-4">
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-medium">Product</label>
+                <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border rounded-lg mb-4">
+                  <div className="md:col-span-3">
+                    <label className="text-sm font-medium">Order Item (Product) *</label>
                     <Select
                       value={item.productId}
                       onValueChange={(value) => handleProductChange(index, value)}
@@ -666,8 +668,22 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                     </Select>
                   </div>
                   
-                  <div>
-                    <label className="text-sm font-medium">Quantity</label>
+                  <div className="md:col-span-3">
+                    <label className="text-sm font-medium">Specification</label>
+                    <Input
+                      placeholder="Enter specifications..."
+                      value={item.specification || ''}
+                      onChange={(e) => {
+                        const newItems = [...items];
+                        newItems[index] = { ...newItems[index], specification: e.target.value };
+                        setItems(newItems);
+                        form.setValue('items', newItems);
+                      }}
+                    />
+                  </div>
+                  
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-medium">Quantity *</label>
                     <Input
                       type="number"
                       step="0.1"
@@ -676,13 +692,13 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                     />
                   </div>
                   
-                  <div>
-                    <label className="text-sm font-medium">Unit Price</label>
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-medium">Unit Price (VLOOKUP)</label>
                     <Input value={`$${item.unitPrice}`} disabled />
                   </div>
                   
-                  <div>
-                    <label className="text-sm font-medium">Line Total</label>
+                  <div className="md:col-span-2">
+                    <label className="text-sm font-medium">Line Total (Qty × Price)</label>
                     <Input value={`$${item.lineTotal}`} disabled />
                   </div>
                   
@@ -718,9 +734,10 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="bank">Bank Transfer</SelectItem>
+                            <SelectItem value="bank">Bank</SelectItem>
+                            <SelectItem value="agent">Agent</SelectItem>
+                            <SelectItem value="money_transfer">Money Transfer</SelectItem>
                             <SelectItem value="cash">Cash</SelectItem>
-                            <SelectItem value="credit">Credit Card</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -742,9 +759,10 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="DHL">DHL</SelectItem>
-                            <SelectItem value="FedEx">FedEx</SelectItem>
-                            <SelectItem value="EMS">EMS</SelectItem>
-                            <SelectItem value="Sea">Sea Freight</SelectItem>
+                            <SelectItem value="UPS">UPS</SelectItem>
+                            <SelectItem value="FedEx">Fed Ex</SelectItem>
+                            <SelectItem value="Agent">Agent</SelectItem>
+                            <SelectItem value="Pick Up">Pick Up</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
