@@ -1,5 +1,5 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,9 +12,37 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { FileText, Search, Plus, Download, MoreHorizontal } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { QuotationDetailModal } from '@/components/modals/QuotationDetailModal';
+import { 
+  FileText, 
+  Search, 
+  Plus, 
+  Download, 
+  MoreHorizontal, 
+  Eye, 
+  Edit, 
+  Copy, 
+  Send, 
+  CheckCircle, 
+  XCircle,
+  ShoppingCart,
+} from 'lucide-react';
 
 export function QuotationsPage() {
+  const [selectedQuotationId, setSelectedQuotationId] = useState<string | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const { data: quotations = [], isLoading } = useQuery({
     queryKey: ['/api/quotations'],
   });
@@ -32,6 +60,28 @@ export function QuotationsPage() {
     createdBy?: string;
   }> || [];
 
+  // Mutation for updating quotation status
+  const updateQuotationMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const response = await apiRequest("PATCH", `/api/quotations/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
+      toast({
+        title: "Success",
+        description: "Quotation updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update quotation",
+        variant: "destructive",
+      });
+    },
+  });
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
@@ -44,6 +94,105 @@ export function QuotationsPage() {
         return <Badge variant="outline">Draft</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  // Action handlers
+  const handleViewDetails = (quotationId: string) => {
+    setSelectedQuotationId(quotationId);
+    setShowDetailModal(true);
+  };
+
+  const handleEdit = (quotationId: string) => {
+    // Navigate to edit quotation
+    window.location.href = `/quotations-vlookup?edit=${quotationId}`;
+  };
+
+  const handleDuplicate = async (quotationId: string) => {
+    try {
+      const response = await apiRequest("POST", `/api/quotations/${quotationId}/duplicate`);
+      const newQuotation = await response.json();
+      queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
+      toast({
+        title: "Success",
+        description: `Quotation duplicated as ${newQuotation.quotationNumber}`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to duplicate quotation",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleApprove = (quotationId: string) => {
+    updateQuotationMutation.mutate({
+      id: quotationId,
+      data: { status: 'approved' }
+    });
+  };
+
+  const handleReject = (quotationId: string) => {
+    updateQuotationMutation.mutate({
+      id: quotationId,
+      data: { status: 'rejected' }
+    });
+  };
+
+  const handleConvertToSalesOrder = async (quotationId: string) => {
+    try {
+      const response = await apiRequest("POST", `/api/quotations/${quotationId}/convert-to-sales-order`);
+      const salesOrder = await response.json();
+      queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/sales-orders'] });
+      toast({
+        title: "Success",
+        description: `Sales Order ${salesOrder.salesOrderNumber} created successfully`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to convert to sales order",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSendEmail = async (quotationId: string) => {
+    try {
+      await apiRequest("POST", `/api/quotations/${quotationId}/send-email`);
+      toast({
+        title: "Success",
+        description: "Quotation sent via email successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send email",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadPDF = async (quotationId: string) => {
+    try {
+      const response = await apiRequest("GET", `/api/quotations/${quotationId}/pdf`);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `quotation-${quotationId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to download PDF",
+        variant: "destructive",
+      });
     }
   };
 
@@ -142,9 +291,68 @@ export function QuotationsPage() {
                     <TableCell>${quotation.total}</TableCell>
                     <TableCell>{getStatusBadge(quotation.status)}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleViewDetails(quotation.id)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleViewDetails(quotation.id)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEdit(quotation.id)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDuplicate(quotation.id)}>
+                              <Copy className="h-4 w-4 mr-2" />
+                              Duplicate
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {quotation.status === 'pending' && (
+                              <>
+                                <DropdownMenuItem onClick={() => handleApprove(quotation.id)} className="text-green-600">
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Approve
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleReject(quotation.id)} className="text-red-600">
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  Reject
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
+                            {quotation.status === 'approved' && (
+                              <>
+                                <DropdownMenuItem onClick={() => handleConvertToSalesOrder(quotation.id)} className="text-blue-600">
+                                  <ShoppingCart className="h-4 w-4 mr-2" />
+                                  Convert to Sales Order
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                              </>
+                            )}
+                            <DropdownMenuItem onClick={() => handleSendEmail(quotation.id)}>
+                              <Send className="h-4 w-4 mr-2" />
+                              Send Email
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadPDF(quotation.id)}>
+                              <Download className="h-4 w-4 mr-2" />
+                              Download PDF
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -153,6 +361,20 @@ export function QuotationsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Quotation Detail Modal */}
+      <QuotationDetailModal
+        open={showDetailModal}
+        onOpenChange={setShowDetailModal}
+        quotationId={selectedQuotationId}
+        onEdit={handleEdit}
+        onDuplicate={handleDuplicate}
+        onConvertToSalesOrder={handleConvertToSalesOrder}
+        onApprove={handleApprove}
+        onReject={handleReject}
+        onSendEmail={handleSendEmail}
+        onDownloadPDF={handleDownloadPDF}
+      />
     </div>
   );
 }
