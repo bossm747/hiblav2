@@ -23,7 +23,7 @@ import { ShoppingCart, Plus, FileText } from 'lucide-react';
 
 export function SalesOrdersPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const { data: salesOrders = [], isLoading } = useQuery({
+  const { data: salesOrders = [], isLoading } = useQuery<any[]>({
     queryKey: ['/api/sales-orders'],
   });
 

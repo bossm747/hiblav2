@@ -24,7 +24,7 @@ import { Factory, Plus, Package } from 'lucide-react';
 
 export function JobOrdersPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const { data: jobOrders = [], isLoading } = useQuery({
+  const { data: jobOrders = [], isLoading } = useQuery<any[]>({
     queryKey: ['/api/job-orders'],
   });
 
