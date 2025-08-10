@@ -91,6 +91,9 @@ export function ProductDetailModal({ productId, isOpen, onClose }: ProductDetail
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Loading Product...</DialogTitle>
+            <DialogDescription>
+              Please wait while we load the product details
+            </DialogDescription>
           </DialogHeader>
           <div className="flex items-center justify-center h-32">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

@@ -41,7 +41,6 @@ import {
   insertProductionReceiptSchema,
   insertInvoiceSchema,
   insertCustomerPaymentSchema,
-  insertCategorySchema,
 } from "@shared/schema";
 import { aiStylistService } from "./ai-stylist-service";
 // import { sendAppointmentNotification } from "./notification-service";
@@ -70,11 +69,11 @@ export function registerRoutes(app: Express): void {
       console.log('Dashboard analytics endpoint called');
       
       // Get data with error handling for each method
-      let quotations = [];
-      let salesOrders = [];
-      let jobOrders = [];
-      let products = [];
-      let customers = [];
+      let quotations: any[] = [];
+      let salesOrders: any[] = [];
+      let jobOrders: any[] = [];
+      let products: any[] = [];
+      let customers: any[] = [];
 
       try {
         quotations = await storage.getQuotations() || [];
