@@ -85,7 +85,21 @@ export class TieredPricingService {
           priceListName = priceList.name;
           finalPriceListId = priceList.code || "REGULAR";
         } else {
-          throw new Error("Invalid price list. Use NEW, REGULAR, PREMIER, CUSTOM, or legacy A, B, C, D");
+          // Fallback to REGULAR if price list not found
+          console.warn(`Price list '${priceListId}' not found, using REGULAR pricing`);
+          const regularPriceList = await storage.getPriceListByCode("REGULAR");
+          if (regularPriceList) {
+            priceMultiplier = parseFloat(regularPriceList.priceMultiplier || "1.0000");
+            price = basePrice * priceMultiplier;
+            priceListName = regularPriceList.name;
+            finalPriceListId = "REGULAR";
+          } else {
+            // Ultimate fallback
+            priceMultiplier = 1.0;
+            price = basePrice;
+            priceListName = "Base Price";
+            finalPriceListId = "BASE";
+          }
         }
       }
     }

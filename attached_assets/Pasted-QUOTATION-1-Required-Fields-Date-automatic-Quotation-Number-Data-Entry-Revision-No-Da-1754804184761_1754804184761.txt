@@ -1,0 +1,52 @@
+QUOTATION:
+1. Required Fields
+• Date – automatic
+• Quotation Number – Data Entry
+• Revision No. – Data Entry
+• Customer Code: Data Entry
+• Country: Data Entry
+• PriceList – Drop Down List to select what pricelist to be used.
+• Order Item - Drop Down List (Information from Products Database), up to 300 entries
+• Specification – Data Entry
+• Quantity – Data Entry
+• Unit Price – Vlook Up from the selected price list
+• Line Total – Qty X Unit Price
+• A. Sub Total – Sum of Line Total
+• B. Shipping Fee – Data Entry
+• C. Bank Charge – Data Entry
+• D. Discount – Data Entry must be negative
+• E. Others – Data Entry
+• Total – Sum of A,B,C,D,E
+• Method of Payment – drop down list: bank, agent, money transfer, cash
+• Shipping Method - drop down list: DHL, UPS, Fed Ex, Agent, Pick Up
+• Customer Service Intructions – Data Entry
+2. Requirements:
+• Creator’s initials must be shown on the document.
+• Sales Order can be generated from quotation.
+• Quotation cannot be revised on the next day.
+• Quotation can be duplicated.
+3. Report:
+• Summary of Quotation – can be filtered according to date, customer code, country and order item.
+• All reports must be downloadable/printable in excel and PDF.
+ 
+SALES ORDER:
+1. To create Sales Order, generate from the quotation. Please see Sales Order Format.
+2. Required Field:
+• Customer Code changes from data entry to drop down list (Information from Customer Database)
+• Sales Order No. – System Generated. Format YYYY.MM.###
+• Add Revision No. – drop down list: R1, R2, R3, R4, R5
+• Add Due Date – select from calendar
+• Add Date of Revision: automatic
+3. Requirements:
+• There must be an Order Confirmation button to confirm the Sales Order.
+If not confirmed SO created stays on drafts.
+• From the CONFIRMED Sales Order, Invoice and Job Order can be generated.
+• Sales Order and Invoice have the same format and series no., only the document name changes.
+• INVENTORY UPDATES: Order quantity adds to order requirement per product.
+• Creator’s initials must be shown on the document.
+• All revisions must take effect on the Job Order too.
+• Printable/downloadable files must be in excel and PDF.
+4. Report:
+• Summary of Sales Order – can be filtered according to date, customer code, country and order item.
+• All reports must be downloadable/printable in excel and PDF.
+• Valuation of shipped items and order balance per Sales Order.

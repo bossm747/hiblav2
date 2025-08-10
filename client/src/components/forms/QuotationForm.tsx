@@ -28,6 +28,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -45,12 +46,13 @@ const quotationItemSchema = z.object({
 
 const quotationFormSchema = z.object({
   quotationNumber: z.string().min(1, 'Quotation number is required'),
+  revisionNumber: z.string().default('R0'),
   customerCode: z.string().min(1, 'Customer code is required'),
   country: z.string().min(1, 'Country is required'),
   priceListId: z.string().min(1, 'Price list is required'),
-  paymentMethod: z.enum(['bank', 'cash', 'credit']),
-  shippingMethod: z.enum(['DHL', 'FedEx', 'EMS', 'Sea']),
-  createdBy: z.string().min(1, 'Created by is required'),
+  paymentMethod: z.enum(['bank', 'agent', 'money_transfer', 'cash']),
+  shippingMethod: z.enum(['DHL', 'UPS', 'FedEx', 'Agent', 'Pick Up']),
+  createdBy: z.string().min(1, 'Creator initials required'),
   subtotal: z.string().default('0.00'),
   shippingFee: z.string().default('0.00'),
   bankCharge: z.string().default('0.00'),
@@ -358,7 +360,7 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit((data) => createQuotationMutation.mutate(data))} className="space-y-6">
-            {/* Quotation Number */}
+            {/* Quotation Number & Revision */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <FormField
                 control={form.control}
@@ -376,6 +378,43 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="revisionNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Revision No.</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="R0"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="createdBy"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Creator's Initials *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g., JD"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex items-end">
+                <Badge variant="outline" className="px-3 py-2">
+                  Date: {new Date().toLocaleDateString()}
+                </Badge>
+              </div>
             </div>
 
             {/* Customer Information */}
@@ -456,6 +495,9 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                                   <DialogHeader>
                                     <DialogTitle>Create New Customer</DialogTitle>
+                                    <DialogDescription>
+                                      Add a new customer to the system
+                                    </DialogDescription>
                                   </DialogHeader>
                                   <CustomerForm
                                     defaultCustomerCode={customerSearch}
