@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -55,20 +56,23 @@ export default function StockAdjustmentModal({
     resolver: zodResolver(insertInventoryTransactionSchema),
     defaultValues: {
       productId: product?.id || "",
-      type: "adjustment",
-      quantity: 0,
+      movementType: "adjustment", 
+      quantity: "1",
+      warehouseId: "ng-warehouse",
       unitCost: "0",
       totalCost: "0",
       reason: "",
       reference: "",
-      staffId: "",
     },
   });
 
   const createTransactionMutation = useMutation({
     mutationFn: async (data: z.infer<typeof insertInventoryTransactionSchema>) => {
-      const response = await apiRequest("POST", "/api/inventory-transactions", data);
-      return response.json();
+      return await apiRequest("/api/inventory-transactions", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
@@ -95,7 +99,7 @@ export default function StockAdjustmentModal({
       ...data,
       productId: product.id,
       totalCost: data.unitCost && data.quantity ? 
-        (parseFloat(data.unitCost) * data.quantity).toString() : 
+        (parseFloat(data.unitCost) * parseFloat(data.quantity)).toString() : 
         data.totalCost
     };
     createTransactionMutation.mutate(adjustedData);
@@ -108,6 +112,9 @@ export default function StockAdjustmentModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Stock Adjustment - {product.name}</DialogTitle>
+          <DialogDescription>
+            Record inventory movement for {product.name}
+          </DialogDescription>
         </DialogHeader>
         
         <div className="mb-4 p-4 bg-slate-50 rounded-lg">
@@ -125,7 +132,7 @@ export default function StockAdjustmentModal({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="type"
+              name="movementType"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Transaction Type</FormLabel>
@@ -161,7 +168,7 @@ export default function StockAdjustmentModal({
                         min="1"
                         placeholder="Enter quantity"
                         {...field} 
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        onChange={(e) => field.onChange(e.target.value)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -182,6 +189,8 @@ export default function StockAdjustmentModal({
                         step="0.01"
                         placeholder="0.00"
                         {...field}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(e.target.value)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -199,7 +208,8 @@ export default function StockAdjustmentModal({
                   <FormControl>
                     <Input 
                       placeholder="Invoice number, PO number, etc." 
-                      {...field} 
+                      {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -217,7 +227,8 @@ export default function StockAdjustmentModal({
                     <Textarea 
                       placeholder="Reason for stock adjustment" 
                       rows={3}
-                      {...field} 
+                      {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />

@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Product } from "@shared/schema";
@@ -13,11 +13,11 @@ interface SimpleProductModalProps {
 export function SimpleProductModal({ product, isOpen, onClose, onSave }: SimpleProductModalProps) {
   if (!product) return null;
 
-  const formatPrice = (price: string) => {
-    const numPrice = parseFloat(price);
-    return new Intl.NumberFormat("en-PH", {
+  const formatPrice = (price: string | number) => {
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "PHP",
+      currency: "USD",
     }).format(numPrice);
   };
 
@@ -26,6 +26,9 @@ export function SimpleProductModal({ product, isOpen, onClose, onSave }: SimpleP
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Product Details</DialogTitle>
+          <DialogDescription>
+            View detailed information about {product.name}
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">
@@ -36,8 +39,8 @@ export function SimpleProductModal({ product, isOpen, onClose, onSave }: SimpleP
           
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <span className="text-sm font-medium">Price:</span>
-              <p>{formatPrice(product.price)}</p>
+              <span className="text-sm font-medium">Base Price:</span>
+              <p>{formatPrice(product.basePrice)}</p>
             </div>
             <div>
               <span className="text-sm font-medium">Hair Type:</span>
@@ -48,17 +51,19 @@ export function SimpleProductModal({ product, isOpen, onClose, onSave }: SimpleP
               <p>{product.color}</p>
             </div>
             <div>
-              <span className="text-sm font-medium">Stock:</span>
-              <p>{product.currentStock}</p>
+              <span className="text-sm font-medium">Total Stock:</span>
+              <p>{(parseFloat(product.ngWarehouse || "0") + parseFloat(product.phWarehouse || "0") + parseFloat(product.reservedWarehouse || "0")).toFixed(1)} {product.unit}</p>
             </div>
           </div>
 
           <div className="flex gap-2">
-            {product.isFeatured && (
-              <Badge variant="secondary">Featured</Badge>
-            )}
             {product.isActive && (
               <Badge variant="outline">Active</Badge>
+            )}
+            {product.tags && product.tags.length > 0 && (
+              product.tags.map((tag) => (
+                <Badge key={tag} variant="secondary">{tag}</Badge>
+              ))
             )}
           </div>
         </div>
