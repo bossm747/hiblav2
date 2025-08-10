@@ -334,7 +334,7 @@ export function registerRoutes(app: Express): void {
       res.json(result);
     } catch (error) {
       console.error('Price lookup error:', error);
-      if (error.message.includes("not found") || error.message.includes("Invalid")) {
+      if (error instanceof Error && (error.message.includes("not found") || error.message.includes("Invalid"))) {
         return res.status(400).json({ message: error.message });
       }
       res.status(500).json({ message: "Failed to lookup price" });
@@ -403,7 +403,7 @@ export function registerRoutes(app: Express): void {
         return res.status(400).json({ message: "Invalid price list data", errors: error.errors });
       }
       // Handle database validation errors (e.g., invalid numeric format)
-      if (error.code === '22P02') {
+      if (error instanceof Error && 'code' in error && (error as any).code === '22P02') {
         return res.status(400).json({ message: "Invalid data format. Please check numeric fields." });
       }
       console.error('Error creating price list:', error);
@@ -683,14 +683,21 @@ export function registerRoutes(app: Express): void {
   app.patch("/api/orders/:id/status", async (req, res) => {
     try {
       const { status, paymentStatus, trackingNumber } = req.body;
-      const order = await storage.updateOrderStatus(req.params.id, {
-        status,
-        paymentStatus,
-        trackingNumber
-      });
+      
+      // Update order status
+      const order = await storage.updateOrderStatus(req.params.id, status);
       if (!order) {
         return res.status(404).json({ message: "Order not found" });
       }
+      
+      // Update additional order fields if provided
+      if (paymentStatus || trackingNumber) {
+        const updateData: any = {};
+        if (paymentStatus) updateData.paymentStatus = paymentStatus;
+        if (trackingNumber) updateData.trackingNumber = trackingNumber;
+        await storage.updateOrder(req.params.id, updateData);
+      }
+      
       res.json(order);
     } catch (error) {
       res.status(500).json({ message: "Failed to update order status" });
@@ -762,7 +769,8 @@ export function registerRoutes(app: Express): void {
       const { orderId, status, transactionId } = req.body;
 
       if (status === "completed") {
-        await storage.updateOrderStatus(orderId, {
+        // Update order payment status
+        await storage.updateOrder(orderId, {
           paymentStatus: "paid",
           trackingNumber: transactionId
         });
