@@ -73,6 +73,8 @@
     /* Enhanced mobile experience */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Prevent iOS bounce scrolling */
+    overscroll-behavior: none;
     /* Prevent horizontal scrolling on mobile */
     overflow-x: hidden;
   }
@@ -403,6 +405,47 @@
     position: relative;
     min-height: 100vh;
     transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+/* Mobile Modal Enhancements */
+@layer components {
+  /* Prevent modal close on mobile tap inside */
+  [data-radix-dialog-content] {
+    @apply touch-none select-none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* Allow interaction with form elements inside modal */
+  [data-radix-dialog-content] input,
+  [data-radix-dialog-content] textarea,
+  [data-radix-dialog-content] button,
+  [data-radix-dialog-content] select,
+  [data-radix-dialog-content] [role="button"],
+  [data-radix-dialog-content] [contenteditable] {
+    @apply touch-auto select-auto;
+    -webkit-user-select: auto;
+    user-select: auto;
+  }
+  
+  /* Mobile viewport fixes for dialogs */
+  @media (max-width: 640px) {
+    [data-radix-dialog-content] {
+      @apply fixed inset-x-4 top-[5vh];
+      transform: translateY(0) !important;
+      max-height: 85vh !important;
+    }
+    
+    /* Ensure dialog overlay covers entire mobile viewport */
+    [data-radix-dialog-overlay] {
+      position: fixed !important;
+      inset: 0 !important;
+      background: rgba(0, 0, 0, 0.5) !important;
+      backdrop-filter: blur(4px);
+    }
   }
 }
 

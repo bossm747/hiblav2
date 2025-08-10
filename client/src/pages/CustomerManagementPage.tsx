@@ -89,11 +89,23 @@ export function CustomerManagementPage() {
             </Button>
           </DialogTrigger>
           <DialogContent 
-            className="max-w-4xl max-h-[90vh] overflow-y-auto"
-            onInteractOutside={(e) => e.preventDefault()}
-            onEscapeKeyDown={(e) => e.preventDefault()}
+            className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6"
+            onInteractOutside={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onEscapeKeyDown={(e) => {
+              e.preventDefault();
+            }}
+            onPointerDownOutside={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onFocusOutside={(e) => {
+              e.preventDefault();
+            }}
           >
-            <DialogHeader>
+            <DialogHeader className="mb-4">
               <DialogTitle>Add New Customer</DialogTitle>
             </DialogHeader>
             <CustomerForm 

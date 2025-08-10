@@ -118,14 +118,14 @@ export function CustomerForm({ customerId, defaultCustomerCode, onSuccess, onCan
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Users className="h-5 w-5 mr-2" />
+    <Card className="border-0 shadow-none">
+      <CardHeader className="px-2 sm:px-6">
+        <CardTitle className="flex items-center text-lg sm:text-xl">
+          <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
           {customerId ? 'Update Customer' : 'Add New Customer'}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-2 sm:px-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit((data) => createOrUpdateCustomerMutation.mutate(data))} className="space-y-6">
             {/* Basic Information */}
@@ -411,19 +411,33 @@ export function CustomerForm({ customerId, defaultCustomerCode, onSuccess, onCan
               />
             </div>
 
-            <div className="flex gap-4">
-              <Button type="submit" disabled={createOrUpdateCustomerMutation.isPending}>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
+              <Button 
+                type="submit" 
+                disabled={createOrUpdateCustomerMutation.isPending}
+                className="min-h-[44px] sm:min-h-[36px] w-full sm:w-auto"
+              >
                 {createOrUpdateCustomerMutation.isPending 
                   ? (customerId ? 'Updating...' : 'Creating...') 
                   : (customerId ? 'Update Customer' : 'Create Customer')
                 }
               </Button>
               {onCancel && (
-                <Button type="button" variant="outline" onClick={onCancel}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={onCancel}
+                  className="min-h-[44px] sm:min-h-[36px] w-full sm:w-auto"
+                >
                   Cancel
                 </Button>
               )}
-              <Button type="button" variant="ghost" onClick={() => form.reset()}>
+              <Button 
+                type="button" 
+                variant="ghost" 
+                onClick={() => form.reset()}
+                className="min-h-[44px] sm:min-h-[36px] w-full sm:w-auto"
+              >
                 Reset Form
               </Button>
             </div>
