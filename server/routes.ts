@@ -2709,6 +2709,31 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // Get quotation items for a specific quotation
+  app.get("/api/quotation-items", async (req, res) => {
+    try {
+      const { quotationId } = req.query;
+      if (!quotationId) {
+        return res.json([]);
+      }
+      const items = await storage.getQuotationItems(quotationId as string);
+      res.json(items || []);
+    } catch (error) {
+      console.error('Error fetching quotation items:', error);
+      res.status(500).json({ message: "Failed to fetch quotation items" });
+    }
+  });
+
+  app.get("/api/quotation-items/:quotationId", async (req, res) => {
+    try {
+      const items = await storage.getQuotationItems(req.params.quotationId);
+      res.json(items || []);
+    } catch (error) {
+      console.error('Error fetching quotation items:', error);
+      res.status(500).json({ message: "Failed to fetch quotation items" });
+    }
+  });
+
   app.post("/api/quotations", async (req, res) => {
     try {
       const { quotation, items } = req.body;

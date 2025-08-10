@@ -38,7 +38,11 @@ import {
   CreditCard,
   MessageSquare,
   ShoppingCart,
-  Hammer,
+  Printer,
+  Mail,
+  Hash,
+  CalendarCheck,
+  UserCheck,
 } from 'lucide-react';
 
 interface QuotationDetailModalProps {
@@ -66,18 +70,30 @@ export function QuotationDetailModal({
   onSendEmail,
   onDownloadPDF,
 }: QuotationDetailModalProps) {
-  const { data: quotation, isLoading } = useQuery({
+  const { data: quotationData, isLoading } = useQuery({
     queryKey: ['/api/quotations', quotationId],
+    queryFn: async () => {
+      if (!quotationId) return null;
+      const response = await fetch(`/api/quotations/${quotationId}`);
+      if (!response.ok) throw new Error('Failed to fetch quotation');
+      return response.json();
+    },
     enabled: !!quotationId && open,
   });
 
   const { data: quotationItems = [] } = useQuery({
     queryKey: ['/api/quotation-items', quotationId],
+    queryFn: async () => {
+      if (!quotationId) return [];
+      const response = await fetch(`/api/quotation-items/${quotationId}`);
+      if (!response.ok) return [];
+      return response.json();
+    },
     enabled: !!quotationId && open,
   });
 
   // Type-safe access to quotation data
-  const safeQuotation = quotation as {
+  const safeQuotation = quotationData as {
     id?: string;
     quotationNumber?: string;
     revisionNumber?: string;
@@ -172,53 +188,60 @@ export function QuotationDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <FileText className="h-5 w-5 mr-2" />
-            Quotation Details - {safeQuotation.quotationNumber}
-            {safeQuotation.revisionNumber && (
-              <span className="ml-2 text-sm text-muted-foreground">
-                (Rev. {safeQuotation.revisionNumber})
-              </span>
-            )}
+          <DialogTitle className="text-2xl font-bold">
+            QUOTATION
           </DialogTitle>
           <DialogDescription>
-            Complete details and items for this quotation
+            Complete quotation details and order information
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Status and Actions Bar */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              {getStatusBadge(safeQuotation.status || 'draft')}
-              <span className="text-sm text-muted-foreground">
-                Created: {new Date(safeQuotation.createdAt || '').toLocaleDateString()}
-              </span>
+        {/* Document Header Section */}
+        <div className="bg-gradient-to-r from-purple-50 to-cyan-50 dark:from-purple-950 dark:to-cyan-950 p-6 rounded-lg">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <div className="flex items-center text-sm text-muted-foreground mb-1">
+                <Hash className="h-4 w-4 mr-1" />
+                Quotation Number
+              </div>
+              <div className="font-bold text-lg">{safeQuotation.quotationNumber || 'N/A'}</div>
             </div>
-            
-            <div className="flex items-center space-x-2">
-              {safeQuotation.status === 'pending' && (
-                <>
-                  <Button size="sm" variant="outline" className="text-green-600" onClick={() => onApprove?.(quotationId)}>
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Approve
-                  </Button>
-                  <Button size="sm" variant="outline" className="text-red-600" onClick={() => onReject?.(quotationId)}>
-                    <XCircle className="h-4 w-4 mr-1" />
-                    Reject
-                  </Button>
-                </>
-              )}
-              
-              {safeQuotation.status === 'approved' && (
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => onConvertToSalesOrder?.(quotationId)}>
-                  <ShoppingCart className="h-4 w-4 mr-1" />
-                  Convert to Sales Order
-                </Button>
-              )}
-              
+            <div>
+              <div className="flex items-center text-sm text-muted-foreground mb-1">
+                <CalendarCheck className="h-4 w-4 mr-1" />
+                Date
+              </div>
+              <div className="font-semibold">
+                {safeQuotation.createdAt ? new Date(safeQuotation.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                }) : 'N/A'}
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center text-sm text-muted-foreground mb-1">
+                <FileText className="h-4 w-4 mr-1" />
+                Revision No.
+              </div>
+              <div className="font-semibold">{safeQuotation.revisionNumber || 'R0'}</div>
+            </div>
+            <div>
+              <div className="flex items-center text-sm text-muted-foreground mb-1">
+                <UserCheck className="h-4 w-4 mr-1" />
+                Status
+              </div>
+              <div>{getStatusBadge(safeQuotation.status || 'draft')}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {/* Action Buttons Bar */}
+          <div className="flex flex-wrap gap-2 justify-end p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div className="flex flex-wrap items-center gap-2">
               <Button size="sm" variant="outline" onClick={() => onEdit?.(quotationId)}>
                 <Edit className="h-4 w-4 mr-1" />
                 Edit
@@ -229,204 +252,339 @@ export function QuotationDetailModal({
                 Duplicate
               </Button>
               
+              {safeQuotation.status === 'pending' && (
+                <>
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => onApprove?.(quotationId)}>
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Approve
+                  </Button>
+                  <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white" onClick={() => onReject?.(quotationId)}>
+                    <XCircle className="h-4 w-4 mr-1" />
+                    Reject
+                  </Button>
+                </>
+              )}
+              
+              {safeQuotation.status === 'approved' && (
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => onConvertToSalesOrder?.(quotationId)}>
+                  <ShoppingCart className="h-4 w-4 mr-1" />
+                  Convert to SO
+                </Button>
+              )}
+              
               <Button size="sm" variant="outline" onClick={() => onSendEmail?.(quotationId)}>
-                <Send className="h-4 w-4 mr-1" />
-                Send Email
+                <Mail className="h-4 w-4 mr-1" />
+                Email
               </Button>
               
               <Button size="sm" variant="outline" onClick={() => onDownloadPDF?.(quotationId)}>
-                <Download className="h-4 w-4 mr-1" />
-                Download PDF
+                <Printer className="h-4 w-4 mr-1" />
+                Print/PDF
               </Button>
             </div>
           </div>
 
-          {/* Customer and Basic Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg">
-                  <User className="h-5 w-5 mr-2" />
-                  Customer Information
+          {/* Customer and Order Information */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="md:col-span-1">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center text-base">
+                  <User className="h-4 w-4 mr-2" />
+                  Customer Details
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Customer Code:</span>
-                  <span className="font-medium">{safeQuotation.customerCode}</span>
+              <CardContent className="space-y-2">
+                <div>
+                  <div className="text-xs text-muted-foreground">Customer Code</div>
+                  <div className="font-semibold">{safeQuotation.customerCode || 'N/A'}</div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Country:</span>
-                  <span className="flex items-center">
-                    <MapPin className="h-4 w-4 mr-1" />
-                    {safeQuotation.country}
-                  </span>
+                <div>
+                  <div className="text-xs text-muted-foreground">Country</div>
+                  <div className="font-semibold flex items-center">
+                    <MapPin className="h-3 w-3 mr-1" />
+                    {safeQuotation.country || 'N/A'}
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Payment Method:</span>
-                  <span className="flex items-center">
-                    <CreditCard className="h-4 w-4 mr-1" />
-                    {safeQuotation.paymentMethod}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Shipping Method:</span>
-                  <span className="flex items-center">
-                    <Truck className="h-4 w-4 mr-1" />
-                    {safeQuotation.shippingMethod}
-                  </span>
+                <div>
+                  <div className="text-xs text-muted-foreground">Price List</div>
+                  <div className="font-semibold">{safeQuotation.priceListId ? 'Applied' : 'Standard'}</div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center text-lg">
-                  <Calendar className="h-5 w-5 mr-2" />
-                  Quotation Details
+            <Card className="md:col-span-1">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center text-base">
+                  <Truck className="h-4 w-4 mr-2" />
+                  Shipping & Payment
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Quotation Number:</span>
-                  <span className="font-medium">{safeQuotation.quotationNumber}</span>
-                </div>
-                {safeQuotation.revisionNumber && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Revision:</span>
-                    <span className="font-medium">R{safeQuotation.revisionNumber}</span>
+              <CardContent className="space-y-2">
+                <div>
+                  <div className="text-xs text-muted-foreground">Payment Method</div>
+                  <div className="font-semibold flex items-center">
+                    <CreditCard className="h-3 w-3 mr-1" />
+                    {safeQuotation.paymentMethod ? safeQuotation.paymentMethod.charAt(0).toUpperCase() + safeQuotation.paymentMethod.slice(1) : 'N/A'}
                   </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Created By:</span>
-                  <span className="font-medium">{safeQuotation.createdBy}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Date Created:</span>
-                  <span>{new Date(safeQuotation.createdAt || '').toLocaleString()}</span>
-                </div>
-                {safeQuotation.updatedAt && safeQuotation.updatedAt !== safeQuotation.createdAt && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Last Updated:</span>
-                    <span>{new Date(safeQuotation.updatedAt).toLocaleString()}</span>
+                <div>
+                  <div className="text-xs text-muted-foreground">Shipping Method</div>
+                  <div className="font-semibold flex items-center">
+                    <Truck className="h-3 w-3 mr-1" />
+                    {safeQuotation.shippingMethod || 'N/A'}
                   </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Created By</div>
+                  <div className="font-semibold">{safeQuotation.createdBy || 'System'}</div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="md:col-span-1">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center text-base">
+                  <DollarSign className="h-4 w-4 mr-2" />
+                  Financial Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-xs text-muted-foreground">Subtotal:</span>
+                  <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                </div>
+                {(shippingFee > 0 || bankCharge > 0 || discount > 0 || others > 0) && (
+                  <>
+                    {shippingFee > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-xs text-muted-foreground">Shipping:</span>
+                        <span className="text-sm">${shippingFee.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {bankCharge > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-xs text-muted-foreground">Bank Charge:</span>
+                        <span className="text-sm">${bankCharge.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {discount > 0 && (
+                      <div className="flex justify-between text-green-600">
+                        <span className="text-xs">Discount:</span>
+                        <span className="text-sm">-${discount.toFixed(2)}</span>
+                      </div>
+                    )}
+                    {others !== 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-xs text-muted-foreground">Others:</span>
+                        <span className="text-sm">${others.toFixed(2)}</span>
+                      </div>
+                    )}
+                  </>
                 )}
+                <Separator />
+                <div className="flex justify-between">
+                  <span className="font-semibold">Total:</span>
+                  <span className="font-bold text-lg">${total.toFixed(2)}</span>
+                </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Quotation Items */}
-          <Card>
-            <CardHeader>
+          {/* Quotation Items Table */}
+          <Card className="overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
               <CardTitle className="flex items-center">
                 <Package className="h-5 w-5 mr-2" />
-                Quotation Items
+                Order Items
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Specification</TableHead>
-                    <TableHead className="text-right">Qty</TableHead>
-                    <TableHead className="text-right">Unit Price</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {safeQuotationItems.map((item: any) => (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{item.productName}</div>
-                          {item.productSku && (
-                            <div className="text-sm text-muted-foreground">SKU: {item.productSku}</div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {item.specification || '-'}
-                      </TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">${parseFloat(item.unitPrice || '0').toFixed(2)}</TableCell>
-                      <TableCell className="text-right font-medium">
-                        ${(parseFloat(item.quantity || '0') * parseFloat(item.unitPrice || '0')).toFixed(2)}
-                      </TableCell>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50 dark:bg-gray-900">
+                      <TableHead className="font-semibold">#</TableHead>
+                      <TableHead className="font-semibold">Product Name</TableHead>
+                      <TableHead className="font-semibold">Specification</TableHead>
+                      <TableHead className="text-center font-semibold">Quantity</TableHead>
+                      <TableHead className="text-right font-semibold">Unit Price</TableHead>
+                      <TableHead className="text-right font-semibold">Line Total</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-
-          {/* Financial Summary */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <DollarSign className="h-5 w-5 mr-2" />
-                Financial Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span>Subtotal:</span>
-                  <span>${subtotal.toFixed(2)}</span>
-                </div>
-                {shippingFee > 0 && (
-                  <div className="flex justify-between">
-                    <span>Shipping Fee:</span>
-                    <span>${shippingFee.toFixed(2)}</span>
-                  </div>
-                )}
-                {bankCharge > 0 && (
-                  <div className="flex justify-between">
-                    <span>Bank Charge:</span>
-                    <span>${bankCharge.toFixed(2)}</span>
-                  </div>
-                )}
-                {discount > 0 && (
-                  <div className="flex justify-between text-green-600">
-                    <span>Discount:</span>
-                    <span>-${discount.toFixed(2)}</span>
-                  </div>
-                )}
-                {others > 0 && (
-                  <div className="flex justify-between">
-                    <span>Others:</span>
-                    <span>${others.toFixed(2)}</span>
-                  </div>
-                )}
-                <Separator />
-                <div className="flex justify-between text-lg font-bold">
-                  <span>Total:</span>
-                  <span>${total.toFixed(2)}</span>
-                </div>
+                  </TableHeader>
+                  <TableBody>
+                    {safeQuotationItems && safeQuotationItems.length > 0 ? (
+                      safeQuotationItems.map((item: any, index: number) => (
+                        <TableRow key={item.id || index} className="hover:bg-gray-50 dark:hover:bg-gray-900">
+                          <TableCell className="font-medium">{index + 1}</TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{item.productName || 'N/A'}</div>
+                              {item.productSku && (
+                                <div className="text-xs text-muted-foreground">SKU: {item.productSku}</div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="max-w-xs">
+                              {item.specification || '-'}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center font-semibold">
+                            {item.quantity || 0}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            ${parseFloat(item.unitPrice || '0').toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            ${(parseFloat(item.quantity || '0') * parseFloat(item.unitPrice || '0')).toFixed(2)}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          <div className="text-muted-foreground">
+                            <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                            <p>No items in this quotation</p>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                  {safeQuotationItems && safeQuotationItems.length > 0 && (
+                    <TableHeader>
+                      <TableRow className="bg-gray-100 dark:bg-gray-800">
+                        <TableHead colSpan={5} className="text-right font-bold">
+                          Subtotal:
+                        </TableHead>
+                        <TableHead className="text-right font-bold text-lg">
+                          ${subtotal.toFixed(2)}
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                  )}
+                </Table>
               </div>
             </CardContent>
           </Card>
 
+          {/* Complete Financial Breakdown */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="md:col-span-1">
+              <CardHeader>
+                <CardTitle className="flex items-center text-base">
+                  <DollarSign className="h-5 w-5 mr-2" />
+                  Financial Breakdown
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-sm">A. Subtotal:</span>
+                    <span className="font-semibold">${subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-sm">B. Shipping Fee:</span>
+                    <span className={shippingFee > 0 ? 'font-semibold' : 'text-muted-foreground'}>
+                      ${shippingFee.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-sm">C. Bank Charge:</span>
+                    <span className={bankCharge > 0 ? 'font-semibold' : 'text-muted-foreground'}>
+                      ${bankCharge.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-sm">D. Discount:</span>
+                    <span className={discount > 0 ? 'font-semibold text-green-600' : 'text-muted-foreground'}>
+                      {discount > 0 ? '-' : ''}${discount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b">
+                    <span className="text-sm">E. Others:</span>
+                    <span className={others !== 0 ? 'font-semibold' : 'text-muted-foreground'}>
+                      ${others.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between pt-3 text-lg">
+                    <span className="font-bold">TOTAL (A+B+C+D+E):</span>
+                    <span className="font-bold text-xl">${total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Additional Information */}
+            <Card className="md:col-span-1">
+              <CardHeader>
+                <CardTitle className="flex items-center text-base">
+                  <FileText className="h-5 w-5 mr-2" />
+                  Additional Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">Creator's Initials</div>
+                    <div className="font-semibold">{safeQuotation.createdBy || 'System'}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">Date Created</div>
+                    <div className="font-semibold">
+                      {safeQuotation.createdAt ? new Date(safeQuotation.createdAt).toLocaleString() : 'N/A'}
+                    </div>
+                  </div>
+                  {safeQuotation.updatedAt && safeQuotation.updatedAt !== safeQuotation.createdAt && (
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-1">Last Modified</div>
+                      <div className="font-semibold">
+                        {new Date(safeQuotation.updatedAt).toLocaleString()}
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <div className="text-xs text-muted-foreground mb-1">Valid Until</div>
+                    <div className="font-semibold">
+                      {safeQuotation.expiresAt ? 
+                        new Date(safeQuotation.expiresAt).toLocaleDateString() : 
+                        '30 days from creation'}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Customer Service Instructions */}
           {safeQuotation.customerServiceInstructions && (
-            <Card>
+            <Card className="border-l-4 border-l-blue-500">
               <CardHeader>
-                <CardTitle className="flex items-center">
+                <CardTitle className="flex items-center text-base">
                   <MessageSquare className="h-5 w-5 mr-2" />
                   Customer Service Instructions
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm leading-relaxed">{safeQuotation.customerServiceInstructions}</p>
+                <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {safeQuotation.customerServiceInstructions}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           )}
-        </div>
-
-        <div className="flex justify-end space-x-2 mt-6">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
+          {/* Footer Actions */}
+          <div className="border-t pt-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">
+                Quotation ID: {quotationId}
+              </div>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
