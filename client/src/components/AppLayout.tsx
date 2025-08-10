@@ -61,11 +61,11 @@ export function AppLayout({ children }: AppLayoutProps) {
               size={mobile ? 'lg' : 'default'}
               className={cn(
                 'w-full justify-start touch-target transition-all duration-200',
-                mobile && 'min-h-[3.5rem] text-left p-4 rounded-xl active:scale-95',
-                mobile && 'hover:bg-muted/50 hover:shadow-sm',
-                isActive && mobile && 'bg-primary/15 text-primary border border-primary/30 shadow-lg font-medium',
+                mobile && 'min-h-[44px] text-left p-3 rounded-lg active:scale-95',
+                mobile && 'hover:bg-muted/80 hover:shadow-sm',
+                isActive && mobile && 'bg-primary text-primary-foreground shadow-md font-medium',
                 isActive && !mobile && 'bg-primary text-primary-foreground shadow-lg',
-                !isActive && mobile && 'text-foreground/80'
+                !isActive && mobile && 'text-foreground hover:text-foreground'
               )}
               onClick={() => mobile && setSidebarOpen(false)}
             >
@@ -112,34 +112,38 @@ export function AppLayout({ children }: AppLayoutProps) {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-80 p-0 max-w-[90vw]">
-                {/* Enhanced Mobile Header */}
-                <div className="flex items-center h-20 px-6 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
-                  <Link href="/" onClick={() => setSidebarOpen(false)} className="hover:opacity-90 transition-opacity">
-                    <HiblaLogo size="lg" showText />
-                  </Link>
-                </div>
-                
-                {/* Enhanced Mobile Navigation */}
-                <nav className="flex-1 px-6 py-8 overflow-y-auto">
-                  <div className="space-y-3">
-                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">
-                      Manufacturing System
-                    </div>
-                    <NavItems mobile />
+              <SheetContent side="left" className="w-[50vw] p-0 h-full max-w-md min-w-72">
+                <div className="flex flex-col h-full">
+                  {/* Fixed Mobile Header */}
+                  <div className="flex items-center h-16 px-4 border-b bg-gradient-to-r from-primary/5 to-cyan-500/5 flex-shrink-0">
+                    <Link href="/" onClick={() => setSidebarOpen(false)} className="hover:opacity-90 transition-opacity">
+                      <HiblaLogo size="md" showText />
+                    </Link>
                   </div>
                   
-                  {/* Mobile Footer */}
-                  <div className="mt-auto pt-8 border-t">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-sm text-muted-foreground">Theme</span>
+                  {/* Scrollable Navigation Content */}
+                  <div className="flex-1 overflow-y-auto">
+                    <nav className="px-4 py-6">
+                      <div className="space-y-2">
+                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4 px-2">
+                          Manufacturing System
+                        </div>
+                        <NavItems mobile />
+                      </div>
+                    </nav>
+                  </div>
+                  
+                  {/* Fixed Mobile Footer */}
+                  <div className="border-t bg-card/50 p-4 flex-shrink-0">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-muted-foreground">Theme</span>
                       <ThemeToggle />
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground/70">
                       Hibla Filipino Hair Manufacturing
                     </div>
                   </div>
-                </nav>
+                </div>
               </SheetContent>
             </Sheet>
 
