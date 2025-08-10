@@ -10,6 +10,15 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Package,
   DollarSign,
@@ -19,6 +28,15 @@ import {
   Warehouse,
   AlertTriangle,
   Image as ImageIcon,
+  MoreVertical,
+  Edit,
+  Copy,
+  TrendingUp,
+  History,
+  Power,
+  Printer,
+  Trash2,
+  BarChart3,
 } from 'lucide-react';
 
 interface ProductDetailModalProps {
@@ -124,7 +142,7 @@ export function ProductDetailModal({ productId, isOpen, onClose }: ProductDetail
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="flex items-center">
             <Package className="h-5 w-5 mr-2" />
             {safeProduct.name}
@@ -134,6 +152,64 @@ export function ProductDetailModal({ productId, isOpen, onClose }: ProductDetail
               <Badge variant="secondary" className="ml-2">Inactive</Badge>
             )}
           </DialogTitle>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+                <span className="sr-only">Open actions</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Product
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem>
+                <Copy className="h-4 w-4 mr-2" />
+                Duplicate Product
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem>
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Adjust Stock
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem>
+                <History className="h-4 w-4 mr-2" />
+                View History
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem>
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Sales Analytics
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem>
+                <Printer className="h-4 w-4 mr-2" />
+                Print Barcode
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem>
+                <Power className="h-4 w-4 mr-2" />
+                {safeProduct.isActive ? 'Deactivate' : 'Activate'}
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem className="text-red-600">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Product
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </DialogHeader>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

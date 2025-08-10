@@ -1,6 +1,15 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical, Edit, Copy, TrendingUp, Eye, Trash2 } from "lucide-react";
 import type { Product } from "@shared/schema";
 
 interface SimpleProductModalProps {
@@ -24,11 +33,52 @@ export function SimpleProductModal({ product, isOpen, onClose, onSave }: SimpleP
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Product Details</DialogTitle>
-          <DialogDescription>
-            View detailed information about {product.name}
-          </DialogDescription>
+        <DialogHeader className="flex flex-row items-center justify-between">
+          <div>
+            <DialogTitle>Product Details</DialogTitle>
+            <DialogDescription>
+              View detailed information about {product.name}
+            </DialogDescription>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+                <span className="sr-only">Open actions</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Product
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem>
+                <Eye className="h-4 w-4 mr-2" />
+                View Full Details
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem>
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Adjust Stock
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem>
+                <Copy className="h-4 w-4 mr-2" />
+                Duplicate
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem className="text-red-600">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </DialogHeader>
         
         <div className="space-y-4">

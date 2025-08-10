@@ -20,6 +20,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   FileText,
   Eye,
   Edit,
@@ -43,6 +51,9 @@ import {
   Hash,
   CalendarCheck,
   UserCheck,
+  MoreVertical,
+  Trash2,
+  FileUp,
 } from 'lucide-react';
 
 interface QuotationDetailModalProps {
@@ -189,13 +200,90 @@ export function QuotationDetailModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
-            QUOTATION
-          </DialogTitle>
-          <DialogDescription>
-            Complete quotation details and order information
-          </DialogDescription>
+        <DialogHeader className="flex flex-row items-center justify-between">
+          <div>
+            <DialogTitle className="text-2xl font-bold">
+              QUOTATION
+            </DialogTitle>
+            <DialogDescription>
+              Complete quotation details and order information
+            </DialogDescription>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical className="h-4 w-4" />
+                <span className="sr-only">Open actions</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem onClick={() => onEdit?.(quotationId)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Quotation
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem onClick={() => onDuplicate?.(quotationId)}>
+                <Copy className="h-4 w-4 mr-2" />
+                Duplicate
+              </DropdownMenuItem>
+              
+              {safeQuotation.status === 'approved' && (
+                <DropdownMenuItem onClick={() => onConvertToSalesOrder?.(quotationId)}>
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Convert to Sales Order
+                </DropdownMenuItem>
+              )}
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem onClick={() => onDownloadPDF?.(quotationId)}>
+                <Download className="h-4 w-4 mr-2" />
+                Export as PDF
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem onClick={() => onSendEmail?.(quotationId)}>
+                <Mail className="h-4 w-4 mr-2" />
+                Send via Email
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem onClick={() => window.print()}>
+                <Printer className="h-4 w-4 mr-2" />
+                Print
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
+              {safeQuotation.status === 'pending' && (
+                <>
+                  <DropdownMenuItem 
+                    onClick={() => onApprove?.(quotationId)}
+                    className="text-green-600"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Approve
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem 
+                    onClick={() => onReject?.(quotationId)}
+                    className="text-red-600"
+                  >
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Reject
+                  </DropdownMenuItem>
+                </>
+              )}
+              
+              <DropdownMenuSeparator />
+              
+              <DropdownMenuItem className="text-red-600">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </DialogHeader>
 
         {/* Document Header Section */}
@@ -239,50 +327,6 @@ export function QuotationDetailModal({
         </div>
 
         <div className="space-y-6">
-          {/* Action Buttons Bar */}
-          <div className="flex flex-wrap gap-2 justify-end p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-            <div className="flex flex-wrap items-center gap-2">
-              <Button size="sm" variant="outline" onClick={() => onEdit?.(quotationId)}>
-                <Edit className="h-4 w-4 mr-1" />
-                Edit
-              </Button>
-              
-              <Button size="sm" variant="outline" onClick={() => onDuplicate?.(quotationId)}>
-                <Copy className="h-4 w-4 mr-1" />
-                Duplicate
-              </Button>
-              
-              {safeQuotation.status === 'pending' && (
-                <>
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => onApprove?.(quotationId)}>
-                    <CheckCircle className="h-4 w-4 mr-1" />
-                    Approve
-                  </Button>
-                  <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white" onClick={() => onReject?.(quotationId)}>
-                    <XCircle className="h-4 w-4 mr-1" />
-                    Reject
-                  </Button>
-                </>
-              )}
-              
-              {safeQuotation.status === 'approved' && (
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white" onClick={() => onConvertToSalesOrder?.(quotationId)}>
-                  <ShoppingCart className="h-4 w-4 mr-1" />
-                  Convert to SO
-                </Button>
-              )}
-              
-              <Button size="sm" variant="outline" onClick={() => onSendEmail?.(quotationId)}>
-                <Mail className="h-4 w-4 mr-1" />
-                Email
-              </Button>
-              
-              <Button size="sm" variant="outline" onClick={() => onDownloadPDF?.(quotationId)}>
-                <Printer className="h-4 w-4 mr-1" />
-                Print/PDF
-              </Button>
-            </div>
-          </div>
 
           {/* Customer and Order Information */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
