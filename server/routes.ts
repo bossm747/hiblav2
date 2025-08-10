@@ -2956,6 +2956,17 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // Validate Quotation Revision
+  app.get("/api/quotations/:id/validate-revision", async (req, res) => {
+    try {
+      const { quotationLockService } = await import("./quotation-lock-service");
+      const validation = await quotationLockService.validateRevision(req.params.id);
+      res.json(validation);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to validate revision" });
+    }
+  });
+
   // Duplicate Quotation
   app.post("/api/quotations/:id/duplicate", async (req, res) => {
     try {
@@ -3092,28 +3103,27 @@ export function registerRoutes(app: Express): void {
   // Confirm Sales Order
   app.post("/api/sales-orders/:id/confirm", async (req, res) => {
     try {
-      const updatedSalesOrder = await storage.updateSalesOrder(req.params.id, {
-        isConfirmed: true,
-        confirmedAt: new Date(),
-        status: "confirmed"
-      });
+      // Get current staff for tracking
+      const staffList = await storage.getAllStaff();
+      const currentStaff = staffList.find((s: any) => s.role === 'admin') || staffList[0];
+      const confirmedBy = currentStaff?.id || 'system';
 
-      if (!updatedSalesOrder) {
-        return res.status(404).json({ message: "Sales order not found" });
-      }
+      // Use the order confirmation service
+      const { orderConfirmationService } = await import("./order-confirmation-service");
+      const confirmedOrder = await orderConfirmationService.confirmSalesOrder(req.params.id, confirmedBy);
 
       // Auto-generate Job Order when Sales Order is confirmed
       const salesOrderItems = await storage.getSalesOrderItems(req.params.id);
       
       const jobOrderData = {
-        jobOrderNumber: updatedSalesOrder.salesOrderNumber, // Same number as sales order
-        revisionNumber: updatedSalesOrder.revisionNumber,
-        salesOrderId: updatedSalesOrder.id,
-        customerId: updatedSalesOrder.customerId,
-        customerCode: updatedSalesOrder.customerCode,
-        dueDate: updatedSalesOrder.dueDate,
-        customerInstructions: updatedSalesOrder.customerServiceInstructions,
-        createdBy: updatedSalesOrder.createdBy
+        jobOrderNumber: confirmedOrder.salesOrderNumber, // Same number as sales order
+        revisionNumber: confirmedOrder.revisionNumber,
+        salesOrderId: confirmedOrder.id,
+        customerId: confirmedOrder.customerId,
+        customerCode: confirmedOrder.customerCode,
+        dueDate: confirmedOrder.dueDate,
+        orderInstructions: confirmedOrder.customerServiceInstructions,
+        createdBy: confirmedOrder.createdBy
       };
 
       const createdJobOrder = await storage.createJobOrder(jobOrderData);
@@ -3131,11 +3141,50 @@ export function registerRoutes(app: Express): void {
       }
 
       res.json({ 
-        salesOrder: updatedSalesOrder, 
-        jobOrder: createdJobOrder 
+        salesOrder: confirmedOrder, 
+        jobOrder: createdJobOrder,
+        message: "Sales order confirmed and job order created" 
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to confirm sales order" });
+    }
+  });
+
+  // Generate Invoice from Confirmed Sales Order
+  app.post("/api/sales-orders/:id/invoice", async (req, res) => {
+    try {
+      // Get current staff for tracking
+      const staffList = await storage.getAllStaff();
+      const currentStaff = staffList.find((s: any) => s.role === 'admin') || staffList[0];
+      const createdBy = currentStaff?.id || 'system';
+
+      // Use the invoice service
+      const { invoiceService } = await import("./invoice-service");
+      const invoice = await invoiceService.generateInvoiceFromSalesOrder(req.params.id, createdBy);
+
+      res.json({ invoice, message: "Invoice generated successfully" });
+    } catch (error) {
+      console.error("Error generating invoice:", error);
+      if (error instanceof Error) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Failed to generate invoice" });
+    }
+  });
+
+  // Get Invoice by Sales Order
+  app.get("/api/sales-orders/:id/invoice", async (req, res) => {
+    try {
+      const { invoiceService } = await import("./invoice-service");
+      const invoice = await invoiceService.getInvoiceBySalesOrder(req.params.id);
+      
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found for this sales order" });
+      }
+      
+      res.json(invoice);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch invoice" });
     }
   });
 
@@ -3304,6 +3353,63 @@ export function registerRoutes(app: Express): void {
     } catch (error) {
       console.error('Error generating job order PDF:', error);
       res.status(500).json({ message: "Failed to generate job order PDF" });
+    }
+  });
+
+  // =====================================================
+  // EXPORT ROUTES
+  // =====================================================
+  
+  // Export Quotation to Excel
+  app.get("/api/quotations/:id/export/excel", async (req, res) => {
+    try {
+      const { exportService } = await import("./export-service");
+      const buffer = await exportService.exportQuotationToExcel(req.params.id);
+      
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="quotation-${req.params.id}.xlsx"`);
+      res.send(buffer);
+    } catch (error) {
+      console.error("Error exporting quotation:", error);
+      res.status(500).json({ message: "Failed to export quotation" });
+    }
+  });
+
+  // Export Sales Order to Excel
+  app.get("/api/sales-orders/:id/export/excel", async (req, res) => {
+    try {
+      const { exportService } = await import("./export-service");
+      const buffer = await exportService.exportSalesOrderToExcel(req.params.id);
+      
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="sales-order-${req.params.id}.xlsx"`);
+      res.send(buffer);
+    } catch (error) {
+      console.error("Error exporting sales order:", error);
+      res.status(500).json({ message: "Failed to export sales order" });
+    }
+  });
+
+  // Export Summary Report to Excel
+  app.post("/api/reports/export/excel", async (req, res) => {
+    try {
+      const { exportService } = await import("./export-service");
+      const { dateFrom, dateTo, customerCode, orderItem, reportType } = req.body;
+      
+      const buffer = await exportService.exportSummaryReport({
+        dateFrom,
+        dateTo,
+        customerCode,
+        orderItem,
+        reportType: reportType || 'sales-orders'
+      });
+      
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${reportType}-report-${Date.now()}.xlsx"`);
+      res.send(buffer);
+    } catch (error) {
+      console.error("Error exporting summary report:", error);
+      res.status(500).json({ message: "Failed to export summary report" });
     }
   });
 
