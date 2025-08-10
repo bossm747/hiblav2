@@ -44,6 +44,7 @@ const quotationItemSchema = z.object({
 });
 
 const quotationFormSchema = z.object({
+  quotationNumber: z.string().min(1, 'Quotation number is required'),
   customerCode: z.string().min(1, 'Customer code is required'),
   country: z.string().min(1, 'Country is required'),
   priceListId: z.string().min(1, 'Price list is required'),
@@ -357,6 +358,26 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit((data) => createQuotationMutation.mutate(data))} className="space-y-6">
+            {/* Quotation Number */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <FormField
+                control={form.control}
+                name="quotationNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Quotation Number *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g., QT-2025-001"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             {/* Customer Information */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <FormField

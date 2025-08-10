@@ -2752,12 +2752,7 @@ export function registerRoutes(app: Express): void {
         return res.status(500).json({ message: "Failed to get or create staff member" });
       }
 
-      // Auto-generate quotation number if not provided
-      if (!quotation.quotationNumber) {
-        const latestQuotation = await storage.getLatestQuotation();
-        const nextNumber = latestQuotation ? parseInt(latestQuotation.quotationNumber.replace(/\D/g, '')) + 1 : 1;
-        quotation.quotationNumber = `Q${nextNumber.toString().padStart(4, '0')}`;
-      }
+      // Note: quotation number will be handled in storage layer (manual if provided, auto-generated if not)
 
       // Get price list ID by name
       const priceLists = await storage.getAllPriceLists();
@@ -2772,8 +2767,8 @@ export function registerRoutes(app: Express): void {
         ...quotation,
         priceListId: priceList.id, // Use actual price list ID instead of name
         customerId: customer.id,
-        createdBy: currentStaff.id,
-        quotationNumber: quotation.quotationNumber || `Q${Date.now()}`
+        createdBy: currentStaff.id
+        // quotationNumber is handled in storage layer (manual entry or auto-generation)
       };
       
       console.log('Complete quotation data:', completeQuotationData);
