@@ -18,7 +18,7 @@ import {
   Bell,
   User,
   DollarSign,
-  Boxes,
+  Warehouse,
   Zap,
   FileBarChart,
   UserCheck,
@@ -35,6 +35,8 @@ const navigationItems = [
   { path: '/sales-orders', label: 'Sales Orders', icon: ShoppingCart },
   { path: '/job-orders', label: 'Job Orders', icon: Factory },
   { path: '/inventory', label: 'Inventory', icon: Package },
+  { path: '/products', label: 'Products', icon: Package2 },
+  { path: '/warehouses', label: 'Warehouses', icon: Warehouse },
   { path: '/inventory-insights', label: 'AI Insights', icon: Zap },
   { path: '/summary-reports', label: 'Reports', icon: FileBarChart },
   { path: '/price-management', label: 'Price Management', icon: DollarSign },
@@ -58,9 +60,12 @@ export function AppLayout({ children }: AppLayoutProps) {
               variant={isActive ? 'default' : 'ghost'}
               size={mobile ? 'lg' : 'default'}
               className={cn(
-                'w-full justify-start touch-target',
-                mobile && 'min-h-[3rem] text-left p-4',
-                isActive && 'bg-primary text-primary-foreground shadow-lg'
+                'w-full justify-start touch-target transition-all duration-200',
+                mobile && 'min-h-[3.5rem] text-left p-4 rounded-xl active:scale-95',
+                mobile && 'hover:bg-muted/50 hover:shadow-sm',
+                isActive && mobile && 'bg-primary/15 text-primary border border-primary/30 shadow-lg font-medium',
+                isActive && !mobile && 'bg-primary text-primary-foreground shadow-lg',
+                !isActive && mobile && 'text-foreground/80'
               )}
               onClick={() => mobile && setSidebarOpen(false)}
             >
@@ -107,14 +112,33 @@ export function AppLayout({ children }: AppLayoutProps) {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-64 p-0">
-                <div className="flex items-center h-16 px-4 border-b bg-gradient-to-r from-primary/5 to-cyan-500/5">
+              <SheetContent side="left" className="w-80 p-0 max-w-[90vw]">
+                {/* Enhanced Mobile Header */}
+                <div className="flex items-center h-20 px-6 border-b bg-gradient-to-r from-primary/10 to-cyan-500/10">
                   <Link href="/" onClick={() => setSidebarOpen(false)} className="hover:opacity-90 transition-opacity">
-                    <HiblaLogo size="md" showText />
+                    <HiblaLogo size="lg" showText />
                   </Link>
                 </div>
-                <nav className="flex-1 px-4 py-6">
-                  <NavItems mobile />
+                
+                {/* Enhanced Mobile Navigation */}
+                <nav className="flex-1 px-6 py-8 overflow-y-auto">
+                  <div className="space-y-3">
+                    <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">
+                      Manufacturing System
+                    </div>
+                    <NavItems mobile />
+                  </div>
+                  
+                  {/* Mobile Footer */}
+                  <div className="mt-auto pt-8 border-t">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-sm text-muted-foreground">Theme</span>
+                      <ThemeToggle />
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Hibla Filipino Hair Manufacturing
+                    </div>
+                  </div>
                 </nav>
               </SheetContent>
             </Sheet>
