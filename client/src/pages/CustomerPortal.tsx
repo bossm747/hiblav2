@@ -1,573 +1,625 @@
-import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2, CheckCircle, XCircle, Package, FileText, CreditCard, Truck, Upload, Eye } from 'lucide-react';
 import { HiblaLogo } from '@/components/HiblaLogo';
-import { 
-  Package, 
-  FileText, 
-  CreditCard, 
-  Truck, 
-  Eye, 
-  Download,
-  LogOut,
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Calendar,
-  DollarSign
-} from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
+import { format } from 'date-fns';
 
-interface CustomerSession {
-  id: string;
-  customerCode: string;
-  name: string;
-  email: string;
-  phone: string;
-  country: string;
-  totalOrders: number;
-  totalSpent: string;
-  status: string;
-}
-
-interface CustomerOrder {
-  id: string;
-  orderNumber: string;
-  status: string;
-  paymentStatus: string;
-  total: string;
-  createdAt: string;
-  trackingNumber?: string;
-  items: OrderItem[];
-}
-
-interface OrderItem {
-  id: string;
-  productName: string;
-  quantity: number;
-  price: string;
-  total: string;
-}
-
-interface Quotation {
+interface QuotationDetails {
   id: string;
   quotationNumber: string;
+  customerCode: string;
+  country: string;
   status: string;
-  totalAmount: string;
-  validUntil: string;
+  subtotal: string;
+  shippingFee: string;
+  bankCharge: string;
+  discount: string;
+  total: string;
+  paymentMethod: string;
+  shippingMethod: string;
+  items: Array<{
+    productName: string;
+    specification: string;
+    quantity: number;
+    unitPrice: string;
+    lineTotal: string;
+  }>;
   createdAt: string;
-  items: any[];
 }
 
-interface Invoice {
+interface OrderDetails {
   id: string;
-  invoiceNumber: string;
+  salesOrderNumber: string;
   status: string;
-  totalAmount: string;
-  dueDate: string;
+  total: string;
+  paymentStatus?: string;
+  shippingStatus?: string;
+  trackingNumber?: string;
   createdAt: string;
 }
 
-export function CustomerPortal() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [credentials, setCredentials] = useState({ email: '', password: '' });
-  const [customerSession, setCustomerSession] = useState<CustomerSession | null>(null);
-  const [loginError, setLoginError] = useState('');
+export default function CustomerPortal() {
+  const [location] = useLocation();
+  const [loading, setLoading] = useState(false);
+  const [quotation, setQuotation] = useState<QuotationDetails | null>(null);
+  const [orders, setOrders] = useState<OrderDetails[]>([]);
+  const [activeTab, setActiveTab] = useState('quotation');
+  const [uploadingPayment, setUploadingPayment] = useState(false);
+  const { toast } = useToast();
 
-  // Fetch customer data
-  const { data: orders, isLoading: ordersLoading } = useQuery({
-    queryKey: ['/api/customer-portal/orders', customerSession?.id],
-    queryFn: async () => {
-      const response = await fetch(`/api/customer-portal/orders?customerId=${customerSession?.id}`);
-      if (!response.ok) throw new Error('Failed to fetch orders');
-      return response.json();
-    },
-    enabled: isLoggedIn && !!customerSession,
-  });
+  // Parse query parameters from URL
+  const searchParams = new URLSearchParams(window.location.search);
+  const token = searchParams.get('token');
+  const quotationId = searchParams.get('quotation');
+  const action = searchParams.get('action');
 
-  const { data: quotations, isLoading: quotationsLoading } = useQuery({
-    queryKey: ['/api/customer-portal/quotations', customerSession?.id],
-    queryFn: async () => {
-      const response = await fetch(`/api/customer-portal/quotations?customerId=${customerSession?.id}`);
-      if (!response.ok) throw new Error('Failed to fetch quotations');
-      return response.json();
-    },
-    enabled: isLoggedIn && !!customerSession,
-  });
+  useEffect(() => {
+    if (quotationId && token) {
+      fetchQuotationDetails();
+      if (action === 'approve') {
+        handleApproveQuotation();
+      }
+    }
+    fetchCustomerOrders();
+  }, [quotationId, token]);
 
-  const { data: invoices, isLoading: invoicesLoading } = useQuery({
-    queryKey: ['/api/customer-portal/invoices', customerSession?.id],
-    queryFn: async () => {
-      const response = await fetch(`/api/customer-portal/invoices?customerId=${customerSession?.id}`);
-      if (!response.ok) throw new Error('Failed to fetch invoices');
-      return response.json();
-    },
-    enabled: isLoggedIn && !!customerSession,
-  });
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginError('');
-
+  const fetchQuotationDetails = async () => {
     try {
-      const response = await fetch('/api/customer-portal/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(credentials),
-      });
-
+      setLoading(true);
+      const response = await fetch(`/api/quotations/${quotationId}`);
       if (response.ok) {
-        const customer = await response.json();
-        setCustomerSession(customer);
-        setIsLoggedIn(true);
-      } else {
-        const error = await response.json();
-        setLoginError(error.message || 'Invalid credentials');
+        const data = await response.json();
+        setQuotation(data);
       }
     } catch (error) {
-      setLoginError('Connection error. Please try again.');
+      console.error('Error fetching quotation:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load quotation details',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    setCustomerSession(null);
-    setCredentials({ email: '', password: '' });
+  const fetchCustomerOrders = async () => {
+    try {
+      // This would need customer authentication in production
+      const response = await fetch('/api/customer-portal/orders');
+      if (response.ok) {
+        const data = await response.json();
+        setOrders(data);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    }
   };
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-      processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-      shipped: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
-      delivered: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-      approved: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-      rejected: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-      paid: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-      cancelled: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
-    };
-    return colors[status as keyof typeof colors] || colors.pending;
+  const handleApproveQuotation = async () => {
+    if (!token || !quotationId) return;
+
+    try {
+      setLoading(true);
+      const response = await apiRequest('/api/customer-portal/approve-quotation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token,
+          quotationId,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast({
+          title: 'Success!',
+          description: 'Quotation approved successfully. Sales order has been created.',
+        });
+        setQuotation({ ...quotation!, status: 'approved' });
+        fetchCustomerOrders(); // Refresh orders
+      } else {
+        const error = await response.json();
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to approve quotation',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error approving quotation:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to approve quotation',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <HiblaLogo size="lg" showText />
-            </div>
-            <CardTitle className="text-2xl">Customer Portal</CardTitle>
-            <p className="text-gray-600 dark:text-gray-400">
-              Track your orders and manage your account
-            </p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <Input
-                  type="email"
-                  placeholder="Email address"
-                  value={credentials.email}
-                  onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  value={credentials.password}
-                  onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-                  required
-                />
-              </div>
-              {loginError && (
-                <p className="text-red-600 text-sm">{loginError}</p>
-              )}
-              <Button type="submit" className="w-full">
-                Sign In
-              </Button>
-            </form>
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Need help? Contact us at{' '}
-                <a href="mailto:support@hiblafilipinohair.com" className="text-blue-600 hover:underline">
-                  support@hiblafilipinohair.com
-                </a>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const handleRejectQuotation = async () => {
+    if (!quotationId) return;
+
+    try {
+      setLoading(true);
+      const response = await apiRequest(`/api/quotations/${quotationId}/reject`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reason: 'Customer rejected via portal',
+        }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Quotation Rejected',
+          description: 'The quotation has been rejected.',
+        });
+        setQuotation({ ...quotation!, status: 'rejected' });
+      }
+    } catch (error) {
+      console.error('Error rejecting quotation:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to reject quotation',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePaymentProofUpload = async (orderId: string, file: File) => {
+    setUploadingPayment(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('orderId', orderId);
+    formData.append('paymentMethod', 'Bank Transfer');
+    formData.append('amount', quotation?.total || '0');
+    formData.append('referenceNumber', `REF-${Date.now()}`);
+
+    try {
+      const response = await fetch('/api/payment-proofs', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        toast({
+          title: 'Payment Proof Uploaded',
+          description: 'Your payment proof has been submitted for verification.',
+        });
+        fetchCustomerOrders();
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (error) {
+      console.error('Error uploading payment proof:', error);
+      toast({
+        title: 'Upload Failed',
+        description: 'Failed to upload payment proof. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingPayment(false);
+    }
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'approved':
+      case 'completed':
+        return 'success';
+      case 'pending':
+      case 'draft':
+        return 'secondary';
+      case 'rejected':
+      case 'cancelled':
+        return 'destructive';
+      case 'in_production':
+      case 'processing':
+        return 'default';
+      case 'shipped':
+        return 'outline';
+      default:
+        return 'secondary';
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <HiblaLogo size="md" showText />
-              <span className="text-gray-300">|</span>
-              <span className="text-lg font-medium">Customer Portal</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                Welcome, {customerSession?.name}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="flex items-center space-x-2"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Logout</span>
-              </Button>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-cyan-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <HiblaLogo size="xl" showText />
           </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Account Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <User className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Customer Code</p>
-                  <p className="text-2xl font-bold">{customerSession?.customerCode}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Package className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Orders</p>
-                  <p className="text-2xl font-bold">{customerSession?.totalOrders || 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <DollarSign className="h-8 w-8 text-purple-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Spent</p>
-                  <p className="text-2xl font-bold">${customerSession?.totalSpent || '0.00'}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Badge
-                  className={customerSession?.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}
-                >
-                  {customerSession?.status}
-                </Badge>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Account Status</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            Customer Portal
+          </h1>
+          <p className="text-gray-600 dark:text-gray-300">
+            Manage your quotations, orders, and shipments
+          </p>
         </div>
 
-        {/* Main Content */}
-        <Tabs defaultValue="orders" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="orders" className="flex items-center space-x-2">
-              <Package className="h-4 w-4" />
-              <span>Orders</span>
-            </TabsTrigger>
-            <TabsTrigger value="quotations" className="flex items-center space-x-2">
-              <FileText className="h-4 w-4" />
-              <span>Quotations</span>
-            </TabsTrigger>
-            <TabsTrigger value="invoices" className="flex items-center space-x-2">
-              <CreditCard className="h-4 w-4" />
-              <span>Invoices</span>
-            </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center space-x-2">
-              <User className="h-4 w-4" />
-              <span>Profile</span>
-            </TabsTrigger>
-          </TabsList>
+        {loading && !quotation ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+          </div>
+        ) : (
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="grid w-full grid-cols-4 max-w-2xl mx-auto mb-8">
+              <TabsTrigger value="quotation" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Quotation
+              </TabsTrigger>
+              <TabsTrigger value="orders" className="flex items-center gap-2">
+                <Package className="h-4 w-4" />
+                Orders
+              </TabsTrigger>
+              <TabsTrigger value="payment" className="flex items-center gap-2">
+                <CreditCard className="h-4 w-4" />
+                Payment
+              </TabsTrigger>
+              <TabsTrigger value="shipping" className="flex items-center gap-2">
+                <Truck className="h-4 w-4" />
+                Shipping
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Orders Tab */}
-          <TabsContent value="orders">
-            <Card>
-              <CardHeader>
-                <CardTitle>My Orders</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {ordersLoading ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="h-20 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
-                    ))}
-                  </div>
-                ) : orders?.length > 0 ? (
-                  <div className="space-y-4">
-                    {orders.map((order: CustomerOrder) => (
-                      <div key={order.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h3 className="font-semibold">{order.orderNumber}</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              {new Date(order.createdAt).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold">${order.total}</p>
-                            <div className="flex space-x-2 mt-1">
-                              <Badge className={getStatusColor(order.status)}>
-                                {order.status}
-                              </Badge>
-                              <Badge className={getStatusColor(order.paymentStatus)}>
-                                {order.paymentStatus}
-                              </Badge>
-                            </div>
-                          </div>
+            {/* Quotation Tab */}
+            <TabsContent value="quotation">
+              {quotation ? (
+                <Card className="max-w-4xl mx-auto shadow-card">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="text-2xl">
+                          Quotation #{quotation.quotationNumber}
+                        </CardTitle>
+                        <CardDescription>
+                          Created on {format(new Date(quotation.createdAt), 'PPP')}
+                        </CardDescription>
+                      </div>
+                      <Badge variant={getStatusBadgeVariant(quotation.status)}>
+                        {quotation.status}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Customer Info */}
+                    <div className="mb-6">
+                      <h3 className="font-semibold mb-2">Customer Information</h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-500">Customer Code:</span>
+                          <span className="ml-2 font-medium">{quotation.customerCode}</span>
                         </div>
-                        
-                        {order.trackingNumber && (
-                          <div className="flex items-center space-x-2 mb-3">
-                            <Truck className="h-4 w-4 text-gray-600" />
-                            <span className="text-sm">Tracking: {order.trackingNumber}</span>
+                        <div>
+                          <span className="text-gray-500">Country:</span>
+                          <span className="ml-2 font-medium">{quotation.country}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Separator className="my-6" />
+
+                    {/* Items */}
+                    <div className="mb-6">
+                      <h3 className="font-semibold mb-4">Products</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left py-2">Product</th>
+                              <th className="text-left py-2">Specification</th>
+                              <th className="text-right py-2">Qty</th>
+                              <th className="text-right py-2">Unit Price</th>
+                              <th className="text-right py-2">Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {quotation.items?.map((item, index) => (
+                              <tr key={index} className="border-b">
+                                <td className="py-2">{item.productName}</td>
+                                <td className="py-2">{item.specification}</td>
+                                <td className="text-right py-2">{item.quantity}</td>
+                                <td className="text-right py-2">${item.unitPrice}</td>
+                                <td className="text-right py-2">${item.lineTotal}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <Separator className="my-6" />
+
+                    {/* Pricing Summary */}
+                    <div className="mb-6">
+                      <h3 className="font-semibold mb-4">Pricing Summary</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Subtotal:</span>
+                          <span className="font-medium">${quotation.subtotal}</span>
+                        </div>
+                        {quotation.shippingFee && (
+                          <div className="flex justify-between">
+                            <span>Shipping Fee:</span>
+                            <span className="font-medium">${quotation.shippingFee}</span>
                           </div>
                         )}
-
-                        <div className="space-y-2">
-                          {order.items?.map((item: OrderItem) => (
-                            <div key={item.id} className="flex justify-between text-sm">
-                              <span>{item.productName} × {item.quantity}</span>
-                              <span>${item.total}</span>
-                            </div>
-                          ))}
+                        {quotation.bankCharge && (
+                          <div className="flex justify-between">
+                            <span>Bank Charge:</span>
+                            <span className="font-medium">${quotation.bankCharge}</span>
+                          </div>
+                        )}
+                        {quotation.discount && (
+                          <div className="flex justify-between text-green-600">
+                            <span>Discount:</span>
+                            <span className="font-medium">-${quotation.discount}</span>
+                          </div>
+                        )}
+                        <Separator />
+                        <div className="flex justify-between text-lg font-bold">
+                          <span>Total:</span>
+                          <span>${quotation.total}</span>
                         </div>
+                      </div>
+                    </div>
 
-                        <div className="flex space-x-2 mt-4">
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </Button>
-                          {order.trackingNumber && (
-                            <Button size="sm" variant="outline">
-                              <Truck className="h-4 w-4 mr-2" />
-                              Track Package
-                            </Button>
+                    {/* Action Buttons */}
+                    {quotation.status === 'draft' || quotation.status === 'pending' ? (
+                      <div className="flex gap-4 justify-end">
+                        <Button
+                          variant="outline"
+                          onClick={handleRejectQuotation}
+                          disabled={loading}
+                        >
+                          <XCircle className="h-4 w-4 mr-2" />
+                          Reject
+                        </Button>
+                        <Button
+                          onClick={handleApproveQuotation}
+                          disabled={loading}
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                        >
+                          {loading ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <CheckCircle className="h-4 w-4 mr-2" />
                           )}
-                        </div>
+                          Approve Quotation
+                        </Button>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 dark:text-gray-400">No orders found</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Quotations Tab */}
-          <TabsContent value="quotations">
-            <Card>
-              <CardHeader>
-                <CardTitle>My Quotations</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {quotationsLoading ? (
-                  <div className="space-y-4">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="h-16 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
-                    ))}
-                  </div>
-                ) : quotations?.length > 0 ? (
-                  <div className="space-y-4">
-                    {quotations.map((quotation: Quotation) => (
-                      <div key={quotation.id} className="border rounded-lg p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-semibold">{quotation.quotationNumber}</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Created: {new Date(quotation.createdAt).toLocaleDateString()}
-                            </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Valid until: {new Date(quotation.validUntil).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold">${quotation.totalAmount}</p>
-                            <Badge className={getStatusColor(quotation.status)}>
-                              {quotation.status}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="flex space-x-2 mt-4">
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Download className="h-4 w-4 mr-2" />
-                            Download PDF
-                          </Button>
-                        </div>
+                    ) : (
+                      <div className="text-center text-gray-500">
+                        {quotation.status === 'approved' && (
+                          <p className="text-green-600 font-medium">
+                            ✓ This quotation has been approved
+                          </p>
+                        )}
+                        {quotation.status === 'rejected' && (
+                          <p className="text-red-600 font-medium">
+                            ✗ This quotation has been rejected
+                          </p>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
+                    )}
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="max-w-2xl mx-auto">
+                  <CardContent className="text-center py-12">
                     <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 dark:text-gray-400">No quotations found</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                    <p className="text-gray-500">No quotation selected</p>
+                    <p className="text-sm text-gray-400 mt-2">
+                      Access this page through the link in your email
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
 
-          {/* Invoices Tab */}
-          <TabsContent value="invoices">
-            <Card>
-              <CardHeader>
-                <CardTitle>My Invoices</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {invoicesLoading ? (
-                  <div className="space-y-4">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="h-16 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
-                    ))}
-                  </div>
-                ) : invoices?.length > 0 ? (
-                  <div className="space-y-4">
-                    {invoices.map((invoice: Invoice) => (
-                      <div key={invoice.id} className="border rounded-lg p-4">
+            {/* Orders Tab */}
+            <TabsContent value="orders">
+              <div className="max-w-4xl mx-auto space-y-4">
+                {orders.length > 0 ? (
+                  orders.map((order) => (
+                    <Card key={order.id} className="shadow-card">
+                      <CardHeader>
                         <div className="flex justify-between items-start">
                           <div>
-                            <h3 className="font-semibold">{invoice.invoiceNumber}</h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Date: {new Date(invoice.createdAt).toLocaleDateString()}
-                            </p>
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Due: {new Date(invoice.dueDate).toLocaleDateString()}
-                            </p>
+                            <CardTitle className="text-lg">
+                              Order #{order.salesOrderNumber}
+                            </CardTitle>
+                            <CardDescription>
+                              Created on {format(new Date(order.createdAt), 'PPP')}
+                            </CardDescription>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold">${invoice.totalAmount}</p>
-                            <Badge className={getStatusColor(invoice.status)}>
-                              {invoice.status}
-                            </Badge>
+                          <Badge variant={getStatusBadgeVariant(order.status)}>
+                            {order.status}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-500">Total Amount:</span>
+                            <p className="font-medium">${order.total}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Payment Status:</span>
+                            <p className="font-medium">{order.paymentStatus || 'Pending'}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Shipping Status:</span>
+                            <p className="font-medium">{order.shippingStatus || 'Not Shipped'}</p>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">Tracking:</span>
+                            <p className="font-medium">{order.trackingNumber || 'N/A'}</p>
                           </div>
                         </div>
-                        <div className="flex space-x-2 mt-4">
-                          <Button size="sm" variant="outline">
+                        <div className="mt-4 flex gap-2">
+                          <Button variant="outline" size="sm">
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
                           </Button>
-                          <Button size="sm" variant="outline">
-                            <Download className="h-4 w-4 mr-2" />
-                            Download PDF
-                          </Button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      </CardContent>
+                    </Card>
+                  ))
                 ) : (
-                  <div className="text-center py-8">
-                    <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 dark:text-gray-400">No invoices found</p>
-                  </div>
+                  <Card>
+                    <CardContent className="text-center py-12">
+                      <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">No orders found</p>
+                      <p className="text-sm text-gray-400 mt-2">
+                        Your orders will appear here once created
+                      </p>
+                    </CardContent>
+                  </Card>
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+            </TabsContent>
 
-          {/* Profile Tab */}
-          <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <User className="h-5 w-5 text-gray-600" />
-                      <div>
-                        <p className="font-medium">{customerSession?.name}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Full Name</p>
-                      </div>
+            {/* Payment Tab */}
+            <TabsContent value="payment">
+              <Card className="max-w-2xl mx-auto shadow-card">
+                <CardHeader>
+                  <CardTitle>Payment Information</CardTitle>
+                  <CardDescription>
+                    Upload payment proof for your orders
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {orders.filter(o => o.status === 'draft' || o.paymentStatus === 'pending').length > 0 ? (
+                    <div className="space-y-4">
+                      <p className="text-sm text-gray-600">
+                        Select an order and upload your payment proof:
+                      </p>
+                      {orders
+                        .filter(o => o.status === 'draft' || o.paymentStatus === 'pending')
+                        .map((order) => (
+                          <div key={order.id} className="border rounded-lg p-4">
+                            <div className="flex justify-between items-center mb-3">
+                              <div>
+                                <p className="font-medium">Order #{order.salesOrderNumber}</p>
+                                <p className="text-sm text-gray-500">Amount: ${order.total}</p>
+                              </div>
+                              <Badge variant="secondary">Payment Pending</Badge>
+                            </div>
+                            <div className="flex gap-2">
+                              <input
+                                type="file"
+                                accept="image/*,.pdf"
+                                className="hidden"
+                                id={`payment-${order.id}`}
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    handlePaymentProofUpload(order.id, file);
+                                  }
+                                }}
+                              />
+                              <label htmlFor={`payment-${order.id}`}>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={uploadingPayment}
+                                  asChild
+                                >
+                                  <span>
+                                    {uploadingPayment ? (
+                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    ) : (
+                                      <Upload className="h-4 w-4 mr-2" />
+                                    )}
+                                    Upload Payment Proof
+                                  </span>
+                                </Button>
+                              </label>
+                            </div>
+                          </div>
+                        ))}
                     </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <Mail className="h-5 w-5 text-gray-600" />
-                      <div>
-                        <p className="font-medium">{customerSession?.email}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Email Address</p>
-                      </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">No pending payments</p>
+                      <p className="text-sm text-gray-400 mt-2">
+                        Payment requirements will appear here when needed
+                      </p>
                     </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <Phone className="h-5 w-5 text-gray-600" />
-                      <div>
-                        <p className="font-medium">{customerSession?.phone || 'Not provided'}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Phone Number</p>
-                      </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Shipping Tab */}
+            <TabsContent value="shipping">
+              <Card className="max-w-2xl mx-auto shadow-card">
+                <CardHeader>
+                  <CardTitle>Shipping & Tracking</CardTitle>
+                  <CardDescription>
+                    Track your shipments and delivery status
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {orders.filter(o => o.shippingStatus === 'shipped' || o.trackingNumber).length > 0 ? (
+                    <div className="space-y-4">
+                      {orders
+                        .filter(o => o.shippingStatus === 'shipped' || o.trackingNumber)
+                        .map((order) => (
+                          <div key={order.id} className="border rounded-lg p-4">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <p className="font-medium">Order #{order.salesOrderNumber}</p>
+                                <p className="text-sm text-gray-500">
+                                  Tracking: {order.trackingNumber || 'Processing'}
+                                </p>
+                              </div>
+                              <Badge variant="outline">
+                                <Truck className="h-3 w-3 mr-1" />
+                                {order.shippingStatus || 'In Transit'}
+                              </Badge>
+                            </div>
+                            {order.trackingNumber && (
+                              <Button variant="outline" size="sm" className="w-full">
+                                Track Package
+                              </Button>
+                            )}
+                          </div>
+                        ))}
                     </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <MapPin className="h-5 w-5 text-gray-600" />
-                      <div>
-                        <p className="font-medium">{customerSession?.country}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Country</p>
-                      </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">No shipments yet</p>
+                      <p className="text-sm text-gray-400 mt-2">
+                        Tracking information will appear here once your order ships
+                      </p>
                     </div>
-                    
-                    <div className="flex items-center space-x-3">
-                      <Calendar className="h-5 w-5 text-gray-600" />
-                      <div>
-                        <p className="font-medium">
-                          {customerSession ? new Date().toLocaleDateString() : 'N/A'}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Member Since</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-6 pt-6 border-t">
-                  <Button variant="outline">
-                    Update Profile Information
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </div>
   );

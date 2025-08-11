@@ -26,7 +26,7 @@ import { InventoryInsightsPage } from '@/pages/InventoryInsightsPage';
 import Documentation from '@/pages/Documentation';
 import PaymentRecording from '@/pages/PaymentRecording';
 import EmailSettings from '@/pages/EmailSettings';
-import { CustomerPortal } from '@/pages/CustomerPortal';
+import CustomerPortal from '@/pages/CustomerPortal';
 import AdminPortal from '@/pages/AdminPortal';
 import PortalHub from '@/pages/PortalHub';
 import Landing from '@/pages/Landing';
