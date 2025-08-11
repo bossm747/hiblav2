@@ -47,6 +47,7 @@ const docSections: DocSection[] = [
     title: "Getting Started",
     items: [
       { title: "Overview", href: "/docs", icon: Home },
+      { title: "Project Status", href: "/docs/project-status", icon: BarChart3, badge: "New" },
       { title: "Quick Start Guide", href: "/docs/quick-start", icon: Zap },
       { title: "System Requirements", href: "/docs/requirements", icon: Settings },
       { title: "User Roles & Access", href: "/docs/roles", icon: Shield },

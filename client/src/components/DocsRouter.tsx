@@ -28,6 +28,7 @@ import Troubleshooting from '@/pages/docs/Troubleshooting';
 import ErrorCodes from '@/pages/docs/ErrorCodes';
 import Performance from '@/pages/docs/Performance';
 import Support from '@/pages/docs/Support';
+import ProjectStatus from '@/pages/docs/ProjectStatus';
 
 export default function DocsRouter() {
   return (
@@ -35,6 +36,7 @@ export default function DocsRouter() {
       <Switch>
         {/* Getting Started */}
         <Route path="/" component={DocsHome} />
+        <Route path="/project-status" component={ProjectStatus} />
         <Route path="/quick-start" component={QuickStartGuide} />
         <Route path="/requirements" component={SystemRequirements} />
         <Route path="/roles" component={UserRolesGuide} />

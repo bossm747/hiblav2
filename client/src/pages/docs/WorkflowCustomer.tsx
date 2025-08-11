@@ -345,7 +345,7 @@ export default function WorkflowCustomer() {
               <h4 className="font-medium mb-3">Relationship Health:</h4>
               <ul className="space-y-2 text-sm">
                 <li>• Customer satisfaction score: 90%+</li>
-                <li>• Response time to inquiries: <2 hours</li>
+                <li>• Response time to inquiries: &lt;2 hours</li>
                 <li>• Issue resolution rate: 95%+</li>
                 <li>• Communication frequency: Monthly minimum</li>
               </ul>

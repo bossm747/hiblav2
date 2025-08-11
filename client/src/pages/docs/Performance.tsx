@@ -35,11 +35,11 @@ export default function Performance() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">< 2s</div>
+              <div className="text-3xl font-bold text-green-600">&lt; 2s</div>
               <div className="text-sm text-muted-foreground">Page Load Time</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">< 500ms</div>
+              <div className="text-3xl font-bold text-blue-600">&lt; 500ms</div>
               <div className="text-sm text-muted-foreground">API Response</div>
             </div>
             <div className="text-center">
@@ -47,7 +47,7 @@ export default function Performance() {
               <div className="text-sm text-muted-foreground">Uptime</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600">< 100ms</div>
+              <div className="text-3xl font-bold text-orange-600">&lt; 100ms</div>
               <div className="text-sm text-muted-foreground">Database Query</div>
             </div>
           </div>
