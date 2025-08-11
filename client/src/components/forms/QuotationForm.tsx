@@ -266,10 +266,11 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
     if (product) {
       const priceListId = form.getValues('priceListId');
       
-      // Fetch price using VLOOKUP
+      // Fetch price using VLOOKUP with customer code
       try {
+        const customerCode = form.getValues('customerCode');
         const response = await fetch(
-          `/api/products/price-lookup?productId=${productId}&priceListId=${priceListId}`
+          `/api/vlookup/product-price?productId=${productId}&priceListId=${priceListId}&customerCode=${customerCode}`
         );
         if (response.ok) {
           const priceData = await response.json();
@@ -278,8 +279,9 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
             ...newItems[index],
             productId,
             productName: product.name,
-            unitPrice: priceData.price,
-            lineTotal: (parseFloat(priceData.price) * parseFloat(newItems[index].quantity)).toFixed(2),
+            unitPrice: priceData.priceListPrice,
+            lineTotal: (parseFloat(priceData.priceListPrice) * parseFloat(newItems[index].quantity)).toFixed(2),
+            specification: priceData.specification || newItems[index].specification,
           };
           setItems(newItems);
           form.setValue('items', newItems);
@@ -287,6 +289,18 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
         }
       } catch (error) {
         console.error('Failed to fetch price:', error);
+        // Fallback to base price from product
+        const newItems = [...items];
+        newItems[index] = {
+          ...newItems[index],
+          productId,
+          productName: product.name,
+          unitPrice: product.basePrice || product.srp || '0.00',
+          lineTotal: (parseFloat(product.basePrice || product.srp || '0') * parseFloat(newItems[index].quantity)).toFixed(2),
+        };
+        setItems(newItems);
+        form.setValue('items', newItems);
+        calculateTotals(newItems);
       }
     }
   };
