@@ -3400,6 +3400,87 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // Customer Portal - Get customer orders
+  app.get("/api/customer-portal/orders", async (req, res) => {
+    try {
+      // In production, this would use proper authentication
+      // For now, return all sales orders for demo
+      const salesOrders = await storage.getSalesOrders();
+      
+      // Transform sales orders to match the OrderDetails interface expected by Customer Portal
+      const orders = salesOrders.map(so => ({
+        id: so.id,
+        salesOrderNumber: so.salesOrderNumber,
+        status: so.status,
+        total: so.pleasePayThisAmountUsd,
+        paymentStatus: so.status === 'confirmed' ? 'paid' : 'pending',
+        shippingStatus: so.status === 'confirmed' ? 'processing' : 'not_shipped',
+        trackingNumber: null,
+        createdAt: so.createdAt
+      }));
+
+      res.json(orders);
+    } catch (error) {
+      console.error('Error fetching customer orders:', error);
+      res.status(500).json({ message: "Failed to fetch orders" });
+    }
+  });
+
+  // Payment Proof Upload endpoint
+  app.post("/api/payment-proofs", upload.single('file'), async (req, res) => {
+    try {
+      const { orderId, paymentMethod, amount, referenceNumber } = req.body;
+      
+      if (!orderId || !paymentMethod || !amount) {
+        return res.status(400).json({ message: "Order ID, payment method, and amount are required" });
+      }
+
+      let proofImageUrl = null;
+      if (req.file) {
+        // In production, upload to cloud storage
+        // For now, store local path
+        proofImageUrl = `/uploads/${req.file.filename}`;
+      }
+
+      // Create payment proof record
+      const paymentProof = await storage.createPaymentProof({
+        orderId,
+        customerId: req.body.customerId || 'temp-customer-id', // In production, get from auth
+        paymentMethod,
+        referenceNumber,
+        amount: parseFloat(amount),
+        proofImageUrl,
+        customerNotes: req.body.notes,
+        status: 'pending'
+      });
+
+      // Send notification email to admin
+      try {
+        const { sendPaymentProofNotification } = await import('./email-service');
+        await sendPaymentProofNotification({
+          orderId,
+          amount,
+          paymentMethod,
+          referenceNumber: referenceNumber || 'N/A',
+          adminEmail: 'admin@hibla.com' // Configure admin email
+        });
+      } catch (emailError) {
+        console.error('Failed to send payment notification:', emailError);
+      }
+
+      res.json({ 
+        message: "Payment proof uploaded successfully",
+        paymentProof
+      });
+    } catch (error) {
+      console.error('Error uploading payment proof:', error);
+      res.status(500).json({ 
+        message: "Failed to upload payment proof",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Duplicate Quotation
   app.post("/api/quotations/:id/duplicate", async (req, res) => {
     try {

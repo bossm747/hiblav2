@@ -31,7 +31,8 @@ import {
   stylistReviews,
   payments,
   invoices,
-  emailSettings
+  emailSettings,
+  paymentProofs
 } from "@shared/schema";
 
 import type {
@@ -1800,18 +1801,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPaymentProofs(): Promise<any[]> {
-    // Placeholder implementation
-    return [];
+    try {
+      return await db.select().from(paymentProofs).orderBy(desc(paymentProofs.createdAt));
+    } catch (error) {
+      console.error('Error fetching payment proofs:', error);
+      return [];
+    }
   }
 
   async updatePaymentProofStatus(id: string, status: string): Promise<any> {
-    // Placeholder implementation
-    return { id, status };
+    try {
+      const [updated] = await db
+        .update(paymentProofs)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(paymentProofs.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Error updating payment proof status:', error);
+      return { id, status };
+    }
   }
 
   async createPaymentProof(proof: any): Promise<any> {
-    // Placeholder implementation
-    return proof;
+    try {
+      const [paymentProof] = await db.insert(paymentProofs).values(proof).returning();
+      return paymentProof;
+    } catch (error) {
+      console.error('Error creating payment proof:', error);
+      throw new Error('Failed to create payment proof');
+    }
   }
 
   async getActivePaymentMethods(): Promise<any[]> {

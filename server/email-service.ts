@@ -405,3 +405,62 @@ Hibla Filipino Hair Team
     html,
   });
 }
+
+interface PaymentProofNotificationData {
+  orderId: string;
+  amount: string;
+  paymentMethod: string;
+  referenceNumber: string;
+  adminEmail: string;
+}
+
+export async function sendPaymentProofNotification(data: PaymentProofNotificationData): Promise<boolean> {
+  const subject = 'New Payment Proof Uploaded - Action Required';
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #8b5cf6;">Payment Proof Received</h2>
+      
+      <p>A customer has uploaded payment proof for verification:</p>
+      
+      <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="margin-top: 0; color: #475569;">Payment Details</h3>
+        <p><strong>Order ID:</strong> ${data.orderId}</p>
+        <p><strong>Amount:</strong> $${data.amount}</p>
+        <p><strong>Payment Method:</strong> ${data.paymentMethod}</p>
+        <p><strong>Reference Number:</strong> ${data.referenceNumber}</p>
+      </div>
+      
+      <p style="background-color: #fef3c7; padding: 15px; border-radius: 8px;">
+        <strong>Action Required:</strong> Please verify this payment proof and update the order status accordingly.
+      </p>
+      
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 14px;">Hibla Filipino Hair - Manufacturing System</p>
+      </div>
+    </div>
+  `;
+  
+  const text = `
+Payment Proof Received
+
+A customer has uploaded payment proof for verification:
+
+Order ID: ${data.orderId}
+Amount: $${data.amount}
+Payment Method: ${data.paymentMethod}
+Reference Number: ${data.referenceNumber}
+
+Action Required: Please verify this payment proof and update the order status accordingly.
+
+Hibla Filipino Hair Team
+  `.trim();
+
+  return sendEmail({
+    to: data.adminEmail,
+    from: 'noreply@hibla.com',
+    subject,
+    text,
+    html,
+  });
+}
