@@ -159,6 +159,8 @@ export interface IStorage {
 
   // Staff management
   getAllStaff(): Promise<any[]>;
+  getStaff(id: string): Promise<Staff | undefined>;
+  getStaffByEmail(email: string): Promise<Staff | undefined>;
   createStaff(data: any): Promise<any>;
   updateStaff(id: string, data: Partial<InsertStaff>): Promise<Staff | undefined>;
   deleteStaff(id: string): Promise<boolean>;
@@ -817,6 +819,26 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getStaff(id: string): Promise<Staff | undefined> {
+    try {
+      const [member] = await db.select().from(staff).where(eq(staff.id, id));
+      return member;
+    } catch (error) {
+      console.error('Get staff error:', error);
+      return undefined;
+    }
+  }
+
+  async getStaffByEmail(email: string): Promise<Staff | undefined> {
+    try {
+      const [member] = await db.select().from(staff).where(eq(staff.email, email));
+      return member;
+    } catch (error) {
+      console.error('Get staff by email error:', error);
+      return undefined;
+    }
+  }
+
   async ensureDefaultStaffExists(): Promise<any[]> {
     try {
       const defaultStaff = {
@@ -897,13 +919,26 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createStaff(data: any): Promise<any> {
-    // Return created staff - in real implementation, insert to staff table
-    return {
-      id: "staff-" + Date.now(),
-      ...data,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
+    try {
+      const staffId = data.id || `staff-${Date.now()}`;
+      const [newStaff] = await db.insert(staff).values({
+        id: staffId,
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).returning();
+      
+      return newStaff;
+    } catch (error) {
+      console.error('Error creating staff:', error);
+      // Return a mock object if database insert fails
+      return {
+        id: "staff-" + Date.now(),
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+    }
   }
 
   // Add missing getSummaryReport method

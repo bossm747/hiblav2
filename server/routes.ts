@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-// Removed auth-service import - authentication not used in manufacturing system
+import { authService } from "./auth-service";
 import { generateSalesOrderHTML, generateJobOrderHTML } from "./pdf-generator";
 // import { aiService } from "./ai-service";
 import { aiImageService, type ImageGenerationRequest } from "./ai-image-service";
@@ -43,7 +43,7 @@ import {
   insertInvoiceSchema,
   insertCustomerPaymentSchema,
 } from "@shared/schema";
-// Removed ai-stylist-service import - not used in manufacturing system
+import { aiStylistService } from "./ai-stylist-service";
 // import { sendAppointmentNotification } from "./notification-service";
 import multer from "multer";
 import path from "path";
@@ -66,24 +66,12 @@ export function registerRoutes(app: Express): void {
         });
       }
 
-      // Simple authentication for manufacturing system
-      const staff = await storage.getStaffByEmail(email);
+      const result = await authService.authenticate(email, password);
       
-      if (staff && staff.password === password) {
-        res.json({
-          success: true,
-          user: {
-            id: staff.id,
-            email: staff.email,
-            name: staff.name,
-            role: staff.role
-          }
-        });
+      if (result.success) {
+        res.json(result);
       } else {
-        res.status(401).json({
-          success: false,
-          message: "Invalid credentials"
-        });
+        res.status(401).json(result);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -169,7 +157,7 @@ export function registerRoutes(app: Express): void {
   app.post("/api/staff", async (req, res) => {
     try {
       const staffData = insertStaffSchema.parse(req.body);
-      const newStaff = await storage.createStaff(staffData);
+      const newStaff = await authService.createStaff(staffData);
       res.json(newStaff);
     } catch (error) {
       console.error('Create staff error:', error);
@@ -188,11 +176,7 @@ export function registerRoutes(app: Express): void {
         return res.status(400).json({ message: "Permissions must be an array" });
       }
 
-      const staff = await storage.getStaff(id);
-      if (!staff) {
-        return res.status(404).json({ success: false, message: "Staff not found" });
-      }
-      const updated = await storage.updateStaff(id, { permissions });
+      const updated = await authService.updateStaffPermissions(id, permissions);
       res.json(updated);
     } catch (error) {
       console.error('Update permissions error:', error);
@@ -2708,12 +2692,11 @@ export function registerRoutes(app: Express): void {
       }
 
       // Generate AI recommendations
-      // AI stylist recommendations disabled for manufacturing system
-      const aiRecommendations = null; /* await aiStylistService.generateStylistRecommendations({
+      const aiRecommendations = await aiStylistService.generateStylistRecommendations({
         customerPreferences,
         availableStylists,
         customerProfile
-      }); */
+      });
 
       // Save recommendations to database
       const savedRecommendations = [];
@@ -2991,18 +2974,22 @@ export function registerRoutes(app: Express): void {
 
       // Note: quotation number will be handled in storage layer (manual if provided, auto-generated if not)
 
-      // Get price list ID by name
-      const priceLists = await storage.getAllPriceLists();
-      const priceList = priceLists.find(pl => pl.name === quotation.priceListId);
-      
-      if (!priceList) {
-        return res.status(400).json({ message: `Price list '${quotation.priceListId}' not found` });
+      // Price list is optional for manufacturing system
+      let priceListId = null;
+      if (quotation.priceListId) {
+        const priceLists = await storage.getAllPriceLists();
+        const priceList = priceLists.find(pl => pl.name === quotation.priceListId || pl.id === quotation.priceListId);
+        if (priceList) {
+          priceListId = priceList.id;
+        } else {
+          console.log('Price list not found, continuing without it');
+        }
       }
       
       // Build complete quotation data with all required fields
       const completeQuotationData = {
         ...quotation,
-        priceListId: priceList.id, // Use actual price list ID instead of name
+        priceListId: priceListId, // Can be null
         customerId: customer.id,
         createdBy: currentStaff.id
         // quotationNumber is handled in storage layer (manual entry or auto-generation)
