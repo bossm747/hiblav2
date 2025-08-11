@@ -42,8 +42,8 @@ function App() {
             <Router>
               <Switch>
                 {/* Documentation Routes - Outside of AppLayout */}
-                <Route path="/docs" nest>
-                  <DocsRouter />
+                <Route path="/docs/:rest*">
+                  {(params) => <DocsRouter />}
                 </Route>
                 
                 {/* Main App Routes - Inside AppLayout */}

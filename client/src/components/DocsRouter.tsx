@@ -35,44 +35,44 @@ export default function DocsRouter() {
     <DocsLayout>
       <Switch>
         {/* Getting Started */}
-        <Route path="/" component={DocsHome} />
-        <Route path="/project-status" component={ProjectStatus} />
-        <Route path="/quick-start" component={QuickStartGuide} />
-        <Route path="/requirements" component={SystemRequirements} />
-        <Route path="/roles" component={UserRolesGuide} />
+        <Route path="/docs" component={DocsHome} />
+        <Route path="/docs/project-status" component={ProjectStatus} />
+        <Route path="/docs/quick-start" component={QuickStartGuide} />
+        <Route path="/docs/requirements" component={SystemRequirements} />
+        <Route path="/docs/roles" component={UserRolesGuide} />
         
         {/* Core Modules */}
-        <Route path="/dashboard" component={DashboardGuide} />
-        <Route path="/quotations" component={QuotationGuide} />
-        <Route path="/sales-orders" component={SalesOrderGuide} />
-        <Route path="/job-orders" component={JobOrderGuide} />
-        <Route path="/inventory" component={InventoryGuide} />
-        <Route path="/customers" component={CustomerGuide} />
+        <Route path="/docs/dashboard" component={DashboardGuide} />
+        <Route path="/docs/quotations" component={QuotationGuide} />
+        <Route path="/docs/sales-orders" component={SalesOrderGuide} />
+        <Route path="/docs/job-orders" component={JobOrderGuide} />
+        <Route path="/docs/inventory" component={InventoryGuide} />
+        <Route path="/docs/customers" component={CustomerGuide} />
         
         {/* Advanced Features */}
-        <Route path="/pricing" component={PricingGuide} />
-        <Route path="/ai-insights" component={AIInsightsGuide} />
-        <Route path="/warehouses" component={WarehouseGuide} />
-        <Route path="/reports" component={ReportsGuide} />
-        <Route path="/staff-management" component={StaffManagementGuide} />
+        <Route path="/docs/pricing" component={PricingGuide} />
+        <Route path="/docs/ai-insights" component={AIInsightsGuide} />
+        <Route path="/docs/warehouses" component={WarehouseGuide} />
+        <Route path="/docs/reports" component={ReportsGuide} />
+        <Route path="/docs/staff-management" component={StaffManagementGuide} />
         
         {/* Workflows */}
-        <Route path="/workflow-quotation" component={WorkflowQuotation} />
-        <Route path="/workflow-production" component={WorkflowProduction} />
-        <Route path="/workflow-inventory" component={WorkflowInventory} />
-        <Route path="/workflow-customer" component={WorkflowCustomer} />
+        <Route path="/docs/workflow-quotation" component={WorkflowQuotation} />
+        <Route path="/docs/workflow-production" component={WorkflowProduction} />
+        <Route path="/docs/workflow-inventory" component={WorkflowInventory} />
+        <Route path="/docs/workflow-customer" component={WorkflowCustomer} />
         
         {/* API Documentation */}
-        <Route path="/api" component={APIOverview} />
-        <Route path="/api-auth" component={APIAuth} />
-        <Route path="/api-endpoints" component={APIEndpoints} />
-        <Route path="/api-integration" component={APIIntegration} />
+        <Route path="/docs/api" component={APIOverview} />
+        <Route path="/docs/api-auth" component={APIAuth} />
+        <Route path="/docs/api-endpoints" component={APIEndpoints} />
+        <Route path="/docs/api-integration" component={APIIntegration} />
         
         {/* Troubleshooting */}
-        <Route path="/troubleshooting" component={Troubleshooting} />
-        <Route path="/error-codes" component={ErrorCodes} />
-        <Route path="/performance" component={Performance} />
-        <Route path="/support" component={Support} />
+        <Route path="/docs/troubleshooting" component={Troubleshooting} />
+        <Route path="/docs/error-codes" component={ErrorCodes} />
+        <Route path="/docs/performance" component={Performance} />
+        <Route path="/docs/support" component={Support} />
       </Switch>
     </DocsLayout>
   );
