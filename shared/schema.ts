@@ -125,7 +125,7 @@ export const quotations = pgTable("quotations", {
   customerId: varchar("customer_id").references(() => customers.id).notNull(),
   customerCode: text("customer_code").notNull(),
   country: text("country").notNull(),
-  priceListId: varchar("price_list_id").references(() => priceLists.id).notNull(),
+  priceListId: varchar("price_list_id").references(() => priceLists.id),
   subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
   shippingFee: decimal("shipping_fee", { precision: 12, scale: 2 }).default("0"),
   bankCharge: decimal("bank_charge", { precision: 12, scale: 2 }).default("0"),
