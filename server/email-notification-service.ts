@@ -57,7 +57,7 @@ export class EmailNotificationService {
           from: settings.fromEmail || settings.smtpUsername || '',
         };
 
-        this.transporter = nodemailer.createTransporter(this.config);
+        this.transporter = nodemailer.createTransport(this.config);
         
         // Verify configuration
         await this.verifyConnection();
@@ -633,16 +633,7 @@ export class EmailNotificationService {
 
   async testEmailConnection(recipientEmail: string): Promise<boolean> {
     try {
-      await this.sendEmail(
-        recipientEmail,
-        'Test Email - Hibla Filipino Hair',
-        `
-          <h2>Test Email Successful</h2>
-          <p>This is a test email from your Hibla Filipino Hair system.</p>
-          <p>Your email configuration is working correctly!</p>
-        `
-      );
-      return true;
+      return await this.sendTestEmail(recipientEmail);
     } catch (error) {
       console.error('Test email failed:', error);
       return false;
