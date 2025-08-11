@@ -4091,6 +4091,167 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // ============ CUSTOMER PORTAL ROUTES ============
+  
+  // Customer portal authentication
+  app.post('/api/customer-portal/login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      const { customerPortalService } = await import('./customer-portal-service');
+      
+      const customer = await customerPortalService.authenticateCustomer(email, password);
+      if (!customer) {
+        return res.status(401).json({ message: 'Invalid email or password' });
+      }
+      
+      res.json(customer);
+    } catch (error) {
+      console.error('Error in customer login:', error);
+      res.status(500).json({ message: 'Login failed' });
+    }
+  });
+
+  // Get customer orders
+  app.get('/api/customer-portal/orders', async (req, res) => {
+    try {
+      const { customerId } = req.query;
+      if (!customerId) {
+        return res.status(400).json({ message: 'Customer ID required' });
+      }
+      
+      const { customerPortalService } = await import('./customer-portal-service');
+      const orders = await customerPortalService.getCustomerOrders(customerId as string);
+      res.json(orders);
+    } catch (error) {
+      console.error('Error fetching customer orders:', error);
+      res.status(500).json({ message: 'Failed to fetch orders' });
+    }
+  });
+
+  // Get customer quotations
+  app.get('/api/customer-portal/quotations', async (req, res) => {
+    try {
+      const { customerId } = req.query;
+      if (!customerId) {
+        return res.status(400).json({ message: 'Customer ID required' });
+      }
+      
+      const { customerPortalService } = await import('./customer-portal-service');
+      const quotations = await customerPortalService.getCustomerQuotations(customerId as string);
+      res.json(quotations);
+    } catch (error) {
+      console.error('Error fetching customer quotations:', error);
+      res.status(500).json({ message: 'Failed to fetch quotations' });
+    }
+  });
+
+  // Get customer invoices
+  app.get('/api/customer-portal/invoices', async (req, res) => {
+    try {
+      const { customerId } = req.query;
+      if (!customerId) {
+        return res.status(400).json({ message: 'Customer ID required' });
+      }
+      
+      const { customerPortalService } = await import('./customer-portal-service');
+      const invoices = await customerPortalService.getCustomerInvoices(customerId as string);
+      res.json(invoices);
+    } catch (error) {
+      console.error('Error fetching customer invoices:', error);
+      res.status(500).json({ message: 'Failed to fetch invoices' });
+    }
+  });
+
+  // Get specific order details
+  app.get('/api/customer-portal/orders/:orderId', async (req, res) => {
+    try {
+      const { customerId } = req.query;
+      if (!customerId) {
+        return res.status(400).json({ message: 'Customer ID required' });
+      }
+      
+      const { customerPortalService } = await import('./customer-portal-service');
+      const order = await customerPortalService.getOrderDetails(customerId as string, req.params.orderId);
+      
+      if (!order) {
+        return res.status(404).json({ message: 'Order not found' });
+      }
+      
+      res.json(order);
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+      res.status(500).json({ message: 'Failed to fetch order details' });
+    }
+  });
+
+  // Get specific quotation details
+  app.get('/api/customer-portal/quotations/:quotationId', async (req, res) => {
+    try {
+      const { customerId } = req.query;
+      if (!customerId) {
+        return res.status(400).json({ message: 'Customer ID required' });
+      }
+      
+      const { customerPortalService } = await import('./customer-portal-service');
+      const quotation = await customerPortalService.getQuotationDetails(customerId as string, req.params.quotationId);
+      
+      if (!quotation) {
+        return res.status(404).json({ message: 'Quotation not found' });
+      }
+      
+      res.json(quotation);
+    } catch (error) {
+      console.error('Error fetching quotation details:', error);
+      res.status(500).json({ message: 'Failed to fetch quotation details' });
+    }
+  });
+
+  // Update customer profile
+  app.put('/api/customer-portal/profile', async (req, res) => {
+    try {
+      const { customerId, ...updates } = req.body;
+      if (!customerId) {
+        return res.status(400).json({ message: 'Customer ID required' });
+      }
+      
+      const { customerPortalService } = await import('./customer-portal-service');
+      const updatedCustomer = await customerPortalService.updateCustomerProfile(customerId, updates);
+      res.json(updatedCustomer);
+    } catch (error) {
+      console.error('Error updating customer profile:', error);
+      res.status(500).json({ message: 'Failed to update profile' });
+    }
+  });
+
+  // Change customer password
+  app.post('/api/customer-portal/change-password', async (req, res) => {
+    try {
+      const { customerId, currentPassword, newPassword } = req.body;
+      if (!customerId || !currentPassword || !newPassword) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+      
+      const { customerPortalService } = await import('./customer-portal-service');
+      await customerPortalService.changeCustomerPassword(customerId, currentPassword, newPassword);
+      res.json({ message: 'Password changed successfully' });
+    } catch (error) {
+      console.error('Error changing customer password:', error);
+      res.status(500).json({ message: error instanceof Error ? error.message : 'Failed to change password' });
+    }
+  });
+
+  // Get customer dashboard stats
+  app.get('/api/customer-portal/dashboard/:customerId', async (req, res) => {
+    try {
+      const { customerPortalService } = await import('./customer-portal-service');
+      const stats = await customerPortalService.getCustomerDashboardStats(req.params.customerId);
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching customer dashboard stats:', error);
+      res.status(500).json({ message: 'Failed to fetch dashboard stats' });
+    }
+  });
+
   // ============ LOYALTY SYSTEM ROUTES ============
 
   // Loyalty Points routes
