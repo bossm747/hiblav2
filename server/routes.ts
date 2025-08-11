@@ -1,7 +1,7 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { authService } from "./auth-service";
+// Removed auth-service import - authentication not used in manufacturing system
 import { generateSalesOrderHTML, generateJobOrderHTML } from "./pdf-generator";
 // import { aiService } from "./ai-service";
 import { aiImageService, type ImageGenerationRequest } from "./ai-image-service";
@@ -43,7 +43,7 @@ import {
   insertInvoiceSchema,
   insertCustomerPaymentSchema,
 } from "@shared/schema";
-import { aiStylistService } from "./ai-stylist-service";
+// Removed ai-stylist-service import - not used in manufacturing system
 // import { sendAppointmentNotification } from "./notification-service";
 import multer from "multer";
 import path from "path";
@@ -66,12 +66,24 @@ export function registerRoutes(app: Express): void {
         });
       }
 
-      const result = await authService.authenticate(email, password);
+      // Simple authentication for manufacturing system
+      const staff = await storage.getStaffByEmail(email);
       
-      if (result.success) {
-        res.json(result);
+      if (staff && staff.password === password) {
+        res.json({
+          success: true,
+          user: {
+            id: staff.id,
+            email: staff.email,
+            name: staff.name,
+            role: staff.role
+          }
+        });
       } else {
-        res.status(401).json(result);
+        res.status(401).json({
+          success: false,
+          message: "Invalid credentials"
+        });
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -157,7 +169,7 @@ export function registerRoutes(app: Express): void {
   app.post("/api/staff", async (req, res) => {
     try {
       const staffData = insertStaffSchema.parse(req.body);
-      const newStaff = await authService.createStaff(staffData);
+      const newStaff = await storage.createStaff(staffData);
       res.json(newStaff);
     } catch (error) {
       console.error('Create staff error:', error);
@@ -176,7 +188,11 @@ export function registerRoutes(app: Express): void {
         return res.status(400).json({ message: "Permissions must be an array" });
       }
 
-      const updated = await authService.updateStaffPermissions(id, permissions);
+      const staff = await storage.getStaff(id);
+      if (!staff) {
+        return res.status(404).json({ success: false, message: "Staff not found" });
+      }
+      const updated = await storage.updateStaff(id, { permissions });
       res.json(updated);
     } catch (error) {
       console.error('Update permissions error:', error);
@@ -2692,11 +2708,12 @@ export function registerRoutes(app: Express): void {
       }
 
       // Generate AI recommendations
-      const aiRecommendations = await aiStylistService.generateStylistRecommendations({
+      // AI stylist recommendations disabled for manufacturing system
+      const aiRecommendations = null; /* await aiStylistService.generateStylistRecommendations({
         customerPreferences,
         availableStylists,
         customerProfile
-      });
+      }); */
 
       // Save recommendations to database
       const savedRecommendations = [];
