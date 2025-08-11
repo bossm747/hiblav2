@@ -577,6 +577,27 @@ export const rewardRedemptions = pgTable("reward_redemptions", {
 });
 
 // Shop Settings
+// Payment Schema
+export const payments = pgTable("payments", {
+  id: varchar("id").primaryKey().$default(() => crypto.randomUUID()),
+  invoiceId: varchar("invoice_id").references(() => invoices.id).notNull(),
+  salesOrderId: varchar("sales_order_id").references(() => salesOrders.id),
+  customerCode: varchar("customer_code").notNull(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(), // Amount paid
+  paymentMethod: varchar("payment_method").notNull(), // cash, check, wire, card
+  paymentDate: timestamp("payment_date").notNull(),
+  referenceNumber: varchar("reference_number"), // Check number, wire ref, transaction ID
+  notes: text("notes"),
+  status: varchar("status").default("completed"), // pending, completed, failed, refunded
+  createdBy: varchar("created_by").references(() => staff.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertPaymentSchema = createInsertSchema(payments);
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+export type Payment = typeof payments.$inferSelect;
+
 export const shopSettings = pgTable("shop_settings", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   shopName: text("shop_name").notNull().default("Hibla Filipino Hair"),

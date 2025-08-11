@@ -22,7 +22,8 @@ import {
   Zap,
   FileBarChart,
   UserCheck,
-  Users
+  Users,
+  Receipt
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -40,6 +41,7 @@ const navigationItems = [
   { path: '/inventory-insights', label: 'AI Insights', icon: Zap },
   { path: '/summary-reports', label: 'Reports', icon: FileBarChart },
   { path: '/price-management', label: 'Price Management', icon: DollarSign },
+  { path: '/payment-recording', label: 'Payment Recording', icon: Receipt },
   { path: '/customer-management', label: 'Customers', icon: Users },
   { path: '/staff-management', label: 'Staff', icon: UserCheck },
 ];

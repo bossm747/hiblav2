@@ -21,6 +21,7 @@ import { ProductsManagementPage } from '@/pages/ProductsManagementPage';
 import WarehouseManagementPage from '@/pages/WarehouseManagementPage';
 import { InventoryInsightsPage } from '@/pages/InventoryInsightsPage';
 import Documentation from '@/pages/Documentation';
+import PaymentRecording from '@/pages/PaymentRecording';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
               <Route path="/customer-management" component={CustomerManagementPage} />
               <Route path="/staff-management" component={StaffManagementPage} />
               <Route path="/price-management" component={PriceManagementPage} />
+              <Route path="/payment-recording" component={PaymentRecording} />
               <Route path="/summary-reports" component={ReportsPage} />
               <Route path="/documentation" component={Documentation} />
             </Switch>

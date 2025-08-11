@@ -3934,6 +3934,107 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // ============ PAYMENT RECORDING SYSTEM ROUTES ============
+  
+  // Record a new payment
+  app.post('/api/payments/record', async (req, res) => {
+    try {
+      const payment = await storage.recordPayment(req.body);
+      res.json(payment);
+    } catch (error) {
+      console.error('Error recording payment:', error);
+      res.status(500).json({ error: 'Failed to record payment' });
+    }
+  });
+
+  // Get payments for an invoice
+  app.get('/api/payments/invoice/:invoiceId', async (req, res) => {
+    try {
+      const payments = await storage.getInvoicePayments(req.params.invoiceId);
+      res.json(payments);
+    } catch (error) {
+      console.error('Error fetching invoice payments:', error);
+      res.status(500).json({ error: 'Failed to fetch invoice payments' });
+    }
+  });
+
+  // Get payments for a customer
+  app.get('/api/payments/customer/:customerCode', async (req, res) => {
+    try {
+      const payments = await storage.getCustomerPayments(req.params.customerCode);
+      res.json(payments);
+    } catch (error) {
+      console.error('Error fetching customer payments:', error);
+      res.status(500).json({ error: 'Failed to fetch customer payments' });
+    }
+  });
+
+  // Get a single payment
+  app.get('/api/payments/:id', async (req, res) => {
+    try {
+      const payment = await storage.getPayment(req.params.id);
+      if (!payment) {
+        return res.status(404).json({ error: 'Payment not found' });
+      }
+      res.json(payment);
+    } catch (error) {
+      console.error('Error fetching payment:', error);
+      res.status(500).json({ error: 'Failed to fetch payment' });
+    }
+  });
+
+  // Update payment status
+  app.patch('/api/payments/:id/status', async (req, res) => {
+    try {
+      const { status } = req.body;
+      const payment = await storage.updatePaymentStatus(req.params.id, status);
+      if (!payment) {
+        return res.status(404).json({ error: 'Payment not found' });
+      }
+      res.json(payment);
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      res.status(500).json({ error: 'Failed to update payment status' });
+    }
+  });
+
+  // Process refund
+  app.post('/api/payments/:id/refund', async (req, res) => {
+    try {
+      const { amount, notes } = req.body;
+      const refund = await storage.processRefund(req.params.id, amount, notes);
+      res.json(refund);
+    } catch (error) {
+      console.error('Error processing refund:', error);
+      res.status(500).json({ error: 'Failed to process refund' });
+    }
+  });
+
+  // Get all invoices
+  app.get('/api/invoices', async (req, res) => {
+    try {
+      const invoices = await storage.getInvoices();
+      res.json(invoices);
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      res.status(500).json({ error: 'Failed to fetch invoices' });
+    }
+  });
+
+  // Get single invoice
+  app.get('/api/invoices/:id', async (req, res) => {
+    try {
+      const invoice = await storage.getInvoice(req.params.id);
+      if (!invoice) {
+        return res.status(404).json({ error: 'Invoice not found' });
+      }
+      res.json(invoice);
+    } catch (error) {
+      console.error('Error fetching invoice:', error);
+      res.status(500).json({ error: 'Failed to fetch invoice' });
+    }
+  });
+
   // ============ LOYALTY SYSTEM ROUTES ============
 
   // Loyalty Points routes

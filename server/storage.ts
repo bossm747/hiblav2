@@ -28,7 +28,9 @@ import {
   stylists,
   customerPreferences,
   stylistRecommendations,
-  stylistReviews
+  stylistReviews,
+  payments,
+  invoices
 } from "@shared/schema";
 
 import type {
@@ -85,7 +87,11 @@ import type {
   StylistRecommendation,
   InsertStylistRecommendation,
   StylistReview,
-  InsertStylistReview
+  InsertStylistReview,
+  Payment,
+  InsertPayment,
+  Invoice,
+  InsertInvoice
 } from "@shared/schema";
 
 export interface IStorage {
@@ -288,6 +294,20 @@ export interface IStorage {
     customerCode?: string;
     orderItems?: string;
   }): Promise<any>;
+  
+  // Payment methods
+  recordPayment(payment: InsertPayment): Promise<Payment>;
+  getInvoicePayments(invoiceId: string): Promise<Payment[]>;
+  getCustomerPayments(customerCode: string): Promise<Payment[]>;
+  getPayment(paymentId: string): Promise<Payment | undefined>;
+  updatePaymentStatus(paymentId: string, status: string): Promise<Payment | undefined>;
+  processRefund(paymentId: string, refundAmount: number, notes: string): Promise<Payment>;
+  
+  // Invoice methods
+  getInvoices(): Promise<Invoice[]>;
+  getInvoice(id: string): Promise<Invoice | undefined>;
+  getInvoiceByNumber(invoiceNumber: string): Promise<Invoice | undefined>;
+  updateInvoicePaymentStatus(invoiceId: string, status: string, paidAmount: string): Promise<Invoice | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1088,6 +1108,32 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async bulkUpdateProductPrices(data: any): Promise<number> {
+    try {
+      let updatedCount = 0;
+      
+      // Handle bulk price updates
+      if (data.updates && Array.isArray(data.updates)) {
+        for (const update of data.updates) {
+          const { productId, price } = update;
+          if (productId && price) {
+            await db
+              .update(products)
+              .set({ srp: price.toString() })
+              .where(eq(products.id, productId));
+            updatedCount++;
+          }
+        }
+      }
+      
+      console.log(`Bulk updated prices for ${updatedCount} products`);
+      return updatedCount;
+    } catch (error) {
+      console.error('Error bulk updating product prices:', error);
+      throw new Error('Failed to bulk update product prices');
+    }
+  }
+
   async createPriceList(data: any): Promise<any> {
     try {
       const [priceList] = await db
@@ -1810,6 +1856,200 @@ export class DatabaseStorage implements IStorage {
   async checkAndUnlockAchievements(customerId: string): Promise<any[]> {
     // Placeholder implementation
     return [];
+  }
+
+  // Payment methods implementation
+  async recordPayment(paymentData: InsertPayment): Promise<Payment> {
+    try {
+      const [payment] = await db.insert(payments).values(paymentData).returning();
+      
+      // Update invoice payment status
+      if (paymentData.invoiceId) {
+        const [invoice] = await db
+          .select()
+          .from(invoices)
+          .where(eq(invoices.id, paymentData.invoiceId));
+        
+        if (invoice) {
+          const currentPaid = parseFloat(invoice.paidAmount?.toString() || '0');
+          const paymentAmount = parseFloat(paymentData.amount.toString());
+          const totalAmount = parseFloat(invoice.total.toString());
+          const newPaidAmount = currentPaid + paymentAmount;
+          
+          let paymentStatus = 'pending';
+          if (newPaidAmount >= totalAmount) {
+            paymentStatus = 'paid';
+          } else if (newPaidAmount > 0) {
+            paymentStatus = 'partial';
+          }
+          
+          await db
+            .update(invoices)
+            .set({
+              paidAmount: newPaidAmount.toString(),
+              paymentStatus,
+              paidAt: paymentStatus === 'paid' ? new Date() : invoice.paidAt,
+              updatedAt: new Date(),
+            })
+            .where(eq(invoices.id, paymentData.invoiceId));
+        }
+      }
+      
+      return payment;
+    } catch (error) {
+      console.error('Error recording payment:', error);
+      throw new Error('Failed to record payment');
+    }
+  }
+  
+  async getInvoicePayments(invoiceId: string): Promise<Payment[]> {
+    try {
+      return await db
+        .select()
+        .from(payments)
+        .where(eq(payments.invoiceId, invoiceId))
+        .orderBy(desc(payments.paymentDate));
+    } catch (error) {
+      console.error('Error fetching invoice payments:', error);
+      throw new Error('Failed to fetch invoice payments');
+    }
+  }
+  
+  async getCustomerPayments(customerCode: string): Promise<Payment[]> {
+    try {
+      return await db
+        .select()
+        .from(payments)
+        .where(eq(payments.customerCode, customerCode))
+        .orderBy(desc(payments.paymentDate));
+    } catch (error) {
+      console.error('Error fetching customer payments:', error);
+      throw new Error('Failed to fetch customer payments');
+    }
+  }
+  
+  async getPayment(paymentId: string): Promise<Payment | undefined> {
+    try {
+      const [payment] = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.id, paymentId));
+      return payment;
+    } catch (error) {
+      console.error('Error fetching payment:', error);
+      throw new Error('Failed to fetch payment');
+    }
+  }
+  
+  async updatePaymentStatus(paymentId: string, status: string): Promise<Payment | undefined> {
+    try {
+      const [updated] = await db
+        .update(payments)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(payments.id, paymentId))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Error updating payment status:', error);
+      throw new Error('Failed to update payment status');
+    }
+  }
+  
+  async processRefund(paymentId: string, refundAmount: number, notes: string): Promise<Payment> {
+    try {
+      const [originalPayment] = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.id, paymentId));
+      
+      if (!originalPayment) {
+        throw new Error('Payment not found');
+      }
+      
+      // Create refund payment record
+      const [refund] = await db
+        .insert(payments)
+        .values({
+          invoiceId: originalPayment.invoiceId,
+          salesOrderId: originalPayment.salesOrderId,
+          customerCode: originalPayment.customerCode,
+          amount: (-refundAmount).toString(),
+          paymentMethod: originalPayment.paymentMethod,
+          paymentDate: new Date(),
+          referenceNumber: `REFUND-${originalPayment.referenceNumber}`,
+          notes: `Refund: ${notes}`,
+          status: 'refunded',
+          createdBy: originalPayment.createdBy,
+        })
+        .returning();
+      
+      // Update original payment status
+      await db
+        .update(payments)
+        .set({ status: 'refunded', updatedAt: new Date() })
+        .where(eq(payments.id, paymentId));
+      
+      return refund;
+    } catch (error) {
+      console.error('Error processing refund:', error);
+      throw new Error('Failed to process refund');
+    }
+  }
+  
+  // Invoice methods implementation
+  async getInvoices(): Promise<Invoice[]> {
+    try {
+      return await db.select().from(invoices).orderBy(desc(invoices.createdAt));
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      throw new Error('Failed to fetch invoices');
+    }
+  }
+  
+  async getInvoice(id: string): Promise<Invoice | undefined> {
+    try {
+      const [invoice] = await db.select().from(invoices).where(eq(invoices.id, id));
+      return invoice;
+    } catch (error) {
+      console.error('Error fetching invoice:', error);
+      throw new Error('Failed to fetch invoice');
+    }
+  }
+  
+  async getInvoiceByNumber(invoiceNumber: string): Promise<Invoice | undefined> {
+    try {
+      const [invoice] = await db
+        .select()
+        .from(invoices)
+        .where(eq(invoices.invoiceNumber, invoiceNumber));
+      return invoice;
+    } catch (error) {
+      console.error('Error fetching invoice by number:', error);
+      throw new Error('Failed to fetch invoice by number');
+    }
+  }
+  
+  async updateInvoicePaymentStatus(
+    invoiceId: string,
+    status: string,
+    paidAmount: string
+  ): Promise<Invoice | undefined> {
+    try {
+      const [updated] = await db
+        .update(invoices)
+        .set({
+          paymentStatus: status,
+          paidAmount,
+          paidAt: status === 'paid' ? new Date() : null,
+          updatedAt: new Date(),
+        })
+        .where(eq(invoices.id, invoiceId))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Error updating invoice payment status:', error);
+      throw new Error('Failed to update invoice payment status');
+    }
   }
 
 }
