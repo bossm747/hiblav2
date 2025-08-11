@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { authService } from "./auth-service";
 import { generateSalesOrderHTML, generateJobOrderHTML } from "./pdf-generator";
 // import { aiService } from "./ai-service";
 import { aiImageService, type ImageGenerationRequest } from "./ai-image-service";
@@ -52,6 +53,88 @@ import { z } from "zod";
 export function registerRoutes(app: Express): void {
   // Serve uploaded files statically
   app.use('/uploads', express.static(path.resolve('uploads')));
+
+  // Authentication routes
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Email and password are required" 
+        });
+      }
+
+      const result = await authService.authenticate(email, password);
+      
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(401).json(result);
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Login failed. Please try again." 
+      });
+    }
+  });
+
+  app.post("/api/auth/logout", async (req, res) => {
+    try {
+      // In a real application, you might invalidate the token here
+      res.json({ success: true, message: "Logged out successfully" });
+    } catch (error) {
+      console.error('Logout error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Logout failed" 
+      });
+    }
+  });
+
+  // Staff management routes
+  app.get("/api/staff", async (req, res) => {
+    try {
+      const staffList = await storage.getAllStaff();
+      res.json(staffList);
+    } catch (error) {
+      console.error('Get staff error:', error);
+      res.status(500).json({ message: "Failed to fetch staff members" });
+    }
+  });
+
+  app.post("/api/staff", async (req, res) => {
+    try {
+      const staffData = insertStaffSchema.parse(req.body);
+      const newStaff = await authService.createStaff(staffData);
+      res.json(newStaff);
+    } catch (error) {
+      console.error('Create staff error:', error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Failed to create staff member" 
+      });
+    }
+  });
+
+  app.put("/api/staff/:id/permissions", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { permissions } = req.body;
+      
+      if (!Array.isArray(permissions)) {
+        return res.status(400).json({ message: "Permissions must be an array" });
+      }
+
+      const updated = await authService.updateStaffPermissions(id, permissions);
+      res.json(updated);
+    } catch (error) {
+      console.error('Update permissions error:', error);
+      res.status(500).json({ message: "Failed to update permissions" });
+    }
+  });
 
   // Health check endpoint for deployment monitoring
   app.get("/health", (req, res) => {

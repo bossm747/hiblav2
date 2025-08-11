@@ -4,6 +4,8 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { AppFlow } from '@/components/AppFlow';
 
 // Import pages
 import { AppLayout } from '@/components/AppLayout';
@@ -28,38 +30,44 @@ import AdminPortal from '@/pages/AdminPortal';
 import PortalHub from '@/pages/PortalHub';
 import Landing from '@/pages/Landing';
 import PreloaderDemo from '@/pages/PreloaderDemo';
+import AccessManagement from '@/pages/AccessManagement';
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="light" storageKey="hibla-ui-theme">
-        <Router>
-          <AppLayout>
-            <Switch>
-              <Route path="/" component={Dashboard} />
-              <Route path="/landing" component={Landing} />
-              <Route path="/quotations" component={QuotationsPage} />
-              <Route path="/quotations-vlookup" component={VLOOKUPQuotationsPage} />
-              <Route path="/sales-orders" component={SalesOrdersPage} />
-              <Route path="/job-orders" component={JobOrdersPage} />
-              <Route path="/inventory" component={InventoryPage} />
-              <Route path="/products" component={ProductsManagementPage} />
-              <Route path="/warehouses" component={WarehouseManagementPage} />
-              <Route path="/inventory-insights" component={InventoryInsightsPage} />
-              <Route path="/customer-management" component={CustomerManagementPage} />
-              <Route path="/staff-management" component={StaffManagementPage} />
-              <Route path="/price-management" component={PriceManagementPage} />
-              <Route path="/payment-recording" component={PaymentRecording} />
-              <Route path="/email-settings" component={EmailSettings} />
-              <Route path="/summary-reports" component={ReportsPage} />
-              <Route path="/documentation" component={Documentation} />
-              <Route path="/portal-hub" component={PortalHub} />
-              <Route path="/customer-portal" component={CustomerPortal} />
-              <Route path="/admin-portal" component={AdminPortal} />
-              <Route path="/preloader-demo" component={PreloaderDemo} />
-            </Switch>
-          </AppLayout>
-        </Router>
+        <AuthProvider>
+          <AppFlow>
+            <Router>
+              <AppLayout>
+                <Switch>
+                  <Route path="/" component={Dashboard} />
+                  <Route path="/landing" component={Landing} />
+                  <Route path="/quotations" component={QuotationsPage} />
+                  <Route path="/quotations-vlookup" component={VLOOKUPQuotationsPage} />
+                  <Route path="/sales-orders" component={SalesOrdersPage} />
+                  <Route path="/job-orders" component={JobOrdersPage} />
+                  <Route path="/inventory" component={InventoryPage} />
+                  <Route path="/products" component={ProductsManagementPage} />
+                  <Route path="/warehouses" component={WarehouseManagementPage} />
+                  <Route path="/inventory-insights" component={InventoryInsightsPage} />
+                  <Route path="/customer-management" component={CustomerManagementPage} />
+                  <Route path="/staff-management" component={StaffManagementPage} />
+                  <Route path="/price-management" component={PriceManagementPage} />
+                  <Route path="/payment-recording" component={PaymentRecording} />
+                  <Route path="/email-settings" component={EmailSettings} />
+                  <Route path="/summary-reports" component={ReportsPage} />
+                  <Route path="/documentation" component={Documentation} />
+                  <Route path="/portal-hub" component={PortalHub} />
+                  <Route path="/customer-portal" component={CustomerPortal} />
+                  <Route path="/admin-portal" component={AdminPortal} />
+                  <Route path="/access-management" component={AccessManagement} />
+                  <Route path="/preloader-demo" component={PreloaderDemo} />
+                </Switch>
+              </AppLayout>
+            </Router>
+          </AppFlow>
+        </AuthProvider>
         <Toaster />
       </ThemeProvider>
     </QueryClientProvider>

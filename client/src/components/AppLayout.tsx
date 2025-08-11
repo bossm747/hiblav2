@@ -25,7 +25,8 @@ import {
   Users,
   Receipt,
   Mail,
-  ExternalLink
+  ExternalLink,
+  Shield
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -47,6 +48,7 @@ const navigationItems = [
   { path: '/email-settings', label: 'Email Settings', icon: Mail },
   { path: '/customer-management', label: 'Customers', icon: Users },
   { path: '/staff-management', label: 'Staff', icon: UserCheck },
+  { path: '/access-management', label: 'Access Management', icon: Shield },
   { path: '/portal-hub', label: 'Portal Access', icon: ExternalLink },
   { path: '/landing', label: 'Landing Page', icon: Home },
 ];
