@@ -67,12 +67,20 @@
     @apply border-border;
   }
   
+  html {
+    /* Responsive text scaling */
+    font-size: 16px;
+  }
+  
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     /* Enhanced mobile experience */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Touch optimization */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     /* Prevent iOS bounce scrolling */
     overscroll-behavior: none;
     /* Prevent horizontal scrolling on mobile */
@@ -556,4 +564,34 @@ html {
 
 .btn-outline {
   @apply border border-border bg-background text-foreground px-4 py-2 rounded text-sm font-medium hover:bg-accent hover:text-accent-foreground;
+}
+
+/* Enhanced Mobile Table */
+.mobile-table-wrapper {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.mobile-table-wrapper::-webkit-scrollbar {
+  height: 4px;
+}
+
+.mobile-table-wrapper::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+.mobile-table-wrapper::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground));
+  border-radius: 2px;
+}
+
+/* Touch Enhancement */
+.btn-touch {
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+.btn-touch:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
 }

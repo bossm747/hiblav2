@@ -74,12 +74,12 @@ export function StaffManagementPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container-responsive space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Staff Management</h1>
-          <p className="text-muted-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-responsive-lg font-bold tracking-tight truncate">Staff Management</h1>
+          <p className="text-responsive-sm text-muted-foreground mt-1">
             Manage team members, roles, and access permissions
           </p>
         </div>
@@ -100,7 +100,7 @@ export function StaffManagementPage() {
       </div>
 
       {/* Staff Statistics */}
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">

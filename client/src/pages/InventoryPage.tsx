@@ -99,15 +99,15 @@ export function InventoryPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Inventory Management</h1>
-          <p className="text-muted-foreground">
+    <div className="container-responsive space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-responsive-lg font-bold tracking-tight truncate">Inventory Management</h1>
+          <p className="text-responsive-sm text-muted-foreground mt-1">
             Multi-warehouse inventory tracking and stock management
           </p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2 mobile-action-buttons sm:flex-row sm:space-y-0">
           <Button variant="outline">
             <Package className="h-4 w-4 mr-2" />
             Stock Transfer
@@ -130,7 +130,7 @@ export function InventoryPage() {
       </div>
 
       {/* Warehouse Overview */}
-      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid gap-3 sm:gap-4 grid-responsive-3 lg:grid-cols-6">
         {warehouseDisplayData.map((warehouse) => (
           <Card key={warehouse.id}>
             <CardContent className="pt-4">

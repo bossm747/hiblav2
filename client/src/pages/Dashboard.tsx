@@ -103,25 +103,25 @@ export function Dashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="container-responsive space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-responsive-lg font-bold tracking-tight truncate">Dashboard</h1>
+          <p className="text-responsive-sm text-muted-foreground mt-1">
             Real-time overview of your manufacturing operations
-            {isLoading && " (Loading...)"}
-            {analytics && ` (Last updated: ${new Date().toLocaleTimeString()})`}
+            {isLoading ? " (Loading...)" : ""}
+            {analytics ? ` (Last updated: ${new Date().toLocaleTimeString()})` : ""}
           </p>
         </div>
-        <Badge variant="outline" className="text-sm">
+        <Badge variant="outline" className="text-xs sm:text-sm flex-shrink-0 w-fit">
           <div className={`w-2 h-2 ${isLoading ? 'bg-yellow-500' : 'bg-green-500'} rounded-full mr-2`} />
           {isLoading ? 'Loading...' : 'System Online'}
         </Badge>
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-responsive-4">
         {metrics.map((metric) => {
           const Icon = metric.icon;
           return (
@@ -144,11 +144,11 @@ export function Dashboard() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4 elevated-container">
+      <div className="grid gap-3 sm:gap-4 lg:grid-cols-7">
+        <Card className="lg:col-span-4 elevated-container">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <TrendingUp className="h-5 w-5 mr-2" />
+            <CardTitle className="flex items-center text-base sm:text-lg">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
               Production Overview
             </CardTitle>
           </CardHeader>
@@ -190,10 +190,10 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="col-span-3 elevated-container">
+        <Card className="lg:col-span-3 elevated-container">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Clock className="h-5 w-5 mr-2" />
+            <CardTitle className="flex items-center text-base sm:text-lg">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
               Recent Activity
             </CardTitle>
           </CardHeader>
@@ -242,17 +242,17 @@ export function Dashboard() {
       {/* Quick Actions */}
       <Card className="container-shadow">
         <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+          <CardTitle className="text-base sm:text-lg">Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
             {quickActions.map((action) => {
               const Icon = action.icon;
               return (
-                <Button key={action.label} variant={action.variant} asChild>
-                  <a href={action.href}>
-                    <Icon className="h-4 w-4 mr-2" />
-                    {action.label}
+                <Button key={action.label} variant={action.variant} asChild className="btn-touch justify-start">
+                  <a href={action.href} className="flex items-center w-full">
+                    <Icon className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span className="truncate text-xs sm:text-sm">{action.label}</span>
                   </a>
                 </Button>
               );
