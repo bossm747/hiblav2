@@ -31,6 +31,7 @@ import PortalHub from '@/pages/PortalHub';
 import Landing from '@/pages/Landing';
 import PreloaderDemo from '@/pages/PreloaderDemo';
 import AccessManagement from '@/pages/AccessManagement';
+import DocsRouter from '@/components/DocsRouter';
 
 function App() {
   return (
@@ -63,6 +64,11 @@ function App() {
                   <Route path="/admin-portal" component={AdminPortal} />
                   <Route path="/access-management" component={AccessManagement} />
                   <Route path="/preloader-demo" component={PreloaderDemo} />
+                  
+                  {/* Documentation Routes */}
+                  <Route path="/docs" nest>
+                    <DocsRouter />
+                  </Route>
                 </Switch>
               </AppLayout>
             </Router>

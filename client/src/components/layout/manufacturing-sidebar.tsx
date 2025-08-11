@@ -62,7 +62,7 @@ export function ManufacturingSidebar({ isOpen, onClose, className }: Manufacturi
     { name: "Customer Management", href: "/customer-management", icon: Users, description: "Customer relationship management" },
     { name: "Staff Management", href: "/staff-management", icon: UserCheck, description: "Team & role management" },
     { name: "Access Management", href: "/access-management", icon: Shield, description: "User roles & permissions control" },
-    { name: "Documentation", href: "/documentation", icon: BookOpen, description: "User guides & process flows" },
+    { name: "Documentation", href: "/docs", icon: BookOpen, description: "User guides & process flows" },
   ];
 
   if (!isOpen) return null;
