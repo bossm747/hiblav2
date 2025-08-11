@@ -211,18 +211,15 @@ export function QuotationDetailModal({
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-                <span className="sr-only">Open actions</span>
+              <Button variant="outline" size="sm" className="h-9">
+                Actions
+                <MoreVertical className="h-4 w-4 ml-2" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              
               <DropdownMenuItem onClick={() => onEdit?.(quotationId)}>
                 <Edit className="h-4 w-4 mr-2" />
-                Edit Quotation
+                Edit
               </DropdownMenuItem>
               
               <DropdownMenuItem onClick={() => onDuplicate?.(quotationId)}>
@@ -230,31 +227,19 @@ export function QuotationDetailModal({
                 Duplicate
               </DropdownMenuItem>
               
+              <DropdownMenuItem className="text-red-600">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              
               {safeQuotation.status === 'approved' && (
                 <DropdownMenuItem onClick={() => onConvertToSalesOrder?.(quotationId)}>
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Convert to Sales Order
                 </DropdownMenuItem>
               )}
-              
-              <DropdownMenuSeparator />
-              
-              <DropdownMenuItem onClick={() => onDownloadPDF?.(quotationId)}>
-                <Download className="h-4 w-4 mr-2" />
-                Export as PDF
-              </DropdownMenuItem>
-              
-              <DropdownMenuItem onClick={() => onSendEmail?.(quotationId)}>
-                <Mail className="h-4 w-4 mr-2" />
-                Send via Email
-              </DropdownMenuItem>
-              
-              <DropdownMenuItem onClick={() => window.print()}>
-                <Printer className="h-4 w-4 mr-2" />
-                Print
-              </DropdownMenuItem>
-              
-              <DropdownMenuSeparator />
               
               {safeQuotation.status === 'pending' && (
                 <>
@@ -278,9 +263,19 @@ export function QuotationDetailModal({
               
               <DropdownMenuSeparator />
               
-              <DropdownMenuItem className="text-red-600">
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+              <DropdownMenuItem onClick={() => onDownloadPDF?.(quotationId)}>
+                <Download className="h-4 w-4 mr-2" />
+                Export PDF
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem onClick={() => onSendEmail?.(quotationId)}>
+                <Mail className="h-4 w-4 mr-2" />
+                Send Email
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem onClick={() => window.print()}>
+                <Printer className="h-4 w-4 mr-2" />
+                Print
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -552,7 +547,7 @@ export function QuotationDetailModal({
                     </span>
                   </div>
                   <div className="flex justify-between pt-3 text-lg">
-                    <span className="font-bold">TOTAL (A+B+C+D+E):</span>
+                    <span className="font-bold">TOTAL:</span>
                     <span className="font-bold text-xl">${total.toFixed(2)}</span>
                   </div>
                 </div>

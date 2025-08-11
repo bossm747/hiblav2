@@ -95,6 +95,40 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // Test Email System with SendGrid
+  app.post("/api/test-email", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email address is required" });
+      }
+
+      const { sendTestEmail } = await import('./email-service');
+      const success = await sendTestEmail(email);
+      
+      if (success) {
+        res.json({ 
+          success: true, 
+          message: `Test email sent successfully to ${email}`,
+          note: "Please check your inbox (and spam folder) for the test email from Hibla Manufacturing"
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "Failed to send test email. Please check SendGrid configuration." 
+        });
+      }
+    } catch (error) {
+      console.error('Test email error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Error sending test email",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Export functionality
   app.post("/api/export/quotations", async (req, res) => {
     try {
@@ -3019,6 +3053,29 @@ export function registerRoutes(app: Express): void {
           }
         }
         
+        // Send email notification to customer if they have an email
+        if (customer.email && customer.email !== `${customer.customerCode.toLowerCase()}@customer.com`) {
+          try {
+            const { sendQuotationNotification } = await import('./email-service');
+            const approvalToken = Buffer.from(`${createdQuotation.id}:${Date.now()}`).toString('base64');
+            
+            await sendQuotationNotification({
+              customerEmail: customer.email,
+              customerName: customer.name || customer.customerCode,
+              quotationNumber: createdQuotation.quotationNumber,
+              quotationId: createdQuotation.id,
+              totalAmount: createdQuotation.total.toString(),
+              status: createdQuotation.status,
+              createdBy: currentStaff?.name || 'Staff',
+              approvalToken
+            });
+            console.log('Email notification sent to customer');
+          } catch (emailError) {
+            console.error('Failed to send email notification:', emailError);
+            // Don't fail the quotation creation if email fails
+          }
+        }
+        
         return res.status(201).json(createdQuotation);
       } catch (validationError) {
         console.error('Quotation validation error:', validationError);
@@ -3116,6 +3173,7 @@ export function registerRoutes(app: Express): void {
         discount: quotation.discount,
         others: quotation.others,
         total: quotation.total,
+        pleasePayThisAmountUsd: quotation.total, // Required field
         paymentMethod: quotation.paymentMethod,
         shippingMethod: quotation.shippingMethod,
         customerServiceInstructions: quotation.customerServiceInstructions,
@@ -3156,6 +3214,189 @@ export function registerRoutes(app: Express): void {
       res.json(validation);
     } catch (error) {
       res.status(500).json({ message: "Failed to validate revision" });
+    }
+  });
+
+  // Approve Quotation
+  app.post("/api/quotations/:id/approve", async (req, res) => {
+    try {
+      const quotation = await storage.getQuotation(req.params.id);
+      if (!quotation) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+
+      // Update quotation status to approved
+      await storage.updateQuotation(req.params.id, { status: "approved" });
+
+      // Get customer details for email
+      const customer = await storage.getCustomer(quotation.customerId);
+      
+      // Send approval confirmation email
+      if (customer && customer.email) {
+        try {
+          const { sendQuotationApprovalRequest } = await import('./email-service');
+          const approvalToken = Buffer.from(`${quotation.id}:${Date.now()}`).toString('base64');
+          
+          await sendQuotationApprovalRequest({
+            customerEmail: customer.email,
+            customerName: customer.name || customer.customerCode,
+            quotationNumber: quotation.quotationNumber,
+            quotationId: quotation.id,
+            totalAmount: quotation.total.toString(),
+            status: "approved",
+            createdBy: quotation.createdBy || 'Staff',
+            approvalToken
+          });
+        } catch (emailError) {
+          console.error('Failed to send approval email:', emailError);
+        }
+      }
+
+      res.json({ message: "Quotation approved successfully", quotation: { ...quotation, status: "approved" } });
+    } catch (error) {
+      console.error('Error approving quotation:', error);
+      res.status(500).json({ message: "Failed to approve quotation" });
+    }
+  });
+
+  // Reject Quotation
+  app.post("/api/quotations/:id/reject", async (req, res) => {
+    try {
+      const quotation = await storage.getQuotation(req.params.id);
+      if (!quotation) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+
+      const { reason } = req.body;
+
+      // Update quotation status to rejected
+      await storage.updateQuotation(req.params.id, { 
+        status: "rejected",
+        rejectionReason: reason 
+      });
+
+      res.json({ message: "Quotation rejected", quotation: { ...quotation, status: "rejected" } });
+    } catch (error) {
+      console.error('Error rejecting quotation:', error);
+      res.status(500).json({ message: "Failed to reject quotation" });
+    }
+  });
+
+  // Customer Portal Quotation Approval
+  app.post("/api/customer-portal/approve-quotation", async (req, res) => {
+    try {
+      const { token, quotationId } = req.body;
+      
+      if (!token || !quotationId) {
+        return res.status(400).json({ message: "Token and quotation ID required" });
+      }
+
+      // Decode and validate token
+      try {
+        const decoded = Buffer.from(token, 'base64').toString('utf-8');
+        const [tokenQuotationId, timestamp] = decoded.split(':');
+        
+        if (tokenQuotationId !== quotationId) {
+          return res.status(401).json({ message: "Invalid token" });
+        }
+
+        // Check if token is not expired (24 hours)
+        const tokenAge = Date.now() - parseInt(timestamp);
+        if (tokenAge > 24 * 60 * 60 * 1000) {
+          return res.status(401).json({ message: "Token expired" });
+        }
+      } catch (tokenError) {
+        return res.status(401).json({ message: "Invalid token format" });
+      }
+
+      const quotation = await storage.getQuotation(quotationId);
+      if (!quotation) {
+        return res.status(404).json({ message: "Quotation not found" });
+      }
+
+      // Update quotation status
+      await storage.updateQuotation(quotationId, { status: "approved" });
+
+      // Automatically generate sales order
+      try {
+        const now = new Date();
+        const yearMonth = `${now.getFullYear()}.${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+        const latestSalesOrder = await storage.getLatestSalesOrderForMonth(yearMonth);
+        const nextSequence = latestSalesOrder ? 
+          parseInt(latestSalesOrder.salesOrderNumber.split('.')[2]) + 1 : 1;
+        const salesOrderNumber = `${yearMonth}.${nextSequence.toString().padStart(3, '0')}`;
+
+        const salesOrderData = {
+          salesOrderNumber,
+          quotationId: quotation.id,
+          customerId: quotation.customerId,
+          customerCode: quotation.customerCode,
+          country: quotation.country,
+          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+          revisionNumber: "R1",
+          subtotal: quotation.subtotal,
+          shippingFee: quotation.shippingFee,
+          bankCharge: quotation.bankCharge,
+          discount: quotation.discount,
+          others: quotation.others,
+          total: quotation.total,
+          pleasePayThisAmountUsd: quotation.total, // Required field
+          paymentMethod: quotation.paymentMethod,
+          shippingMethod: quotation.shippingMethod,
+          customerServiceInstructions: quotation.customerServiceInstructions,
+          createdBy: quotation.createdBy,
+          status: "draft"
+        };
+
+        const createdSalesOrder = await storage.createSalesOrder(salesOrderData);
+
+        // Create sales order items
+        const quotationItems = await storage.getQuotationItems(quotationId);
+        for (const item of quotationItems) {
+          await storage.createSalesOrderItem({
+            salesOrderId: createdSalesOrder.id,
+            productId: item.productId,
+            productName: item.productName,
+            specification: item.specification,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            lineTotal: item.lineTotal
+          });
+        }
+
+        // Send order confirmation email
+        const customer = await storage.getCustomer(quotation.customerId);
+        if (customer && customer.email) {
+          try {
+            const { sendOrderConfirmationNotification } = await import('./email-service');
+            await sendOrderConfirmationNotification({
+              customerEmail: customer.email,
+              customerName: customer.name || customer.customerCode,
+              orderNumber: salesOrderNumber,
+              orderId: createdSalesOrder.id,
+              totalAmount: quotation.total.toString(),
+              expectedDelivery: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()
+            });
+          } catch (emailError) {
+            console.error('Failed to send order confirmation:', emailError);
+          }
+        }
+
+        res.json({ 
+          message: "Quotation approved and sales order created", 
+          quotation: { ...quotation, status: "approved" },
+          salesOrder: createdSalesOrder 
+        });
+      } catch (soError) {
+        console.error('Failed to create sales order:', soError);
+        res.json({ 
+          message: "Quotation approved but sales order creation failed", 
+          quotation: { ...quotation, status: "approved" } 
+        });
+      }
+    } catch (error) {
+      console.error('Error in customer portal approval:', error);
+      res.status(500).json({ message: "Failed to approve quotation" });
     }
   });
 
