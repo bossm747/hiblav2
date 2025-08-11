@@ -75,11 +75,273 @@ export class ExportService {
       // Add worksheet to workbook
       XLSX.utils.book_append_sheet(wb, ws, 'Quotation');
       
-      // Generate buffer
-      const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-      
-      return buffer;
+      // Write to buffer
+      return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
     } catch (error) {
+      console.error('Export quotation error:', error);
+      throw new Error('Failed to export quotation to Excel');
+    }
+  }
+
+  /**
+   * Export sales order to Excel format
+   */
+  async exportSalesOrderToExcel(salesOrderId: string): Promise<Buffer> {
+    try {
+      // Get sales order data
+      const [salesOrder] = await db.select().from(salesOrders).where(eq(salesOrders.id, salesOrderId));
+      if (!salesOrder) throw new Error("Sales order not found");
+
+      const items = await db.select().from(salesOrderItems).where(eq(salesOrderItems.salesOrderId, salesOrderId));
+      const [customer] = await db.select().from(customers).where(eq(customers.id, salesOrder.customerId));
+
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Create sales order header data
+      const headerData = [
+        ['SALES ORDER'],
+        [''],
+        ['Date:', new Date(salesOrder.createdAt).toLocaleDateString()],
+        ['Sales Order Number:', salesOrder.salesOrderNumber],
+        ['Revision No:', salesOrder.revisionNumber || 'R1'],
+        ['Customer Code:', salesOrder.customerCode],
+        ['Country:', salesOrder.country],
+        ['Due Date:', salesOrder.dueDate ? new Date(salesOrder.dueDate).toLocaleDateString() : ''],
+        [''],
+        ['Items:']
+      ];
+
+      // Create items data
+      const itemsData = [
+        ['Product', 'Specification', 'Quantity', 'Unit Price', 'Line Total']
+      ];
+
+      items.forEach(item => {
+        itemsData.push([
+          item.productName,
+          item.specification || '',
+          item.quantity,
+          item.unitPrice,
+          item.lineTotal
+        ]);
+      });
+
+      // Add totals
+      itemsData.push([]);
+      itemsData.push(['', '', '', 'Subtotal:', salesOrder.subtotal]);
+      itemsData.push(['', '', '', 'Shipping Fee:', salesOrder.shippingFeeUsd || '0']);
+      itemsData.push(['', '', '', 'Bank Charge:', salesOrder.bankChargeUsd || '0']);
+      itemsData.push(['', '', '', 'Discount:', salesOrder.discountUsd || '0']);
+      itemsData.push(['', '', '', 'Others:', salesOrder.othersUsd || '0']);
+      itemsData.push(['', '', '', 'TOTAL:', salesOrder.pleasePayThisAmountUsd]);
+
+      // Add payment info
+      itemsData.push([]);
+      itemsData.push(['Payment Method:', salesOrder.paymentMethod || '']);
+      itemsData.push(['Shipping Method:', salesOrder.shippingMethod || '']);
+      itemsData.push(['Customer Service Instructions:', salesOrder.customerServiceInstructions || '']);
+
+      // Combine all data
+      const wsData = [...headerData, ...itemsData];
+      
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Sales Order');
+      
+      // Write to buffer
+      return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    } catch (error) {
+      console.error('Export sales order error:', error);
+      throw new Error('Failed to export sales order to Excel');
+    }
+  }
+
+  /**
+   * Export ready items summary to Excel format
+   */
+  async exportReadyItemsSummary(summaryData: any): Promise<Buffer> {
+    try {
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Create header data
+      const headerData = [
+        ['READY ITEMS SUMMARY REPORT'],
+        ['Generated:', new Date().toLocaleDateString()],
+        [''],
+        ['Filters Applied:']
+      ];
+
+      // Add filter information
+      if (summaryData.statistics.filters.dateFrom) {
+        headerData.push(['Date From:', summaryData.statistics.filters.dateFrom]);
+      }
+      if (summaryData.statistics.filters.dateTo) {
+        headerData.push(['Date To:', summaryData.statistics.filters.dateTo]);
+      }
+      if (summaryData.statistics.filters.customerCode) {
+        headerData.push(['Customer Code:', summaryData.statistics.filters.customerCode]);
+      }
+      if (summaryData.statistics.filters.orderItem) {
+        headerData.push(['Order Item:', summaryData.statistics.filters.orderItem]);
+      }
+
+      headerData.push(['']);
+
+      // Add overall statistics
+      const statisticsData = [
+        ['OVERALL STATISTICS'],
+        ['Total Items:', summaryData.statistics.totalItems],
+        ['Total Ordered:', summaryData.statistics.totalOrderedGlobal],
+        ['Total Ready:', summaryData.statistics.totalReadyGlobal],
+        ['Total Pending:', summaryData.statistics.totalPendingGlobal],
+        ['Overall Ready %:', `${summaryData.statistics.overallReadyPercentage}%`],
+        ['']
+      ];
+
+      // Create detailed items data
+      const itemsData = [
+        ['DETAILED BREAKDOWN'],
+        ['Customer Code', 'Product Name', 'Specification', 'Total Ordered', 'Total Ready', 'Total Pending', 'Ready %', 'Job Orders']
+      ];
+
+      summaryData.summary.forEach((item: any) => {
+        const jobOrdersList = item.jobOrders.map((jo: any) => 
+          `${jo.jobOrderNumber} (${jo.quantity}/${jo.readyQuantity})`
+        ).join('; ');
+
+        itemsData.push([
+          item.customerCode,
+          item.productName,
+          item.specification,
+          item.totalOrdered,
+          item.totalReady,
+          item.totalPending,
+          `${item.readyPercentage}%`,
+          jobOrdersList
+        ]);
+      });
+
+      // Combine all data
+      const wsData = [...headerData, ...statisticsData, ...itemsData];
+      
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Auto-size columns
+      const colWidths = [
+        { wch: 15 }, // Customer Code
+        { wch: 40 }, // Product Name
+        { wch: 20 }, // Specification
+        { wch: 12 }, // Total Ordered
+        { wch: 12 }, // Total Ready
+        { wch: 12 }, // Total Pending
+        { wch: 10 }, // Ready %
+        { wch: 50 }  // Job Orders
+      ];
+      ws['!cols'] = colWidths;
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Ready Items Summary');
+      
+      // Write to buffer
+      return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    } catch (error) {
+      console.error('Export ready items summary error:', error);
+      throw new Error('Failed to export ready items summary to Excel');
+    }
+  }
+
+  /**
+   * Export summary report to Excel format
+   */
+  async exportSummaryReport(options: {
+    dateFrom?: string;
+    dateTo?: string;
+    customerCode?: string;
+    orderItem?: string;
+    reportType: 'quotations' | 'sales-orders' | 'job-orders';
+  }): Promise<Buffer> {
+    try {
+      const wb = XLSX.utils.book_new();
+      
+      let data: any[] = [];
+      let headers: string[] = [];
+      let sheetName = '';
+
+      switch (options.reportType) {
+        case 'quotations':
+          sheetName = 'Quotations Summary';
+          headers = ['Date', 'Quotation #', 'Customer Code', 'Country', 'Status', 'Total Amount'];
+          
+          let quotationsQuery = db.select().from(quotations);
+          
+          // Apply filters (simplified - in real implementation would use proper query builders)
+          const quotationsData = await quotationsQuery;
+          data = quotationsData.map(q => [
+            new Date(q.orderDate).toLocaleDateString(),
+            q.quotationNumber,
+            q.customerCode,
+            q.country,
+            q.status || 'Draft',
+            q.total
+          ]);
+          break;
+
+        case 'sales-orders':
+          sheetName = 'Sales Orders Summary';
+          headers = ['Date', 'Sales Order #', 'Customer Code', 'Country', 'Status', 'Total Amount'];
+          
+          const salesOrdersData = await db.select().from(salesOrders);
+          data = salesOrdersData.map(so => [
+            new Date(so.createdAt).toLocaleDateString(),
+            so.salesOrderNumber,
+            so.customerCode,
+            so.country,
+            so.status || 'Draft',
+            so.pleasePayThisAmountUsd
+          ]);
+          break;
+
+        case 'job-orders':
+          sheetName = 'Job Orders Summary';
+          headers = ['Date', 'Job Order #', 'Customer Code', 'Due Date', 'Status'];
+          
+          const jobOrdersData = await db.select().from(jobOrders);
+          data = jobOrdersData.map(jo => [
+            new Date(jo.createdAt || new Date()).toLocaleDateString(),
+            jo.jobOrderNumber,
+            jo.customerCode,
+            jo.dueDate ? new Date(jo.dueDate).toLocaleDateString() : '',
+            'In Progress'
+          ]);
+          break;
+      }
+
+      // Create worksheet data
+      const wsData = [
+        [sheetName.toUpperCase()],
+        ['Generated:', new Date().toLocaleDateString()],
+        [''],
+        headers,
+        ...data
+      ];
+      
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      
+      return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    } catch (error) {
+      console.error('Export summary report error:', error);
+      throw new Error('Failed to export summary report to Excel');
+    }
+  }
+}
+
+export const exportService = new ExportService();
       console.error('Error exporting quotation to Excel:', error);
       throw error;
     }

@@ -3545,6 +3545,274 @@ export function registerRoutes(app: Express): void {
   });
 
   // =====================================================
+  // READY ITEMS SUMMARY REPORT
+  // =====================================================
+
+  // Get ready items summary from Job Orders with filtering
+  app.get("/api/reports/ready-items-summary", async (req, res) => {
+    try {
+      const { dateFrom, dateTo, customerCode, orderItem } = req.query;
+      
+      // Get all job orders with their items
+      let jobOrders = await storage.getJobOrders();
+      let allJobOrderItems: any[] = [];
+
+      // Get items for each job order
+      for (const jobOrder of jobOrders) {
+        const items = await storage.getJobOrderItems(jobOrder.id);
+        const itemsWithJobOrderInfo = items.map((item: any) => ({
+          ...item,
+          jobOrderNumber: jobOrder.jobOrderNumber,
+          customerCode: jobOrder.customerCode,
+          dueDate: jobOrder.dueDate,
+          createdAt: jobOrder.createdAt,
+          // Calculate ready quantities from shipment data
+          readyQuantity: calculateReadyQuantity(item),
+          totalQuantity: parseFloat(item.quantity || '0'),
+          pendingQuantity: parseFloat(item.quantity || '0') - calculateReadyQuantity(item)
+        }));
+        allJobOrderItems.push(...itemsWithJobOrderInfo);
+      }
+
+      // Filter by customer code if provided
+      if (customerCode && typeof customerCode === "string") {
+        allJobOrderItems = allJobOrderItems.filter(item => 
+          item.customerCode && item.customerCode.toLowerCase().includes(customerCode.toLowerCase())
+        );
+      }
+
+      // Filter by order item (product name) if provided
+      if (orderItem && typeof orderItem === "string") {
+        allJobOrderItems = allJobOrderItems.filter(item => 
+          item.productName && item.productName.toLowerCase().includes(orderItem.toLowerCase())
+        );
+      }
+
+      // Filter by date range if provided
+      if (dateFrom || dateTo) {
+        allJobOrderItems = allJobOrderItems.filter(item => {
+          const itemDate = new Date(item.createdAt);
+          if (dateFrom && itemDate < new Date(dateFrom as string)) return false;
+          if (dateTo && itemDate > new Date(dateTo as string)) return false;
+          return true;
+        });
+      }
+
+      // Group by product and customer for summary
+      const summaryMap = new Map();
+      
+      allJobOrderItems.forEach(item => {
+        const key = `${item.customerCode}-${item.productName}`;
+        
+        if (!summaryMap.has(key)) {
+          summaryMap.set(key, {
+            customerCode: item.customerCode,
+            productName: item.productName,
+            specification: item.specification || 'Standard',
+            jobOrders: [],
+            totalOrdered: 0,
+            totalReady: 0,
+            totalPending: 0,
+            readyPercentage: 0
+          });
+        }
+        
+        const summary = summaryMap.get(key);
+        summary.jobOrders.push({
+          jobOrderNumber: item.jobOrderNumber,
+          quantity: item.totalQuantity,
+          readyQuantity: item.readyQuantity,
+          dueDate: item.dueDate
+        });
+        
+        summary.totalOrdered += item.totalQuantity;
+        summary.totalReady += item.readyQuantity;
+        summary.totalPending += item.pendingQuantity;
+        summary.readyPercentage = summary.totalOrdered > 0 
+          ? Math.round((summary.totalReady / summary.totalOrdered) * 100) 
+          : 0;
+      });
+
+      // Convert map to array and sort
+      const summaryData = Array.from(summaryMap.values()).sort((a, b) => {
+        // Sort by customer code, then by product name
+        if (a.customerCode !== b.customerCode) {
+          return a.customerCode.localeCompare(b.customerCode);
+        }
+        return a.productName.localeCompare(b.productName);
+      });
+
+      // Calculate overall statistics
+      const totalItems = summaryData.length;
+      const totalOrderedGlobal = summaryData.reduce((sum, item) => sum + item.totalOrdered, 0);
+      const totalReadyGlobal = summaryData.reduce((sum, item) => sum + item.totalReady, 0);
+      const totalPendingGlobal = summaryData.reduce((sum, item) => sum + item.totalPending, 0);
+      const overallReadyPercentage = totalOrderedGlobal > 0 
+        ? Math.round((totalReadyGlobal / totalOrderedGlobal) * 100) 
+        : 0;
+
+      res.json({
+        summary: summaryData,
+        statistics: {
+          totalItems,
+          totalOrderedGlobal,
+          totalReadyGlobal,
+          totalPendingGlobal,
+          overallReadyPercentage,
+          filters: {
+            dateFrom: dateFrom || null,
+            dateTo: dateTo || null,
+            customerCode: customerCode || null,
+            orderItem: orderItem || null
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Ready items summary error:', error);
+      res.status(500).json({ message: "Failed to generate ready items summary" });
+    }
+  });
+
+  // Helper function to calculate ready quantity from shipments
+  const calculateReadyQuantity = (item: any): number => {
+    let readyQty = 0;
+    
+    // Sum up all shipment quantities (shipment1 through shipment8)
+    for (let i = 1; i <= 8; i++) {
+      const shipmentQty = parseFloat(item[`shipment${i}`] || '0');
+      readyQty += shipmentQty;
+    }
+    
+    return readyQty;
+  };
+
+  // Export ready items summary to Excel
+  app.post("/api/reports/ready-items-summary/export/excel", async (req, res) => {
+    try {
+      const { dateFrom, dateTo, customerCode, orderItem } = req.body;
+      
+      // Get summary data directly instead of making HTTP request
+      let jobOrders = await storage.getJobOrders();
+      let allJobOrderItems: any[] = [];
+
+      for (const jobOrder of jobOrders) {
+        const items = await storage.getJobOrderItems(jobOrder.id);
+        const itemsWithJobOrderInfo = items.map((item: any) => ({
+          ...item,
+          jobOrderNumber: jobOrder.jobOrderNumber,
+          customerCode: jobOrder.customerCode,
+          dueDate: jobOrder.dueDate,
+          createdAt: jobOrder.createdAt,
+          readyQuantity: calculateReadyQuantity(item),
+          totalQuantity: parseFloat(item.quantity || '0'),
+          pendingQuantity: parseFloat(item.quantity || '0') - calculateReadyQuantity(item)
+        }));
+        allJobOrderItems.push(...itemsWithJobOrderInfo);
+      }
+
+      // Apply filters
+      if (customerCode && typeof customerCode === "string") {
+        allJobOrderItems = allJobOrderItems.filter(item => 
+          item.customerCode && item.customerCode.toLowerCase().includes(customerCode.toLowerCase())
+        );
+      }
+
+      if (orderItem && typeof orderItem === "string") {
+        allJobOrderItems = allJobOrderItems.filter(item => 
+          item.productName && item.productName.toLowerCase().includes(orderItem.toLowerCase())
+        );
+      }
+
+      if (dateFrom || dateTo) {
+        allJobOrderItems = allJobOrderItems.filter(item => {
+          const itemDate = new Date(item.createdAt);
+          if (dateFrom && itemDate < new Date(dateFrom as string)) return false;
+          if (dateTo && itemDate > new Date(dateTo as string)) return false;
+          return true;
+        });
+      }
+
+      // Group by product and customer for summary
+      const summaryMap = new Map();
+      
+      allJobOrderItems.forEach(item => {
+        const key = `${item.customerCode}-${item.productName}`;
+        
+        if (!summaryMap.has(key)) {
+          summaryMap.set(key, {
+            customerCode: item.customerCode,
+            productName: item.productName,
+            specification: item.specification || 'Standard',
+            jobOrders: [],
+            totalOrdered: 0,
+            totalReady: 0,
+            totalPending: 0,
+            readyPercentage: 0
+          });
+        }
+        
+        const summary = summaryMap.get(key);
+        summary.jobOrders.push({
+          jobOrderNumber: item.jobOrderNumber,
+          quantity: item.totalQuantity,
+          readyQuantity: item.readyQuantity,
+          dueDate: item.dueDate
+        });
+        
+        summary.totalOrdered += item.totalQuantity;
+        summary.totalReady += item.readyQuantity;
+        summary.totalPending += item.pendingQuantity;
+        summary.readyPercentage = summary.totalOrdered > 0 
+          ? Math.round((summary.totalReady / summary.totalOrdered) * 100) 
+          : 0;
+      });
+
+      const summaryArray = Array.from(summaryMap.values()).sort((a, b) => {
+        if (a.customerCode !== b.customerCode) {
+          return a.customerCode.localeCompare(b.customerCode);
+        }
+        return a.productName.localeCompare(b.productName);
+      });
+
+      const totalItems = summaryArray.length;
+      const totalOrderedGlobal = summaryArray.reduce((sum, item) => sum + item.totalOrdered, 0);
+      const totalReadyGlobal = summaryArray.reduce((sum, item) => sum + item.totalReady, 0);
+      const totalPendingGlobal = summaryArray.reduce((sum, item) => sum + item.totalPending, 0);
+      const overallReadyPercentage = totalOrderedGlobal > 0 
+        ? Math.round((totalReadyGlobal / totalOrderedGlobal) * 100) 
+        : 0;
+
+      const summaryData = {
+        summary: summaryArray,
+        statistics: {
+          totalItems,
+          totalOrderedGlobal,
+          totalReadyGlobal,
+          totalPendingGlobal,
+          overallReadyPercentage,
+          filters: {
+            dateFrom: dateFrom || null,
+            dateTo: dateTo || null,
+            customerCode: customerCode || null,
+            orderItem: orderItem || null
+          }
+        }
+      };
+      
+      // Use export service to create Excel file
+      const { exportService } = await import("./export-service");
+      const buffer = await exportService.exportReadyItemsSummary(summaryData);
+      
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="ready-items-summary-${Date.now()}.xlsx"`);
+      res.send(buffer);
+    } catch (error) {
+      console.error("Error exporting ready items summary:", error);
+      res.status(500).json({ message: "Failed to export ready items summary" });
+    }
+  });
+
+  // =====================================================
   // EXPORT ROUTES
   // =====================================================
   

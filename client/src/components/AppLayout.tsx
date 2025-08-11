@@ -26,7 +26,8 @@ import {
   Receipt,
   Mail,
   ExternalLink,
-  Shield
+  Shield,
+  CheckCircle
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -43,6 +44,7 @@ const navigationItems = [
   { path: '/warehouses', label: 'Warehouses', icon: Warehouse },
   { path: '/inventory-insights', label: 'AI Insights', icon: Zap },
   { path: '/summary-reports', label: 'Reports', icon: FileBarChart },
+  { path: '/ready-items-summary', label: 'Ready Items', icon: CheckCircle },
   { path: '/price-management', label: 'Price Management', icon: DollarSign },
   { path: '/payment-recording', label: 'Payment Recording', icon: Receipt },
   { path: '/email-settings', label: 'Email Settings', icon: Mail },

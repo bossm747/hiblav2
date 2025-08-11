@@ -18,6 +18,7 @@ import { InventoryPage } from '@/pages/InventoryPage';
 import { CustomerManagementPage } from '@/pages/CustomerManagementPage';
 import { StaffManagementPage } from '@/pages/StaffManagementPage';
 import { ReportsPage } from '@/pages/ReportsPage';
+import ReadyItemsSummaryPage from '@/pages/ReadyItemsSummaryPage';
 import PriceManagementPage from '@/pages/PriceManagementPage';
 import { ProductsManagementPage } from '@/pages/ProductsManagementPage';
 import WarehouseManagementPage from '@/pages/WarehouseManagementPage';
@@ -66,8 +67,9 @@ function App() {
                       <Route path="/payment-recording" component={PaymentRecording} />
                       <Route path="/email-settings" component={EmailSettings} />
                       <Route path="/summary-reports" component={ReportsPage} />
+                      <Route path="/ready-items-summary" component={ReadyItemsSummaryPage} />
                       <Route path="/documentation" component={Documentation} />
-                      <Route path="/portal-hub" component={PortalHub} />
+                      <Route path="/portal-hub" component={() => <PortalHub onAuthenticationComplete={() => {}} />} />
                       <Route path="/customer-portal" component={CustomerPortal} />
                       <Route path="/admin-portal" component={AdminPortal} />
                       <Route path="/access-management" component={AccessManagement} />
