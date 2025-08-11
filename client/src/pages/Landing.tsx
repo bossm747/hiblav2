@@ -103,22 +103,7 @@ export default function Landing() {
             </Badge>
           </div>
 
-          {/* CTA buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/dashboard">
-              <Button size="lg" className="bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white px-8 py-4 text-lg">
-                <Factory className="w-5 h-5 mr-2" />
-                Enter Manufacturing Dashboard
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
-            <Link href="/portal-hub">
-              <Button variant="outline" size="lg" className="px-8 py-4 text-lg border-2 hover:bg-gray-50 dark:hover:bg-gray-800">
-                <Users className="w-5 h-5 mr-2" />
-                Portal Access
-              </Button>
-            </Link>
-          </div>
+
         </div>
       </section>
 
