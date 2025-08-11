@@ -4252,6 +4252,175 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // ============ ADMIN PORTAL ROUTES ============
+  
+  // Admin portal authentication
+  app.post('/api/admin-portal/login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      const { adminPortalService } = await import('./admin-portal-service');
+      
+      const admin = await adminPortalService.authenticateAdmin(email, password);
+      if (!admin) {
+        return res.status(401).json({ message: 'Invalid email or password' });
+      }
+      
+      res.json(admin);
+    } catch (error) {
+      console.error('Error in admin login:', error);
+      res.status(500).json({ message: 'Login failed' });
+    }
+  });
+
+  // Get all customers for admin
+  app.get('/api/admin-portal/customers', async (req, res) => {
+    try {
+      const { adminPortalService } = await import('./admin-portal-service');
+      const customers = await adminPortalService.getAllCustomers();
+      res.json(customers);
+    } catch (error) {
+      console.error('Error fetching customers for admin:', error);
+      res.status(500).json({ message: 'Failed to fetch customers' });
+    }
+  });
+
+  // Get all orders for admin
+  app.get('/api/admin-portal/orders', async (req, res) => {
+    try {
+      const { adminPortalService } = await import('./admin-portal-service');
+      const orders = await adminPortalService.getAllOrders();
+      res.json(orders);
+    } catch (error) {
+      console.error('Error fetching orders for admin:', error);
+      res.status(500).json({ message: 'Failed to fetch orders' });
+    }
+  });
+
+  // Get all quotations for admin
+  app.get('/api/admin-portal/quotations', async (req, res) => {
+    try {
+      const { adminPortalService } = await import('./admin-portal-service');
+      const quotations = await adminPortalService.getAllQuotations();
+      res.json(quotations);
+    } catch (error) {
+      console.error('Error fetching quotations for admin:', error);
+      res.status(500).json({ message: 'Failed to fetch quotations' });
+    }
+  });
+
+  // Get admin dashboard stats
+  app.get('/api/admin-portal/dashboard', async (req, res) => {
+    try {
+      const { adminPortalService } = await import('./admin-portal-service');
+      const stats = await adminPortalService.getAdminDashboardStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching admin dashboard stats:', error);
+      res.status(500).json({ message: 'Failed to fetch dashboard stats' });
+    }
+  });
+
+  // Update customer status
+  app.patch('/api/admin-portal/customers/:customerId/status', async (req, res) => {
+    try {
+      const { status } = req.body;
+      const { adminPortalService } = await import('./admin-portal-service');
+      const updatedCustomer = await adminPortalService.updateCustomerStatus(req.params.customerId, status);
+      res.json(updatedCustomer);
+    } catch (error) {
+      console.error('Error updating customer status:', error);
+      res.status(500).json({ message: 'Failed to update customer status' });
+    }
+  });
+
+  // Get specific customer details for admin
+  app.get('/api/admin-portal/customers/:customerId', async (req, res) => {
+    try {
+      const { adminPortalService } = await import('./admin-portal-service');
+      const customerDetails = await adminPortalService.getCustomerDetails(req.params.customerId);
+      
+      if (!customerDetails) {
+        return res.status(404).json({ message: 'Customer not found' });
+      }
+      
+      res.json(customerDetails);
+    } catch (error) {
+      console.error('Error fetching customer details:', error);
+      res.status(500).json({ message: 'Failed to fetch customer details' });
+    }
+  });
+
+  // Update order status
+  app.patch('/api/admin-portal/orders/:orderId/status', async (req, res) => {
+    try {
+      const { status } = req.body;
+      const { adminPortalService } = await import('./admin-portal-service');
+      const updatedOrder = await adminPortalService.updateOrderStatus(req.params.orderId, status);
+      res.json(updatedOrder);
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      res.status(500).json({ message: 'Failed to update order status' });
+    }
+  });
+
+  // Update quotation status
+  app.patch('/api/admin-portal/quotations/:quotationId/status', async (req, res) => {
+    try {
+      const { status } = req.body;
+      const { adminPortalService } = await import('./admin-portal-service');
+      const updatedQuotation = await adminPortalService.updateQuotationStatus(req.params.quotationId, status);
+      res.json(updatedQuotation);
+    } catch (error) {
+      console.error('Error updating quotation status:', error);
+      res.status(500).json({ message: 'Failed to update quotation status' });
+    }
+  });
+
+  // Search functionality
+  app.get('/api/admin-portal/search/customers', async (req, res) => {
+    try {
+      const { q } = req.query;
+      if (!q) {
+        return res.status(400).json({ message: 'Search query required' });
+      }
+      
+      const { adminPortalService } = await import('./admin-portal-service');
+      const results = await adminPortalService.searchCustomers(q as string);
+      res.json(results);
+    } catch (error) {
+      console.error('Error searching customers:', error);
+      res.status(500).json({ message: 'Failed to search customers' });
+    }
+  });
+
+  app.get('/api/admin-portal/search/orders', async (req, res) => {
+    try {
+      const { q } = req.query;
+      if (!q) {
+        return res.status(400).json({ message: 'Search query required' });
+      }
+      
+      const { adminPortalService } = await import('./admin-portal-service');
+      const results = await adminPortalService.searchOrders(q as string);
+      res.json(results);
+    } catch (error) {
+      console.error('Error searching orders:', error);
+      res.status(500).json({ message: 'Failed to search orders' });
+    }
+  });
+
+  // Get system activity log
+  app.get('/api/admin-portal/activity-log', async (req, res) => {
+    try {
+      const { adminPortalService } = await import('./admin-portal-service');
+      const activityLog = await adminPortalService.getSystemActivityLog();
+      res.json(activityLog);
+    } catch (error) {
+      console.error('Error fetching activity log:', error);
+      res.status(500).json({ message: 'Failed to fetch activity log' });
+    }
+  });
+
   // ============ LOYALTY SYSTEM ROUTES ============
 
   // Loyalty Points routes

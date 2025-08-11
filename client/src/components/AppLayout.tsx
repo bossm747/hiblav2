@@ -24,7 +24,8 @@ import {
   UserCheck,
   Users,
   Receipt,
-  Mail
+  Mail,
+  ExternalLink
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -46,6 +47,7 @@ const navigationItems = [
   { path: '/email-settings', label: 'Email Settings', icon: Mail },
   { path: '/customer-management', label: 'Customers', icon: Users },
   { path: '/staff-management', label: 'Staff', icon: UserCheck },
+  { path: '/portal-hub', label: 'Portal Access', icon: ExternalLink },
 ];
 
 export function AppLayout({ children }: AppLayoutProps) {

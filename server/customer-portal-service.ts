@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+// import bcrypt from 'bcrypt'; // Commented out for now, using plain text passwords
 import { db } from './db';
 import { customers, orders, orderItems, quotations, quotationItems, salesOrders, salesOrderItems } from '@shared/schema';
 import { eq, desc } from 'drizzle-orm';

@@ -23,6 +23,9 @@ import { InventoryInsightsPage } from '@/pages/InventoryInsightsPage';
 import Documentation from '@/pages/Documentation';
 import PaymentRecording from '@/pages/PaymentRecording';
 import EmailSettings from '@/pages/EmailSettings';
+import { CustomerPortal } from '@/pages/CustomerPortal';
+import AdminPortal from '@/pages/AdminPortal';
+import PortalHub from '@/pages/PortalHub';
 
 function App() {
   return (
@@ -47,6 +50,9 @@ function App() {
               <Route path="/email-settings" component={EmailSettings} />
               <Route path="/summary-reports" component={ReportsPage} />
               <Route path="/documentation" component={Documentation} />
+              <Route path="/portal-hub" component={PortalHub} />
+              <Route path="/customer-portal" component={CustomerPortal} />
+              <Route path="/admin-portal" component={AdminPortal} />
             </Switch>
           </AppLayout>
         </Router>
