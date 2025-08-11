@@ -33,6 +33,7 @@ interface DocsLayoutProps {
 interface DocSection {
   title: string;
   items: DocItem[];
+  collapsed?: boolean;
 }
 
 interface DocItem {
@@ -40,6 +41,7 @@ interface DocItem {
   href: string;
   icon?: React.ComponentType<{ className?: string }>;
   badge?: string;
+  description?: string;
 }
 
 const docSections: DocSection[] = [
