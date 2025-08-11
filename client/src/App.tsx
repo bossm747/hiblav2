@@ -20,6 +20,7 @@ import PriceManagementPage from '@/pages/PriceManagementPage';
 import { ProductsManagementPage } from '@/pages/ProductsManagementPage';
 import WarehouseManagementPage from '@/pages/WarehouseManagementPage';
 import { InventoryInsightsPage } from '@/pages/InventoryInsightsPage';
+import Documentation from '@/pages/Documentation';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
               <Route path="/staff-management" component={StaffManagementPage} />
               <Route path="/price-management" component={PriceManagementPage} />
               <Route path="/summary-reports" component={ReportsPage} />
+              <Route path="/documentation" component={Documentation} />
             </Switch>
           </AppLayout>
         </Router>

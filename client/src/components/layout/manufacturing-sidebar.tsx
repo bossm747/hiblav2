@@ -13,7 +13,8 @@ import {
   LogOut,
   DollarSign,
   Users,
-  UserCheck
+  UserCheck,
+  BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -59,6 +60,7 @@ export function ManufacturingSidebar({ isOpen, onClose, className }: Manufacturi
     { name: "Price Management", href: "/price-management", icon: DollarSign, description: "Pricing & cost control" },
     { name: "Customer Management", href: "/customer-management", icon: Users, description: "Customer relationship management" },
     { name: "Staff Management", href: "/staff-management", icon: UserCheck, description: "Team & role management" },
+    { name: "Documentation", href: "/documentation", icon: BookOpen, description: "User guides & process flows" },
   ];
 
   if (!isOpen) return null;
