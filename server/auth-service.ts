@@ -1,7 +1,7 @@
 import { db } from './db';
 import { staff, customers } from '@shared/schema';
 import { eq } from 'drizzle-orm';
-import { PERMISSIONS, getPermissionsByRole, type Permission } from '@shared/permissions';
+import { PERMISSIONS, getPermissionsByRole, getEnhancedPermissionsByRole, type Permission } from '@shared/permissions';
 import bcrypt from 'bcrypt';
 
 export interface AuthUser {
@@ -51,9 +51,9 @@ export class AuthService {
         .set({ lastLogin: new Date() })
         .where(eq(staff.id, staffMember.id));
 
-      // Get permissions (from database or role defaults)
+      // Get permissions (from database or enhanced role defaults)
       const dbPermissions = staffMember.permissions || [];
-      const rolePermissions = getPermissionsByRole(staffMember.role);
+      const rolePermissions = getEnhancedPermissionsByRole(staffMember.role);
       const allPermissions = Array.from(new Set([...dbPermissions, ...rolePermissions]));
 
       const authUser: AuthUser = {

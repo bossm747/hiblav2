@@ -14,7 +14,8 @@ import {
   DollarSign,
   Users,
   UserCheck,
-  BookOpen
+  BookOpen,
+  Shield
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -60,6 +61,7 @@ export function ManufacturingSidebar({ isOpen, onClose, className }: Manufacturi
     { name: "Price Management", href: "/price-management", icon: DollarSign, description: "Pricing & cost control" },
     { name: "Customer Management", href: "/customer-management", icon: Users, description: "Customer relationship management" },
     { name: "Staff Management", href: "/staff-management", icon: UserCheck, description: "Team & role management" },
+    { name: "Access Management", href: "/access-management", icon: Shield, description: "User roles & permissions control" },
     { name: "Documentation", href: "/documentation", icon: BookOpen, description: "User guides & process flows" },
   ];
 

@@ -1,413 +1,676 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { PERMISSION_GROUPS, PERMISSIONS, type Permission } from '@shared/permissions';
-import { Settings, UserPlus, Edit3, Shield, Users, CheckCircle2, XCircle } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { apiRequest } from '@/lib/queryClient';
+import { ROLES, ROLE_DESCRIPTIONS, ENHANCED_ROLE_PERMISSIONS, PERMISSION_GROUPS } from '@shared/permissions';
+import { 
+  Users, 
+  Shield, 
+  Settings, 
+  UserPlus, 
+  Eye, 
+  Edit, 
+  Trash2,
+  CheckCircle,
+  XCircle,
+  Crown,
+  UserCheck,
+  Building,
+  Phone,
+  Mail
+} from 'lucide-react';
 
-interface StaffMember {
+interface Staff {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   role: string;
-  permissions: Permission[];
+  department?: string;
+  permissions: string[];
   isActive: boolean;
-  lastLogin: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export default function AccessManagement() {
-  const [staff, setStaff] = useState<StaffMember[]>([]);
-  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+  const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [filterRole, setFilterRole] = useState<string>('all');
+  const [filterDepartment, setFilterDepartment] = useState<string>('all');
   const { toast } = useToast();
-  const { hasPermission } = useAuth();
+  const queryClient = useQueryClient();
 
-  // New staff form
-  const [newStaff, setNewStaff] = useState({
-    name: '',
-    email: '',
-    password: '',
-    phone: '',
-    role: 'staff',
-    permissions: [] as Permission[]
+  // Fetch staff data
+  const { data: staffData, isLoading } = useQuery({
+    queryKey: ['/api/staff'],
+    retry: false,
   });
 
-  useEffect(() => {
-    loadStaff();
-  }, []);
+  const staff: Staff[] = staffData || [];
 
-  const loadStaff = async () => {
-    try {
-      const response = await fetch('/api/staff');
-      if (response.ok) {
-        const data = await response.json();
-        setStaff(data);
-      }
-    } catch (error) {
-      console.error('Error loading staff:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load staff members',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Filter staff based on role and department
+  const filteredStaff = staff.filter(member => {
+    const roleMatch = filterRole === 'all' || member.role === filterRole;
+    const deptMatch = filterDepartment === 'all' || member.department === filterDepartment;
+    return roleMatch && deptMatch;
+  });
 
-  const updateStaffPermissions = async (staffId: string, permissions: Permission[]) => {
-    try {
-      const response = await fetch(`/api/staff/${staffId}/permissions`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ permissions }),
-      });
+  // Get unique departments
+  const departments = [...new Set(staff.map(s => s.department).filter(Boolean))];
 
-      if (response.ok) {
-        await loadStaff(); // Reload staff list
-        toast({
-          title: 'Success',
-          description: 'Staff permissions updated successfully',
-        });
-        setIsEditDialogOpen(false);
-      } else {
-        throw new Error('Failed to update permissions');
-      }
-    } catch (error) {
-      console.error('Error updating permissions:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update staff permissions',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const createStaff = async () => {
-    try {
-      const response = await fetch('/api/staff', {
+  // Create staff mutation
+  const createStaffMutation = useMutation({
+    mutationFn: async (data: Partial<Staff>) => {
+      return apiRequest('/api/staff', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newStaff),
+        body: JSON.stringify(data)
       });
-
-      if (response.ok) {
-        await loadStaff(); // Reload staff list
-        toast({
-          title: 'Success',
-          description: 'Staff member created successfully',
-        });
-        setIsAddDialogOpen(false);
-        setNewStaff({
-          name: '',
-          email: '',
-          password: '',
-          phone: '',
-          role: 'staff',
-          permissions: []
-        });
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create staff member');
-      }
-    } catch (error) {
-      console.error('Error creating staff:', error);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/staff'] });
+      toast({
+        title: 'Success',
+        description: 'Staff member created successfully',
+      });
+      setIsCreateDialogOpen(false);
+    },
+    onError: () => {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to create staff member',
+        description: 'Failed to create staff member',
         variant: 'destructive',
       });
+    },
+  });
+
+  // Update staff mutation
+  const updateStaffMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Staff> }) => {
+      return apiRequest(`/api/staff/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/staff'] });
+      toast({
+        title: 'Success',
+        description: 'Staff member updated successfully',
+      });
+      setIsEditDialogOpen(false);
+      setSelectedStaff(null);
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update staff member',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Toggle staff status mutation
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      return apiRequest(`/api/staff/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive })
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/staff'] });
+      toast({
+        title: 'Success',
+        description: 'Staff status updated successfully',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update staff status',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'admin': return 'bg-red-100 text-red-800 border-red-200';
+      case 'production_manager':
+      case 'sales_manager': 
+      case 'inventory_manager': return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'supervisor': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'sales_staff':
+      case 'production_staff':
+      case 'inventory_staff':
+      case 'customer_service':
+      case 'accountant': return 'bg-green-100 text-green-800 border-green-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const togglePermission = (permission: Permission, current: Permission[], onChange: (permissions: Permission[]) => void) => {
-    const updated = current.includes(permission)
-      ? current.filter(p => p !== permission)
-      : [...current, permission];
-    onChange(updated);
+  const formatRoleName = (role: string) => {
+    return role.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
   };
 
-  const togglePermissionGroup = (groupPermissions: Permission[], current: Permission[], onChange: (permissions: Permission[]) => void) => {
-    const hasAll = groupPermissions.every(p => current.includes(p));
-    const updated = hasAll
-      ? current.filter(p => !groupPermissions.includes(p))
-      : [...new Set([...current, ...groupPermissions])];
-    onChange(updated);
-  };
-
-  const PermissionSelector = ({ 
-    currentPermissions, 
-    onChange 
-  }: { 
-    currentPermissions: Permission[]; 
-    onChange: (permissions: Permission[]) => void;
-  }) => (
-    <div className="space-y-6">
-      {Object.entries(PERMISSION_GROUPS).map(([groupName, groupPermissions]) => {
-        const hasAll = groupPermissions.every(p => currentPermissions.includes(p));
-        const hasSome = groupPermissions.some(p => currentPermissions.includes(p));
-
-        return (
-          <Card key={groupName} className="shadow-card">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-medium">{groupName}</CardTitle>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={hasAll}
-                    ref={(el) => {
-                      if (el) el.indeterminate = hasSome && !hasAll;
-                    }}
-                    onCheckedChange={() => togglePermissionGroup(groupPermissions, currentPermissions, onChange)}
-                  />
-                  <Label className="text-sm font-normal">Select All</Label>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {groupPermissions.map((permission) => (
-                  <div key={permission} className="flex items-center space-x-2">
-                    <Checkbox
-                      checked={currentPermissions.includes(permission)}
-                      onCheckedChange={() => togglePermission(permission, currentPermissions, onChange)}
-                    />
-                    <Label className="text-sm font-normal flex-1">
-                      {permission.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
-  );
-
-  if (!hasPermission(PERMISSIONS.STAFF_PERMISSIONS)) {
+  if (isLoading) {
     return (
-      <div className="p-8 text-center">
-        <Shield className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Access Denied</h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          You don't have permission to manage staff access. Contact your administrator.
-        </p>
+      <div className="p-6 space-y-6">
+        <div className="flex items-center space-x-2">
+          <Shield className="h-6 w-6" />
+          <h1 className="text-2xl font-bold">Access Management</h1>
+        </div>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading staff data...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-6 space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Access Management</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Manage staff permissions and access control
-          </p>
+        <div className="flex items-center space-x-2">
+          <Shield className="h-6 w-6" />
+          <h1 className="text-2xl font-bold">Access Management</h1>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700">
-              <UserPlus className="w-4 h-4 mr-2" />
+            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+              <UserPlus className="h-4 w-4 mr-2" />
               Add Staff Member
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Add New Staff Member</DialogTitle>
             </DialogHeader>
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    value={newStaff.name}
-                    onChange={(e) => setNewStaff({ ...newStaff, name: e.target.value })}
-                    placeholder="Enter full name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={newStaff.email}
-                    onChange={(e) => setNewStaff({ ...newStaff, email: e.target.value })}
-                    placeholder="Enter email address"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={newStaff.password}
-                    onChange={(e) => setNewStaff({ ...newStaff, password: e.target.value })}
-                    placeholder="Enter password"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="role">Role</Label>
-                  <Select value={newStaff.role} onValueChange={(value) => setNewStaff({ ...newStaff, role: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="staff">Staff</SelectItem>
-                      <SelectItem value="manager">Manager</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div>
-                <Label className="text-base font-medium">Permissions</Label>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  Select the features this staff member can access
-                </p>
-                <PermissionSelector
-                  currentPermissions={newStaff.permissions}
-                  onChange={(permissions) => setNewStaff({ ...newStaff, permissions })}
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={createStaff}>
-                  Create Staff Member
-                </Button>
-              </div>
-            </div>
+            <StaffForm 
+              onSubmit={(data) => createStaffMutation.mutate(data)}
+              isLoading={createStaffMutation.isPending}
+            />
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Staff List */}
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="shadow-card">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Staff</p>
+                <p className="text-2xl font-bold">{staff.length}</p>
+              </div>
+              <Users className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="shadow-card">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Staff</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {staff.filter(s => s.isActive).length}
+                </p>
+              </div>
+              <UserCheck className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="shadow-card">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Departments</p>
+                <p className="text-2xl font-bold">{departments.length}</p>
+              </div>
+              <Building className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="shadow-card">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Administrators</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {staff.filter(s => s.role === 'admin').length}
+                </p>
+              </div>
+              <Crown className="h-8 w-8 text-red-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
       <Card className="shadow-card">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Users className="w-5 h-5 mr-2" />
-            Staff Members
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8">Loading staff members...</div>
-          ) : staff.length === 0 ? (
-            <div className="text-center py-8">
-              <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600 dark:text-gray-400">No staff members found</p>
+        <CardContent className="p-6">
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-48">
+              <Label htmlFor="role-filter">Filter by Role</Label>
+              <Select value={filterRole} onValueChange={setFilterRole}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Roles" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  {Object.values(ROLES).map(role => (
+                    <SelectItem key={role} value={role}>
+                      {formatRoleName(role)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {staff.map((member) => (
-                <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      <div>
-                        <h3 className="font-medium">{member.name}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{member.email}</p>
-                      </div>
-                      <Badge variant={member.isActive ? "default" : "secondary"}>
-                        {member.isActive ? (
-                          <>
-                            <CheckCircle2 className="w-3 h-3 mr-1" />
-                            Active
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="w-3 h-3 mr-1" />
-                            Inactive
-                          </>
-                        )}
-                      </Badge>
-                      <Badge variant="outline">{member.role}</Badge>
-                    </div>
-                    <div className="mt-2">
-                      <p className="text-xs text-gray-500">
-                        {member.permissions.length} permissions • Last login: {member.lastLogin || 'Never'}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedStaff(member);
-                      setIsEditDialogOpen(true);
-                    }}
-                  >
-                    <Edit3 className="w-4 h-4 mr-2" />
-                    Edit Permissions
-                  </Button>
-                </div>
-              ))}
+            
+            <div className="flex-1 min-w-48">
+              <Label htmlFor="dept-filter">Filter by Department</Label>
+              <Select value={filterDepartment} onValueChange={setFilterDepartment}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Departments" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {departments.map(dept => (
+                    <SelectItem key={dept} value={dept}>
+                      {dept}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* Edit Permissions Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              Edit Permissions - {selectedStaff?.name}
-            </DialogTitle>
-          </DialogHeader>
-          {selectedStaff && (
-            <div className="space-y-6">
-              <div className="flex items-center space-x-4">
-                <Badge variant="outline">{selectedStaff.role}</Badge>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  {selectedStaff.permissions.length} permissions assigned
-                </span>
+      {/* Staff List */}
+      <Card className="shadow-card">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Users className="h-5 w-5" />
+            <span>Staff Members ({filteredStaff.length})</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {filteredStaff.map((member) => (
+              <div key={member.id} className="p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-purple-800 dark:text-purple-200">
+                          {member.name.split(' ').map(n => n[0]).join('')}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <h3 className="font-medium">{member.name}</h3>
+                        {member.isActive ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-red-600" />
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                        <div className="flex items-center space-x-1">
+                          <Mail className="h-3 w-3" />
+                          <span>{member.email}</span>
+                        </div>
+                        {member.phone && (
+                          <div className="flex items-center space-x-1">
+                            <Phone className="h-3 w-3" />
+                            <span>{member.phone}</span>
+                          </div>
+                        )}
+                        {member.department && (
+                          <div className="flex items-center space-x-1">
+                            <Building className="h-3 w-3" />
+                            <span>{member.department}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Badge className={getRoleBadgeColor(member.role)}>
+                      {formatRoleName(member.role)}
+                    </Badge>
+                    
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedStaff(member)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedStaff(member);
+                          setIsEditDialogOpen(true);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleStatusMutation.mutate({
+                          id: member.id,
+                          isActive: !member.isActive
+                        })}
+                        disabled={toggleStatusMutation.isPending}
+                      >
+                        {member.isActive ? (
+                          <XCircle className="h-4 w-4 text-red-600" />
+                        ) : (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-3 text-xs text-gray-500">
+                  {member.permissions.length} permissions granted
+                </div>
               </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-              <Separator />
+      {/* Staff Details Dialog */}
+      {selectedStaff && !isEditDialogOpen && (
+        <Dialog open={!!selectedStaff} onOpenChange={() => setSelectedStaff(null)}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>Staff Details - {selectedStaff.name}</DialogTitle>
+            </DialogHeader>
+            <StaffDetails staff={selectedStaff} />
+          </DialogContent>
+        </Dialog>
+      )}
 
-              <PermissionSelector
-                currentPermissions={selectedStaff.permissions}
-                onChange={(permissions) => 
-                  setSelectedStaff({ ...selectedStaff, permissions })
-                }
-              />
+      {/* Edit Staff Dialog */}
+      {selectedStaff && isEditDialogOpen && (
+        <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+          setIsEditDialogOpen(open);
+          if (!open) setSelectedStaff(null);
+        }}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Edit Staff Member - {selectedStaff.name}</DialogTitle>
+            </DialogHeader>
+            <StaffForm 
+              staff={selectedStaff}
+              onSubmit={(data) => updateStaffMutation.mutate({ 
+                id: selectedStaff.id, 
+                data 
+              })}
+              isLoading={updateStaffMutation.isPending}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+    </div>
+  );
+}
 
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={() => updateStaffPermissions(selectedStaff.id, selectedStaff.permissions)}
-                >
-                  Save Changes
-                </Button>
+// Staff Form Component
+function StaffForm({ 
+  staff, 
+  onSubmit, 
+  isLoading 
+}: { 
+  staff?: Staff; 
+  onSubmit: (data: Partial<Staff>) => void; 
+  isLoading: boolean;
+}) {
+  const [formData, setFormData] = useState({
+    name: staff?.name || '',
+    email: staff?.email || '',
+    phone: staff?.phone || '',
+    role: staff?.role || '',
+    department: staff?.department || '',
+    isActive: staff?.isActive ?? true,
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const permissions = ENHANCED_ROLE_PERMISSIONS[formData.role as keyof typeof ENHANCED_ROLE_PERMISSIONS] || [];
+    onSubmit({
+      ...formData,
+      permissions,
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="name">Full Name</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            required
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={formData.email}
+            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            required
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="phone">Phone</Label>
+          <Input
+            id="phone"
+            value={formData.phone}
+            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="department">Department</Label>
+          <Input
+            id="department"
+            value={formData.department}
+            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+          />
+        </div>
+      </div>
+      
+      <div>
+        <Label htmlFor="role">Role</Label>
+        <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a role" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(ROLE_DESCRIPTIONS).map(([role, description]) => (
+              <SelectItem key={role} value={role}>
+                <div>
+                  <div className="font-medium">{role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</div>
+                  <div className="text-xs text-gray-500">{description}</div>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="flex items-center justify-between pt-4 border-t">
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="isActive"
+            checked={formData.isActive}
+            onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+          />
+          <Label htmlFor="isActive">Active User</Label>
+        </div>
+        
+        <Button type="submit" disabled={isLoading || !formData.name || !formData.email || !formData.role}>
+          {isLoading ? 'Saving...' : staff ? 'Update Staff' : 'Create Staff'}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+// Staff Details Component
+function StaffDetails({ staff }: { staff: Staff }) {
+  const permissions = staff.permissions;
+  const rolePermissions = ENHANCED_ROLE_PERMISSIONS[staff.role as keyof typeof ENHANCED_ROLE_PERMISSIONS] || [];
+  
+  return (
+    <div className="space-y-6">
+      {/* Basic Info */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Basic Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <Label className="text-sm font-medium">Name</Label>
+              <p className="text-sm">{staff.name}</p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Email</Label>
+              <p className="text-sm">{staff.email}</p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Phone</Label>
+              <p className="text-sm">{staff.phone || 'Not provided'}</p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Department</Label>
+              <p className="text-sm">{staff.department || 'Not assigned'}</p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Status</Label>
+              <div className="flex items-center space-x-2">
+                {staff.isActive ? (
+                  <Badge className="bg-green-100 text-green-800 border-green-200">Active</Badge>
+                ) : (
+                  <Badge className="bg-red-100 text-red-800 border-red-200">Inactive</Badge>
+                )}
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Role Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <Label className="text-sm font-medium">Role</Label>
+              <Badge className="block w-fit mt-1">
+                {staff.role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+              </Badge>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Description</Label>
+              <p className="text-sm text-gray-600">
+                {ROLE_DESCRIPTIONS[staff.role as keyof typeof ROLE_DESCRIPTIONS] || 'No description available'}
+              </p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Total Permissions</Label>
+              <p className="text-sm">{permissions.length} permissions granted</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Permissions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Permissions Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {Object.entries(PERMISSION_GROUPS).map(([groupName, groupPermissions]) => {
+              const userGroupPermissions = groupPermissions.filter(p => permissions.includes(p));
+              const hasAnyPermission = userGroupPermissions.length > 0;
+              
+              return (
+                <div key={groupName} className={`p-3 rounded-lg border ${hasAnyPermission ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium">{groupName}</h4>
+                    <Badge variant={hasAnyPermission ? 'default' : 'secondary'}>
+                      {userGroupPermissions.length}/{groupPermissions.length}
+                    </Badge>
+                  </div>
+                  {hasAnyPermission && (
+                    <div className="text-xs text-gray-600 space-y-1">
+                      {userGroupPermissions.map(permission => (
+                        <div key={permission} className="flex items-center space-x-1">
+                          <CheckCircle className="h-3 w-3 text-green-600" />
+                          <span>{permission.replace(/_/g, ' ').toLowerCase()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
