@@ -108,7 +108,7 @@ export function DocsLayout({ children }: DocsLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(['Getting Started', 'Core Features'])
+    new Set(docSections.map(s => s.title)) // All sections expanded by default
   );
   const { theme, setTheme } = useTheme();
 
@@ -215,13 +215,13 @@ export function DocsLayout({ children }: DocsLayoutProps) {
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}>
           {/* Mobile Search */}
-          <div className="p-4 lg:hidden">
+          <div className="p-2 lg:hidden">
             <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder="Search docs..."
-                className="pl-8"
+                className="pl-7 h-8 text-xs"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -229,30 +229,30 @@ export function DocsLayout({ children }: DocsLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="space-y-1 p-4">
+          <nav className="p-2">
             {filteredSections.map((section) => (
-              <div key={section.title} className="space-y-1">
+              <div key={section.title} className="mb-0.5">
                 <button
                   onClick={() => toggleSection(section.title)}
-                  className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="flex w-full items-center justify-between rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <span>{section.title}</span>
                   {expandedSections.has(section.title) ? (
-                    <ChevronDown className="h-4 w-4" />
+                    <ChevronDown className="h-3 w-3" />
                   ) : (
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-3 w-3" />
                   )}
                 </button>
                 
                 {expandedSections.has(section.title) && (
-                  <div className="ml-2 space-y-1">
+                  <div className="ml-1">
                     {section.items.map((item) => {
                       const isActive = location === item.href;
                       return (
                         <Link key={item.href} href={item.href}>
                           <a
                             className={cn(
-                              "flex items-center justify-between rounded-md px-2 py-1.5 text-sm transition-colors",
+                              "flex items-center justify-between rounded-md px-2 py-0.5 text-xs transition-colors",
                               isActive
                                 ? "bg-primary/10 text-primary font-medium"
                                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -261,7 +261,7 @@ export function DocsLayout({ children }: DocsLayoutProps) {
                           >
                             <span>{item.title}</span>
                             {item.badge && (
-                              <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                              <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px]">
                                 {item.badge}
                               </Badge>
                             )}

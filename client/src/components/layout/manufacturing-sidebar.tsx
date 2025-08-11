@@ -113,33 +113,28 @@ export function ManufacturingSidebar({ isOpen, onClose, className }: Manufacturi
         </div>
 
         {/* Navigation Content */}
-        <div className="flex-1 overflow-y-auto p-3">
-          <div className="space-y-2">
+        <div className="flex-1 overflow-y-auto p-2">
+          <div className="space-y-0.5">
             {manufacturingItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
                 className={cn(
-                  "flex items-center w-full p-4 rounded-xl text-left transition-all duration-200",
+                  "flex items-center w-full px-2 py-1.5 rounded-md text-left transition-all duration-200",
                   "hover:bg-muted hover:text-primary group active:scale-95",
-                  "border border-transparent min-h-[3.5rem] touch-manipulation",
+                  "border border-transparent touch-manipulation",
                   location === item.href 
-                    ? "bg-primary/10 text-primary border-primary/20 shadow-lg" 
+                    ? "bg-primary/10 text-primary border-primary/20" 
                     : "text-foreground/80 hover:border-primary/10"
                 )}
               >
                 <item.icon className={cn(
-                  "h-6 w-6 mr-4 transition-colors flex-shrink-0",
+                  "h-4 w-4 mr-2 transition-colors flex-shrink-0",
                   location === item.href ? "text-primary" : "text-foreground/60 group-hover:text-primary"
                 )} />
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-sm truncate">{item.name}</div>
-                  {item.description && (
-                    <div className="text-xs text-muted-foreground truncate mt-0.5">
-                      {item.description}
-                    </div>
-                  )}
+                  <div className="font-medium text-xs truncate">{item.name}</div>
                 </div>
               </Link>
             ))}

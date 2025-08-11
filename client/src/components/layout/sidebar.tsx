@@ -77,15 +77,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
         
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-2">
+        <nav className="flex-1 overflow-y-auto p-2">
+          <div className="space-y-0.5">
             {navigation.map((item) => {
               const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
               return (
                 <Link key={item.name} href={item.href}>
                   <div 
                     className={cn(
-                      "flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 group cursor-pointer",
+                      "flex items-center space-x-2 px-2 py-1.5 rounded-md transition-all duration-200 group cursor-pointer",
                       isActive 
                         ? "glass neon-glow-light border border-purple-400/50 text-foreground" 
                         : "hover:glass hover:bg-white/5 text-muted-foreground hover:text-foreground"
@@ -93,10 +93,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     onClick={() => onClose()}
                   >
                     <item.icon className={cn(
-                      "h-5 w-5 flex-shrink-0 transition-colors",
+                      "h-4 w-4 flex-shrink-0 transition-colors",
                       isActive ? "text-purple-400" : "group-hover:text-cyan-400"
                     )} />
-                    <span className="text-sm font-medium">{item.name}</span>
+                    <span className="text-xs font-medium">{item.name}</span>
                   </div>
                 </Link>
               );
@@ -104,16 +104,16 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           </div>
           
           {/* Secondary Navigation */}
-          <div className="mt-8 pt-6 border-t border-white/20">
-            <div className="space-y-2">
+          <div className="mt-4 pt-2 border-t border-white/20">
+            <div className="space-y-0.5">
               {secondaryNavigation.map((item) => (
                 <Link key={item.name} href={item.href}>
                   <div 
-                    className="flex items-center space-x-3 p-3 rounded-lg hover:glass hover:bg-white/5 text-muted-foreground hover:text-foreground transition-all duration-200 group cursor-pointer"
+                    className="flex items-center space-x-2 px-2 py-1.5 rounded-md hover:glass hover:bg-white/5 text-muted-foreground hover:text-foreground transition-all duration-200 group cursor-pointer"
                     onClick={() => onClose()}
                   >
-                    <item.icon className="h-5 w-5 flex-shrink-0 group-hover:text-red-400 transition-colors" />
-                    <span className="text-sm font-medium">{item.name}</span>
+                    <item.icon className="h-4 w-4 flex-shrink-0 group-hover:text-red-400 transition-colors" />
+                    <span className="text-xs font-medium">{item.name}</span>
                   </div>
                 </Link>
               ))}
@@ -122,15 +122,15 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/20">
-          <div className="glass p-3 rounded-lg">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                <span className="text-xs font-semibold text-white">H</span>
+        <div className="p-2 border-t border-white/20">
+          <div className="glass p-2 rounded-md">
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                <span className="text-[10px] font-semibold text-white">H</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">Admin Panel</p>
-                <p className="text-xs text-muted-foreground truncate">Hibla Filipino Hair</p>
+                <p className="text-xs font-medium text-foreground truncate">Admin Panel</p>
+                <p className="text-[10px] text-muted-foreground truncate">Hibla Filipino Hair</p>
               </div>
             </div>
           </div>
