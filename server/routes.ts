@@ -95,6 +95,54 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // Export functionality
+  app.post("/api/export/quotations", async (req, res) => {
+    try {
+      const quotations = await storage.getQuotations();
+      const exportData = quotations.map((q: any) => ({
+        'Quotation Number': q.quotationNumber || '',
+        'Customer Code': q.customerCode || '',
+        'Country': q.country || '',
+        'Total': q.total || '0.00',
+        'Status': q.status || 'draft',
+        'Created Date': q.createdAt ? new Date(q.createdAt).toLocaleDateString() : '',
+        'Created By': q.createdBy || ''
+      }));
+      
+      res.json({
+        success: true,
+        message: "Quotations exported successfully",
+        data: exportData
+      });
+    } catch (error) {
+      console.error('Export quotations error:', error);
+      res.status(500).json({ message: "Failed to export quotations" });
+    }
+  });
+
+  app.post("/api/export/sales-orders", async (req, res) => {
+    try {
+      const salesOrders = await storage.getSalesOrders();
+      const exportData = salesOrders.map((so: any) => ({
+        'Sales Order Number': so.salesOrderNumber || '',
+        'Customer Code': so.customerCode || '',
+        'Total': so.total || '0.00',
+        'Status': so.status || 'draft',
+        'Due Date': so.dueDate ? new Date(so.dueDate).toLocaleDateString() : '',
+        'Created Date': so.createdAt ? new Date(so.createdAt).toLocaleDateString() : ''
+      }));
+      
+      res.json({
+        success: true,
+        message: "Sales orders exported successfully",
+        data: exportData
+      });
+    } catch (error) {
+      console.error('Export sales orders error:', error);
+      res.status(500).json({ message: "Failed to export sales orders" });
+    }
+  });
+
   // Staff management routes
   app.get("/api/staff", async (req, res) => {
     try {
@@ -2750,6 +2798,63 @@ export function registerRoutes(app: Express): void {
         return res.status(400).json({ message: "Invalid price list data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to create price list" });
+    }
+  });
+
+  // VLOOKUP functionality - Get product pricing by price list
+  app.get("/api/vlookup/product-price", async (req, res) => {
+    try {
+      const { productId, priceListId, customerCode } = req.query;
+      
+      if (!productId) {
+        return res.status(400).json({ message: "Product ID is required" });
+      }
+
+      // Get product information
+      const product = await storage.getProduct(productId as string);
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      // Get customer tier pricing if customer code is provided
+      let finalPrice = parseFloat(product.basePrice || product.srp || '0');
+      
+      if (customerCode) {
+        const customer = await storage.getCustomerByCode(customerCode as string);
+        if (customer && customer.tier) {
+          // Apply tier-based pricing
+          const tierMultipliers = {
+            'new': 1.15,      // +15% for new customers
+            'regular': 1.0,   // Base price for regular customers
+            'premier': 0.85,  // -15% for premier customers
+            'custom': 1.0     // Custom pricing handled separately
+          };
+          
+          const multiplier = tierMultipliers[customer.tier as keyof typeof tierMultipliers] || 1.0;
+          finalPrice = finalPrice * multiplier;
+        }
+      }
+
+      // Check for price list specific pricing
+      if (priceListId && priceListId !== 'base') {
+        const priceListProducts = await storage.getProductPriceLists(productId as string, priceListId as string);
+        if (priceListProducts.length > 0) {
+          finalPrice = parseFloat(priceListProducts[0].price || finalPrice.toString());
+        }
+      }
+
+      res.json({
+        productId,
+        productName: product.name,
+        basePrice: product.basePrice,
+        srp: product.srp,
+        priceListPrice: finalPrice.toFixed(2),
+        specification: product.description || '',
+        category: product.category
+      });
+    } catch (error) {
+      console.error('VLOOKUP pricing error:', error);
+      res.status(500).json({ message: "Failed to get product pricing" });
     }
   });
 
