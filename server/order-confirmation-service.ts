@@ -79,7 +79,7 @@ export class OrderConfirmationService {
           reference: salesOrderId,
           referenceType: "sales_order",
           salesOrderId,
-          staffId: confirmedBy,
+          staffId: confirmedBy || 'system',
         });
 
         // Update product's order requirements (if you have such a field)

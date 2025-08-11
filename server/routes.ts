@@ -3104,7 +3104,7 @@ export function registerRoutes(app: Express): void {
         customerId: quotation.customerId,
         customerCode: quotation.customerCode,
         country: quotation.country,
-        dueDate: req.body.dueDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days default
+        dueDate: req.body.dueDate ? new Date(req.body.dueDate + 'T00:00:00.000Z') : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days default
         revisionNumber: "R1",
         subtotal: quotation.subtotal,
         shippingFee: quotation.shippingFee,

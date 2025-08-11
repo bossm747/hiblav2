@@ -63,8 +63,11 @@ export function QuotationsPage() {
   // Mutation for updating quotation status
   const updateQuotationMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const response = await apiRequest("PATCH", `/api/quotations/${id}`, data);
-      return response.json();
+      return await apiRequest(`/api/quotations/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
@@ -110,8 +113,9 @@ export function QuotationsPage() {
 
   const handleDuplicate = async (quotationId: string) => {
     try {
-      const response = await apiRequest("POST", `/api/quotations/${quotationId}/duplicate`);
-      const newQuotation = await response.json();
+      const newQuotation = await apiRequest(`/api/quotations/${quotationId}/duplicate`, {
+        method: 'POST'
+      });
       queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
       toast({
         title: "Success",
@@ -142,8 +146,11 @@ export function QuotationsPage() {
 
   const handleConvertToSalesOrder = async (quotationId: string) => {
     try {
-      const response = await apiRequest("POST", `/api/quotations/${quotationId}/convert-to-sales-order`);
-      const salesOrder = await response.json();
+      const salesOrder = await apiRequest(`/api/quotations/${quotationId}/generate-sales-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dueDate: '2025-09-15', revisionNumber: 'R1' })
+      });
       queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/sales-orders'] });
       toast({
@@ -161,7 +168,9 @@ export function QuotationsPage() {
 
   const handleSendEmail = async (quotationId: string) => {
     try {
-      await apiRequest("POST", `/api/quotations/${quotationId}/send-email`);
+      await apiRequest(`/api/quotations/${quotationId}/send-email`, {
+        method: 'POST'
+      });
       toast({
         title: "Success",
         description: "Quotation sent via email successfully",
@@ -177,8 +186,10 @@ export function QuotationsPage() {
 
   const handleDownloadPDF = async (quotationId: string) => {
     try {
-      const response = await apiRequest("GET", `/api/quotations/${quotationId}/pdf`);
-      const blob = await response.blob();
+      const pdfBlob = await apiRequest(`/api/quotations/${quotationId}/pdf`, {
+        method: 'GET'
+      });
+      const blob = pdfBlob instanceof Blob ? pdfBlob : new Blob([pdfBlob], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
