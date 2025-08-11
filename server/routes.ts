@@ -3624,7 +3624,11 @@ export function registerRoutes(app: Express): void {
       // Get current staff for tracking
       const staffList = await storage.getAllStaff();
       const currentStaff = staffList.find((s: any) => s.role === 'admin') || staffList[0];
-      const confirmedBy = currentStaff?.id || 'system';
+      
+      if (!currentStaff) {
+        return res.status(400).json({ message: "No staff available for confirmation" });
+      }
+      const confirmedBy = currentStaff.id;
 
       // Use the order confirmation service
       const { orderConfirmationService } = await import("./order-confirmation-service");

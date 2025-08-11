@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { salesOrders, inventoryTransactions, products, warehouses } from "@shared/schema";
+import { salesOrders, salesOrderItems, inventoryTransactions, products, warehouses } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 
 export class OrderConfirmationService {
@@ -36,7 +36,7 @@ export class OrderConfirmationService {
         .returning();
 
       // Update inventory requirements
-      await this.updateInventoryRequirements(salesOrderId);
+      await this.updateInventoryRequirements(salesOrderId, confirmedBy);
 
       return confirmedOrder;
     } catch (error) {
@@ -49,7 +49,7 @@ export class OrderConfirmationService {
    * Update inventory requirements based on confirmed sales order
    * This adds order quantities to the reserved warehouse
    */
-  private async updateInventoryRequirements(salesOrderId: string) {
+  private async updateInventoryRequirements(salesOrderId: string, staffId: string) {
     try {
       // Get the sales order items
       const orderItems = await db
@@ -79,7 +79,7 @@ export class OrderConfirmationService {
           reference: salesOrderId,
           referenceType: "sales_order",
           salesOrderId,
-          staffId: confirmedBy || 'system',
+          staffId: staffId,
         });
 
         // Update product's order requirements (if you have such a field)
