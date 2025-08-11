@@ -26,6 +26,8 @@ import EmailSettings from '@/pages/EmailSettings';
 import { CustomerPortal } from '@/pages/CustomerPortal';
 import AdminPortal from '@/pages/AdminPortal';
 import PortalHub from '@/pages/PortalHub';
+import Landing from '@/pages/Landing';
+import PreloaderDemo from '@/pages/PreloaderDemo';
 
 function App() {
   return (
@@ -35,6 +37,7 @@ function App() {
           <AppLayout>
             <Switch>
               <Route path="/" component={Dashboard} />
+              <Route path="/landing" component={Landing} />
               <Route path="/quotations" component={QuotationsPage} />
               <Route path="/quotations-vlookup" component={VLOOKUPQuotationsPage} />
               <Route path="/sales-orders" component={SalesOrdersPage} />
@@ -53,6 +56,7 @@ function App() {
               <Route path="/portal-hub" component={PortalHub} />
               <Route path="/customer-portal" component={CustomerPortal} />
               <Route path="/admin-portal" component={AdminPortal} />
+              <Route path="/preloader-demo" component={PreloaderDemo} />
             </Switch>
           </AppLayout>
         </Router>

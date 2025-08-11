@@ -48,6 +48,7 @@ const navigationItems = [
   { path: '/customer-management', label: 'Customers', icon: Users },
   { path: '/staff-management', label: 'Staff', icon: UserCheck },
   { path: '/portal-hub', label: 'Portal Access', icon: ExternalLink },
+  { path: '/landing', label: 'Landing Page', icon: Home },
 ];
 
 export function AppLayout({ children }: AppLayoutProps) {
