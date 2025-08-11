@@ -2014,19 +2014,31 @@ export class DatabaseStorage implements IStorage {
 
   async updateEmailSettings(settings: any): Promise<any> {
     try {
+      // Clean the settings object to ensure proper types, excluding auto-generated timestamps
+      const cleanSettings = {
+        smtpHost: settings.smtpHost,
+        smtpPort: parseInt(settings.smtpPort) || 465,
+        smtpSecure: settings.smtpSecure !== false,
+        smtpUsername: settings.smtpUsername,
+        smtpPassword: settings.smtpPassword,
+        fromEmail: settings.fromEmail,
+        fromName: settings.fromName,
+        replyToEmail: settings.replyToEmail,
+        ccEmails: settings.ccEmails,
+        bccEmails: settings.bccEmails,
+        enabled: settings.enabled !== false,
+        // Don't include updatedAt - let the database handle it with defaultNow()
+      };
+
       const [updated] = await db
         .insert(emailSettings)
         .values({
           id: 'default',
-          ...settings,
-          updatedAt: new Date(),
+          ...cleanSettings,
         })
         .onConflictDoUpdate({
           target: emailSettings.id,
-          set: {
-            ...settings,
-            updatedAt: new Date(),
-          },
+          set: cleanSettings,
         })
         .returning();
       return updated;

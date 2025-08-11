@@ -2,6 +2,12 @@ import nodemailer, { Transporter } from 'nodemailer';
 import { db } from './db';
 import { emailSettings } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import { 
+  getTestEmailTemplate, 
+  getQuotationEmailTemplate, 
+  getOrderConfirmationEmailTemplate, 
+  getPaymentReceivedEmailTemplate 
+} from './email-templates';
 
 interface EmailConfig {
   host: string;
@@ -18,6 +24,13 @@ interface EmailTemplate {
   subject: string;
   html: string;
   text?: string;
+}
+
+interface NotificationData {
+  type: 'quotation' | 'order' | 'payment' | 'test';
+  data?: any;
+  recipient: string;
+  subject?: string;
 }
 
 export class EmailNotificationService {
@@ -70,20 +83,32 @@ export class EmailNotificationService {
 
   async updateEmailSettings(settings: any) {
     try {
+      // Clean the settings object to ensure proper types, excluding auto-generated timestamps
+      const cleanSettings = {
+        smtpHost: settings.smtpHost,
+        smtpPort: parseInt(settings.smtpPort) || 465,
+        smtpSecure: settings.smtpSecure !== false,
+        smtpUsername: settings.smtpUsername,
+        smtpPassword: settings.smtpPassword,
+        fromEmail: settings.fromEmail,
+        fromName: settings.fromName,
+        replyToEmail: settings.replyToEmail,
+        ccEmails: settings.ccEmails,
+        bccEmails: settings.bccEmails,
+        enabled: settings.enabled !== false,
+        // Don't include updatedAt - let the database handle it with defaultNow()
+      };
+
       // Update or insert email settings
       await db
         .insert(emailSettings)
         .values({
           id: 'default',
-          ...settings,
-          updatedAt: new Date(),
+          ...cleanSettings,
         })
         .onConflictDoUpdate({
           target: emailSettings.id,
-          set: {
-            ...settings,
-            updatedAt: new Date(),
-          },
+          set: cleanSettings,
         });
 
       // Reinitialize transporter with new settings
@@ -134,33 +159,110 @@ export class EmailNotificationService {
     }
   }
 
-  // Email Templates
-  async sendPaymentReceivedEmail(paymentData: any) {
-    const template = this.getPaymentReceivedTemplate(paymentData);
-    return this.sendEmail(paymentData.customerEmail, template.subject, template.html);
+  // Send test email with professional template
+  async sendTestEmail(to: string): Promise<boolean> {
+    try {
+      if (!this.transporter || !this.config) {
+        throw new Error('Email service not configured');
+      }
+
+      const htmlTemplate = getTestEmailTemplate();
+      const result = await this.transporter.sendMail({
+        from: this.config.from,
+        to,
+        subject: 'Hibla Filipino Hair - Email Configuration Test',
+        text: 'This is a test email from Hibla Filipino Hair manufacturing system. Your email configuration is working correctly.',
+        html: htmlTemplate,
+      });
+
+      console.log('Test email sent:', result.messageId);
+      return true;
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      return false;
+    }
   }
 
-  async sendInvoiceEmail(invoiceData: any) {
-    const template = this.getInvoiceTemplate(invoiceData);
-    return this.sendEmail(invoiceData.customerEmail, template.subject, template.html);
+  // Send notification with professional templates
+  async sendNotification(notification: NotificationData): Promise<boolean> {
+    try {
+      if (!this.transporter || !this.config) {
+        throw new Error('Email service not configured');
+      }
+
+      let htmlTemplate: string;
+      let subject: string;
+      let textContent: string;
+
+      switch (notification.type) {
+        case 'quotation':
+          htmlTemplate = getQuotationEmailTemplate(notification.data);
+          subject = notification.subject || `New Quotation ${notification.data?.quotationNumber || ''} - Hibla Filipino Hair`;
+          textContent = `Your quotation ${notification.data?.quotationNumber || ''} has been created. Total amount: $${notification.data?.totalAmount || '0.00'}`;
+          break;
+
+        case 'order':
+          htmlTemplate = getOrderConfirmationEmailTemplate(notification.data);
+          subject = notification.subject || `Order Confirmation ${notification.data?.orderNumber || ''} - Hibla Filipino Hair`;
+          textContent = `Your order ${notification.data?.orderNumber || ''} has been confirmed. Total amount: $${notification.data?.totalAmount || '0.00'}`;
+          break;
+
+        case 'payment':
+          htmlTemplate = getPaymentReceivedEmailTemplate(notification.data);
+          subject = notification.subject || `Payment Received - $${notification.data?.amount || '0.00'} - Hibla Filipino Hair`;
+          textContent = `Payment of $${notification.data?.amount || '0.00'} has been received via ${notification.data?.paymentMethod || 'N/A'}`;
+          break;
+
+        case 'test':
+        default:
+          htmlTemplate = getTestEmailTemplate();
+          subject = notification.subject || 'Hibla Filipino Hair - Email Test';
+          textContent = 'This is a test email from Hibla Filipino Hair manufacturing system.';
+          break;
+      }
+
+      const result = await this.transporter.sendMail({
+        from: this.config.from,
+        to: notification.recipient,
+        subject,
+        text: textContent,
+        html: htmlTemplate,
+      });
+
+      console.log(`${notification.type} email sent:`, result.messageId);
+      return true;
+    } catch (error) {
+      console.error(`Error sending ${notification.type} email:`, error);
+      return false;
+    }
+  }
+
+  // Legacy email methods with new templates
+  async sendPaymentReceivedEmail(paymentData: any) {
+    return this.sendNotification({
+      type: 'payment',
+      data: paymentData,
+      recipient: paymentData.customerEmail,
+    });
   }
 
   async sendQuotationEmail(quotationData: any) {
-    const template = this.getQuotationTemplate(quotationData);
-    return this.sendEmail(quotationData.customerEmail, template.subject, template.html);
+    return this.sendNotification({
+      type: 'quotation',
+      data: quotationData,
+      recipient: quotationData.customerEmail,
+    });
   }
 
   async sendOrderConfirmationEmail(orderData: any) {
-    const template = this.getOrderConfirmationTemplate(orderData);
-    return this.sendEmail(orderData.customerEmail, template.subject, template.html);
+    return this.sendNotification({
+      type: 'order',
+      data: orderData,
+      recipient: orderData.customerEmail,
+    });
   }
 
-  async sendShipmentNotificationEmail(shipmentData: any) {
-    const template = this.getShipmentNotificationTemplate(shipmentData);
-    return this.sendEmail(shipmentData.customerEmail, template.subject, template.html);
-  }
-
-  // Template generators
+  // Legacy template generators (deprecated - use new template system above)
   private getPaymentReceivedTemplate(data: any): EmailTemplate {
     return {
       subject: `Payment Received - Invoice ${data.invoiceNumber}`,
