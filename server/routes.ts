@@ -4010,6 +4010,62 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // Email settings routes
+  app.get('/api/email-settings', async (req, res) => {
+    try {
+      const settings = await storage.getEmailSettings();
+      res.json(settings || {});
+    } catch (error) {
+      console.error('Error fetching email settings:', error);
+      res.status(500).json({ message: 'Failed to fetch email settings' });
+    }
+  });
+
+  app.post('/api/email-settings', async (req, res) => {
+    try {
+      const { emailNotificationService } = await import('./email-notification-service');
+      await emailNotificationService.updateEmailSettings(req.body);
+      res.json({ success: true, message: 'Email settings updated successfully' });
+    } catch (error) {
+      console.error('Error updating email settings:', error);
+      res.status(500).json({ message: 'Failed to update email settings' });
+    }
+  });
+
+  app.post('/api/email-settings/test-connection', async (req, res) => {
+    try {
+      const { emailNotificationService } = await import('./email-notification-service');
+      await emailNotificationService.updateEmailSettings(req.body);
+      const success = await emailNotificationService.verifyConnection();
+      res.json({ 
+        success, 
+        message: success ? 'Connection successful' : 'Connection failed. Please check your settings.' 
+      });
+    } catch (error) {
+      console.error('Error testing email connection:', error);
+      res.status(500).json({ message: 'Failed to test connection' });
+    }
+  });
+
+  app.post('/api/email-settings/test-email', async (req, res) => {
+    try {
+      const { recipient, settings } = req.body;
+      const { emailNotificationService } = await import('./email-notification-service');
+      
+      // Temporarily update settings for testing
+      await emailNotificationService.updateEmailSettings(settings);
+      
+      const success = await emailNotificationService.testEmailConnection(recipient);
+      res.json({ 
+        success, 
+        message: success ? 'Test email sent successfully' : 'Failed to send test email' 
+      });
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      res.status(500).json({ message: 'Failed to send test email' });
+    }
+  });
+
   // Get all invoices
   app.get('/api/invoices', async (req, res) => {
     try {

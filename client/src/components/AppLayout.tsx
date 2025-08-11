@@ -23,7 +23,8 @@ import {
   FileBarChart,
   UserCheck,
   Users,
-  Receipt
+  Receipt,
+  Mail
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -42,6 +43,7 @@ const navigationItems = [
   { path: '/summary-reports', label: 'Reports', icon: FileBarChart },
   { path: '/price-management', label: 'Price Management', icon: DollarSign },
   { path: '/payment-recording', label: 'Payment Recording', icon: Receipt },
+  { path: '/email-settings', label: 'Email Settings', icon: Mail },
   { path: '/customer-management', label: 'Customers', icon: Users },
   { path: '/staff-management', label: 'Staff', icon: UserCheck },
 ];

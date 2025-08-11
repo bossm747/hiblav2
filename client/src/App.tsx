@@ -22,6 +22,7 @@ import WarehouseManagementPage from '@/pages/WarehouseManagementPage';
 import { InventoryInsightsPage } from '@/pages/InventoryInsightsPage';
 import Documentation from '@/pages/Documentation';
 import PaymentRecording from '@/pages/PaymentRecording';
+import EmailSettings from '@/pages/EmailSettings';
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
               <Route path="/staff-management" component={StaffManagementPage} />
               <Route path="/price-management" component={PriceManagementPage} />
               <Route path="/payment-recording" component={PaymentRecording} />
+              <Route path="/email-settings" component={EmailSettings} />
               <Route path="/summary-reports" component={ReportsPage} />
               <Route path="/documentation" component={Documentation} />
             </Switch>

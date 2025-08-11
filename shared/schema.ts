@@ -1350,3 +1350,31 @@ export const staffSchedulesRelations = relations(staffSchedules, ({ one }) => ({
     references: [staff.id],
   }),
 }));
+
+// Email settings table
+export const emailSettings = pgTable("email_settings", {
+  id: varchar("id").primaryKey().default("default"),
+  enabled: boolean("enabled").default(false),
+  smtpHost: varchar("smtp_host", { length: 255 }).default("smtp.hostinger.com"),
+  smtpPort: integer("smtp_port").default(465),
+  smtpSecure: boolean("smtp_secure").default(true),
+  smtpUsername: varchar("smtp_username", { length: 255 }),
+  smtpPassword: varchar("smtp_password", { length: 255 }),
+  fromEmail: varchar("from_email", { length: 255 }),
+  fromName: varchar("from_name", { length: 255 }).default("Hibla Filipino Hair"),
+  replyToEmail: varchar("reply_to_email", { length: 255 }),
+  // Notification settings
+  sendPaymentNotifications: boolean("send_payment_notifications").default(true),
+  sendInvoiceNotifications: boolean("send_invoice_notifications").default(true),
+  sendQuotationNotifications: boolean("send_quotation_notifications").default(true),
+  sendOrderNotifications: boolean("send_order_notifications").default(true),
+  sendShipmentNotifications: boolean("send_shipment_notifications").default(true),
+  // Additional recipients
+  ccEmails: text("cc_emails"), // Comma-separated list
+  bccEmails: text("bcc_emails"), // Comma-separated list
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export type EmailSettings = typeof emailSettings.$inferSelect;
+export type InsertEmailSettings = typeof emailSettings.$inferInsert;

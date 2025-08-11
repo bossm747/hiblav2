@@ -30,7 +30,8 @@ import {
   stylistRecommendations,
   stylistReviews,
   payments,
-  invoices
+  invoices,
+  emailSettings
 } from "@shared/schema";
 
 import type {
@@ -1996,6 +1997,45 @@ export class DatabaseStorage implements IStorage {
     }
   }
   
+  // Email Settings Methods
+  async getEmailSettings(): Promise<any> {
+    try {
+      const [settings] = await db
+        .select()
+        .from(emailSettings)
+        .where(eq(emailSettings.id, 'default'))
+        .limit(1);
+      return settings;
+    } catch (error) {
+      console.error('Error fetching email settings:', error);
+      return null;
+    }
+  }
+
+  async updateEmailSettings(settings: any): Promise<any> {
+    try {
+      const [updated] = await db
+        .insert(emailSettings)
+        .values({
+          id: 'default',
+          ...settings,
+          updatedAt: new Date(),
+        })
+        .onConflictDoUpdate({
+          target: emailSettings.id,
+          set: {
+            ...settings,
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Error updating email settings:', error);
+      throw new Error('Failed to update email settings');
+    }
+  }
+
   // Invoice methods implementation
   async getInvoices(): Promise<Invoice[]> {
     try {
