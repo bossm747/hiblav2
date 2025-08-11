@@ -2,19 +2,7 @@ import { db } from './db';
 import { staff, customers } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { PERMISSIONS, getPermissionsByRole, type Permission } from '@shared/permissions';
-
-// Simple password hashing (in production, use bcrypt)
-const hashPassword = (password: string): string => {
-  // For demo purposes, using simple encoding
-  // In production, use bcrypt.hash(password, 10)
-  return Buffer.from(password).toString('base64');
-};
-
-const verifyPassword = (password: string, hashedPassword: string): boolean => {
-  // For demo purposes, using simple encoding
-  // In production, use bcrypt.compare(password, hashedPassword)
-  return Buffer.from(password).toString('base64') === hashedPassword;
-};
+import bcrypt from 'bcrypt';
 
 export interface AuthUser {
   id: string;
@@ -50,8 +38,8 @@ export class AuthService {
         return { success: false, message: 'Account is deactivated. Please contact administrator.' };
       }
 
-      // Verify password (using simple comparison for now)
-      const isValidPassword = staffMember.password === password;
+      // Verify password using bcrypt
+      const isValidPassword = await bcrypt.compare(password, staffMember.password);
       
       if (!isValidPassword) {
         return { success: false, message: 'Invalid email or password' };
@@ -66,7 +54,7 @@ export class AuthService {
       // Get permissions (from database or role defaults)
       const dbPermissions = staffMember.permissions || [];
       const rolePermissions = getPermissionsByRole(staffMember.role);
-      const allPermissions = [...new Set([...dbPermissions, ...rolePermissions])];
+      const allPermissions = Array.from(new Set([...dbPermissions, ...rolePermissions]));
 
       const authUser: AuthUser = {
         id: staffMember.id,
@@ -166,7 +154,7 @@ export class AuthService {
     role: string;
     permissions?: Permission[];
   }) {
-    const hashedPassword = hashPassword(staffData.password);
+    const hashedPassword = await bcrypt.hash(staffData.password, 10);
     
     const [newStaff] = await db.insert(staff).values({
       ...staffData,
