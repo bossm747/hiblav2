@@ -83,18 +83,14 @@ export default function PortalHub({ onAuthenticationComplete }: PortalHubProps) 
         {/* Portal Hub Content */}
         <div className="max-w-6xl mx-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 max-w-2xl mx-auto mb-8">
+            <TabsList className="grid w-full grid-cols-2 max-w-lg mx-auto mb-8">
               <TabsTrigger value="customer" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 Customer Portal
               </TabsTrigger>
               <TabsTrigger value="staff" className="flex items-center gap-2">
                 <Shield className="h-4 w-4" />
-                Staff Login
-              </TabsTrigger>
-              <TabsTrigger value="admin" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Admin Portal
+                Staff & Admin Login
               </TabsTrigger>
             </TabsList>
 
@@ -126,33 +122,7 @@ export default function PortalHub({ onAuthenticationComplete }: PortalHubProps) 
               </Card>
             </TabsContent>
 
-            {/* Admin Portal Tab */}
-            <TabsContent value="admin" className="max-w-md mx-auto">
-              <Card className="bg-white/80 backdrop-blur-sm border border-white/20 shadow-card">
-                <CardHeader className="text-center">
-                  <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-full w-16 h-16 flex items-center justify-center">
-                    <Settings className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <CardTitle className="text-2xl text-gray-900 dark:text-white">Admin Portal</CardTitle>
-                  <CardDescription>
-                    Administrative access for management and oversight
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                    Admin portal provides management access to system settings, user administration, and business oversight.
-                  </p>
-                  
-                  <Link href="/admin-portal">
-                    <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
-                      <Settings className="h-4 w-4 mr-2" />
-                      Access Admin Portal
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </TabsContent>
+
 
             {/* Staff Login Tab */}
             <TabsContent value="staff" className="max-w-md mx-auto">
@@ -161,9 +131,9 @@ export default function PortalHub({ onAuthenticationComplete }: PortalHubProps) 
                   <div className="mx-auto mb-4 p-4 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-full w-16 h-16 flex items-center justify-center">
                     <Shield className="h-8 w-8 text-purple-600 dark:text-purple-400" />
                   </div>
-                  <CardTitle className="text-2xl text-gray-900 dark:text-white">Staff Login</CardTitle>
+                  <CardTitle className="text-2xl text-gray-900 dark:text-white">Staff & Admin Login</CardTitle>
                   <CardDescription>
-                    Enter your credentials to access the manufacturing system
+                    Enter your credentials to access the manufacturing system with your assigned role permissions
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -227,12 +197,15 @@ export default function PortalHub({ onAuthenticationComplete }: PortalHubProps) 
                       <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                          Demo Credentials
+                          Demo Credentials (Different Roles)
                         </p>
                         <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                          <p><strong>Admin:</strong> admin@hibla.com / admin123</p>
-                          <p><strong>Manager:</strong> manager@hibla.com / manager123</p>
-                          <p><strong>Staff:</strong> staff@hibla.com / staff123</p>
+                          <p><strong>Admin (Full Access):</strong> admin@hibla.com / admin123</p>
+                          <p><strong>Manager (Limited Admin):</strong> manager@hibla.com / manager123</p>
+                          <p><strong>Staff (Basic Access):</strong> staff@hibla.com / staff123</p>
+                        </div>
+                        <div className="mt-2 p-2 bg-blue-100/50 dark:bg-blue-800/20 rounded text-xs text-blue-600 dark:text-blue-400">
+                          <strong>Note:</strong> Your dashboard and available features will depend on your assigned role and permissions.
                         </div>
                       </div>
                     </div>
