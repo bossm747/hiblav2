@@ -2,28 +2,29 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
 import { 
-  BookOpen, 
-  Menu, 
-  X, 
-  Home, 
-  Settings, 
-  Users, 
-  Package, 
-  FileText, 
-  ShoppingCart, 
-  Briefcase,
-  BarChart3,
-  Shield,
-  DollarSign,
-  Zap,
-  ArrowLeft,
-  ChevronRight,
+  Home,
+  Menu,
+  X,
   Search,
-  ExternalLink
+  ChevronRight,
+  ChevronDown,
+  Book,
+  Code,
+  Rocket,
+  Package,
+  FileText,
+  Users,
+  Settings,
+  HelpCircle,
+  GitBranch,
+  Sun,
+  Moon,
+  Github
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { Badge } from '@/components/ui/badge';
+import { useTheme } from '@/components/theme-provider';
 import hiblaLogo from '@assets/Hiblalogo_1753513948082.png';
 
 interface DocsLayoutProps {
@@ -33,218 +34,258 @@ interface DocsLayoutProps {
 interface DocSection {
   title: string;
   items: DocItem[];
-  collapsed?: boolean;
 }
 
 interface DocItem {
   title: string;
   href: string;
-  icon?: React.ComponentType<{ className?: string }>;
   badge?: string;
-  description?: string;
 }
 
 const docSections: DocSection[] = [
   {
     title: "Getting Started",
     items: [
-      { title: "Overview", href: "/docs", icon: Home },
-      { title: "Project Status", href: "/docs/project-status", icon: BarChart3, badge: "New" },
-      { title: "Quick Start Guide", href: "/docs/quick-start", icon: Zap },
-      { title: "System Requirements", href: "/docs/requirements", icon: Settings },
-      { title: "User Roles & Access", href: "/docs/roles", icon: Shield },
+      { title: "Introduction", href: "/docs" },
+      { title: "Project Status", href: "/docs/project-status", badge: "New" },
+      { title: "Quick Start", href: "/docs/quick-start" },
+      { title: "Installation", href: "/docs/requirements" },
+      { title: "Authentication", href: "/docs/roles" },
     ]
   },
   {
-    title: "Core Modules",
+    title: "Core Features",
     items: [
-      { title: "Dashboard & Analytics", href: "/docs/dashboard", icon: BarChart3 },
-      { title: "Quotation Management", href: "/docs/quotations", icon: FileText },
-      { title: "Sales Orders", href: "/docs/sales-orders", icon: ShoppingCart },
-      { title: "Job Orders & Production", href: "/docs/job-orders", icon: Briefcase },
-      { title: "Inventory Management", href: "/docs/inventory", icon: Package },
-      { title: "Customer Management", href: "/docs/customers", icon: Users },
+      { title: "Dashboard", href: "/docs/dashboard" },
+      { title: "Quotations", href: "/docs/quotations" },
+      { title: "Sales Orders", href: "/docs/sales-orders" },
+      { title: "Job Orders", href: "/docs/job-orders" },
+      { title: "Inventory", href: "/docs/inventory" },
+      { title: "Customers", href: "/docs/customers" },
     ]
   },
   {
-    title: "Advanced Features",
+    title: "Advanced",
     items: [
-      { title: "Price Management", href: "/docs/pricing", icon: DollarSign },
-      { title: "AI Inventory Insights", href: "/docs/ai-insights", icon: Zap, badge: "AI" },
-      { title: "Multi-Warehouse System", href: "/docs/warehouses", icon: Package },
-      { title: "Reporting & Analytics", href: "/docs/reports", icon: BarChart3 },
-      { title: "Staff & Access Control", href: "/docs/staff-management", icon: Shield },
+      { title: "Price Management", href: "/docs/pricing" },
+      { title: "AI Insights", href: "/docs/ai-insights", badge: "AI" },
+      { title: "Multi-Warehouse", href: "/docs/warehouses" },
+      { title: "Reports", href: "/docs/reports" },
+      { title: "Staff Management", href: "/docs/staff-management" },
     ]
   },
   {
     title: "Workflows",
     items: [
-      { title: "Quotation to Sales Flow", href: "/docs/workflow-quotation", icon: FileText },
-      { title: "Production Workflow", href: "/docs/workflow-production", icon: Briefcase },
-      { title: "Inventory Tracking", href: "/docs/workflow-inventory", icon: Package },
-      { title: "Customer Onboarding", href: "/docs/workflow-customer", icon: Users },
+      { title: "Quotation Flow", href: "/docs/workflow-quotation" },
+      { title: "Production", href: "/docs/workflow-production" },
+      { title: "Inventory", href: "/docs/workflow-inventory" },
+      { title: "Customer", href: "/docs/workflow-customer" },
     ]
   },
   {
-    title: "API Documentation",
+    title: "API Reference",
     items: [
-      { title: "API Overview", href: "/docs/api", icon: Settings },
-      { title: "Authentication", href: "/docs/api-auth", icon: Shield },
-      { title: "Endpoints Reference", href: "/docs/api-endpoints", icon: FileText },
-      { title: "Integration Guide", href: "/docs/api-integration", icon: ExternalLink },
+      { title: "Overview", href: "/docs/api" },
+      { title: "Authentication", href: "/docs/api-auth" },
+      { title: "Endpoints", href: "/docs/api-endpoints" },
+      { title: "Integration", href: "/docs/api-integration" },
     ]
   },
   {
-    title: "Troubleshooting",
+    title: "Resources",
     items: [
-      { title: "Common Issues", href: "/docs/troubleshooting", icon: Settings },
-      { title: "Error Codes", href: "/docs/error-codes", icon: FileText },
-      { title: "Performance Tips", href: "/docs/performance", icon: Zap },
-      { title: "Contact Support", href: "/docs/support", icon: Users },
+      { title: "Troubleshooting", href: "/docs/troubleshooting" },
+      { title: "Error Codes", href: "/docs/error-codes" },
+      { title: "Performance", href: "/docs/performance" },
+      { title: "Support", href: "/docs/support" },
     ]
   }
 ];
 
 export function DocsLayout({ children }: DocsLayoutProps) {
+  const [location] = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [location] = useLocation();
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(['Getting Started', 'Core Features'])
+  );
+  const { theme, setTheme } = useTheme();
 
-  const filteredSections = docSections.map(section => ({
-    ...section,
-    items: section.items.filter(item => 
-      item.title.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  })).filter(section => section.items.length > 0);
+  const toggleSection = (title: string) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(title)) {
+      newExpanded.delete(title);
+    } else {
+      newExpanded.add(title);
+    }
+    setExpandedSections(newExpanded);
+  };
+
+  const filteredSections = searchQuery
+    ? docSections.map(section => ({
+        ...section,
+        items: section.items.filter(item =>
+          item.title.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      })).filter(section => section.items.length > 0)
+    : docSections;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile Sidebar Overlay */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={cn(
-        "fixed top-0 left-0 h-full w-80 bg-background border-r transform transition-transform duration-300 ease-in-out z-50 lg:translate-x-0 lg:static lg:z-auto",
-        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
-        {/* Header */}
-        <div className="p-6 border-b">
-          <div className="flex items-center justify-between mb-4">
-            <Link href="/" className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
-              <img src={hiblaLogo} alt="Hibla Logo" className="w-8 h-8" />
-              <div>
-                <div className="font-bold text-lg">Hibla Docs</div>
-                <div className="text-xs text-muted-foreground">Manufacturing System</div>
-              </div>
-            </Link>
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+          <div className="flex flex-1 items-center space-x-4">
+            {/* Mobile Menu */}
             <Button
               variant="ghost"
-              size="sm"
-              onClick={() => setIsSidebarOpen(false)}
+              size="icon"
               className="lg:hidden"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             >
-              <X className="h-4 w-4" />
+              <Menu className="h-5 w-5" />
             </Button>
+
+            {/* Logo */}
+            <Link href="/">
+              <a className="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+                <img src={hiblaLogo} alt="Hibla" className="h-8 w-8" />
+                <span className="font-bold hidden sm:inline-block">Hibla Docs</span>
+              </a>
+            </Link>
+
+            {/* Version Badge */}
+            <Badge variant="secondary" className="hidden md:inline-flex">
+              v1.0.0
+            </Badge>
           </div>
-          
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search documentation..."
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+
+          {/* Right Side Actions */}
+          <div className="flex items-center space-x-4">
+            {/* Search */}
+            <div className="hidden md:block">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search docs..."
+                  className="pl-8 w-64"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            >
+              {theme === 'light' ? (
+                <Moon className="h-5 w-5" />
+              ) : (
+                <Sun className="h-5 w-5" />
+              )}
+            </Button>
+
+            {/* GitHub */}
+            <Button variant="ghost" size="icon" asChild>
+              <a href="#" target="_blank" rel="noopener noreferrer">
+                <Github className="h-5 w-5" />
+              </a>
+            </Button>
+
+            {/* Back to App */}
+            <Link href="/">
+              <Button variant="outline" size="sm">
+                Back to App
+              </Button>
+            </Link>
           </div>
         </div>
+      </header>
 
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-6">
+      <div className="container flex">
+        {/* Sidebar */}
+        <aside className={cn(
+          "fixed inset-y-14 z-30 w-64 overflow-y-auto border-r bg-background lg:sticky lg:block",
+          "transition-transform duration-300 lg:translate-x-0",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}>
+          {/* Mobile Search */}
+          <div className="p-4 lg:hidden">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search docs..."
+                className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <nav className="space-y-1 p-4">
             {filteredSections.map((section) => (
-              <div key={section.title}>
-                <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide mb-3">
-                  {section.title}
-                </h3>
-                <div className="space-y-1">
-                  {section.items.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = location === item.href;
-                    
-                    return (
-                      <Link key={item.href} href={item.href}>
-                        <div className={cn(
-                          "flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors hover:bg-accent hover:text-accent-foreground",
-                          isActive && "bg-accent text-accent-foreground font-medium"
-                        )}>
-                          <div className="flex items-center space-x-2">
-                            {Icon && <Icon className="h-4 w-4" />}
+              <div key={section.title} className="space-y-1">
+                <button
+                  onClick={() => toggleSection(section.title)}
+                  className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <span>{section.title}</span>
+                  {expandedSections.has(section.title) ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </button>
+                
+                {expandedSections.has(section.title) && (
+                  <div className="ml-2 space-y-1">
+                    {section.items.map((item) => {
+                      const isActive = location === item.href;
+                      return (
+                        <Link key={item.href} href={item.href}>
+                          <a
+                            className={cn(
+                              "flex items-center justify-between rounded-md px-2 py-1.5 text-sm transition-colors",
+                              isActive
+                                ? "bg-primary/10 text-primary font-medium"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            )}
+                            onClick={() => setIsSidebarOpen(false)}
+                          >
                             <span>{item.title}</span>
-                          </div>
-                          {item.badge && (
-                            <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded">
-                              {item.badge}
-                            </span>
-                          )}
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
+                            {item.badge && (
+                              <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                                {item.badge}
+                              </Badge>
+                            )}
+                          </a>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             ))}
-          </div>
-        </div>
+          </nav>
+        </aside>
 
-        {/* Footer */}
-        <div className="p-4 border-t">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-sm text-muted-foreground hover:text-foreground flex items-center space-x-1">
-              <ArrowLeft className="h-3 w-3" />
-              <span>Back to App</span>
-            </Link>
-            <ThemeToggle />
-          </div>
-        </div>
-      </div>
+        {/* Mobile Overlay */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 z-20 bg-black/50 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
 
-      {/* Main Content */}
-      <div className="lg:ml-80">
-        {/* Top Bar */}
-        <div className="sticky top-0 z-30 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-          <div className="flex items-center justify-between px-6 py-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden"
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-            
-            <div className="hidden lg:block text-sm text-muted-foreground">
-              Hibla Manufacturing Documentation
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/">
-                  <ArrowLeft className="h-3 w-3 mr-1" />
-                  Back to App
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <main className="p-6">
+        {/* Main Content */}
+        <main className="flex-1 py-8 px-4 md:px-8 lg:px-12 max-w-5xl mx-auto w-full">
           {children}
         </main>
       </div>

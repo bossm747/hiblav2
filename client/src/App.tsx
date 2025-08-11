@@ -40,37 +40,42 @@ function App() {
         <AuthProvider>
           <AppFlow>
             <Router>
-              <AppLayout>
-                <Switch>
-                  <Route path="/" component={Dashboard} />
-                  <Route path="/landing" component={Landing} />
-                  <Route path="/quotations" component={QuotationsPage} />
-                  <Route path="/quotations-vlookup" component={VLOOKUPQuotationsPage} />
-                  <Route path="/sales-orders" component={SalesOrdersPage} />
-                  <Route path="/job-orders" component={JobOrdersPage} />
-                  <Route path="/inventory" component={InventoryPage} />
-                  <Route path="/products" component={ProductsManagementPage} />
-                  <Route path="/warehouses" component={WarehouseManagementPage} />
-                  <Route path="/inventory-insights" component={InventoryInsightsPage} />
-                  <Route path="/customer-management" component={CustomerManagementPage} />
-                  <Route path="/staff-management" component={StaffManagementPage} />
-                  <Route path="/price-management" component={PriceManagementPage} />
-                  <Route path="/payment-recording" component={PaymentRecording} />
-                  <Route path="/email-settings" component={EmailSettings} />
-                  <Route path="/summary-reports" component={ReportsPage} />
-                  <Route path="/documentation" component={Documentation} />
-                  <Route path="/portal-hub" component={PortalHub} />
-                  <Route path="/customer-portal" component={CustomerPortal} />
-                  <Route path="/admin-portal" component={AdminPortal} />
-                  <Route path="/access-management" component={AccessManagement} />
-                  <Route path="/preloader-demo" component={PreloaderDemo} />
-                  
-                  {/* Documentation Routes */}
-                  <Route path="/docs" nest>
-                    <DocsRouter />
-                  </Route>
-                </Switch>
-              </AppLayout>
+              <Switch>
+                {/* Documentation Routes - Outside of AppLayout */}
+                <Route path="/docs" nest>
+                  <DocsRouter />
+                </Route>
+                
+                {/* Main App Routes - Inside AppLayout */}
+                <Route>
+                  <AppLayout>
+                    <Switch>
+                      <Route path="/" component={Dashboard} />
+                      <Route path="/landing" component={Landing} />
+                      <Route path="/quotations" component={QuotationsPage} />
+                      <Route path="/quotations-vlookup" component={VLOOKUPQuotationsPage} />
+                      <Route path="/sales-orders" component={SalesOrdersPage} />
+                      <Route path="/job-orders" component={JobOrdersPage} />
+                      <Route path="/inventory" component={InventoryPage} />
+                      <Route path="/products" component={ProductsManagementPage} />
+                      <Route path="/warehouses" component={WarehouseManagementPage} />
+                      <Route path="/inventory-insights" component={InventoryInsightsPage} />
+                      <Route path="/customer-management" component={CustomerManagementPage} />
+                      <Route path="/staff-management" component={StaffManagementPage} />
+                      <Route path="/price-management" component={PriceManagementPage} />
+                      <Route path="/payment-recording" component={PaymentRecording} />
+                      <Route path="/email-settings" component={EmailSettings} />
+                      <Route path="/summary-reports" component={ReportsPage} />
+                      <Route path="/documentation" component={Documentation} />
+                      <Route path="/portal-hub" component={PortalHub} />
+                      <Route path="/customer-portal" component={CustomerPortal} />
+                      <Route path="/admin-portal" component={AdminPortal} />
+                      <Route path="/access-management" component={AccessManagement} />
+                      <Route path="/preloader-demo" component={PreloaderDemo} />
+                    </Switch>
+                  </AppLayout>
+                </Route>
+              </Switch>
             </Router>
           </AppFlow>
         </AuthProvider>
