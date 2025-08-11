@@ -1,4 +1,4 @@
-// PDF Generation Service for Sales Orders and Job Orders
+// PDF Generation Service for Sales Orders, Job Orders, and Invoices
 // Based on exact PDF formats provided by client
 
 export interface SalesOrderData {
@@ -43,6 +43,33 @@ export interface JobOrderData {
   productionStatus: string;
   shipmentStatus: string;
   dueDate: string;
+}
+
+export interface InvoiceData {
+  invoiceNumber: string;
+  date: string;
+  dueDate: string;
+  customerCode: string;
+  customerName: string;
+  country: string;
+  shippingAddress?: string;
+  billingAddress?: string;
+  items: Array<{
+    productName: string;
+    quantity: number;
+    unitPrice: string;
+    totalPrice: string;
+    specification?: string;
+  }>;
+  subtotal: string;
+  shippingFee: string;
+  bankCharge: string;
+  discount: string;
+  others: string;
+  total: string;
+  paymentMethod: string;
+  paymentStatus: string;
+  paidAmount?: string;
 }
 
 export function generateSalesOrderHTML(data: SalesOrderData): string {
@@ -421,6 +448,134 @@ export function generateJobOrderHTML(data: JobOrderData): string {
             window.print();
         }
     </script>
+</body>
+</html>`;
+}
+export function generateInvoiceHTML(data: InvoiceData): string {
+  const paymentStatusColor = data.paymentStatus === "paid" ? "#4caf50" : 
+                            data.paymentStatus === "partial" ? "#ff9800" : "#f44336";
+  
+  const itemsHtml = data.items.map(item => `
+    <tr>
+        <td>${item.productName}</td>
+        <td>${item.quantity}</td>
+        <td>$${item.unitPrice}</td>
+        <td>$${item.totalPrice}</td>
+    </tr>
+  `).join("");
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice ${data.invoiceNumber}</title>
+    <style>
+        @media print { @page { margin: 0.5in; } }
+        body { 
+            font-family: Arial, sans-serif; 
+            font-size: 12px; 
+            line-height: 1.4;
+            margin: 0;
+            padding: 20px;
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+        }
+        .company-name { 
+            font-size: 24px; 
+            font-weight: bold; 
+            color: #8B5CF6;
+            margin-bottom: 5px;
+        }
+        .document-title { 
+            font-size: 18px; 
+            font-weight: bold; 
+            margin: 15px 0;
+        }
+        .invoice-badge {
+            background: ${paymentStatusColor};
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 20px 0;
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 10px; 
+            text-align: left;
+        }
+        th { 
+            background-color: #8B5CF6; 
+            color: white;
+            font-weight: bold;
+        }
+        .total-section {
+            float: right;
+            width: 350px;
+            margin-top: 20px;
+            border: 2px solid #8B5CF6;
+            padding: 15px;
+            background: #f9fafb;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .grand-total {
+            font-weight: bold;
+            font-size: 18px;
+            background: #8B5CF6;
+            color: white;
+            padding: 10px;
+            margin: -15px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-name">HIBLA FILIPINO HAIR</div>
+        <div>Premium Real Filipino Hair Manufacturer and Supplier</div>
+        <div class="document-title">TAX INVOICE</div>
+        <div class="invoice-badge">${data.paymentStatus.toUpperCase()}</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 50%">Product Description</th>
+                <th style="width: 10%">Qty</th>
+                <th style="width: 20%">Unit Price</th>
+                <th style="width: 20%">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${itemsHtml}
+        </tbody>
+    </table>
+
+    <div class="total-section">
+        <div class="total-row">
+            <span>Subtotal:</span>
+            <strong>$${data.subtotal}</strong>
+        </div>
+        <div class="total-row grand-total">
+            <span>Total Amount:</span>
+            <span>$${data.total}</span>
+        </div>
+    </div>
 </body>
 </html>`;
 }

@@ -45,6 +45,10 @@ import {
 } from "@shared/schema";
 import { aiStylistService } from "./ai-stylist-service";
 // import { sendAppointmentNotification } from "./notification-service";
+import { InvoiceService } from "./invoice-service";
+import { ProductionService } from "./production-service";
+import { InventoryTransferService } from "./inventory-transfer-service";
+import { generateInvoiceHTML } from "./pdf-generator";
 import multer from "multer";
 import path from "path";
 import { promises as fs } from "fs";
@@ -5658,6 +5662,284 @@ export function registerRoutes(app: Express): void {
     } catch (error) {
       console.error("Error fetching job order summary:", error);
       res.status(500).json({ message: "Failed to fetch job order summary" });
+    }
+  });
+
+  // =====================================================
+  // INVOICE MANAGEMENT ENDPOINTS
+  // =====================================================
+  
+  // Generate invoice PDF/HTML
+  app.get("/api/invoices/:id/pdf", async (req, res) => {
+    try {
+      const invoiceService = new InvoiceService();
+      const invoice = await invoiceService.getInvoice(req.params.id);
+      
+      if (!invoice) {
+        return res.status(404).json({ message: "Invoice not found" });
+      }
+
+      // Get sales order and items for the invoice
+      const salesOrder = await storage.getSalesOrder(invoice.salesOrderId);
+      const salesOrderItems = await storage.getSalesOrderItems(invoice.salesOrderId);
+      const customer = await storage.getCustomer(invoice.customerId);
+
+      const invoiceData = {
+        invoiceNumber: invoice.invoiceNumber,
+        date: new Date(invoice.createdAt).toLocaleDateString(),
+        dueDate: new Date(invoice.dueDate).toLocaleDateString(),
+        customerCode: invoice.customerCode,
+        customerName: customer?.name || invoice.customerCode,
+        country: invoice.country,
+        items: salesOrderItems.map(item => ({
+          productName: item.productName,
+          quantity: parseFloat(item.quantity),
+          unitPrice: item.unitPrice,
+          totalPrice: item.lineTotal,
+          specification: item.specification || ''
+        })),
+        subtotal: invoice.subtotal,
+        shippingFee: invoice.shippingFee,
+        bankCharge: invoice.bankCharge,
+        discount: invoice.discount,
+        others: invoice.others,
+        total: invoice.total,
+        paymentMethod: invoice.paymentMethod,
+        paymentStatus: invoice.paymentStatus,
+        paidAmount: invoice.paidAmount
+      };
+
+      const htmlContent = generateInvoiceHTML(invoiceData);
+      
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Disposition', `inline; filename="Invoice_${invoice.invoiceNumber}.html"`);
+      res.send(htmlContent);
+    } catch (error) {
+      console.error('Error generating invoice PDF:', error);
+      res.status(500).json({ message: "Failed to generate invoice PDF" });
+    }
+  });
+
+  // Get all invoices
+  app.get("/api/invoices", async (req, res) => {
+    try {
+      const invoiceService = new InvoiceService();
+      const invoices = await invoiceService.getInvoices();
+      res.json(invoices);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch invoices" });
+    }
+  });
+
+  // Update invoice payment status
+  app.patch("/api/invoices/:id/payment-status", async (req, res) => {
+    try {
+      const { paymentStatus, paidAmount } = req.body;
+      const invoiceService = new InvoiceService();
+      const updated = await invoiceService.updatePaymentStatus(
+        req.params.id,
+        paymentStatus,
+        paidAmount
+      );
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update payment status" });
+    }
+  });
+
+  // =====================================================
+  // PAYMENT VERIFICATION ENDPOINTS
+  // =====================================================
+  
+  // Get all payment proofs for admin verification
+  app.get("/api/admin/payment-proofs", async (req, res) => {
+    try {
+      const { status } = req.query;
+      const paymentProofs = await storage.getPaymentProofs(status as string);
+      res.json(paymentProofs);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch payment proofs" });
+    }
+  });
+
+  // Verify payment proof
+  app.patch("/api/admin/payment-proofs/:id/verify", async (req, res) => {
+    try {
+      const { status, verificationNotes } = req.body;
+      
+      if (!['approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      const updated = await storage.updatePaymentProofStatus(
+        req.params.id,
+        status,
+        verificationNotes
+      );
+
+      // If approved, update the related sales order payment status
+      if (status === 'approved' && updated) {
+        const paymentProof = await storage.getPaymentProof(req.params.id);
+        if (paymentProof?.salesOrderId) {
+          // Update invoice payment status
+          const invoiceService = new InvoiceService();
+          const invoice = await invoiceService.getInvoiceBySalesOrder(paymentProof.salesOrderId);
+          if (invoice) {
+            await invoiceService.updatePaymentStatus(
+              invoice.id,
+              'paid',
+              paymentProof.amount
+            );
+          }
+        }
+      }
+
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to verify payment proof" });
+    }
+  });
+
+  // =====================================================
+  // PRODUCTION MANAGEMENT ENDPOINTS
+  // =====================================================
+  
+  // Create production receipt
+  app.post("/api/production/receipts", async (req, res) => {
+    try {
+      const productionService = new ProductionService();
+      const receipt = await productionService.createProductionReceipt(req.body);
+      res.status(201).json(receipt);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create production receipt" });
+    }
+  });
+
+  // Get production receipts
+  app.get("/api/production/receipts", async (req, res) => {
+    try {
+      const productionService = new ProductionService();
+      const receipts = await productionService.getProductionReceipts(req.query);
+      res.json(receipts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch production receipts" });
+    }
+  });
+
+  // Get production metrics
+  app.get("/api/production/metrics", async (req, res) => {
+    try {
+      const productionService = new ProductionService();
+      const metrics = await productionService.getProductionMetrics();
+      res.json(metrics);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch production metrics" });
+    }
+  });
+
+  // Update job order item production status
+  app.patch("/api/job-orders/:id/items/:itemId/production", async (req, res) => {
+    try {
+      const { quantity, warehouseId, quality, notes } = req.body;
+      
+      const productionService = new ProductionService();
+      const jobOrderItem = await storage.getJobOrderItem(req.params.itemId);
+      
+      if (!jobOrderItem) {
+        return res.status(404).json({ message: "Job order item not found" });
+      }
+
+      // Create production receipt
+      const receipt = await productionService.createProductionReceipt({
+        jobOrderId: req.params.id,
+        productId: jobOrderItem.productId,
+        quantity,
+        warehouseId,
+        quality: quality || 'standard',
+        notes,
+        producedBy: 'system' // Should get from authenticated user
+      });
+
+      res.json(receipt);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update production status" });
+    }
+  });
+
+  // =====================================================
+  // INVENTORY TRANSFER ENDPOINTS
+  // =====================================================
+  
+  // Create inventory transfer
+  app.post("/api/inventory/transfers", async (req, res) => {
+    try {
+      const transferService = new InventoryTransferService();
+      const transfer = await transferService.createTransfer(req.body);
+      res.status(201).json(transfer);
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Insufficient stock')) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.status(500).json({ message: "Failed to create inventory transfer" });
+    }
+  });
+
+  // Get inventory levels across warehouses
+  app.get("/api/inventory/levels", async (req, res) => {
+    try {
+      const transferService = new InventoryTransferService();
+      const levels = await transferService.getInventoryLevels();
+      res.json(levels);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch inventory levels" });
+    }
+  });
+
+  // Get transfer history
+  app.get("/api/inventory/transfers", async (req, res) => {
+    try {
+      const transferService = new InventoryTransferService();
+      const history = await transferService.getTransferHistory(req.query);
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch transfer history" });
+    }
+  });
+
+  // Get low stock alerts
+  app.get("/api/inventory/low-stock", async (req, res) => {
+    try {
+      const { threshold = 10 } = req.query;
+      const transferService = new InventoryTransferService();
+      const alerts = await transferService.getLowStockAlerts(Number(threshold));
+      res.json(alerts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch low stock alerts" });
+    }
+  });
+
+  // Adjust inventory
+  app.post("/api/inventory/adjustments", async (req, res) => {
+    try {
+      const transferService = new InventoryTransferService();
+      const result = await transferService.adjustInventory(req.body);
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to adjust inventory" });
+    }
+  });
+
+  // Get warehouse stock for a product
+  app.get("/api/warehouses/:warehouseId/stock/:productId", async (req, res) => {
+    try {
+      const transferService = new InventoryTransferService();
+      const stock = await transferService.getWarehouseStock(
+        req.params.warehouseId,
+        req.params.productId
+      );
+      res.json({ stock });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch warehouse stock" });
     }
   });
 }

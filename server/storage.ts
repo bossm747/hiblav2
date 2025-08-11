@@ -93,7 +93,9 @@ import type {
   Payment,
   InsertPayment,
   Invoice,
-  InsertInvoice
+  InsertInvoice,
+  PaymentProof,
+  InsertPaymentProof
 } from "@shared/schema";
 
 export interface IStorage {
@@ -2155,6 +2157,70 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error updating invoice payment status:', error);
       throw new Error('Failed to update invoice payment status');
+    }
+  }
+
+  // Payment Proof Methods
+  async getPaymentProofs(status?: string): Promise<PaymentProof[]> {
+    try {
+      let query = db.select().from(paymentProofs);
+      if (status) {
+        query = query.where(eq(paymentProofs.status, status));
+      }
+      return await query.orderBy(desc(paymentProofs.createdAt));
+    } catch (error) {
+      console.error('Error fetching payment proofs:', error);
+      return [];
+    }
+  }
+
+  async getPaymentProof(id: string): Promise<PaymentProof | undefined> {
+    try {
+      const [proof] = await db
+        .select()
+        .from(paymentProofs)
+        .where(eq(paymentProofs.id, id));
+      return proof;
+    } catch (error) {
+      console.error('Error fetching payment proof:', error);
+      return undefined;
+    }
+  }
+
+  async updatePaymentProofStatus(
+    id: string,
+    status: string,
+    verificationNotes?: string
+  ): Promise<PaymentProof | undefined> {
+    try {
+      const [updated] = await db
+        .update(paymentProofs)
+        .set({
+          status,
+          verificationNotes,
+          verifiedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(paymentProofs.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Error updating payment proof status:', error);
+      return undefined;
+    }
+  }
+
+  // Job Order Item Methods
+  async getJobOrderItem(itemId: string): Promise<JobOrderItem | undefined> {
+    try {
+      const [item] = await db
+        .select()
+        .from(jobOrderItems)
+        .where(eq(jobOrderItems.id, itemId));
+      return item;
+    } catch (error) {
+      console.error('Error fetching job order item:', error);
+      return undefined;
     }
   }
 

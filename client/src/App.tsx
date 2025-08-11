@@ -33,6 +33,10 @@ import Landing from '@/pages/Landing';
 import PreloaderDemo from '@/pages/PreloaderDemo';
 import AccessManagement from '@/pages/AccessManagement';
 import DocsRouter from '@/components/DocsRouter';
+import Invoices from '@/pages/Invoices';
+import PaymentVerification from '@/pages/PaymentVerification';
+import Production from '@/pages/Production';
+import InventoryTransfers from '@/pages/InventoryTransfers';
 
 function App() {
   return (
@@ -74,6 +78,10 @@ function App() {
                       <Route path="/admin-portal" component={AdminPortal} />
                       <Route path="/access-management" component={AccessManagement} />
                       <Route path="/preloader-demo" component={PreloaderDemo} />
+                      <Route path="/invoices" component={Invoices} />
+                      <Route path="/payment-verification" component={PaymentVerification} />
+                      <Route path="/production" component={Production} />
+                      <Route path="/inventory-transfers" component={InventoryTransfers} />
                     </Switch>
                   </AppLayout>
                 </Route>

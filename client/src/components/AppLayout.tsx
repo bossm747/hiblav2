@@ -27,7 +27,11 @@ import {
   Mail,
   ExternalLink,
   Shield,
-  CheckCircle
+  CheckCircle,
+  FileCheck,
+  CreditCard,
+  Truck,
+  ArrowLeftRight
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -39,7 +43,10 @@ const navigationItems = [
   { path: '/quotations', label: 'Quotations', icon: FileText },
   { path: '/sales-orders', label: 'Sales Orders', icon: ShoppingCart },
   { path: '/job-orders', label: 'Job Orders', icon: Factory },
+  { path: '/invoices', label: 'Invoices', icon: FileCheck },
+  { path: '/production', label: 'Production', icon: Factory },
   { path: '/inventory', label: 'Inventory', icon: Package },
+  { path: '/inventory-transfers', label: 'Inventory Transfers', icon: ArrowLeftRight },
   { path: '/products', label: 'Products', icon: Package2 },
   { path: '/warehouses', label: 'Warehouses', icon: Warehouse },
   { path: '/inventory-insights', label: 'AI Insights', icon: Zap },
@@ -47,6 +54,7 @@ const navigationItems = [
   { path: '/ready-items-summary', label: 'Ready Items', icon: CheckCircle },
   { path: '/price-management', label: 'Price Management', icon: DollarSign },
   { path: '/payment-recording', label: 'Payment Recording', icon: Receipt },
+  { path: '/payment-verification', label: 'Payment Verification', icon: CreditCard },
   { path: '/email-settings', label: 'Email Settings', icon: Mail },
   { path: '/customer-management', label: 'Customers', icon: Users },
   { path: '/staff-management', label: 'Staff', icon: UserCheck },
