@@ -3549,6 +3549,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  /* Commented out - Customer-facing routes disabled for internal-only system
   // Customer Portal - Get customer orders
   app.get("/api/customer-portal/orders", async (req, res) => {
     try {
@@ -3629,6 +3630,7 @@ export function registerRoutes(app: Express): void {
       });
     }
   });
+  */ // End of customer-facing routes
 
   // Duplicate Quotation
   app.post("/api/quotations/:id/duplicate", async (req, res) => {
@@ -5026,8 +5028,9 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  // ============ CUSTOMER PORTAL ROUTES ============
+  // ============ CUSTOMER PORTAL ROUTES (DISABLED - INTERNAL SYSTEM ONLY) ============
   
+  /* Commented out - System is now internal-only, no customer access
   // Customer portal authentication
   app.post('/api/customer-portal/login', async (req, res) => {
     try {
@@ -5186,6 +5189,7 @@ export function registerRoutes(app: Express): void {
       res.status(500).json({ message: 'Failed to fetch dashboard stats' });
     }
   });
+  */ // End of commented out customer portal routes
 
   // ============ ADMIN PORTAL ROUTES ============
   

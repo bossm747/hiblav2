@@ -26,15 +26,10 @@ import { InventoryInsightsPage } from '@/pages/InventoryInsightsPage';
 import Documentation from '@/pages/Documentation';
 import PaymentRecording from '@/pages/PaymentRecording';
 import EmailSettings from '@/pages/EmailSettings';
-import CustomerPortal from '@/pages/CustomerPortal';
 import AdminPortal from '@/pages/AdminPortal';
-import PortalHub from '@/pages/PortalHub';
-import Landing from '@/pages/Landing';
-import PreloaderDemo from '@/pages/PreloaderDemo';
 import AccessManagement from '@/pages/AccessManagement';
 import DocsRouter from '@/components/DocsRouter';
 import Invoices from '@/pages/Invoices';
-import PaymentVerification from '@/pages/PaymentVerification';
 import Production from '@/pages/Production';
 import InventoryTransfers from '@/pages/InventoryTransfers';
 
@@ -57,7 +52,6 @@ function App() {
                   <AppLayout>
                     <Switch>
                       <Route path="/" component={Dashboard} />
-                      <Route path="/landing" component={Landing} />
                       <Route path="/quotations" component={QuotationsPage} />
                       <Route path="/quotations-vlookup" component={VLOOKUPQuotationsPage} />
                       <Route path="/sales-orders" component={SalesOrdersPage} />
@@ -73,13 +67,9 @@ function App() {
                       <Route path="/email-settings" component={EmailSettings} />
                       <Route path="/summary-reports" component={ReportsPage} />
                       <Route path="/ready-items-summary" component={ReadyItemsSummaryPage} />
-                      <Route path="/portal-hub" component={() => <PortalHub onAuthenticationComplete={() => {}} />} />
-                      <Route path="/customer-portal" component={CustomerPortal} />
                       <Route path="/admin-portal" component={AdminPortal} />
                       <Route path="/access-management" component={AccessManagement} />
-                      <Route path="/preloader-demo" component={PreloaderDemo} />
                       <Route path="/invoices" component={Invoices} />
-                      <Route path="/payment-verification" component={PaymentVerification} />
                       <Route path="/production" component={Production} />
                       <Route path="/inventory-transfers" component={InventoryTransfers} />
                     </Switch>

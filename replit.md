@@ -1,7 +1,31 @@
-# Hibla Manufacturing & Supply System
+# Hibla Manufacturing & Supply System (Internal Operations Platform)
 
 ## Overview
-Hibla Manufacturing & Supply System is a comprehensive platform for managing the manufacturing workflow of Hibla, a premium real Filipino hair manufacturer and supplier. It covers the entire process from customer quotations and production job orders to multi-location inventory management. The system provides real-time manufacturing dashboards and detailed reports, aiming to streamline production and global distribution.
+Hibla Manufacturing & Supply System is an **internal-only operations platform** for managing the manufacturing workflow of Hibla, a premium real Filipino hair manufacturer and supplier. This system is exclusively for internal staff use - sales teams, production teams, inventory managers, and company management. It covers the entire process from customer quotations and production job orders to multi-location inventory management, providing real-time manufacturing dashboards and detailed reports to streamline production and global distribution.
+
+## Important: System Architecture Change (January 2025)
+**This system has been transformed from a customer-facing platform to a purely internal operations system.** All customer-facing components have been removed:
+- No customer portal or customer login functionality
+- No customer self-service features
+- No payment proof uploads from customers
+- All operations are handled internally by Hibla staff
+- Customer interactions occur through traditional channels (email, phone) with staff managing all data entry
+
+## Internal Staff Roles & Workflow
+
+### Staff Roles
+- **Sales Team**: Creates quotations, manages customer relationships, converts quotes to sales orders
+- **Production Team**: Manages job orders, tracks production progress, updates manufacturing status
+- **Inventory Team**: Manages stock levels, handles warehouse transfers, monitors inventory
+- **Shipping Team**: Handles order fulfillment, manages deliveries, updates shipping status
+- **Management**: Views reports, monitors analytics, makes strategic decisions
+- **Admin**: System configuration, user management, pricing management
+
+### Internal Workflow Process
+1. **Sales Process**: Staff receive customer inquiries → Create quotations → Email PDFs to customers → Convert approved quotes to sales orders
+2. **Production**: Sales orders generate job orders → Production team manages workflow → Quality control checkpoints
+3. **Fulfillment**: Shipping team prepares orders → Generate shipping documents → Track delivery internally
+4. **Payment**: Staff record payments manually → Track payment status internally → No customer payment uploads
 
 ## User Preferences
 - Preferred communication style: Simple, everyday language
@@ -10,7 +34,7 @@ Hibla Manufacturing & Supply System is a comprehensive platform for managing the
 - Products: Premium real Filipino hair for global distribution
 - Currency: USD ($) for international business operations
 - Brand Assets: Hibla logo provided (circular design with elegant typography)
-- Current Focus: Complete manufacturing workflow from quotations to shipment tracking
+- Current Focus: Internal manufacturing workflow management
 
 ## System Architecture
 

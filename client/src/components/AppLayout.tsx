@@ -67,12 +67,10 @@ const navigationItems = [
   { path: '/ready-items-summary', label: 'Ready Items', icon: CheckCircle },
   { path: '/price-management', label: 'Price Management', icon: DollarSign },
   { path: '/payment-recording', label: 'Payment Recording', icon: Receipt },
-  { path: '/payment-verification', label: 'Payment Verification', icon: CreditCard },
   { path: '/email-settings', label: 'Email Settings', icon: Mail },
   { path: '/customer-management', label: 'Customers', icon: Users },
   { path: '/staff-management', label: 'Staff', icon: UserCheck },
   { path: '/access-management', label: 'Access Management', icon: Shield },
-  { path: '/portal-hub', label: 'Portal Access', icon: ExternalLink },
 ];
 
 export function AppLayout({ children }: AppLayoutProps) {
@@ -87,7 +85,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       title: "Logged out successfully",
       description: "You have been logged out of your account",
     });
-    setLocation('/portal-hub');
+    setLocation('/admin-portal');
   };
 
   const NavItems = ({ mobile = false }: { mobile?: boolean }) => (

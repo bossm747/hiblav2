@@ -10,7 +10,6 @@ import QuotationGuide from '@/pages/docs/QuotationGuide';
 import SalesOrderGuide from '@/pages/docs/SalesOrderGuide';
 import JobOrderGuide from '@/pages/docs/JobOrderGuide';
 import InventoryGuide from '@/pages/docs/InventoryGuide';
-import CustomerGuide from '@/pages/docs/CustomerGuide';
 import PricingGuide from '@/pages/docs/PricingGuide';
 import AIInsightsGuide from '@/pages/docs/AIInsightsGuide';
 import WarehouseGuide from '@/pages/docs/WarehouseGuide';
@@ -19,7 +18,6 @@ import StaffManagementGuide from '@/pages/docs/StaffManagementGuide';
 import WorkflowQuotation from '@/pages/docs/WorkflowQuotation';
 import WorkflowProduction from '@/pages/docs/WorkflowProduction';
 import WorkflowInventory from '@/pages/docs/WorkflowInventory';
-import WorkflowCustomer from '@/pages/docs/WorkflowCustomer';
 import APIOverview from '@/pages/docs/APIOverview';
 import APIAuth from '@/pages/docs/APIAuth';
 import APIEndpoints from '@/pages/docs/APIEndpoints';
@@ -47,7 +45,6 @@ export default function DocsRouter() {
         <Route path="/docs/sales-orders" component={SalesOrderGuide} />
         <Route path="/docs/job-orders" component={JobOrderGuide} />
         <Route path="/docs/inventory" component={InventoryGuide} />
-        <Route path="/docs/customers" component={CustomerGuide} />
         
         {/* Advanced Features */}
         <Route path="/docs/pricing" component={PricingGuide} />
@@ -60,7 +57,6 @@ export default function DocsRouter() {
         <Route path="/docs/workflow-quotation" component={WorkflowQuotation} />
         <Route path="/docs/workflow-production" component={WorkflowProduction} />
         <Route path="/docs/workflow-inventory" component={WorkflowInventory} />
-        <Route path="/docs/workflow-customer" component={WorkflowCustomer} />
         
         {/* API Documentation */}
         <Route path="/docs/api" component={APIOverview} />
