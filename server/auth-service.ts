@@ -34,8 +34,8 @@ class AuthService {
 
       console.log('Staff found:', { id: staff.id, email: staff.email, role: staff.role });
 
-      // Check password (in production, use bcrypt.compare)
-      const isValid = staff.password === password; // Simple comparison for development
+      // Check password using bcrypt
+      const isValid = await bcrypt.compare(password, staff.password);
       console.log('Password validation:', isValid ? 'valid' : 'invalid');
       
       if (!isValid) {
@@ -72,8 +72,10 @@ class AuthService {
 
   async createStaff(staffData: any) {
     try {
-      // In production, hash the password
-      // staffData.password = await bcrypt.hash(staffData.password, 10);
+      // Hash the password before storing
+      if (staffData.password) {
+        staffData.password = await bcrypt.hash(staffData.password, 10);
+      }
       
       return await storage.createStaff(staffData);
     } catch (error) {
