@@ -20,11 +20,38 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { CustomerForm } from '@/components/forms/CustomerForm';
-import { Users, Search, Plus, Mail, Phone, MapPin } from 'lucide-react';
+import { 
+  Users, 
+  Search, 
+  Plus, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Eye, 
+  Edit, 
+  Trash2, 
+  MoreHorizontal,
+  FileText,
+  UserCheck
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 export function CustomerManagementPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: customers = [], isLoading } = useQuery({
     queryKey: ['/api/customers'],
@@ -35,6 +62,82 @@ export function CustomerManagementPage() {
     customer.customerCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Mutation for deleting customer
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest(`/api/customers/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+      toast({
+        title: "Success",
+        description: "Customer deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete customer",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for toggling customer status
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      return await apiRequest(`/api/customers/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+      toast({
+        title: "Success",
+        description: "Customer status updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update customer status",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Action handlers
+  const handleViewCustomer = (customer: any) => {
+    setSelectedCustomer(customer);
+    toast({
+      title: "Customer Details",
+      description: `Viewing ${customer.name}`,
+    });
+  };
+
+  const handleEditCustomer = (customer: any) => {
+    setSelectedCustomer(customer);
+    setShowEditDialog(true);
+  };
+
+  const handleDeleteCustomer = async (id: string) => {
+    if (confirm("Are you sure you want to delete this customer?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleToggleStatus = (id: string, isActive: boolean) => {
+    toggleStatusMutation.mutate({ id, isActive });
+  };
+
+  const handleViewOrders = (customerId: string) => {
+    // Navigate to orders filtered by customer
+    window.location.href = `/sales-orders?customer=${customerId}`;
+  };
 
   const getCustomerTypeBadge = (type: string) => {
     const colors = {
@@ -264,9 +367,70 @@ export function CustomerManagementPage() {
                     </TableCell>
                     <TableCell>{getStatusBadge(customer.isActive)}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">
-                        View Details
-                      </Button>
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleViewCustomer(customer)}
+                          title="View Details"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleEditCustomer(customer)}
+                          title="Edit Customer"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleViewCustomer(customer)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Full Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditCustomer(customer)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit Customer
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewOrders(customer.id)}>
+                              <FileText className="h-4 w-4 mr-2" />
+                              View Orders
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleToggleStatus(customer.id, !customer.isActive)}
+                            >
+                              {customer.isActive ? (
+                                <>
+                                  <UserX className="h-4 w-4 mr-2" />
+                                  Deactivate
+                                </>
+                              ) : (
+                                <>
+                                  <UserCheck className="h-4 w-4 mr-2" />
+                                  Activate
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteCustomer(customer.id)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Customer
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

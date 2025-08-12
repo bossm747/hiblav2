@@ -20,11 +20,39 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { StaffForm } from '@/components/forms/StaffForm';
-import { UserCheck, Search, Plus, Mail, Phone, Shield } from 'lucide-react';
+import { 
+  UserCheck, 
+  Search, 
+  Plus, 
+  Mail, 
+  Phone, 
+  Shield,
+  Eye,
+  Edit,
+  Trash2,
+  MoreHorizontal,
+  Lock,
+  UserX,
+  UserPlus
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 export function StaffManagementPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStaff, setSelectedStaff] = useState<any>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: staff = [], isLoading } = useQuery({
     queryKey: ['/api/staff'],
@@ -35,6 +63,95 @@ export function StaffManagementPage() {
     member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.department?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Mutation for deleting staff
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest(`/api/staff/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/staff'] });
+      toast({
+        title: "Success",
+        description: "Staff member deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete staff member",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation for toggling staff status
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      return await apiRequest(`/api/staff/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ isActive }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/staff'] });
+      toast({
+        title: "Success",
+        description: "Staff member status updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update staff status",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Action handlers
+  const handleViewStaff = (member: any) => {
+    setSelectedStaff(member);
+    toast({
+      title: "Staff Profile",
+      description: `Viewing ${member.name}`,
+    });
+  };
+
+  const handleEditStaff = (member: any) => {
+    setSelectedStaff(member);
+    setShowEditDialog(true);
+  };
+
+  const handleDeleteStaff = async (id: string) => {
+    if (confirm("Are you sure you want to delete this staff member?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleToggleStatus = (id: string, isActive: boolean) => {
+    toggleStatusMutation.mutate({ id, isActive });
+  };
+
+  const handleResetPassword = async (id: string) => {
+    try {
+      await apiRequest(`/api/staff/${id}/reset-password`, {
+        method: 'POST',
+      });
+      toast({
+        title: "Success",
+        description: "Password reset email sent successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reset password",
+        variant: "destructive",
+      });
+    }
+  };
 
   const getRoleBadge = (role: string) => {
     const colors = {
@@ -262,9 +379,70 @@ export function StaffManagementPage() {
                     </TableCell>
                     <TableCell>{getStatusBadge(member.isActive)}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">
-                        View Details
-                      </Button>
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleViewStaff(member)}
+                          title="View Details"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleEditStaff(member)}
+                          title="Edit Staff"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleViewStaff(member)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Full Profile
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditStaff(member)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit Staff Member
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleResetPassword(member.id)}>
+                              <Lock className="h-4 w-4 mr-2" />
+                              Reset Password
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleToggleStatus(member.id, !member.isActive)}
+                            >
+                              {member.isActive ? (
+                                <>
+                                  <UserX className="h-4 w-4 mr-2" />
+                                  Deactivate Account
+                                </>
+                              ) : (
+                                <>
+                                  <UserPlus className="h-4 w-4 mr-2" />
+                                  Activate Account
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteStaff(member.id)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Staff Member
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

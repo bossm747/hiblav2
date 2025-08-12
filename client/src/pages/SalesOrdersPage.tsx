@@ -19,10 +19,36 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { SalesOrderForm } from '@/components/forms/SalesOrderForm';
-import { ShoppingCart, Plus, FileText } from 'lucide-react';
+import { 
+  ShoppingCart, 
+  Plus, 
+  FileText, 
+  Eye, 
+  Edit, 
+  Trash2, 
+  Download,
+  MoreHorizontal,
+  Send,
+  FileCheck
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 export function SalesOrdersPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const { data: salesOrders = [], isLoading } = useQuery<any[]>({
     queryKey: ['/api/sales-orders'],
   });
@@ -41,6 +67,125 @@ export function SalesOrdersPage() {
     createdBy?: string;
     createdAt?: string;
   }> || [];
+
+  // Mutation for deleting sales order
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest(`/api/sales-orders/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/sales-orders'] });
+      toast({
+        title: "Success",
+        description: "Sales order deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete sales order",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Action handlers
+  const handleView = (order: any) => {
+    // TODO: Implement view modal
+    toast({
+      title: "View Order",
+      description: `Viewing order ${order.salesOrderNumber}`,
+    });
+  };
+
+  const handleEdit = (order: any) => {
+    setSelectedOrder(order);
+    setShowEditDialog(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this sales order?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleGenerateInvoice = async (id: string) => {
+    try {
+      await apiRequest(`/api/sales-orders/${id}/invoice`, {
+        method: 'POST',
+      });
+      toast({
+        title: "Success",
+        description: "Invoice generated successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate invoice",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCreateJobOrder = async (id: string) => {
+    try {
+      await apiRequest(`/api/sales-orders/${id}/job-order`, {
+        method: 'POST',
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/job-orders'] });
+      toast({
+        title: "Success",
+        description: "Job order created successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create job order",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSendEmail = async (id: string) => {
+    try {
+      await apiRequest(`/api/sales-orders/${id}/email`, {
+        method: 'POST',
+      });
+      toast({
+        title: "Success",
+        description: "Email sent successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send email",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDownloadPDF = async (id: string) => {
+    try {
+      const response = await fetch(`/api/sales-orders/${id}/pdf`);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sales-order-${id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: "Failed to download PDF",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -122,14 +267,68 @@ export function SalesOrdersPage() {
                     <TableCell>
                       {new Date(order.createdAt).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>${order.total}</TableCell>
+                    <TableCell>${order.pleasePayThisAmountUsd || order.total || '0.00'}</TableCell>
                     <TableCell>
-                      <Badge>{order.status}</Badge>
+                      <Badge 
+                        variant={order.status === 'confirmed' ? 'default' : 'secondary'}
+                      >
+                        {order.status}
+                      </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">
-                        View Details
-                      </Button>
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleView(order)}
+                          title="View Details"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleEdit(order)}
+                          title="Edit Order"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleGenerateInvoice(order.id)}>
+                              <FileCheck className="h-4 w-4 mr-2" />
+                              Generate Invoice
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleCreateJobOrder(order.id)}>
+                              <FileText className="h-4 w-4 mr-2" />
+                              Create Job Order
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleSendEmail(order.id)}>
+                              <Send className="h-4 w-4 mr-2" />
+                              Send to Customer
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadPDF(order.id)}>
+                              <Download className="h-4 w-4 mr-2" />
+                              Download PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleDelete(order.id)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Order
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

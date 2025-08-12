@@ -20,7 +20,29 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { JobOrderForm } from '@/components/forms/JobOrderForm';
-import { Factory, Plus, Package } from 'lucide-react';
+import { 
+  Factory, 
+  Plus, 
+  Package, 
+  Eye, 
+  Edit, 
+  Trash2, 
+  MoreHorizontal,
+  Download,
+  Send,
+  CheckCircle,
+  Clock
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 export function JobOrdersPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);

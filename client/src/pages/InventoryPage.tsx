@@ -20,7 +20,30 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { InventoryForm } from '@/components/forms/InventoryForm';
-import { Package, Search, Plus, AlertTriangle, Warehouse } from 'lucide-react';
+import { 
+  Package, 
+  Search, 
+  Plus, 
+  AlertTriangle, 
+  Warehouse,
+  Eye,
+  Edit,
+  Trash2,
+  MoreHorizontal,
+  Download,
+  ArrowUpDown,
+  History
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 export function InventoryPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);

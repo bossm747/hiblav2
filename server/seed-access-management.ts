@@ -168,14 +168,12 @@ export async function seedAccessManagement() {
 }
 
 // Run the seed if this file is executed directly
-if (require.main === module) {
-  seedAccessManagement()
-    .then(() => {
-      console.log("✅ Access management seeding complete");
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error("❌ Seeding failed:", error);
-      process.exit(1);
-    });
-}
+seedAccessManagement()
+  .then(() => {
+    console.log("✅ Access management seeding complete");
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error("❌ Seeding failed:", error);
+    process.exit(1);
+  });
