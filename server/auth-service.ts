@@ -18,21 +18,28 @@ export interface AuthResult {
 class AuthService {
   async authenticate(email: string, password: string): Promise<AuthResult> {
     try {
+      console.log('Attempting authentication for email:', email);
+      
       // Get staff member by email
       const staff = await storage.getStaffByEmail(email);
+      console.log('Staff lookup result:', staff ? 'found' : 'not found');
       
       if (!staff) {
+        console.log('No staff found with email:', email);
         return {
           success: false,
           message: "Invalid credentials"
         };
       }
 
+      console.log('Staff found:', { id: staff.id, email: staff.email, role: staff.role });
+
       // Check password (in production, use bcrypt.compare)
       const isValid = staff.password === password; // Simple comparison for development
-      // const isValid = await bcrypt.compare(password, staff.password); // Production version
+      console.log('Password validation:', isValid ? 'valid' : 'invalid');
       
       if (!isValid) {
+        console.log('Invalid password for user:', email);
         return {
           success: false,
           message: "Invalid credentials"
@@ -42,6 +49,7 @@ class AuthService {
       // Generate token (in production, use JWT)
       const token = `demo-token-${staff.id}-${Date.now()}`;
       
+      console.log('Authentication successful for:', email);
       return {
         success: true,
         user: {

@@ -3,16 +3,24 @@ import { createServer } from "http";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 // import { startReminderScheduler } from "./notification-service";
+import { seedHiblaAssets } from './seed-hibla-assets';
+import { seedStaff } from './seed-staff';
+import { seedDefaultStaff } from './seed-default-staff';
+import { seedWarehouses } from './seed-warehouses';
+import { seedShowcasePricing } from './seed-showcase-pricing';
+import { seedRealCustomersOnly } from './seed-real-customers-only';
+import { seedRealHiblaData } from './seed-real-hibla-data';
+
 
 // Environment validation function
 function validateEnvironment() {
   const requiredEnvVars = ['DATABASE_URL'];
   const missingVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
-  
+
   if (missingVars.length > 0) {
     throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
   }
-  
+
   log('Environment validation passed');
 }
 
@@ -69,11 +77,11 @@ function setupGracefulShutdown(server: any) {
   try {
     // Validate environment variables first
     validateEnvironment();
-    
+
     // Register API routes BEFORE static/vite setup
     registerRoutes(app);
     log('Routes registered successfully');
-    
+
     // Create HTTP server
     const server = createServer(app);
 
@@ -95,9 +103,19 @@ function setupGracefulShutdown(server: any) {
       log('Production environment with static files setup complete');
     }
 
+    // Seed data if needed
+    await seedWarehouses();
+    await seedHiblaAssets();
+    await seedStaff();
+    await seedDefaultStaff(); // Ensure demo accounts exist
+    await seedShowcasePricing();
+    await seedRealCustomersOnly();
+    await seedRealHiblaData();
+
+
     // Configure server port
     const port = parseInt(process.env.PORT || '5000', 10);
-    
+
     // Start server with proper error handling
     const serverInstance = server.listen({
       port,
@@ -106,7 +124,7 @@ function setupGracefulShutdown(server: any) {
     }, () => {
       log(`Server successfully started on port ${port}`);
       log(`Health check available at: /health`);
-      
+
       // Start the notification reminder scheduler - Temporarily disabled
       // startReminderScheduler();
       // log('Notification reminder scheduler started');
@@ -124,7 +142,7 @@ function setupGracefulShutdown(server: any) {
 
     // Setup graceful shutdown
     setupGracefulShutdown(serverInstance);
-    
+
   } catch (error) {
     // Catch any initialization errors
     const errorMessage = error instanceof Error ? error.message : 'Unknown initialization error';
