@@ -1,5 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -25,17 +27,13 @@ interface SidebarProps {
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Appointments", href: "/appointments", icon: Calendar },
-  { name: "Clients", href: "/clients", icon: Users },
-  { name: "Services", href: "/services", icon: Scissors },
-  { name: "Staff", href: "/staff", icon: Bus },
-  { name: "Point of Sale", href: "/pos", icon: CreditCard },
+  { name: "Quotations", href: "/quotations", icon: Mail },
+  { name: "Sales Orders", href: "/sales-orders", icon: CreditCard },
+  { name: "Job Orders", href: "/job-orders", icon: Clock },
   { name: "Inventory", href: "/inventory", icon: Package },
-  { name: "AI Images", href: "/ai-images", icon: Sparkles },
-  { name: "Timesheet", href: "/timesheet", icon: Clock },
-  { name: "Marketing", href: "/marketing", icon: Mail },
+  { name: "Customers", href: "/customers", icon: Users },
+  { name: "Staff", href: "/staff", icon: Bus },
   { name: "Reports", href: "/reports", icon: BarChart3 },
-  { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 const secondaryNavigation = [
@@ -44,6 +42,27 @@ const secondaryNavigation = [
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const [location] = useLocation();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await apiRequest('/api/auth/logout', {
+        method: 'POST',
+      });
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account",
+      });
+      // Redirect to login page or home
+      window.location.href = '/';
+    } catch (error) {
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <>
@@ -106,17 +125,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
           {/* Secondary Navigation */}
           <div className="mt-4 pt-2 border-t border-white/20">
             <div className="space-y-0.5">
-              {secondaryNavigation.map((item) => (
-                <Link key={item.name} href={item.href}>
-                  <div 
-                    className="flex items-center space-x-2 px-2 py-1.5 rounded-md hover:glass hover:bg-white/5 text-muted-foreground hover:text-foreground transition-all duration-200 group cursor-pointer"
-                    onClick={() => onClose()}
-                  >
-                    <item.icon className="h-4 w-4 flex-shrink-0 group-hover:text-red-400 transition-colors" />
-                    <span className="text-xs font-medium">{item.name}</span>
-                  </div>
-                </Link>
-              ))}
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-md hover:glass hover:bg-white/5 text-muted-foreground hover:text-foreground transition-all duration-200 group cursor-pointer"
+              >
+                <LogOut className="h-4 w-4 flex-shrink-0 group-hover:text-red-400 transition-colors" />
+                <span className="text-xs font-medium">Sign out</span>
+              </button>
             </div>
           </div>
         </nav>

@@ -76,6 +76,11 @@ Hibla Manufacturing & Supply System is a comprehensive manufacturing and supplie
 - **Business Focus**: Pure B2B manufacturing and supply operations for Filipino hair products with AI-powered inventory insights
 
 ### Recent Updates (January 2025)
+- **Logout Functionality Added**: Implemented logout button in the sidebar navigation that properly calls `/api/auth/logout` endpoint, displays toast confirmation, and redirects to home page after successful logout
+- **Navigation Updated**: Corrected sidebar navigation to match actual manufacturing system pages (Dashboard, Quotations, Sales Orders, Job Orders, Inventory, Customers, Staff, Reports) removing old salon/spa system references
+- **CRUD Buttons Enhancement**: Added comprehensive CRUD functionality to all major data tables with consistent View (Eye), Edit, and Delete buttons plus dropdown menus for additional context-specific actions
+
+### Previous Updates (January 2025)
 - **Customer Portal API Completion**: Implemented missing endpoints `/api/customer-portal/orders` for order tracking and `/api/payment-proofs` for payment proof uploads with file support
 - **Payment Proof System**: Added complete payment proof workflow with database storage, file upload handling, and admin email notifications
 - **Email Service Enhancement**: Added sendPaymentProofNotification function for automated admin alerts when customers upload payment proof
