@@ -41,9 +41,9 @@ export async function seedStaff() {
       console.log(`Found ${existingStaff.length} existing staff members. Adding demo accounts...`);
     }
 
-    // Insert sample staff accounts
+    // Insert sample staff accounts (with conflict handling)
     console.log("Inserting sample staff accounts...");
-    const insertedStaff = await db.insert(staff).values(sampleStaff).returning();
+    const insertedStaff = await db.insert(staff).values(sampleStaff).onConflictDoNothing().returning();
     
     console.log(`✅ Successfully seeded ${insertedStaff.length} staff accounts`);
     console.log("\n👥 Sample Staff Accounts Created:");

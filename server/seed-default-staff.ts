@@ -111,7 +111,8 @@ async function seedDefaultStaff() {
 }
 
 // Run if called directly
-if (require.main === module) {
+const isMain = import.meta.url === `file://${process.argv[1]}`;
+if (isMain) {
   seedDefaultStaff()
     .then((credentials) => {
       console.log('\n=== Demo Credentials ===');

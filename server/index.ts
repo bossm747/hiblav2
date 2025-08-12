@@ -8,7 +8,7 @@ import { seedStaff } from './seed-staff';
 import { seedDefaultStaff } from './seed-default-staff';
 import { seedWarehouses } from './seed-warehouses';
 import { seedShowcasePricing } from './seed-showcase-pricing';
-import { seedRealCustomersOnly } from './seed-real-customers-only';
+import { cleanCustomerData as seedRealCustomersOnly } from './seed-real-customers-only';
 import { seedRealHiblaData } from './seed-real-hibla-data';
 
 
@@ -103,14 +103,14 @@ function setupGracefulShutdown(server: any) {
       log('Production environment with static files setup complete');
     }
 
-    // Seed data if needed
+    // Seed data if needed - simplified order to avoid conflicts
     await seedWarehouses();
-    await seedHiblaAssets();
+    await seedShowcasePricing(); // Seed pricing first
     await seedStaff();
     await seedDefaultStaff(); // Ensure demo accounts exist
-    await seedShowcasePricing();
-    await seedRealCustomersOnly();
-    await seedRealHiblaData();
+    // await seedHiblaAssets(); // Temporarily disabled to test basic functionality
+    // await seedRealCustomersOnly(); // Temporarily disabled
+    // await seedRealHiblaData(); // Temporarily disabled
 
 
     // Configure server port

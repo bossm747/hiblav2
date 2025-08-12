@@ -12,16 +12,19 @@ export async function seedHiblaAssets() {
       {
         id: 'cat-machine-weft',
         name: 'Machine Weft',
+        slug: 'machine-weft',
         description: 'Premium Filipino hair machine weft products'
       },
       {
         id: 'cat-lace-closure',
         name: 'Lace Closures',
+        slug: 'lace-closures',
         description: 'High-quality lace closures with improved hairlines'
       },
       {
         id: 'cat-lace-frontal',
         name: 'Lace Frontals',
+        slug: 'lace-frontals',
         description: 'Premium lace frontals for natural hairline'
       }
     ];
@@ -203,12 +206,21 @@ export async function seedHiblaAssets() {
     ];
 
     for (const product of hiblaProducts) {
-      await db.insert(products).values({
-        ...product,
+      // Convert the product structure to match the database schema
+      const dbProduct = {
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        categoryId: product.categoryId,
+        sku: product.sku,
+        unit: product.unit,
+        // Use priceListB as basePrice (regular customer price) and priceListA as SRP
+        basePrice: product.priceListB || '0.00',
+        srp: product.priceListA || '0.00',
         hairType: 'human',
+        texture: 'straight',
         isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        lowStockThreshold: product.lowStockThreshold || '5.00',
         // Initialize warehouse stocks
         ngWarehouse: '0.00',
         phWarehouse: '0.00', 
@@ -216,7 +228,9 @@ export async function seedHiblaAssets() {
         redWarehouse: '0.00',
         adminWarehouse: '0.00',
         wipWarehouse: '0.00'
-      }).onConflictDoNothing();
+      };
+      
+      await db.insert(products).values(dbProduct).onConflictDoNothing();
     }
 
     // 3. Create ABA Customer (from the document)
@@ -275,6 +289,7 @@ export async function seedHiblaAssets() {
       discount: '-15.00',
       others: '70.00',
       total: '1087.00',
+      pleasePayThisAmountUsd: '1087.00', // This is the final amount to pay
       paymentMethod: 'bank',
       shippingMethod: 'DHL',
       customerServiceInstructions: 'Silky Bundles\nBrushed Back Closure/Frontal',
@@ -520,7 +535,9 @@ export async function seedHiblaAssets() {
   }
 }
 
-if (require.main === module) {
+// Run if this file is executed directly
+const isMain = import.meta.url === `file://${process.argv[1]}`;
+if (isMain) {
   seedHiblaAssets()
     .then(() => {
       console.log('✅ Hibla Manufacturing System seeded successfully');

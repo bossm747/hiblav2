@@ -44,7 +44,8 @@ async function seedShowcasePricing() {
       }
     ];
 
-    await db.insert(priceLists).values(showcasePriceLists);
+    // Use onConflictDoNothing to prevent duplicate key errors
+    await db.insert(priceLists).values(showcasePriceLists).onConflictDoNothing();
 
     console.log('✅ Showcase pricing system seeded successfully!');
     console.log('📊 Created 3 price categories:');
