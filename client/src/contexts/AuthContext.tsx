@@ -73,6 +73,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setToken(data.token);
         localStorage.setItem('auth_token', data.token);
         localStorage.setItem('auth_user', JSON.stringify(data.user));
+        
+        // Set authorization header for future requests
+        if (data.token) {
+          (window as any).authToken = data.token;
+        }
+        
         return { success: true, message: data.message };
       } else {
         return { success: false, message: data.message };

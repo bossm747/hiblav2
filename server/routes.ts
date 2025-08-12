@@ -99,6 +99,185 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // Authentication check middleware
+  const authenticateToken = async (req: any, res: any, next: any) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    
+    if (!token) {
+      return res.status(401).json({ message: 'Unauthorized - No token provided' });
+    }
+    
+    const isValid = await authService.validateToken(token);
+    if (!isValid) {
+      return res.status(403).json({ message: 'Forbidden - Invalid token' });
+    }
+    
+    const staff = await authService.getStaffByToken(token);
+    if (!staff) {
+      return res.status(403).json({ message: 'Forbidden - User not found' });
+    }
+    
+    req.user = staff;
+    next();
+  };
+
+  // Permission check middleware
+  const requirePermission = (permission: string) => {
+    return (req: any, res: any, next: any) => {
+      if (!req.user) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      const userPermissions = req.user.permissions || [];
+      if (!userPermissions.includes(permission)) {
+        return res.status(403).json({ message: 'Forbidden - Insufficient permissions' });
+      }
+      
+      next();
+    };
+  };
+
+  // Get current user endpoint
+  app.get("/api/auth/user", authenticateToken, async (req: any, res) => {
+    try {
+      const user = req.user;
+      res.json({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        permissions: user.permissions
+      });
+    } catch (error) {
+      console.error('Get user error:', error);
+      res.status(500).json({ message: 'Failed to get user data' });
+    }
+  });
+
+  // Staff Management Routes
+  app.get("/api/staff", authenticateToken, async (req, res) => {
+    try {
+      const staff = await storage.getAllStaff();
+      res.json(staff);
+    } catch (error) {
+      console.error('Failed to fetch staff:', error);
+      res.status(500).json({ message: "Failed to fetch staff" });
+    }
+  });
+
+  app.get("/api/staff/:id", authenticateToken, async (req, res) => {
+    try {
+      const staff = await storage.getStaff(req.params.id);
+      if (!staff) {
+        return res.status(404).json({ message: "Staff member not found" });
+      }
+      res.json(staff);
+    } catch (error) {
+      console.error('Failed to fetch staff member:', error);
+      res.status(500).json({ message: "Failed to fetch staff member" });
+    }
+  });
+
+  app.post("/api/staff", authenticateToken, async (req: any, res) => {
+    try {
+      // Only admins can create staff
+      if (req.user.role !== 'admin' && req.user.role !== 'owner') {
+        return res.status(403).json({ message: "Forbidden - Admin access required" });
+      }
+      
+      const staffData = insertStaffSchema.parse(req.body);
+      
+      // Add role-based permissions
+      const { getEnhancedPermissionsByRole } = await import('@shared/permissions');
+      const permissions = getEnhancedPermissionsByRole(staffData.role);
+      
+      const newStaff = await storage.createStaff({
+        ...staffData,
+        permissions: permissions as string[]
+      });
+      
+      res.status(201).json(newStaff);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid staff data", errors: error.errors });
+      }
+      console.error('Failed to create staff:', error);
+      res.status(500).json({ message: "Failed to create staff member" });
+    }
+  });
+
+  app.put("/api/staff/:id", authenticateToken, async (req: any, res) => {
+    try {
+      // Only admins can update staff
+      if (req.user.role !== 'admin' && req.user.role !== 'owner') {
+        return res.status(403).json({ message: "Forbidden - Admin access required" });
+      }
+      
+      const staffData = insertStaffSchema.partial().parse(req.body);
+      
+      // If role is being updated, update permissions accordingly
+      if (staffData.role) {
+        const { getEnhancedPermissionsByRole } = await import('@shared/permissions');
+        const permissions = getEnhancedPermissionsByRole(staffData.role);
+        staffData.permissions = permissions as string[];
+      }
+      
+      const updatedStaff = await storage.updateStaff(req.params.id, staffData);
+      if (!updatedStaff) {
+        return res.status(404).json({ message: "Staff member not found" });
+      }
+      
+      res.json(updatedStaff);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid staff data", errors: error.errors });
+      }
+      console.error('Failed to update staff:', error);
+      res.status(500).json({ message: "Failed to update staff member" });
+    }
+  });
+
+  app.patch("/api/staff/:id/status", authenticateToken, async (req: any, res) => {
+    try {
+      // Only admins can toggle staff status
+      if (req.user.role !== 'admin' && req.user.role !== 'owner') {
+        return res.status(403).json({ message: "Forbidden - Admin access required" });
+      }
+      
+      const { isActive } = req.body;
+      
+      const updatedStaff = await storage.updateStaff(req.params.id, { isActive });
+      if (!updatedStaff) {
+        return res.status(404).json({ message: "Staff member not found" });
+      }
+      
+      res.json(updatedStaff);
+    } catch (error) {
+      console.error('Failed to update staff status:', error);
+      res.status(500).json({ message: "Failed to update staff status" });
+    }
+  });
+
+  app.delete("/api/staff/:id", authenticateToken, async (req: any, res) => {
+    try {
+      // Only admins can delete staff
+      if (req.user.role !== 'admin' && req.user.role !== 'owner') {
+        return res.status(403).json({ message: "Forbidden - Admin access required" });
+      }
+      
+      const deleted = await storage.deleteStaff(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Staff member not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error('Failed to delete staff:', error);
+      res.status(500).json({ message: "Failed to delete staff member" });
+    }
+  });
+
   // Test Email System with SendGrid
   app.post("/api/test-email", async (req, res) => {
     try {
