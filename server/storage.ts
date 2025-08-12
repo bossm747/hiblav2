@@ -1049,15 +1049,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Price Management methods
-  async getAllPriceLists(): Promise<PriceList[]> {
-    try {
-      const result = await db.select().from(priceLists).where(eq(priceLists.isActive, true));
-      return result || [];
-    } catch (error) {
-      console.error('Error fetching price lists:', error);
-      throw new Error('Failed to fetch price lists');
-    }
-  }
+
 
   async getProductPriceLists(productId?: string, priceListId?: string): Promise<any[]> {
     try {
@@ -1173,72 +1165,11 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createPriceList(data: any): Promise<any> {
-    try {
-      const [priceList] = await db
-        .insert(priceLists)
-        .values({
-          ...data,
-          priceMultiplier: data.priceMultiplier.toString(),
-        })
-        .returning();
-      return priceList;
-    } catch (error) {
-      console.error('Error creating price list:', error);
-      throw new Error('Failed to create price list');
-    }
-  }
 
-  async updatePriceList(id: string, data: any): Promise<any> {
-    try {
-      const [updatedPriceList] = await db
-        .update(priceLists)
-        .set({
-          ...data,
-          priceMultiplier: data.priceMultiplier.toString(),
-        })
-        .where(eq(priceLists.id, id))
-        .returning();
-      
-      if (!updatedPriceList) {
-        throw new Error('Price list not found');
-      }
-      
-      return updatedPriceList;
-    } catch (error) {
-      console.error('Error updating price list:', error);
-      throw new Error('Failed to update price list');
-    }
-  }
 
-  async deletePriceList(id: string): Promise<void> {
-    try {
-      // Check if it's the default price list
-      const [priceList] = await db
-        .select()
-        .from(priceLists)
-        .where(eq(priceLists.id, id))
-        .limit(1);
-      
-      if (!priceList) {
-        throw new Error('Price list not found');
-      }
-      
-      if (priceList.isDefault) {
-        throw new Error('Cannot delete the default price list');
-      }
-      
-      // Delete the price list
-      await db
-        .delete(priceLists)
-        .where(eq(priceLists.id, id));
-      
-      console.log(`Price list ${id} deleted successfully`);
-    } catch (error) {
-      console.error('Error deleting price list:', error);
-      throw new Error('Failed to delete price list');
-    }
-  }
+
+
+
 
   // Staff methods
   async updateStaff(id: string, staffData: Partial<InsertStaff>): Promise<Staff | undefined> {
