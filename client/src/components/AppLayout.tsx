@@ -60,7 +60,6 @@ const navigationItems = [
   { path: '/staff-management', label: 'Staff', icon: UserCheck },
   { path: '/access-management', label: 'Access Management', icon: Shield },
   { path: '/portal-hub', label: 'Portal Access', icon: ExternalLink },
-  { path: '/landing', label: 'Landing Page', icon: Home },
 ];
 
 export function AppLayout({ children }: AppLayoutProps) {

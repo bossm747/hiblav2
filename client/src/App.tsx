@@ -46,10 +46,11 @@ function App() {
           <AppFlow>
             <Router>
               <Switch>
-                {/* Documentation Routes - Outside of AppLayout */}
+                {/* Documentation Routes - Independent with its own sidebar */}
                 <Route path="/docs/:rest*">
                   {(params) => <DocsRouter />}
                 </Route>
+                <Route path="/documentation" component={Documentation} />
                 
                 {/* Main App Routes - Inside AppLayout */}
                 <Route>
@@ -72,7 +73,6 @@ function App() {
                       <Route path="/email-settings" component={EmailSettings} />
                       <Route path="/summary-reports" component={ReportsPage} />
                       <Route path="/ready-items-summary" component={ReadyItemsSummaryPage} />
-                      <Route path="/documentation" component={Documentation} />
                       <Route path="/portal-hub" component={() => <PortalHub onAuthenticationComplete={() => {}} />} />
                       <Route path="/customer-portal" component={CustomerPortal} />
                       <Route path="/admin-portal" component={AdminPortal} />

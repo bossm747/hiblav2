@@ -19,12 +19,15 @@ import {
   GitBranch,
   Sun,
   Moon,
-  Github
+  Github,
+  Bell,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useTheme } from '@/components/theme-provider';
+import { ThemeToggle } from '@/components/theme-toggle';
 import hiblaLogo from '@assets/Hiblalogo_1753513948082.png';
 
 interface DocsLayoutProps {
@@ -135,7 +138,7 @@ export function DocsLayout({ children }: DocsLayoutProps) {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
+        <div className="container flex h-14 items-center px-4">
           <div className="flex flex-1 items-center space-x-4">
             {/* Mobile Menu */}
             <Button
@@ -162,8 +165,8 @@ export function DocsLayout({ children }: DocsLayoutProps) {
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-4">
-            {/* Search */}
+          <div className="flex items-center space-x-2 md:space-x-4">
+            {/* Search - Desktop Only */}
             <div className="hidden md:block">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -177,29 +180,29 @@ export function DocsLayout({ children }: DocsLayoutProps) {
               </div>
             </div>
 
-            {/* Theme Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            >
-              {theme === 'light' ? (
-                <Moon className="h-5 w-5" />
-              ) : (
-                <Sun className="h-5 w-5" />
-              )}
+            {/* Notification Bell - Mobile & Desktop */}
+            <Button variant="ghost" size="icon">
+              <Bell className="h-4 w-4" />
             </Button>
 
-            {/* GitHub */}
-            <Button variant="ghost" size="icon" asChild>
+            {/* User Profile - Mobile & Desktop */}
+            <Button variant="ghost" size="icon">
+              <User className="h-4 w-4" />
+            </Button>
+
+            {/* Theme Toggle - Mobile & Desktop */}
+            <ThemeToggle />
+
+            {/* GitHub - Desktop Only */}
+            <Button variant="ghost" size="icon" className="hidden md:inline-flex" asChild>
               <a href="#" target="_blank" rel="noopener noreferrer">
                 <Github className="h-5 w-5" />
               </a>
             </Button>
 
-            {/* Back to App */}
+            {/* Back to App - Desktop Only */}
             <Link href="/">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="hidden md:inline-flex">
                 Back to App
               </Button>
             </Link>

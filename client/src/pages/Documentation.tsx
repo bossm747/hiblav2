@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { MobileHeader } from "@/components/MobileHeader";
 import { 
   ArrowRight, 
   CheckCircle, 
@@ -33,6 +34,7 @@ import {
 
 export default function Documentation() {
   const [activeSection, setActiveSection] = useState("overview");
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const sidebarItems = [
     { id: "overview", label: "Overview", icon: BookOpen },
@@ -44,50 +46,73 @@ export default function Documentation() {
     { id: "troubleshooting", label: "Troubleshooting", icon: AlertCircle },
   ];
 
-  return (
-    <div className="flex h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      {/* Sidebar */}
-      <div className="w-64 border-r bg-card/50 backdrop-blur-sm">
-        <div className="p-6">
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-            Documentation
-          </h2>
-          <p className="text-sm text-muted-foreground mt-2">
-            Complete guide to Hibla system
-          </p>
+  const SidebarContent = () => (
+    <>
+      <div className="p-6">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+          Documentation
+        </h2>
+        <p className="text-sm text-muted-foreground mt-2">
+          Complete guide to Hibla system
+        </p>
+      </div>
+      <ScrollArea className="h-[calc(100vh-120px)]">
+        <div className="px-3 pb-6">
+          {sidebarItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Button
+                key={item.id}
+                variant={activeSection === item.id ? "secondary" : "ghost"}
+                className="w-full justify-start mb-1"
+                onClick={() => {
+                  setActiveSection(item.id);
+                  setMobileSidebarOpen(false);
+                }}
+              >
+                <Icon className="mr-2 h-4 w-4" />
+                {item.label}
+              </Button>
+            );
+          })}
         </div>
-        <ScrollArea className="h-[calc(100vh-120px)]">
-          <div className="px-3 pb-6">
-            {sidebarItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Button
-                  key={item.id}
-                  variant={activeSection === item.id ? "secondary" : "ghost"}
-                  className="w-full justify-start mb-1"
-                  onClick={() => setActiveSection(item.id)}
-                >
-                  <Icon className="mr-2 h-4 w-4" />
-                  {item.label}
-                </Button>
-              );
-            })}
+      </ScrollArea>
+    </>
+  );
+
+  return (
+    <div className="flex flex-col h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      {/* Mobile Header - Only visible on mobile */}
+      <div className="md:hidden">
+        <MobileHeader 
+          showBackButton={true} 
+          backButtonHref="/"
+          title="Documentation"
+          showMenu={true}
+        >
+          <SidebarContent />
+        </MobileHeader>
+      </div>
+
+      <div className="flex flex-1">
+        {/* Desktop Sidebar - Hidden on mobile */}
+        <div className="hidden md:block w-64 border-r bg-card/50 backdrop-blur-sm">
+          <SidebarContent />
+        </div>
+
+        {/* Main Content */}
+        <ScrollArea className="flex-1">
+          <div className="max-w-5xl mx-auto p-4 md:p-8">
+            {activeSection === "overview" && <OverviewSection />}
+            {activeSection === "journey" && <UserJourneySection />}
+            {activeSection === "process" && <ProcessFlowSection />}
+            {activeSection === "quickstart" && <QuickStartSection />}
+            {activeSection === "roles" && <RoleWorkflowsSection />}
+            {activeSection === "best-practices" && <BestPracticesSection />}
+            {activeSection === "troubleshooting" && <TroubleshootingSection />}
           </div>
         </ScrollArea>
       </div>
-
-      {/* Main Content */}
-      <ScrollArea className="flex-1">
-        <div className="max-w-5xl mx-auto p-8">
-          {activeSection === "overview" && <OverviewSection />}
-          {activeSection === "journey" && <UserJourneySection />}
-          {activeSection === "process" && <ProcessFlowSection />}
-          {activeSection === "quickstart" && <QuickStartSection />}
-          {activeSection === "roles" && <RoleWorkflowsSection />}
-          {activeSection === "best-practices" && <BestPracticesSection />}
-          {activeSection === "troubleshooting" && <TroubleshootingSection />}
-        </div>
-      </ScrollArea>
     </div>
   );
 }
