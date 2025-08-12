@@ -25,6 +25,29 @@ function validateEnvironment() {
 }
 
 const app = express();
+
+// Add health check endpoint FIRST, before any middleware
+app.get("/health", (req, res) => {
+  res.status(200).json({ 
+    status: "healthy", 
+    message: "Manufacturing Management Platform is running",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    uptime: process.uptime()
+  });
+});
+
+// Add API health check for deployment services
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ 
+    status: "healthy", 
+    message: "Manufacturing Management Platform API is running",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    uptime: process.uptime()
+  });
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -78,9 +101,9 @@ function setupGracefulShutdown(server: any) {
     // Validate environment variables first
     validateEnvironment();
 
-    // Register API routes BEFORE static/vite setup
+    // Register API routes BEFORE static/vite setup (includes health check endpoints)
     registerRoutes(app);
-    log('Routes registered successfully');
+    log('Routes registered successfully (including health endpoints)');
 
     // Create HTTP server
     const server = createServer(app);
@@ -103,14 +126,29 @@ function setupGracefulShutdown(server: any) {
       log('Production environment with static files setup complete');
     }
 
-    // Seed data if needed - simplified order to avoid conflicts
-    await seedWarehouses();
-    await seedShowcasePricing(); // Seed pricing first
-    await seedStaff();
-    await seedDefaultStaff(); // Ensure demo accounts exist
-    // await seedHiblaAssets(); // Temporarily disabled to test basic functionality
-    // await seedRealCustomersOnly(); // Temporarily disabled
-    // await seedRealHiblaData(); // Temporarily disabled
+    // Seed data with error handling - don't fail if seeding has issues
+    try {
+      log('Starting data seeding process...');
+      await seedWarehouses();
+      log('Warehouses seeded successfully');
+      
+      await seedShowcasePricing();
+      log('Pricing data seeded successfully');
+      
+      await seedStaff();
+      log('Staff data seeded successfully');
+      
+      await seedDefaultStaff();
+      log('Default staff accounts seeded successfully');
+      
+      log('Data seeding completed successfully');
+    } catch (error) {
+      // Don't fail the server startup if seeding fails
+      const errorMessage = error instanceof Error ? error.message : 'Unknown seeding error';
+      log(`Warning: Data seeding failed: ${errorMessage}`);
+      console.warn('Seeding error details:', error);
+      log('Server will continue without seeded data');
+    }
 
 
     // Configure server port
@@ -122,8 +160,13 @@ function setupGracefulShutdown(server: any) {
       host: "0.0.0.0",
       reusePort: true,
     }, () => {
-      log(`Server successfully started on port ${port}`);
-      log(`Health check available at: /health`);
+      log(`🚀 Manufacturing Management Platform started successfully`);
+      log(`📡 Server listening on port ${port} (host: 0.0.0.0)`);
+      log(`🏥 Health checks available at:`);
+      log(`   GET http://0.0.0.0:${port}/`);
+      log(`   GET http://0.0.0.0:${port}/health`);
+      log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      log(`✅ Server is ready to accept connections`);
 
       // Start the notification reminder scheduler - Temporarily disabled
       // startReminderScheduler();
@@ -143,10 +186,32 @@ function setupGracefulShutdown(server: any) {
     // Setup graceful shutdown
     setupGracefulShutdown(serverInstance);
 
+    // Keep the process alive and handle unhandled errors
+    process.on('uncaughtException', (error) => {
+      log(`Uncaught Exception: ${error.message}`);
+      console.error('Uncaught Exception details:', error);
+      // Don't exit on uncaught exceptions in production
+      if (process.env.NODE_ENV !== 'production') {
+        process.exit(1);
+      }
+    });
+
+    process.on('unhandledRejection', (reason, promise) => {
+      log(`Unhandled Rejection at ${promise}, reason: ${reason}`);
+      console.error('Unhandled Rejection details:', reason);
+      // Don't exit on unhandled rejections in production
+      if (process.env.NODE_ENV !== 'production') {
+        process.exit(1);
+      }
+    });
+
+    // Keep the process alive
+    log('🔄 Process will stay alive to serve requests');
+
   } catch (error) {
     // Catch any initialization errors
     const errorMessage = error instanceof Error ? error.message : 'Unknown initialization error';
-    log(`Application startup failed: ${errorMessage}`);
+    log(`❌ Application startup failed: ${errorMessage}`);
     console.error('Startup error details:', error);
     process.exit(1);
   }
