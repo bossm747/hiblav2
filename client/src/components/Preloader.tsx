@@ -39,21 +39,11 @@ export function Preloader({ onComplete, duration = 5000 }: PreloaderProps) {
         {/* Animated Logo */}
         <div className="relative">
           <div className="absolute inset-0 animate-ping">
-            <div className="h-32 w-32 rounded-full bg-gradient-to-r from-purple-400 to-cyan-400 opacity-20"></div>
+            <div className="h-48 w-48 rounded-full bg-gradient-to-r from-purple-400 to-cyan-400 opacity-20"></div>
           </div>
           <div className="relative animate-pulse">
-            <HiblaLogo size="xl" showText={false} />
+            <HiblaLogo size="2xl" showText={false} />
           </div>
-        </div>
-
-        {/* Company Name with Animation */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-cyan-600 bg-clip-text text-transparent animate-in fade-in slide-in-from-bottom-3 duration-700">
-            Hibla Filipino Hair
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 animate-in fade-in slide-in-from-bottom-3 duration-700 delay-300">
-            Manufacturing Excellence Since 1984
-          </p>
         </div>
 
         {/* Progress Bar */}
