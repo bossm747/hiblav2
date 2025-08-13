@@ -9,7 +9,9 @@ Hibla Manufacturing & Supply System is an **internal-only operations platform** 
 - No customer self-service features
 - No payment proof uploads from customers
 - All operations are handled internally by Hibla staff
-- Customer interactions occur through traditional channels (email, phone) with staff managing all data entry
+- Customer interactions occur through WhatsApp with staff managing all data entry
+- Payment screenshots received via WhatsApp and uploaded by customer support staff
+- Finance team handles payment verification and confirmation process
 
 ## Document Automation System (January 2025)
 **Complete automation of document generation eliminates manual document creation:**
@@ -25,7 +27,9 @@ Hibla Manufacturing & Supply System is an **internal-only operations platform** 
 ## Internal Staff Roles & Workflow
 
 ### Staff Roles
-- **Sales Team**: Creates quotations, manages customer relationships, converts quotes to sales orders
+- **Sales Team**: Creates quotations, manages customer relationships via WhatsApp, converts quotes to sales orders
+- **Customer Support**: Receives payment screenshots via WhatsApp, uploads payment proof images to system
+- **Finance Team**: Verifies payment proof images, confirms payment receipt, updates payment status
 - **Production Team**: Manages job orders, tracks production progress, updates manufacturing status
 - **Inventory Team**: Manages stock levels, handles warehouse transfers, monitors inventory
 - **Shipping Team**: Handles order fulfillment, manages deliveries, updates shipping status
@@ -33,10 +37,14 @@ Hibla Manufacturing & Supply System is an **internal-only operations platform** 
 - **Admin**: System configuration, user management, pricing management
 
 ### Internal Workflow Process
-1. **Sales Process**: Staff receive customer inquiries → Create quotations → Email PDFs to customers → Convert approved quotes to sales orders
+1. **Sales Process**: Staff receive customer inquiries via WhatsApp → Create quotations → Send PDFs to customers via WhatsApp → Convert approved quotes to sales orders
 2. **Production**: Sales orders generate job orders → Production team manages workflow → Quality control checkpoints
-3. **Fulfillment**: Shipping team prepares orders → Generate shipping documents → Track delivery internally
-4. **Payment**: Staff record payments manually → Track payment status internally → No customer payment uploads
+3. **Payment Workflow**: 
+   - Customers send payment screenshots via WhatsApp
+   - Customer support staff receive and upload payment images to system
+   - Finance team verifies payments and confirms receipt
+   - Payment status updated internally in system
+4. **Fulfillment**: Shipping team prepares orders → Generate shipping documents → Track delivery internally
 
 ## User Preferences
 - Preferred communication style: Simple, everyday language
