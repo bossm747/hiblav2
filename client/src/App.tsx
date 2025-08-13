@@ -33,6 +33,12 @@ import Invoices from '@/pages/Invoices';
 import Production from '@/pages/Production';
 import InventoryTransfers from '@/pages/InventoryTransfers';
 
+// Consolidated module imports
+import SalesOperations from '@/pages/SalesOperations';
+import InventoryWarehouses from '@/pages/InventoryWarehouses';
+import ProductionModule from '@/pages/ProductionModule';
+import FinancialOperations from '@/pages/FinancialOperations';
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -52,6 +58,14 @@ function App() {
                   <AppLayout>
                     <Switch>
                       <Route path="/" component={Dashboard} />
+                      
+                      {/* Consolidated Module Routes */}
+                      <Route path="/sales-operations" component={SalesOperations} />
+                      <Route path="/production-module" component={ProductionModule} />
+                      <Route path="/inventory-warehouses" component={InventoryWarehouses} />
+                      <Route path="/financial-operations" component={FinancialOperations} />
+                      
+                      {/* Individual page routes (legacy support) */}
                       <Route path="/quotations" component={QuotationsPage} />
                       <Route path="/quotations-vlookup" component={VLOOKUPQuotationsPage} />
                       <Route path="/sales-orders" component={SalesOrdersPage} />

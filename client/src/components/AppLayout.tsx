@@ -73,7 +73,7 @@ const navigationModules = [
     ]
   },
   { 
-    path: '/production', 
+    path: '/production-module', 
     label: 'Production', 
     icon: Factory,
     description: 'Job Orders, Production Tracking',
