@@ -15,7 +15,14 @@ import {
   Settings,
   LogIn,
   ChevronRight,
-  Search
+  Search,
+  LayoutDashboard,
+  FileText,
+  ShoppingCart,
+  Briefcase,
+  Users,
+  BarChart3,
+  Warehouse
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,50 +56,47 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
   // Check if user is logged in and get role
   const user = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem("user") || "null") : null;
   const isLoggedIn = !!user;
-  const isStaff = user?.role === "admin" || user?.role === "cashier";
+  const isStaff = user?.role === "admin" || user?.role === "manager" || user?.role === "staff";
 
-  const customerSections: MenuSection[] = [
+  const manufacturingSections: MenuSection[] = [
     {
-      title: "Shop",
+      title: "Manufacturing Operations",
       items: [
-        { name: "Home", href: "/", icon: Home, description: "Welcome & featured products" },
-        { name: "All Products", href: "/products", icon: ShoppingBag, description: "Browse complete catalog" },
-        { name: "Human Hair", href: "/products?category=human", icon: Sparkles, description: "Premium human hair extensions" },
-        { name: "Korean HD Lace", href: "/products?category=korean-hd", icon: Package, description: "High-definition Korean lace hair" },
+        { name: "Dashboard", href: "/", icon: LayoutDashboard, description: "Production overview & metrics" },
+        { name: "Sales Operations", href: "/sales-operations", icon: ShoppingCart, description: "Quotations & sales orders" },
+        { name: "Production", href: "/production-module", icon: Briefcase, description: "Job orders & manufacturing" },
+        { name: "Inventory", href: "/inventory-warehouses", icon: Warehouse, description: "Stock & warehouse management" },
       ]
     },
     {
-      title: "Account",
+      title: "Management & Reports", 
       items: [
-        { name: "Shopping Cart", href: "/cart", icon: ShoppingBag, description: "View cart & checkout" },
-        { name: "My Orders", href: "/orders", icon: Package, description: "Order history & tracking" },
-        { name: "Wishlist", href: "/wishlist", icon: Heart, badge: "3", description: "Saved favorites" },
-        { name: "My Account", href: "/account", icon: User, description: "Profile & settings" },
-        { name: "About Us", href: "/about", icon: Info, description: "Our story & mission" },
-        { name: "Help & Guides", href: "/docs", icon: HelpCircle, description: "Care guides & tutorials" },
+        { name: "Financial Operations", href: "/financial-operations", icon: CreditCard, description: "Payments & invoices" },
+        { name: "Reports & Analytics", href: "/summary-reports", icon: BarChart3, description: "Manufacturing reports" },
+        { name: "Customer Management", href: "/customer-management", icon: Users, description: "Customer relationships" },
+        { name: "Administration", href: "/admin-portal", icon: Settings, description: "System configuration" },
       ]
     }
   ];
 
-  const staffSections: MenuSection[] = [
+  const documentationSection: MenuSection[] = [
     {
-      title: "Business Tools",
+      title: "Resources",
       items: [
-        { name: "Point of Sale", href: "/pos", icon: CreditCard, description: "Process sales", isStaff: true },
-        { name: "Inventory", href: "/inventory", icon: Package, description: "Stock management", isStaff: true },
-        { name: "AI Images", href: "/ai-images", icon: Sparkles, description: "Generate product photos", isStaff: true },
-        { name: "Admin Panel", href: "/admin", icon: Settings, description: "Full admin access", isStaff: true },
+        { name: "Documentation", href: "/docs", icon: HelpCircle, description: "User guides & workflows" },
+        { name: "System Status", href: "/docs/project-status", icon: Info, description: "Current project state" },
       ]
     }
   ];
 
-  const sections = isStaff ? [...customerSections, ...staffSections] : customerSections;
+  const sections = isLoggedIn ? [...manufacturingSections, ...documentationSection] : documentationSection;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       onClose();
-      window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`;
+      // Handle search across manufacturing operations
+      onClose();
     }
   };
 
@@ -163,7 +167,7 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search hair extensions..."
+                placeholder="Search manufacturing operations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 sm:pl-12 h-10 sm:h-12 bg-background border-white/30 text-foreground text-sm sm:text-base"
@@ -187,7 +191,7 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
               </div>
               {isStaff && (
                 <Badge variant="outline" className="text-xs sm:text-sm border-purple-400 text-purple-400">
-                  Staff
+                  {user.role === 'admin' ? 'Admin' : user.role === 'manager' ? 'Manager' : 'Staff'}
                 </Badge>
               )}
             </div>
