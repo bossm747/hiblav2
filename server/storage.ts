@@ -148,11 +148,17 @@ export interface IStorage {
   getSalesOrders(filters?: { status?: string; customer?: string }): Promise<SalesOrder[]>;
   getSalesOrder(id: string): Promise<SalesOrder | undefined>;
   createSalesOrder(insertSalesOrder: InsertSalesOrder): Promise<SalesOrder>;
+  getSalesOrdersByDateRange(startDate: Date, endDate: Date): Promise<SalesOrder[]>;
+  updateSalesOrderStatus(id: string, status: string): Promise<SalesOrder | undefined>;
+  getSalesOrderItems(salesOrderId: string): Promise<SalesOrderItem[]>;
+  createSalesOrderItem(insertSalesOrderItem: InsertSalesOrderItem): Promise<SalesOrderItem>;
 
   // Job order management
   getJobOrders(filters?: { customer?: string }): Promise<JobOrder[]>;
   getJobOrder(id: string): Promise<JobOrder | undefined>;
   createJobOrder(insertJobOrder: InsertJobOrder): Promise<JobOrder>;
+  getJobOrderItems(jobOrderId: string): Promise<JobOrderItem[]>;
+  createJobOrderItem(insertJobOrderItem: InsertJobOrderItem): Promise<JobOrderItem>;
   getJobOrdersWithItems(filters?: { 
     dateFrom?: string; 
     dateTo?: string; 
@@ -313,6 +319,7 @@ export interface IStorage {
   getInvoices(): Promise<Invoice[]>;
   getInvoice(id: string): Promise<Invoice | undefined>;
   getInvoiceByNumber(invoiceNumber: string): Promise<Invoice | undefined>;
+  createInvoice(insertInvoice: InsertInvoice): Promise<Invoice>;
   updateInvoicePaymentStatus(invoiceId: string, status: string, paidAmount: string): Promise<Invoice | undefined>;
 }
 
@@ -1844,6 +1851,101 @@ export class DatabaseStorage implements IStorage {
   async checkAndUnlockAchievements(customerId: string): Promise<any[]> {
     // Placeholder implementation
     return [];
+  }
+
+  // Missing Sales Order methods implementation
+  async getSalesOrdersByDateRange(startDate: Date, endDate: Date): Promise<SalesOrder[]> {
+    try {
+      const result = await db.select()
+        .from(salesOrders)
+        .where(
+          and(
+            gte(salesOrders.createdAt, startDate),
+            lte(salesOrders.createdAt, endDate)
+          )
+        )
+        .orderBy(desc(salesOrders.createdAt));
+      return result || [];
+    } catch (error) {
+      console.error('Error fetching sales orders by date range:', error);
+      throw new Error('Failed to fetch sales orders');
+    }
+  }
+
+  async updateSalesOrderStatus(id: string, status: string): Promise<SalesOrder | undefined> {
+    try {
+      const [updated] = await db.update(salesOrders)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(salesOrders.id, id))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Error updating sales order status:', error);
+      return undefined;
+    }
+  }
+
+  async getSalesOrderItems(salesOrderId: string): Promise<SalesOrderItem[]> {
+    try {
+      const result = await db.select()
+        .from(salesOrderItems)
+        .where(eq(salesOrderItems.salesOrderId, salesOrderId))
+        .orderBy(salesOrderItems.productName);
+      return result || [];
+    } catch (error) {
+      console.error('Error fetching sales order items:', error);
+      throw new Error('Failed to fetch sales order items');
+    }
+  }
+
+  async createSalesOrderItem(insertSalesOrderItem: InsertSalesOrderItem): Promise<SalesOrderItem> {
+    try {
+      const [item] = await db.insert(salesOrderItems).values(insertSalesOrderItem).returning();
+      return item;
+    } catch (error) {
+      console.error('Error creating sales order item:', error);
+      throw new Error('Failed to create sales order item');
+    }
+  }
+
+  // Missing Job Order methods implementation
+  async getJobOrderItems(jobOrderId: string): Promise<JobOrderItem[]> {
+    try {
+      const result = await db.select()
+        .from(jobOrderItems)
+        .where(eq(jobOrderItems.jobOrderId, jobOrderId))
+        .orderBy(jobOrderItems.productName);
+      return result || [];
+    } catch (error) {
+      console.error('Error fetching job order items:', error);
+      throw new Error('Failed to fetch job order items');
+    }
+  }
+
+  async createJobOrderItem(insertJobOrderItem: InsertJobOrderItem): Promise<JobOrderItem> {
+    try {
+      const [item] = await db.insert(jobOrderItems).values(insertJobOrderItem).returning();
+      return item;
+    } catch (error) {
+      console.error('Error creating job order item:', error);
+      throw new Error('Failed to create job order item');
+    }
+  }
+
+  // Missing Invoice methods implementation
+  async createInvoice(insertInvoice: InsertInvoice): Promise<Invoice> {
+    try {
+      const invoiceData = {
+        ...insertInvoice,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      const [invoice] = await db.insert(invoices).values(invoiceData).returning();
+      return invoice;
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+      throw new Error('Failed to create invoice');
+    }
   }
 
   // Payment methods implementation

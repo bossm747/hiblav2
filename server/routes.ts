@@ -3678,6 +3678,43 @@ export function registerRoutes(app: Express): void {
   });
 
   // =====================================================
+  // DOCUMENT AUTOMATION SERVICE
+  // =====================================================
+  
+  // Automated Sales Order creation from Quotation
+  app.post("/api/quotations/:id/generate-sales-order", async (req, res) => {
+    try {
+      const { documentAutomation } = await import('./document-automation');
+      const { revisionNumber, dueDate, creatorInitials } = req.body;
+      const result = await documentAutomation.createSalesOrderFromQuotation(req.params.id, {
+        revisionNumber,
+        dueDate,
+        creatorInitials
+      });
+      res.json(result);
+    } catch (error) {
+      console.error('Error creating sales order from quotation:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+  
+  // Generate PDF for any document type
+  app.get("/api/documents/:type/:id/pdf", async (req, res) => {
+    try {
+      const { documentAutomation } = await import('./document-automation');
+      const { type, id } = req.params;
+      const result = await documentAutomation.generateDocumentPDF(type as any, id);
+      
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Content-Disposition', `inline; filename="${result.filename}"`);
+      res.send(result.html);
+    } catch (error) {
+      console.error(`Error generating ${req.params.type} PDF:`, error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // =====================================================
   // SALES ORDERS MANAGEMENT
   // =====================================================
 
@@ -3765,57 +3802,15 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  // Confirm Sales Order
+  // Confirm Sales Order using Document Automation
   app.post("/api/sales-orders/:id/confirm", async (req, res) => {
     try {
-      // Get current staff for tracking
-      const staffList = await storage.getAllStaff();
-      const currentStaff = staffList.find((s: any) => s.role === 'admin') || staffList[0];
-      
-      if (!currentStaff) {
-        return res.status(400).json({ message: "No staff available for confirmation" });
-      }
-      const confirmedBy = currentStaff.id;
-
-      // Use the order confirmation service
-      const { orderConfirmationService } = await import("./order-confirmation-service");
-      const confirmedOrder = await orderConfirmationService.confirmSalesOrder(req.params.id, confirmedBy);
-
-      // Auto-generate Job Order when Sales Order is confirmed
-      const salesOrderItems = await storage.getSalesOrderItems(req.params.id);
-      
-      const jobOrderData = {
-        jobOrderNumber: confirmedOrder.salesOrderNumber, // Same number as sales order
-        revisionNumber: confirmedOrder.revisionNumber,
-        salesOrderId: confirmedOrder.id,
-        customerId: confirmedOrder.customerId,
-        customerCode: confirmedOrder.customerCode,
-        dueDate: confirmedOrder.dueDate,
-        orderInstructions: confirmedOrder.customerServiceInstructions,
-        createdBy: confirmedOrder.createdBy
-      };
-
-      const createdJobOrder = await storage.createJobOrder(jobOrderData);
-
-      // Create job order items
-      for (const item of salesOrderItems) {
-        const jobOrderItemData = {
-          jobOrderId: createdJobOrder.id,
-          productId: item.productId,
-          productName: item.productName,
-          specification: item.specification,
-          quantity: item.quantity
-        };
-        await storage.createJobOrderItem(jobOrderItemData);
-      }
-
-      res.json({ 
-        salesOrder: confirmedOrder, 
-        jobOrder: createdJobOrder,
-        message: "Sales order confirmed and job order created" 
-      });
+      const { documentAutomation } = await import('./document-automation');
+      const result = await documentAutomation.confirmSalesOrder(req.params.id);
+      res.json(result);
     } catch (error) {
-      res.status(500).json({ message: "Failed to confirm sales order" });
+      console.error('Error confirming sales order:', error);
+      res.status(500).json({ message: error.message });
     }
   });
 
