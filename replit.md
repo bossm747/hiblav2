@@ -67,7 +67,7 @@ Hibla Manufacturing & Supply System is an **internal-only operations platform** 
 - **Multi-Warehouse Inventory**: Stock level tracking, low stock alerts, transfers across multiple locations.
 - **Manufacturing Dashboard**: Real-time production metrics, active order counts, item status, performance tracking.
 - **Advanced Reporting**: Summary reports with filtering and export capabilities.
-- **Streamlined Navigation**: Focus on manufacturing operations only (Dashboard, Quotations, Sales Orders, Job Orders, Inventory, AI Inventory Insights, Summary Reports).
+- **Optimized Consolidated Navigation**: Reduced from 18 separate pages to 7 logical modules (Dashboard, Sales Operations, Production, Inventory & Warehouses, Financial Operations, Reports & Analytics, Administration) with sub-navigation for related functions.
 - **Pricing System**: Tiered pricing (New Customer, Regular, Premier, Custom), VLOOKUP functionality, and an administrative Price Management back-office with CRUD operations.
 - **AI Integration**: OpenAI-powered predictive inventory insights for demand forecasting.
 - **Mobile Experience**: Official Hibla logo integration, enhanced touch targets, responsive design, optimized forms, improved mobile navigation.
