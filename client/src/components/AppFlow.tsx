@@ -39,8 +39,8 @@ export function AppFlow({ children }: AppFlowProps) {
   if (showPreloader && currentStage === 'preloader') {
     return (
       <Preloader 
-        onLoadingComplete={handlePreloaderComplete}
-        duration={2000}
+        onComplete={handlePreloaderComplete}
+        duration={5000}
       />
     );
   }

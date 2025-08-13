@@ -105,44 +105,38 @@ export default function Login() {
               </Alert>
             )}
             
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
+                <Label htmlFor="email" className="text-sm font-medium">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your.email@hibla.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="h-11 text-base"
+                  required
+                  disabled={isLoading}
+                />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
+                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="h-11 text-base"
+                  required
+                  disabled={isLoading}
+                />
               </div>
               
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
+                className="w-full h-11 text-base font-medium bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 transition-all duration-200 shadow-elevated-button"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -151,10 +145,7 @@ export default function Login() {
                     Signing in...
                   </>
                 ) : (
-                  <>
-                    <LogIn className="h-4 w-4 mr-2" />
-                    Sign In
-                  </>
+                  'Sign In to Dashboard'
                 )}
               </Button>
             </form>
@@ -170,32 +161,31 @@ export default function Login() {
               </div>
             </div>
             
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-3 gap-3">
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
                 onClick={() => handleDemoLogin('admin')}
                 disabled={isLoading}
-                className="text-xs"
+                className="h-10 text-sm font-medium hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
               >
-                <Shield className="h-3 w-3 mr-1" />
                 Admin
               </Button>
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
                 onClick={() => handleDemoLogin('manager')}
                 disabled={isLoading}
-                className="text-xs"
+                className="h-10 text-sm font-medium hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition-colors"
               >
                 Manager
               </Button>
               <Button
                 variant="outline"
-                size="sm"
+                size="default"
                 onClick={() => handleDemoLogin('staff')}
                 disabled={isLoading}
-                className="text-xs"
+                className="h-10 text-sm font-medium hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-colors"
               >
                 Staff
               </Button>
