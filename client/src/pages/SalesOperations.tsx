@@ -14,9 +14,13 @@ import {
   Filter,
   Download,
   Eye,
-  Edit
+  Edit,
+  Calculator,
+  TrendingUp,
+  Briefcase
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { SalesWorkflowVisualizer } from '@/components/sales/SalesWorkflowVisualizer';
 
 export default function SalesOperations() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,6 +54,11 @@ export default function SalesOperations() {
     },
   });
 
+  // Fetch job orders for workflow visualization
+  const { data: jobOrders = [] } = useQuery({
+    queryKey: ['/api/job-orders'],
+  });
+
   const getStatusColor = (status: string) => {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300',
@@ -61,74 +70,81 @@ export default function SalesOperations() {
     return colors[status as keyof typeof colors] || colors.pending;
   };
 
+  const handleStepClick = (step: string) => {
+    switch (step) {
+      case 'quotations':
+        window.location.href = '/quotations';
+        break;
+      case 'sales-orders':
+        setActiveTab('orders');
+        break;
+      case 'job-orders':
+        window.location.href = '/job-orders';
+        break;
+      case 'invoices':
+        window.location.href = '/invoices';
+        break;
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Sales Operations</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Sales Operations Hub</h1>
           <p className="text-muted-foreground">
-            Manage quotations, sales orders, customers, and pricing
+            Complete sales management from quotation to fulfillment
           </p>
         </div>
-        <Button className="flex items-center space-x-2">
-          <Plus className="h-4 w-4" />
-          <span>New Quotation</span>
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" onClick={() => window.location.href = '/quotations-vlookup'} className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 border-0">
+            <Calculator className="h-4 w-4 mr-2" />
+            VLOOKUP Quote
+          </Button>
+          <Button className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700">
+            <Plus className="h-4 w-4 mr-2" />
+            New Operation
+          </Button>
+        </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Quotations</p>
-                <p className="text-2xl font-bold">{quotations?.length || 0}</p>
-              </div>
-              <FileText className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Sales Orders</p>
-                <p className="text-2xl font-bold">{salesOrders?.length || 0}</p>
-              </div>
-              <ShoppingCart className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Active Customers</p>
-                <p className="text-2xl font-bold">{customers?.length || 0}</p>
-              </div>
-              <Users className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Conversion Rate</p>
-                <p className="text-2xl font-bold">35%</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-orange-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Sales Workflow Visualizer */}
+      <SalesWorkflowVisualizer
+        quotationsCount={quotations?.length || 0}
+        salesOrdersCount={salesOrders?.length || 0}
+        jobOrdersCount={Array.isArray(jobOrders) ? jobOrders.length : 0}
+        invoicesCount={0} // TODO: Add when invoices API is ready
+        onStepClick={handleStepClick}
+      />
 
-      {/* Main Content Tabs */}
+      {/* Main Operations Interface */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="relative flex-1 max-w-sm">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search across all sales operations..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Filters
+              </Button>
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="quotations">Quotations</TabsTrigger>
@@ -136,29 +152,6 @@ export default function SalesOperations() {
           <TabsTrigger value="customers">Customers</TabsTrigger>
           <TabsTrigger value="pricing">Pricing</TabsTrigger>
         </TabsList>
-
-        {/* Search and Filters */}
-        <div className="flex items-center space-x-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search across all sales operations..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Filters
-          </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
 
         <TabsContent value="quotations" className="space-y-4">
           <Card>
@@ -177,8 +170,8 @@ export default function SalesOperations() {
                     <div key={quote.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
                         <div className="font-medium">{quote.quotationNumber}</div>
-                        <div className="text-sm text-muted-foreground">{quote.customerName}</div>
-                        <div className="text-sm text-muted-foreground">Total: ${quote.totalAmount}</div>
+                        <div className="text-sm text-muted-foreground">{quote.customerCode}</div>
+                        <div className="text-sm text-muted-foreground">Total: ${quote.total}</div>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Badge className={getStatusColor(quote.status)}>
@@ -195,7 +188,7 @@ export default function SalesOperations() {
                   ))}
                   <div className="text-center pt-4">
                     <div className="flex items-center space-x-2 justify-center">
-                      <Button variant="outline">View All Quotations</Button>
+                      <Button variant="outline" onClick={() => window.location.href = '/quotations'}>View All Quotations</Button>
                       <Button variant="outline" onClick={() => window.location.href = '/quotations-vlookup'}>
                         <Plus className="h-4 w-4 mr-2" />
                         Create VLOOKUP Quote
@@ -207,8 +200,6 @@ export default function SalesOperations() {
             </CardContent>
           </Card>
         </TabsContent>
-
-
 
         <TabsContent value="orders" className="space-y-4">
           <Card>
@@ -226,9 +217,9 @@ export default function SalesOperations() {
                   {salesOrders?.slice(0, 5).map((order: any) => (
                     <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
-                        <div className="font-medium">{order.orderNumber}</div>
-                        <div className="text-sm text-muted-foreground">{order.customerName}</div>
-                        <div className="text-sm text-muted-foreground">Total: ${order.totalAmount}</div>
+                        <div className="font-medium">{order.salesOrderNumber}</div>
+                        <div className="text-sm text-muted-foreground">{order.customerCode}</div>
+                        <div className="text-sm text-muted-foreground">Total: ${order.pleasePayThisAmountUsd}</div>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Badge className={getStatusColor(order.status)}>
