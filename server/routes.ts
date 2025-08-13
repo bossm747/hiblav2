@@ -5193,18 +5193,28 @@ export function registerRoutes(app: Express): void {
 
   // ============ ADMIN PORTAL ROUTES ============
   
-  // Admin portal authentication
+  // Admin portal authentication - Use main auth system
   app.post('/api/admin-portal/login', async (req, res) => {
     try {
       const { email, password } = req.body;
-      const { adminPortalService } = await import('./admin-portal-service');
       
-      const admin = await adminPortalService.authenticateAdmin(email, password);
-      if (!admin) {
+      // Use the main authentication system
+      const result = await authService.authenticate(email, password);
+      
+      if (!result.success || !result.user) {
         return res.status(401).json({ message: 'Invalid email or password' });
       }
-      
-      res.json(admin);
+
+      // Admin portal doesn't need sessions - token-based auth
+
+      // Return admin format for AdminPortal component
+      res.json({ 
+        id: result.user.id,
+        name: result.user.name,
+        email: result.user.email,
+        role: result.user.role,
+        permissions: result.user.permissions || []
+      });
     } catch (error) {
       console.error('Error in admin login:', error);
       res.status(500).json({ message: 'Login failed' });
