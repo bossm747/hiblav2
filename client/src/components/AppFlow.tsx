@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Preloader } from './Preloader';
-import AdminPortal from '@/pages/AdminPortal';
+import Login from '@/pages/Login';
 import { useAuth } from '@/contexts/AuthContext';
 
 type FlowStage = 'preloader' | 'login' | 'authenticated';
@@ -48,7 +48,7 @@ export function AppFlow({ children }: AppFlowProps) {
   // Render based on current stage
   switch (currentStage) {
     case 'login':
-      return <AdminPortal />;
+      return <Login />;
 
     case 'authenticated':
     default:
