@@ -35,6 +35,7 @@ import {
   CheckCircle, 
   XCircle,
   ShoppingCart,
+  Calculator,
 } from 'lucide-react';
 
 export function QuotationsPage() {
@@ -109,6 +110,11 @@ export function QuotationsPage() {
   const handleEdit = (quotationId: string) => {
     // Navigate to edit quotation
     window.location.href = `/quotations-vlookup?edit=${quotationId}`;
+  };
+
+  const handleCreateVLOOKUP = () => {
+    // Navigate to VLOOKUP quotation creation
+    window.location.href = '/quotations-vlookup';
   };
 
   const handleDuplicate = async (quotationId: string) => {
@@ -235,11 +241,13 @@ export function QuotationsPage() {
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <Button asChild>
-            <a href="/quotations-vlookup">
-              <Plus className="h-4 w-4 mr-2" />
-              New Quotation
-            </a>
+          <Button variant="outline" onClick={handleCreateVLOOKUP} className="flex items-center space-x-2">
+            <Calculator className="h-4 w-4" />
+            <span>VLOOKUP Quotation</span>
+          </Button>
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Quick Quote
           </Button>
         </div>
       </div>

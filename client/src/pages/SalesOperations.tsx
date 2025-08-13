@@ -130,9 +130,8 @@ export default function SalesOperations() {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="quotations">Quotations</TabsTrigger>
-          <TabsTrigger value="vlookup">VLOOKUP</TabsTrigger>
           <TabsTrigger value="orders">Sales Orders</TabsTrigger>
           <TabsTrigger value="customers">Customers</TabsTrigger>
           <TabsTrigger value="pricing">Pricing</TabsTrigger>
@@ -195,7 +194,13 @@ export default function SalesOperations() {
                     </div>
                   ))}
                   <div className="text-center pt-4">
-                    <Button variant="outline">View All Quotations</Button>
+                    <div className="flex items-center space-x-2 justify-center">
+                      <Button variant="outline">View All Quotations</Button>
+                      <Button variant="outline" onClick={() => window.location.href = '/quotations-vlookup'}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create VLOOKUP Quote
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -203,19 +208,7 @@ export default function SalesOperations() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="vlookup" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>VLOOKUP Quotations</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">VLOOKUP quotation system with automatic pricing</p>
-                <Button className="mt-4">Create VLOOKUP Quotation</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+
 
         <TabsContent value="orders" className="space-y-4">
           <Card>
