@@ -224,7 +224,7 @@ export function SalesOperationsDashboard() {
                       <TableCell className="font-medium">{quotation.quotationNumber}</TableCell>
                       <TableCell>{quotation.customerCode}</TableCell>
                       <TableCell>{quotation.country}</TableCell>
-                      <TableCell>${quotation.total?.toFixed(2) || '0.00'}</TableCell>
+                      <TableCell>${(quotation.total && typeof quotation.total === 'number') ? quotation.total.toFixed(2) : '0.00'}</TableCell>
                       <TableCell>
                         <Badge variant={quotation.status === 'approved' ? 'default' : 'secondary'}>
                           {quotation.status}
@@ -275,7 +275,7 @@ export function SalesOperationsDashboard() {
                       <TableCell className="font-medium">{order.salesOrderNumber}</TableCell>
                       <TableCell>{order.customerCode}</TableCell>
                       <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
-                      <TableCell>${order.total?.toFixed(2) || '0.00'}</TableCell>
+                      <TableCell>${(order.total && typeof order.total === 'number') ? order.total.toFixed(2) : '0.00'}</TableCell>
                       <TableCell>
                         <Badge variant="default">{order.status}</Badge>
                       </TableCell>
