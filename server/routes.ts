@@ -55,6 +55,17 @@ import { promises as fs } from "fs";
 import { z } from "zod";
 
 export function registerRoutes(app: Express): void {
+  // Health endpoints for deployment services - highest priority
+  app.get("/api/health", (req, res) => {
+    res.status(200).json({ 
+      status: "healthy", 
+      message: "Manufacturing Management Platform API is running",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      uptime: process.uptime()
+    });
+  });
+
   // Serve uploaded files statically
   app.use('/uploads', express.static(path.resolve('uploads')));
 

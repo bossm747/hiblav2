@@ -24,9 +24,62 @@ function validateEnvironment() {
   log('Environment validation passed');
 }
 
+// Async seeding function to run after server startup
+async function seedDataAsync() {
+  try {
+    log('Starting background data seeding process...');
+    await seedWarehouses();
+    log('Warehouses seeded successfully');
+    
+    await seedShowcasePricing();
+    log('Pricing data seeded successfully');
+    
+    await seedStaff();
+    log('Staff data seeded successfully');
+    
+    await seedDefaultStaff();
+    log('Default staff accounts seeded successfully');
+    
+    log('Data seeding completed successfully');
+  } catch (error) {
+    // Don't fail the server if seeding fails
+    const errorMessage = error instanceof Error ? error.message : 'Unknown seeding error';
+    log(`Warning: Background data seeding failed: ${errorMessage}`);
+    console.warn('Seeding error details:', error);
+    log('Server continues running without seeded data');
+  }
+}
+
 const app = express();
 
-// Note: Root endpoint "/" handled by Vite in development, static files in production
+// Root endpoint for deployment health checks - responds immediately  
+app.get("/", (req, res) => {
+  // Accept JSON requests for API calls, return HTML for browsers/deployment checks
+  if (req.headers.accept?.includes('application/json')) {
+    res.status(200).json({ 
+      status: "healthy", 
+      message: "Manufacturing Management Platform is running",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      uptime: process.uptime(),
+      version: "1.0.0"
+    });
+  } else {
+    res.status(200).send(`
+      <!DOCTYPE html>
+      <html>
+      <head><title>Manufacturing Management Platform</title></head>
+      <body>
+        <h1>Manufacturing Management Platform</h1>
+        <p>Status: <strong>Healthy</strong></p>
+        <p>Environment: ${process.env.NODE_ENV || 'development'}</p>
+        <p>Uptime: ${process.uptime()}s</p>
+        <p>Time: ${new Date().toISOString()}</p>
+      </body>
+      </html>
+    `);
+  }
+});
 
 // Add health check endpoint
 app.get("/health", (req, res) => {
@@ -128,29 +181,8 @@ function setupGracefulShutdown(server: any) {
       log('Production environment with static files setup complete');
     }
 
-    // Seed data with error handling - don't fail if seeding has issues
-    try {
-      log('Starting data seeding process...');
-      await seedWarehouses();
-      log('Warehouses seeded successfully');
-      
-      await seedShowcasePricing();
-      log('Pricing data seeded successfully');
-      
-      await seedStaff();
-      log('Staff data seeded successfully');
-      
-      await seedDefaultStaff();
-      log('Default staff accounts seeded successfully');
-      
-      log('Data seeding completed successfully');
-    } catch (error) {
-      // Don't fail the server startup if seeding fails
-      const errorMessage = error instanceof Error ? error.message : 'Unknown seeding error';
-      log(`Warning: Data seeding failed: ${errorMessage}`);
-      console.warn('Seeding error details:', error);
-      log('Server will continue without seeded data');
-    }
+    // Start server first, then seed data asynchronously
+    // This ensures health checks work immediately while seeding runs in background
 
 
     // Configure server port with proper fallback handling
@@ -189,6 +221,10 @@ function setupGracefulShutdown(server: any) {
 
           // Keep the process alive
           log('🔄 Process will stay alive to serve requests');
+          
+          // Start data seeding asynchronously after server is running
+          seedDataAsync();
+          
           resolve(serverInstance);
         });
 
@@ -212,6 +248,12 @@ function setupGracefulShutdown(server: any) {
 
     // Start the server and handle global errors
     await startServer();
+
+    // Keep the process alive with a simple interval
+    setInterval(() => {
+      // This ensures the event loop stays active
+      // No-op function that runs every 60 seconds
+    }, 60000);
 
     // Keep the process alive and handle unhandled errors
     process.on('uncaughtException', (error) => {

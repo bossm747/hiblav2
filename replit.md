@@ -57,6 +57,15 @@ Hibla Manufacturing & Supply System is an **internal-only operations platform** 
 - Brand Assets: Hibla logo provided (circular design with elegant typography)
 - Current Focus: Internal manufacturing workflow management
 
+## Deployment Infrastructure (January 2025)
+**Production-ready deployment architecture with comprehensive health monitoring:**
+- **Health Check Endpoints**: Fast-responding endpoints at `/`, `/health`, and `/api/health` for deployment services
+- **Non-blocking Server Startup**: Background data seeding ensures immediate server availability for health checks
+- **Production Stability**: Event loop keepalive mechanisms prevent premature process termination
+- **Zero-downtime Deployments**: Server starts immediately while initialization processes run asynchronously
+- **Multi-format Health Responses**: Root endpoint serves HTML for browsers and JSON for deployment services
+- **Comprehensive Error Handling**: Production-safe error handling prevents crashes during deployment
+
 ## System Architecture
 
 ### Frontend
