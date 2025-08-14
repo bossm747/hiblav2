@@ -40,6 +40,14 @@ import InventoryWarehouses from '@/pages/InventoryWarehouses';
 import ProductionModule from '@/pages/ProductionModule';
 import FinancialOperations from '@/pages/FinancialOperations';
 
+// New Consolidated Dashboard imports
+import { SalesOperationsDashboard } from '@/pages/SalesOperationsDashboard';
+import { ProductionManagementDashboard } from '@/pages/ProductionManagementDashboard';
+import { InventoryWarehouseDashboard } from '@/pages/InventoryWarehouseDashboard';
+import { FinancialOperationsDashboard } from '@/pages/FinancialOperationsDashboard';
+import { ReportsAnalyticsDashboard } from '@/pages/ReportsAnalyticsDashboard';
+import { AdministrationDashboard } from '@/pages/AdministrationDashboard';
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -60,7 +68,15 @@ function App() {
                     <Switch>
                       <Route path="/" component={Dashboard} />
                       
-                      {/* Consolidated Module Routes */}
+                      {/* New Consolidated Dashboard Routes */}
+                      <Route path="/sales-operations-dashboard" component={SalesOperationsDashboard} />
+                      <Route path="/production-management-dashboard" component={ProductionManagementDashboard} />
+                      <Route path="/inventory-warehouse-dashboard" component={InventoryWarehouseDashboard} />
+                      <Route path="/financial-operations-dashboard" component={FinancialOperationsDashboard} />
+                      <Route path="/reports-analytics-dashboard" component={ReportsAnalyticsDashboard} />
+                      <Route path="/administration-dashboard" component={AdministrationDashboard} />
+                      
+                      {/* Consolidated Module Routes (Legacy) */}
                       <Route path="/sales-operations" component={SalesOperations} />
                       <Route path="/production-module" component={ProductionModule} />
                       <Route path="/inventory-warehouses" component={InventoryWarehouses} />

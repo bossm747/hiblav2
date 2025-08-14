@@ -60,71 +60,40 @@ const navigationModules = [
     description: 'Real-time manufacturing overview'
   },
   { 
-    path: '/sales-operations', 
-    label: 'Sales Operations', 
+    path: '/sales-operations-dashboard', 
+    label: 'Sales Operations Management', 
     icon: FileText,
-    description: 'Quotations, Sales Orders, Customers',
-    subItems: [
-      { path: '/quotations', label: 'Quotations', icon: FileText },
-      { path: '/quotations-vlookup', label: 'VLOOKUP Quotations', icon: FileText },
-      { path: '/sales-orders', label: 'Sales Orders', icon: ShoppingCart },
-      { path: '/customer-management', label: 'Customer Management', icon: Users },
-      { path: '/price-management', label: 'Price Management', icon: DollarSign },
-    ]
+    description: 'Unified sales management - quotations, orders, customers'
   },
   { 
-    path: '/production-module', 
-    label: 'Production', 
+    path: '/production-management-dashboard', 
+    label: 'Production Management', 
     icon: Factory,
-    description: 'Job Orders, Production Tracking',
-    subItems: [
-      { path: '/job-orders', label: 'Job Orders', icon: Factory },
-      { path: '/production', label: 'Production Tracking', icon: Factory },
-      { path: '/ready-items-summary', label: 'Ready Items Summary', icon: CheckCircle },
-    ]
+    description: 'Complete production workflow management'
   },
   { 
-    path: '/inventory-warehouses', 
-    label: 'Inventory & Warehouses', 
+    path: '/inventory-warehouse-dashboard', 
+    label: 'Inventory & Warehouse Management', 
     icon: Package,
-    description: 'Stock Management, Transfers, AI Insights',
-    subItems: [
-      { path: '/inventory', label: 'Inventory Management', icon: Package },
-      { path: '/inventory-transfers', label: 'Stock Transfers', icon: ArrowLeftRight },
-      { path: '/products', label: 'Product Master', icon: Package2 },
-      { path: '/warehouses', label: 'Warehouse Management', icon: Warehouse },
-      { path: '/inventory-insights', label: 'AI Inventory Insights', icon: Zap },
-    ]
+    description: 'Comprehensive inventory and warehouse operations'
   },
   { 
-    path: '/financial-operations', 
-    label: 'Financial Operations', 
+    path: '/financial-operations-dashboard', 
+    label: 'Financial Operations Management', 
     icon: CreditCard,
-    description: 'Invoices, Payments, Accounting',
-    subItems: [
-      { path: '/invoices', label: 'Invoices', icon: FileCheck },
-      { path: '/payment-recording', label: 'Payment Recording', icon: Receipt },
-    ]
+    description: 'Payment processing, invoices, and financial workflows'
   },
   { 
-    path: '/reports-analytics', 
+    path: '/reports-analytics-dashboard', 
     label: 'Reports & Analytics', 
     icon: FileBarChart,
-    description: 'Comprehensive reporting across all modules',
-    subItems: [
-      { path: '/summary-reports', label: 'Summary Reports', icon: FileBarChart },
-    ]
+    description: 'Business intelligence and performance analytics'
   },
   { 
-    path: '/administration', 
+    path: '/administration-dashboard', 
     label: 'Administration', 
     icon: Settings,
-    description: 'System Configuration, User Management',
-    subItems: [
-      { path: '/staff-management', label: 'Staff Management', icon: UserCheck },
-      { path: '/access-management', label: 'Access Management', icon: Shield },
-      { path: '/email-settings', label: 'Email Settings', icon: Mail },
-    ]
+    description: 'System configuration and user management'
   },
 ];
 
@@ -153,72 +122,16 @@ export function AppLayout({ children }: AppLayoutProps) {
     <div className={cn('space-y-3', mobile && 'px-4')}>
       {navigationModules.map((module) => {
         const Icon = module.icon;
-        const isModuleActive = location === module.path || 
-          (module.subItems && module.subItems.some(sub => location === sub.path));
+        const isModuleActive = location === module.path;
         
-        // For modules with sub-items, show as expandable
-        if (module.subItems && module.subItems.length > 0) {
-          return (
-            <div key={module.path} className="space-y-1">
-              {/* Module Header */}
-              <div className={cn(
-                'px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground',
-                'flex items-center space-x-3',
-                mobile && 'px-4 py-3 min-h-[44px]'
-              )}>
-                <Icon className={cn(
-                  mobile ? "h-5 w-5" : "h-4 w-4",
-                  "flex-shrink-0",
-                  isModuleActive && 'text-primary'
-                )} />
-                <span className="truncate">{module.label}</span>
-              </div>
-              
-              {/* Sub-items */}
-              <div className="space-y-1 ml-6">
-                {module.subItems.map((subItem) => {
-                  const SubIcon = subItem.icon;
-                  const isSubActive = location === subItem.path;
-                  
-                  return (
-                    <Link key={subItem.path} href={subItem.path}>
-                      <Button
-                        variant={isSubActive ? 'default' : 'ghost'}
-                        size={mobile ? 'sm' : 'sm'}
-                        className={cn(
-                          'w-full justify-start touch-target transition-all duration-200',
-                          mobile && 'min-h-[40px] text-left p-3 rounded-lg active:scale-95',
-                          mobile && 'hover:bg-muted/80 hover:shadow-sm',
-                          isSubActive && mobile && 'bg-primary text-primary-foreground shadow-md font-medium',
-                          isSubActive && !mobile && 'bg-primary text-primary-foreground shadow-lg',
-                          !isSubActive && mobile && 'text-foreground hover:text-foreground',
-                          'text-sm'
-                        )}
-                        onClick={() => mobile && setSidebarOpen(false)}
-                      >
-                        <SubIcon className={cn(
-                          mobile ? "h-4 w-4 mr-3" : "h-3 w-3 mr-2",
-                          "flex-shrink-0"
-                        )} />
-                        <span className="truncate">{subItem.label}</span>
-                      </Button>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        }
-        
-        // For standalone modules (like Dashboard)
         return (
           <Link key={module.path} href={module.path}>
             <Button
               variant={isModuleActive ? 'default' : 'ghost'}
               size={mobile ? 'lg' : 'default'}
               className={cn(
-                'w-full justify-start touch-target transition-all duration-200',
-                mobile && 'min-h-[44px] text-left p-3 rounded-lg active:scale-95',
+                'w-full justify-start touch-target transition-all duration-200 h-auto py-3',
+                mobile && 'min-h-[56px] text-left p-4 rounded-lg active:scale-95',
                 mobile && 'hover:bg-muted/80 hover:shadow-sm',
                 isModuleActive && mobile && 'bg-primary text-primary-foreground shadow-md font-medium',
                 isModuleActive && !mobile && 'bg-primary text-primary-foreground shadow-lg',
@@ -227,10 +140,15 @@ export function AppLayout({ children }: AppLayoutProps) {
               onClick={() => mobile && setSidebarOpen(false)}
             >
               <Icon className={cn(
-                mobile ? "h-5 w-5 mr-4" : "h-4 w-4 mr-3",
+                mobile ? "h-6 w-6 mr-4" : "h-5 w-5 mr-3",
                 "flex-shrink-0"
               )} />
-              <span className="truncate">{module.label}</span>
+              <div className="flex-1 text-left">
+                <div className="font-semibold text-sm">{module.label}</div>
+                <div className="text-xs text-muted-foreground leading-tight opacity-80">
+                  {module.description}
+                </div>
+              </div>
             </Button>
           </Link>
         );
