@@ -42,6 +42,7 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Plus,
   Trash2,
@@ -107,12 +108,29 @@ export function EnhancedQuotationForm({
   const dialogOpen = open !== undefined ? open : isOpen;
   const setDialogOpen = onOpenChange || setIsOpen;
 
-  // Get current staff member for initials
+  // Get current staff member for initials from authentication context
+  const { user } = useAuth();
+  
   useEffect(() => {
-    // For demo purposes, using a hardcoded value
-    // In real implementation, get from authentication context
-    setStaffInitials('AAMA');
-  }, []);
+    // Automatically generate creator initials from logged-in user
+    const getCreatorInitials = () => {
+      if (user?.firstName && user?.lastName) {
+        return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+      }
+      if (user?.name) {
+        const names = user.name.split(' ');
+        return names.length > 1 
+          ? `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase()
+          : `${names[0][0]}${names[0][1] || ''}`.toUpperCase();
+      }
+      if (user?.email) {
+        return user.email.substring(0, 2).toUpperCase();
+      }
+      return 'AA'; // Fallback
+    };
+    
+    setStaffInitials(getCreatorInitials());
+  }, [user]);
 
   // Fetch customers for dropdown
   const { data: customers = [] } = useQuery({

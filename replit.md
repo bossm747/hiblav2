@@ -20,6 +20,7 @@ Hibla Manufacturing & Supply System is an **internal-only operations platform** 
 - **Automated Invoice Creation**: Auto-generated from confirmed Sales Orders with same series number
 - **Professional PDF Templates**: Print-ready documents with Hibla branding for all document types
 - **Inventory Integration**: Automatic updates to Reserved Warehouse when orders are confirmed
+- **Creator Initials Automation**: Automatically extracts creator initials from logged-in user authentication
 - **95% reduction in manual document preparation time**
 - **100% elimination of data transcription errors**
 - **Complete workflow automation from quotation to invoice**
