@@ -52,7 +52,7 @@ async function seedDataAsync() {
 
 const app = express();
 
-// Add health check endpoint
+// Add health check endpoints (but NOT on root)
 app.get("/health", (req, res) => {
   res.status(200).json({ 
     status: "healthy", 
@@ -63,7 +63,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Add API health check for deployment services
 app.get("/api/health", (req, res) => {
   res.status(200).json({ 
     status: "healthy", 
@@ -169,7 +168,6 @@ function setupGracefulShutdown(server: any) {
           log(`🚀 Hibla Manufacturing System started successfully`);
           log(`📡 Server listening on port ${port} (host: 0.0.0.0)`);
           log(`🏥 Health checks available at:`);
-          log(`   GET http://0.0.0.0:${port}/ (root)`);
           log(`   GET http://0.0.0.0:${port}/health`);
           log(`   GET http://0.0.0.0:${port}/api/health`);
           log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);

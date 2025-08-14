@@ -1,5 +1,5 @@
 
-import { BrowserRouter } from "wouter";
+import { Router } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -21,12 +21,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="hibla-ui-theme">
         <AuthProvider>
-          <BrowserRouter>
+          <Router>
             <div className="min-h-screen bg-background">
               <AppLayout />
               <Toaster />
             </div>
-          </BrowserRouter>
+          </Router>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
