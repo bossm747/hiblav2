@@ -263,7 +263,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold truncate">
-                            {user?.firstName} {user?.lastName}
+                            {user?.name}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
                             {user?.role || 'Manufacturing Staff'}

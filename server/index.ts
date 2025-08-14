@@ -26,7 +26,9 @@ function validateEnvironment() {
 
 const app = express();
 
-// Add health check endpoint FIRST, before any middleware
+// Note: Root endpoint "/" handled by Vite in development, static files in production
+
+// Add health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({ 
     status: "healthy", 
@@ -151,40 +153,65 @@ function setupGracefulShutdown(server: any) {
     }
 
 
-    // Configure server port
+    // Configure server port with proper fallback handling
     const port = parseInt(process.env.PORT || '5000', 10);
 
-    // Start server with proper error handling
-    const serverInstance = server.listen({
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    }, () => {
-      log(`🚀 Manufacturing Management Platform started successfully`);
-      log(`📡 Server listening on port ${port} (host: 0.0.0.0)`);
-      log(`🏥 Health checks available at:`);
-      log(`   GET http://0.0.0.0:${port}/`);
-      log(`   GET http://0.0.0.0:${port}/health`);
-      log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-      log(`✅ Server is ready to accept connections`);
-
-      // Start the notification reminder scheduler - Temporarily disabled
-      // startReminderScheduler();
-      // log('Notification reminder scheduler started');
-    });
-
-    // Handle server startup errors
-    serverInstance.on('error', (error: any) => {
-      if (error.code === 'EADDRINUSE') {
-        log(`Port ${port} is already in use`);
-      } else {
-        log(`Server error: ${error.message}`);
+    // Handle port conflicts by trying different ports in production
+    let actualPort = port;
+    const tryNextPort = () => {
+      actualPort = actualPort === 5000 ? 3000 : actualPort + 1;
+      if (actualPort > 5010) {
+        throw new Error('No available ports found');
       }
-      process.exit(1);
-    });
+    };
 
-    // Setup graceful shutdown
-    setupGracefulShutdown(serverInstance);
+    // Start server with improved error handling
+    const startServer = () => {
+      return new Promise((resolve, reject) => {
+        const serverInstance = server.listen({
+          port: actualPort,
+          host: "0.0.0.0",
+        }, () => {
+          log(`🚀 Manufacturing Management Platform started successfully`);
+          log(`📡 Server listening on port ${actualPort} (host: 0.0.0.0)`);
+          log(`🏥 Health checks available at:`);
+          log(`   GET http://0.0.0.0:${actualPort}/`);
+          log(`   GET http://0.0.0.0:${actualPort}/health`);
+          log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+          log(`✅ Server is ready to accept connections`);
+
+          // Start the notification reminder scheduler - Temporarily disabled
+          // startReminderScheduler();
+          // log('Notification reminder scheduler started');
+
+          // Setup graceful shutdown
+          setupGracefulShutdown(serverInstance);
+
+          // Keep the process alive
+          log('🔄 Process will stay alive to serve requests');
+          resolve(serverInstance);
+        });
+
+        // Handle server startup errors
+        serverInstance.on('error', (error: any) => {
+          if (error.code === 'EADDRINUSE') {
+            log(`Port ${actualPort} is already in use`);
+            if (process.env.NODE_ENV === 'development' && actualPort < 5010) {
+              tryNextPort();
+              startServer().then(resolve).catch(reject);
+            } else {
+              reject(new Error(`Port ${actualPort} is already in use and no fallback available`));
+            }
+          } else {
+            log(`Server error: ${error.message}`);
+            reject(error);
+          }
+        });
+      });
+    };
+
+    // Start the server and handle global errors
+    await startServer();
 
     // Keep the process alive and handle unhandled errors
     process.on('uncaughtException', (error) => {
@@ -204,9 +231,6 @@ function setupGracefulShutdown(server: any) {
         process.exit(1);
       }
     });
-
-    // Keep the process alive
-    log('🔄 Process will stay alive to serve requests');
 
   } catch (error) {
     // Catch any initialization errors

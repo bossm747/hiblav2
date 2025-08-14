@@ -360,56 +360,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  // Staff management routes
-  app.get("/api/staff", async (req, res) => {
-    try {
-      const staffList = await storage.getAllStaff();
-      res.json(staffList);
-    } catch (error) {
-      console.error('Get staff error:', error);
-      res.status(500).json({ message: "Failed to fetch staff members" });
-    }
-  });
-
-  app.post("/api/staff", async (req, res) => {
-    try {
-      const staffData = insertStaffSchema.parse(req.body);
-      const newStaff = await authService.createStaff(staffData);
-      res.json(newStaff);
-    } catch (error) {
-      console.error('Create staff error:', error);
-      res.status(500).json({ 
-        message: error instanceof Error ? error.message : "Failed to create staff member" 
-      });
-    }
-  });
-
-  app.put("/api/staff/:id/permissions", async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { permissions } = req.body;
-      
-      if (!Array.isArray(permissions)) {
-        return res.status(400).json({ message: "Permissions must be an array" });
-      }
-
-      const updated = await authService.updateStaffPermissions(id, permissions);
-      res.json(updated);
-    } catch (error) {
-      console.error('Update permissions error:', error);
-      res.status(500).json({ message: "Failed to update permissions" });
-    }
-  });
-
-  // Health check endpoint for deployment monitoring
-  app.get("/health", (req, res) => {
-    res.status(200).json({ 
-      status: "healthy", 
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      environment: process.env.NODE_ENV || 'development'
-    });
-  });
+  // Note: Duplicate staff routes removed - using the authenticated versions above
 
   // Dashboard analytics endpoint
   app.get("/api/dashboard/analytics", async (req, res) => {
