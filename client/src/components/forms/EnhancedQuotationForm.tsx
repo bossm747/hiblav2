@@ -300,11 +300,28 @@ export function EnhancedQuotationForm({
                   name="customerCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Customer Code *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormLabel>Customer Code * (Auto-populates details)</FormLabel>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          // Auto-populate customer details with flexibility to modify
+                          const customer = customers.find((c: any) => c.customerCode === value || c.id === value);
+                          if (customer) {
+                            form.setValue('country', customer.country || '');
+                            form.setValue('priceListId', customer.priceListId || '');
+                            
+                            toast({
+                              title: "Customer Details Auto-Populated",
+                              description: `Details for ${customer.name} loaded. You can modify them if needed.`,
+                              duration: 3000,
+                            });
+                          }
+                        }} 
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger data-testid="select-customer-code">
-                            <SelectValue placeholder="Select customer" />
+                            <SelectValue placeholder="Select customer (details will auto-populate)" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -325,11 +342,19 @@ export function EnhancedQuotationForm({
                   name="country"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Country *</FormLabel>
+                      <FormLabel>Country * (Auto-populated, editable)</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Enter country" data-testid="input-country" />
+                        <Input 
+                          {...field} 
+                          placeholder="Auto-populated from customer record" 
+                          data-testid="input-country"
+                          className="bg-blue-50 dark:bg-blue-950/20"
+                        />
                       </FormControl>
                       <FormMessage />
+                      <p className="text-xs text-muted-foreground">
+                        Auto-filled from customer record but can be modified
+                      </p>
                     </FormItem>
                   )}
                 />
