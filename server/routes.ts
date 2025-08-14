@@ -167,7 +167,7 @@ export function registerRoutes(app: Express): void {
   });
 
   // Staff Management Routes
-  app.get("/api/staff", authenticateToken, async (req, res) => {
+  app.get("/api/staff", async (req, res) => {
     try {
       const staff = await storage.getAllStaff();
       res.json(staff);

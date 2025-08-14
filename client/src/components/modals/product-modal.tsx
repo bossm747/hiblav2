@@ -28,11 +28,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
-
-// Categories will be fetched from API
 
 const units = [
   { value: "pcs", label: "Pieces" },
@@ -71,10 +70,11 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
       color: "",
       weight: "",
       sku: "",
-      price: "0",
+      basePrice: "0",
       compareAtPrice: "0",
       costPrice: "0",
-      currentStock: 0,
+      ngWarehouse: 0,
+      phWarehouse: 0,
       lowStockThreshold: 5,
       supplierId: "",
       images: [],
@@ -141,13 +141,13 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="categoryId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category</FormLabel>
+                    <FormLabel>Category *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -155,7 +155,7 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {((categories as any[])?.map((category: any) => (
+                        {((categories as any[]) || []).map((category: any) => (
                           <SelectItem key={category.id} value={category.id}>
                             {category.name}
                           </SelectItem>
@@ -175,7 +175,11 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Product description" {...field} value={field.value || ""} />
+                    <Textarea 
+                      placeholder="Enter product description"
+                      className="resize-none"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -197,7 +201,7 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="human">Human Hair</SelectItem>
-                        <SelectItem value="synthetic">Synthetic</SelectItem>
+                        <SelectItem value="synthetic">Synthetic Hair</SelectItem>
                         <SelectItem value="blend">Blend</SelectItem>
                       </SelectContent>
                     </Select>
@@ -213,7 +217,7 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                   <FormItem>
                     <FormLabel>Texture</FormLabel>
                     <FormControl>
-                      <Input placeholder="straight, wavy, curly" {...field} value={field.value || ""} />
+                      <Input placeholder="e.g., Straight, Wavy" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -227,12 +231,10 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                   <FormItem>
                     <FormLabel>Length (inches)</FormLabel>
                     <FormControl>
-                      <Input
+                      <Input 
                         type="number"
-                        min="1"
                         placeholder="18"
-                        {...field}
-                        value={field.value || 0}
+                        value={field.value || ""}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                       />
                     </FormControl>
@@ -250,7 +252,7 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                   <FormItem>
                     <FormLabel>Color</FormLabel>
                     <FormControl>
-                      <Input placeholder="Natural Black, Honey Blonde" {...field} value={field.value || ""} />
+                      <Input placeholder="e.g., Natural Black" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -264,229 +266,8 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                   <FormItem>
                     <FormLabel>Weight</FormLabel>
                     <FormControl>
-                      <Input placeholder="100g, 150g" {...field} value={field.value || ""} />
+                      <Input placeholder="e.g., 100g" {...field} />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="sku"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>SKU</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Auto-generated if empty" {...field} value={field.value || ""} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="supplierId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Supplier</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select supplier" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {(suppliers as any[])?.map((supplier: any) => (
-                          <SelectItem key={supplier.id} value={supplier.id}>
-                            {supplier.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price (₱)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
-                        value={field.value || "0"}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="compareAtPrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Compare At Price (₱)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
-                        value={field.value || "0"}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="costPrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cost Price (₱)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
-                        value={field.value || "0"}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="currentStock"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Current Stock</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        placeholder="0"
-                        {...field}
-                        value={field.value || 0}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="lowStockThreshold"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Low Stock Threshold</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        placeholder="5"
-                        {...field}
-                        value={field.value || 0}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="flex gap-4 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={createProductMutation.isPending}
-                className="flex-1"
-              >
-                {createProductMutation.isPending ? "Adding..." : "Add Product"}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {((categories as any[])?.map((category: any) => (
-                          <SelectItem key={category.id} value={category.id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="supplierId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Supplier</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select supplier" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {suppliers?.map((supplier: any) => (
-                          <SelectItem key={supplier.id} value={supplier.id}>
-                            {supplier.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -510,30 +291,40 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
 
               <FormField
                 control={form.control}
-                name="barcode"
+                name="supplierId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Barcode</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter barcode" {...field} />
-                    </FormControl>
+                    <FormLabel>Supplier</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select supplier" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {((suppliers as any[]) || []).map((supplier: any) => (
+                          <SelectItem key={supplier.id} value={supplier.id}>
+                            {supplier.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name="costPrice"
+                name="basePrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cost Price (₱) *</FormLabel>
+                    <FormLabel>Base Price ($) *</FormLabel>
                     <FormControl>
                       <Input 
-                        type="number" 
-                        min="0" 
+                        type="number"
                         step="0.01"
                         placeholder="0.00"
                         {...field}
@@ -546,14 +337,32 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
 
               <FormField
                 control={form.control}
-                name="retailPrice"
+                name="compareAtPrice"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Retail Price (₱)</FormLabel>
+                    <FormLabel>Compare Price ($)</FormLabel>
                     <FormControl>
                       <Input 
-                        type="number" 
-                        min="0" 
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="costPrice"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cost Price ($)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number"
                         step="0.01"
                         placeholder="0.00"
                         {...field}
@@ -568,15 +377,15 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
             <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name="currentStock"
+                name="ngWarehouse"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Current Stock *</FormLabel>
+                    <FormLabel>Nigeria Warehouse Stock</FormLabel>
                     <FormControl>
                       <Input 
-                        type="number" 
-                        min="0"
-                        {...field} 
+                        type="number"
+                        placeholder="0"
+                        value={field.value || 0}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                       />
                     </FormControl>
@@ -587,15 +396,15 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
 
               <FormField
                 control={form.control}
-                name="minStockLevel"
+                name="phWarehouse"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Min Stock Level</FormLabel>
+                    <FormLabel>Philippines Warehouse Stock</FormLabel>
                     <FormControl>
                       <Input 
-                        type="number" 
-                        min="0"
-                        {...field} 
+                        type="number"
+                        placeholder="0"
+                        value={field.value || 0}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                       />
                     </FormControl>
@@ -606,39 +415,76 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
 
               <FormField
                 control={form.control}
-                name="unit"
+                name="lowStockThreshold"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Unit</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select unit" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {units.map((unit) => (
-                          <SelectItem key={unit.value} value={unit.value}>
-                            {unit.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Low Stock Alert</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number"
+                        placeholder="5"
+                        value={field.value || 0}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
+            <div className="flex items-center space-x-6">
+              <FormField
+                control={form.control}
+                name="isFeatured"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Featured Product</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Active Product</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => onOpenChange(false)}
+                className="flex-1"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={createProductMutation.isPending}>
+              <Button
+                type="submit"
+                disabled={createProductMutation.isPending}
+                className="flex-1"
+              >
                 {createProductMutation.isPending ? "Adding..." : "Add Product"}
               </Button>
             </div>
