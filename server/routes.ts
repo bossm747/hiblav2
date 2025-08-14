@@ -55,8 +55,8 @@ import { promises as fs } from "fs";
 import { z } from "zod";
 
 export function registerRoutes(app: Express): void {
-  // Root endpoint for deployment health checks - must be first
-  app.get("/", (req, res) => {
+  // Health endpoint for deployment services (moved from root)
+  app.get("/health", (req, res) => {
     res.status(200).json({ 
       status: "healthy", 
       message: "Hibla Manufacturing System is running",
@@ -67,7 +67,7 @@ export function registerRoutes(app: Express): void {
     });
   });
 
-  // Health endpoints for deployment services - highest priority
+  // API health endpoint
   app.get("/api/health", (req, res) => {
     res.status(200).json({ 
       status: "healthy", 
