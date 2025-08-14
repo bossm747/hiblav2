@@ -137,6 +137,10 @@ export const quotations = pgTable("quotations", {
   customerServiceInstructions: text("customer_service_instructions"),
   status: text("status").default("draft"), // draft, sent, accepted, expired
   createdBy: varchar("created_by").references(() => staff.id).notNull(),
+  createdByInitials: text("created_by_initials"), // Creator's initials for display on documents
+  attachments: text("attachments").array(), // File upload support
+  validUntil: timestamp("valid_until"), // Quotation expiration
+  canRevise: boolean("can_revise").default(true), // Lock revision after next day
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -148,7 +152,7 @@ export const quotationItems = pgTable("quotation_items", {
   productId: varchar("product_id").references(() => products.id).notNull(),
   productName: text("product_name").notNull(),
   specification: text("specification"),
-  quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
+  quantity: decimal("quantity", { precision: 10, scale: 1 }).notNull(), // Changed to 1 decimal place per requirements
   unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
   lineTotal: decimal("line_total", { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
