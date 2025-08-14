@@ -58,7 +58,9 @@ export function StaffManagementPage() {
     queryKey: ['/api/staff'],
   });
 
-  const filteredStaff = staff.filter((member: any) =>
+  const typedStaff = staff as any[];
+
+  const filteredStaff = typedStaff.filter((member: any) =>
     member.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.department?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -225,7 +227,7 @@ export function StaffManagementPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{staff.length}</div>
+            <div className="text-2xl font-bold">{typedStaff.length}</div>
             <div className="text-xs text-green-600">Team members</div>
           </CardContent>
         </Card>
@@ -238,7 +240,7 @@ export function StaffManagementPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {staff.filter((s: any) => s.department === 'sales').length}
+              {typedStaff.filter((s: any) => s.department === 'sales').length}
             </div>
             <div className="text-xs text-blue-600">Revenue generators</div>
           </CardContent>
@@ -252,7 +254,7 @@ export function StaffManagementPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {staff.filter((s: any) => s.department === 'production').length}
+              {typedStaff.filter((s: any) => s.department === 'production').length}
             </div>
             <div className="text-xs text-green-600">Manufacturing</div>
           </CardContent>
@@ -266,7 +268,7 @@ export function StaffManagementPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {staff.filter((s: any) => s.department === 'warehouse').length}
+              {typedStaff.filter((s: any) => s.department === 'warehouse').length}
             </div>
             <div className="text-xs text-orange-600">Operations</div>
           </CardContent>
@@ -280,7 +282,7 @@ export function StaffManagementPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {staff.filter((s: any) => s.role === 'admin' || s.role === 'manager').length}
+              {typedStaff.filter((s: any) => s.role === 'admin' || s.role === 'manager').length}
             </div>
             <div className="text-xs text-purple-600">Leadership</div>
           </CardContent>

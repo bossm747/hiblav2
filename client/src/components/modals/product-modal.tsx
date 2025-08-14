@@ -71,26 +71,24 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
       weight: "",
       sku: "",
       basePrice: "0",
-      compareAtPrice: "0",
-      costPrice: "0",
-      ngWarehouse: 0,
-      phWarehouse: 0,
-      lowStockThreshold: 5,
+      ngWarehouse: "0",
+      phWarehouse: "0",
+      lowStockThreshold: "5",
       supplierId: "",
       images: [],
       featuredImage: "",
       tags: [],
-      features: [],
-      careInstructions: "",
-      isFeatured: false,
       isActive: true,
     },
   });
 
   const createProductMutation = useMutation({
     mutationFn: async (data: z.infer<typeof insertProductSchema>) => {
-      const response = await apiRequest("POST", "/api/products", data);
-      return response.json();
+      return await apiRequest("/api/products", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
@@ -179,6 +177,7 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                       placeholder="Enter product description"
                       className="resize-none"
                       {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -217,7 +216,7 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                   <FormItem>
                     <FormLabel>Texture</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Straight, Wavy" {...field} />
+                      <Input placeholder="e.g., Straight, Wavy" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -252,7 +251,7 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                   <FormItem>
                     <FormLabel>Color</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Natural Black" {...field} />
+                      <Input placeholder="e.g., Natural Black" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -266,7 +265,7 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                   <FormItem>
                     <FormLabel>Weight</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., 100g" {...field} />
+                      <Input placeholder="e.g., 100g" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -282,7 +281,7 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                   <FormItem>
                     <FormLabel>SKU</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter SKU" {...field} />
+                      <Input placeholder="Enter SKU" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -295,7 +294,7 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Supplier</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select supplier" />
@@ -337,56 +336,17 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
 
               <FormField
                 control={form.control}
-                name="compareAtPrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Compare Price ($)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="costPrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cost Price ($)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
                 name="ngWarehouse"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nigeria Warehouse Stock</FormLabel>
+                    <FormLabel>Nigeria Warehouse</FormLabel>
                     <FormControl>
                       <Input 
                         type="number"
-                        placeholder="0"
-                        value={field.value || 0}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        step="0.01"
+                        placeholder="0.00"
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(e.target.value)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -399,20 +359,23 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                 name="phWarehouse"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Philippines Warehouse Stock</FormLabel>
+                    <FormLabel>Philippines Warehouse</FormLabel>
                     <FormControl>
                       <Input 
                         type="number"
-                        placeholder="0"
-                        value={field.value || 0}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        step="0.01"
+                        placeholder="0.00"
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(e.target.value)}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+            </div>
 
+            <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
                 name="lowStockThreshold"
@@ -422,9 +385,10 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
                     <FormControl>
                       <Input 
                         type="number"
+                        step="0.01"
                         placeholder="5"
-                        value={field.value || 0}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(e.target.value)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -436,30 +400,12 @@ export default function ProductModal({ open, onOpenChange }: ProductModalProps) 
             <div className="flex items-center space-x-6">
               <FormField
                 control={form.control}
-                name="isFeatured"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Featured Product</FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
                 name="isActive"
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                     <FormControl>
                       <Checkbox
-                        checked={field.value}
+                        checked={field.value || false}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>

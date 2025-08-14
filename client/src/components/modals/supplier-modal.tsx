@@ -48,8 +48,11 @@ export default function SupplierModal({ open, onOpenChange }: SupplierModalProps
 
   const createSupplierMutation = useMutation({
     mutationFn: async (data: z.infer<typeof insertSupplierSchema>) => {
-      const response = await apiRequest("POST", "/api/suppliers", data);
-      return response.json();
+      return await apiRequest("/api/suppliers", {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/suppliers"] });
@@ -106,7 +109,7 @@ export default function SupplierModal({ open, onOpenChange }: SupplierModalProps
                 <FormItem>
                   <FormLabel>Contact Person</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter contact person name" {...field} />
+                    <Input placeholder="Enter contact person name" {...field} value={field.value || ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -125,6 +128,7 @@ export default function SupplierModal({ open, onOpenChange }: SupplierModalProps
                         type="email" 
                         placeholder="supplier@example.com" 
                         {...field} 
+                        value={field.value || ""}
                       />
                     </FormControl>
                     <FormMessage />
@@ -139,7 +143,7 @@ export default function SupplierModal({ open, onOpenChange }: SupplierModalProps
                   <FormItem>
                     <FormLabel>Phone</FormLabel>
                     <FormControl>
-                      <Input placeholder="+63 900 000 0000" {...field} />
+                      <Input placeholder="+63 900 000 0000" {...field} value={field.value || ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -158,6 +162,7 @@ export default function SupplierModal({ open, onOpenChange }: SupplierModalProps
                       placeholder="Enter supplier address" 
                       rows={3}
                       {...field} 
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -176,6 +181,7 @@ export default function SupplierModal({ open, onOpenChange }: SupplierModalProps
                       placeholder="Any additional notes about the supplier" 
                       rows={3}
                       {...field} 
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />
