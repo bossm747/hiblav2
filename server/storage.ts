@@ -405,7 +405,8 @@ export class DatabaseStorage implements IStorage {
         phone: insertCustomer.phone || "",
         country: insertCustomer.country,
         status: insertCustomer.status || "active",
-        address: insertCustomer.address || null,
+        shippingAddress: insertCustomer.shippingAddress || null,
+        billingAddress: insertCustomer.billingAddress || null,
         city: insertCustomer.city || null,
         postalCode: insertCustomer.postalCode || null,
         totalOrders: 0,
@@ -586,6 +587,10 @@ export class DatabaseStorage implements IStorage {
         customerServiceInstructions: quotations.customerServiceInstructions,
         status: quotations.status,
         createdBy: quotations.createdBy,
+        createdByInitials: quotations.createdByInitials,
+        attachments: quotations.attachments,
+        validUntil: quotations.validUntil,
+        canRevise: quotations.canRevise,
         createdAt: quotations.createdAt,
         updatedAt: quotations.updatedAt,
       }).from(quotations);
@@ -617,13 +622,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createQuotation(insertQuotation: InsertQuotation): Promise<Quotation> {
-    // Generate quotation number if not provided
-    const quotationData = {
-      ...insertQuotation,
-      quotationNumber: insertQuotation.quotationNumber || await this.generateQuotationNumber(),
-    };
-    const [quotation] = await db.insert(quotations).values(quotationData).returning();
-    return quotation;
+    try {
+      // Generate quotation number if not provided
+      const quotationData = {
+        ...insertQuotation,
+        quotationNumber: await this.generateQuotationNumber(),
+      };
+      const [quotation] = await db.insert(quotations).values(quotationData).returning();
+      return quotation;
+    } catch (error) {
+      console.error('Error creating quotation:', error);
+      throw error;
+    }
   }
 
   async createQuotationItem(insertQuotationItem: InsertQuotationItem): Promise<QuotationItem> {
@@ -675,15 +685,13 @@ export class DatabaseStorage implements IStorage {
     try {
       const salesOrderData = {
         ...insertSalesOrder,
-        salesOrderNumber: insertSalesOrder.salesOrderNumber || await this.generateSalesOrderNumber(),
-        createdAt: new Date(),
-        updatedAt: new Date()
+        salesOrderNumber: await this.generateSalesOrderNumber(),
       };
       const [salesOrder] = await db.insert(salesOrders).values(salesOrderData).returning();
       return salesOrder;
     } catch (error) {
       console.error('Error creating sales order:', error);
-      throw new Error('Failed to create sales order');
+      throw error;
     }
   }
 
@@ -718,15 +726,13 @@ export class DatabaseStorage implements IStorage {
     try {
       const jobOrderData = {
         ...insertJobOrder,
-        jobOrderNumber: insertJobOrder.jobOrderNumber || await this.generateJobOrderNumber(),
-        createdAt: new Date(),
-        updatedAt: new Date()
+        jobOrderNumber: await this.generateJobOrderNumber(),
       };
       const [jobOrder] = await db.insert(jobOrders).values(jobOrderData).returning();
       return jobOrder;
     } catch (error) {
       console.error('Error creating job order:', error);
-      throw new Error('Failed to create job order');
+      throw error;
     }
   }
 
@@ -930,15 +936,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createPriceList(data: any): Promise<any> {
-    try {
-      const [priceList] = await db.insert(priceLists).values(data).returning();
-      return priceList;
-    } catch (error) {
-      console.error('Error creating price list:', error);
-      throw error;
-    }
-  }
+
 
   async ensurePriceListsExist(): Promise<void> {
     try {
@@ -947,15 +945,13 @@ export class DatabaseStorage implements IStorage {
       if (existing.length === 0) {
         // Create default price lists
         const defaultLists = [
-          { name: "A", description: "Price List A", isActive: true },
-          { name: "B", description: "Price List B", isActive: true },
-          { name: "C", description: "Price List C", isActive: true },
-          { name: "D", description: "Price List D", isActive: true }
+          { name: "A", code: "A", description: "Price List A", isActive: true },
+          { name: "B", code: "B", description: "Price List B", isActive: true },
+          { name: "C", code: "C", description: "Price List C", isActive: true },
+          { name: "D", code: "D", description: "Price List D", isActive: true }
         ];
 
-        for (const list of defaultLists) {
-          await db.insert(priceLists).values(list);
-        }
+        await db.insert(priceLists).values(defaultLists);
 
         console.log('Default price lists created');
       }
@@ -1261,7 +1257,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createOrder(order: InsertOrder): Promise<Order> {
-    const [newOrder] = await db.insert(orders).values(order).returning();
+    const [newOrder] = await db.insert(orders).values([order]).returning();
     return newOrder;
   }
 
@@ -1921,52 +1917,9 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getSalesOrderItems(salesOrderId: string): Promise<SalesOrderItem[]> {
-    try {
-      const result = await db.select()
-        .from(salesOrderItems)
-        .where(eq(salesOrderItems.salesOrderId, salesOrderId))
-        .orderBy(salesOrderItems.productName);
-      return result || [];
-    } catch (error) {
-      console.error('Error fetching sales order items:', error);
-      throw new Error('Failed to fetch sales order items');
-    }
-  }
 
-  async createSalesOrderItem(insertSalesOrderItem: InsertSalesOrderItem): Promise<SalesOrderItem> {
-    try {
-      const [item] = await db.insert(salesOrderItems).values(insertSalesOrderItem).returning();
-      return item;
-    } catch (error) {
-      console.error('Error creating sales order item:', error);
-      throw new Error('Failed to create sales order item');
-    }
-  }
 
-  // Missing Job Order methods implementation
-  async getJobOrderItems(jobOrderId: string): Promise<JobOrderItem[]> {
-    try {
-      const result = await db.select()
-        .from(jobOrderItems)
-        .where(eq(jobOrderItems.jobOrderId, jobOrderId))
-        .orderBy(jobOrderItems.productName);
-      return result || [];
-    } catch (error) {
-      console.error('Error fetching job order items:', error);
-      throw new Error('Failed to fetch job order items');
-    }
-  }
 
-  async createJobOrderItem(insertJobOrderItem: InsertJobOrderItem): Promise<JobOrderItem> {
-    try {
-      const [item] = await db.insert(jobOrderItems).values(insertJobOrderItem).returning();
-      return item;
-    } catch (error) {
-      console.error('Error creating job order item:', error);
-      throw new Error('Failed to create job order item');
-    }
-  }
 
   // Missing Invoice methods implementation
   async createInvoice(insertInvoice: InsertInvoice): Promise<Invoice> {
@@ -2230,18 +2183,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Payment Proof Methods
-  async getPaymentProofs(status?: string): Promise<PaymentProof[]> {
-    try {
-      let query = db.select().from(paymentProofs);
-      if (status) {
-        query = query.where(eq(paymentProofs.status, status));
-      }
-      return await query.orderBy(desc(paymentProofs.createdAt));
-    } catch (error) {
-      console.error('Error fetching payment proofs:', error);
-      return [];
-    }
-  }
+
 
   async getPaymentProof(id: string): Promise<PaymentProof | undefined> {
     try {
@@ -2256,28 +2198,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updatePaymentProofStatus(
-    id: string,
-    status: string,
-    verificationNotes?: string
-  ): Promise<PaymentProof | undefined> {
-    try {
-      const [updated] = await db
-        .update(paymentProofs)
-        .set({
-          status,
-          verificationNotes,
-          verifiedAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .where(eq(paymentProofs.id, id))
-        .returning();
-      return updated;
-    } catch (error) {
-      console.error('Error updating payment proof status:', error);
-      return undefined;
-    }
-  }
+
 
   // Job Order Item Methods
   async getJobOrderItem(itemId: string): Promise<JobOrderItem | undefined> {
