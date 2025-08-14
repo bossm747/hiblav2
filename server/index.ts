@@ -52,35 +52,6 @@ async function seedDataAsync() {
 
 const app = express();
 
-// Root endpoint for deployment health checks - responds immediately  
-app.get("/", (req, res) => {
-  // Accept JSON requests for API calls, return HTML for browsers/deployment checks
-  if (req.headers.accept?.includes('application/json')) {
-    res.status(200).json({ 
-      status: "healthy", 
-      message: "Manufacturing Management Platform is running",
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      uptime: process.uptime(),
-      version: "1.0.0"
-    });
-  } else {
-    res.status(200).send(`
-      <!DOCTYPE html>
-      <html>
-      <head><title>Manufacturing Management Platform</title></head>
-      <body>
-        <h1>Manufacturing Management Platform</h1>
-        <p>Status: <strong>Healthy</strong></p>
-        <p>Environment: ${process.env.NODE_ENV || 'development'}</p>
-        <p>Uptime: ${process.uptime()}s</p>
-        <p>Time: ${new Date().toISOString()}</p>
-      </body>
-      </html>
-    `);
-  }
-});
-
 // Add health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({ 
@@ -198,8 +169,8 @@ function setupGracefulShutdown(server: any) {
           log(`🚀 Manufacturing Management Platform started successfully`);
           log(`📡 Server listening on port ${port} (host: 0.0.0.0)`);
           log(`🏥 Health checks available at:`);
-          log(`   GET http://0.0.0.0:${port}/`);
           log(`   GET http://0.0.0.0:${port}/health`);
+          log(`   GET http://0.0.0.0:${port}/api/health`);
           log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
           log(`✅ Server is ready to accept connections`);
 
