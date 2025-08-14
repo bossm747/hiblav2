@@ -56,7 +56,7 @@ const app = express();
 app.get("/health", (req, res) => {
   res.status(200).json({ 
     status: "healthy", 
-    message: "Manufacturing Management Platform is running",
+    message: "Hibla Manufacturing System is running",
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     uptime: process.uptime()
@@ -166,9 +166,10 @@ function setupGracefulShutdown(server: any) {
           port: port,
           host: "0.0.0.0",
         }, () => {
-          log(`🚀 Manufacturing Management Platform started successfully`);
+          log(`🚀 Hibla Manufacturing System started successfully`);
           log(`📡 Server listening on port ${port} (host: 0.0.0.0)`);
           log(`🏥 Health checks available at:`);
+          log(`   GET http://0.0.0.0:${port}/ (root)`);
           log(`   GET http://0.0.0.0:${port}/health`);
           log(`   GET http://0.0.0.0:${port}/api/health`);
           log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
