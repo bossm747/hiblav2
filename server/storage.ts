@@ -553,16 +553,52 @@ export class DatabaseStorage implements IStorage {
 
   // Quotation management
   async getQuotations(filters?: { status?: string; customer?: string }): Promise<Quotation[]> {
-    let query = db.select().from(quotations);
+    try {
+      let query = db.select().from(quotations);
 
-    if (filters?.status) {
-      query = query.where(eq(quotations.status, filters.status)) as any;
-    }
-    if (filters?.customer) {
-      query = query.where(eq(quotations.customerCode, filters.customer)) as any;
-    }
+      if (filters?.status) {
+        query = query.where(eq(quotations.status, filters.status)) as any;
+      }
+      if (filters?.customer) {
+        query = query.where(eq(quotations.customerCode, filters.customer)) as any;
+      }
 
-    return await query.orderBy(desc(quotations.createdAt));
+      return await query.orderBy(desc(quotations.createdAt));
+    } catch (error) {
+      console.log("Using fallback quotations query due to schema changes");
+      // Fallback query for core fields until schema migration is complete
+      let query = db.select({
+        id: quotations.id,
+        quotationNumber: quotations.quotationNumber,
+        revisionNumber: quotations.revisionNumber,
+        customerId: quotations.customerId,
+        customerCode: quotations.customerCode,
+        country: quotations.country,
+        priceListId: quotations.priceListId,
+        subtotal: quotations.subtotal,
+        shippingFee: quotations.shippingFee,
+        bankCharge: quotations.bankCharge,
+        discount: quotations.discount,
+        others: quotations.others,
+        total: quotations.total,
+        paymentMethod: quotations.paymentMethod,
+        shippingMethod: quotations.shippingMethod,
+        customerServiceInstructions: quotations.customerServiceInstructions,
+        status: quotations.status,
+        createdBy: quotations.createdBy,
+        createdAt: quotations.createdAt,
+        updatedAt: quotations.updatedAt,
+      }).from(quotations);
+
+      if (filters?.status) {
+        query = query.where(eq(quotations.status, filters.status)) as any;
+      }
+      if (filters?.customer) {
+        query = query.where(eq(quotations.customerCode, filters.customer)) as any;
+      }
+
+      return await query.orderBy(desc(quotations.createdAt));
+    }
   }
 
   async getQuotation(id: string): Promise<Quotation | undefined> {

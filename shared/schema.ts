@@ -152,7 +152,7 @@ export const quotationItems = pgTable("quotation_items", {
   productId: varchar("product_id").references(() => products.id).notNull(),
   productName: text("product_name").notNull(),
   specification: text("specification"),
-  quantity: decimal("quantity", { precision: 10, scale: 1 }).notNull(), // Changed to 1 decimal place per requirements
+  quantity: decimal("quantity", { precision: 10, scale: 1 }).notNull(), // 1 decimal place per client requirements
   unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
   lineTotal: decimal("line_total", { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -194,7 +194,7 @@ export const salesOrderItems = pgTable("sales_order_items", {
   productId: varchar("product_id").references(() => products.id).notNull(),
   productName: text("product_name").notNull(),
   specification: text("specification"),
-  quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
+  quantity: decimal("quantity", { precision: 10, scale: 1 }).notNull(), // 1 decimal place per client requirements
   unitPrice: decimal("unit_price", { precision: 10, scale: 2 }).notNull(),
   lineTotal: decimal("line_total", { precision: 10, scale: 2 }).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
@@ -226,7 +226,7 @@ export const jobOrderItems = pgTable("job_order_items", {
   productId: varchar("product_id").references(() => products.id).notNull(),
   productName: text("product_name").notNull(),
   specification: text("specification"),
-  quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
+  quantity: decimal("quantity", { precision: 10, scale: 1 }).notNull(), // 1 decimal place per client requirements
   // Shipment columns (1-8)
   shipment1: decimal("shipment_1", { precision: 10, scale: 2 }).default("0"),
   shipment2: decimal("shipment_2", { precision: 10, scale: 2 }).default("0"),
@@ -344,7 +344,7 @@ export const inventoryTransactions = pgTable("inventory_transactions", {
   productId: varchar("product_id").references(() => products.id).notNull(),
   warehouseId: varchar("warehouse_id").references(() => warehouses.id).notNull(),
   movementType: text("movement_type").notNull(), // deposit, withdrawal, transfer, adjustment
-  quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
+  quantity: decimal("quantity", { precision: 10, scale: 1 }).notNull(), // 1 decimal place per client requirements
   unitCost: decimal("unit_cost", { precision: 10, scale: 2 }),
   totalCost: decimal("total_cost", { precision: 10, scale: 2 }),
   reason: text("reason"),
@@ -365,7 +365,7 @@ export const productionReceipts = pgTable("production_receipts", {
   receiptNumber: text("receipt_number").notNull().unique(),
   jobOrderId: varchar("job_order_id").references(() => jobOrders.id).notNull(),
   productId: varchar("product_id").references(() => products.id).notNull(),
-  quantityProduced: decimal("quantity_produced", { precision: 10, scale: 2 }).notNull(),
+  quantityProduced: decimal("quantity_produced", { precision: 10, scale: 1 }).notNull(), // 1 decimal place per client requirements
   warehouseId: varchar("warehouse_id").references(() => warehouses.id).notNull(),
   productionDate: timestamp("production_date").notNull(),
   qualityStatus: text("quality_status").default("pending"), // pending, approved, rejected

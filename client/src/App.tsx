@@ -32,6 +32,7 @@ import DocsRouter from '@/components/DocsRouter';
 import Invoices from '@/pages/Invoices';
 import Production from '@/pages/Production';
 import InventoryTransfers from '@/pages/InventoryTransfers';
+import { EnhancedSystemPage } from '@/pages/EnhancedSystemPage';
 
 // Consolidated module imports
 import SalesOperations from '@/pages/SalesOperations';
@@ -64,6 +65,7 @@ function App() {
                       <Route path="/production-module" component={ProductionModule} />
                       <Route path="/inventory-warehouses" component={InventoryWarehouses} />
                       <Route path="/financial-operations" component={FinancialOperations} />
+                      <Route path="/enhanced-system" component={EnhancedSystemPage} />
                       
                       {/* Individual page routes (legacy support) */}
                       <Route path="/quotations" component={QuotationsPage} />

@@ -1,0 +1,792 @@
+import React, { useState, useEffect } from 'react';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import {
+  Plus,
+  Trash2,
+  FileUp,
+  Calendar,
+  User,
+  Calculator,
+  Save,
+  X,
+  Download,
+  Send,
+  AlertCircle,
+} from 'lucide-react';
+
+// Enhanced quotation schema with client requirements
+const quotationFormSchema = z.object({
+  customerCode: z.string().min(1, 'Customer code is required'),
+  country: z.string().min(1, 'Country is required'),
+  priceListId: z.string().optional(),
+  paymentMethod: z.enum(['bank', 'agent', 'money transfer', 'cash']),
+  shippingMethod: z.enum(['DHL', 'UPS', 'Fed Ex', 'Agent', 'Pick Up']),
+  customerServiceInstructions: z.string().optional(),
+  revisionNumber: z.enum(['R0', 'R1', 'R2', 'R3', 'R4', 'R5']).default('R0'),
+  validUntil: z.string().optional(), // Date string
+  attachments: z.array(z.string()).default([]),
+  items: z.array(z.object({
+    productId: z.string().min(1, 'Product is required'),
+    productName: z.string().min(1, 'Product name is required'),
+    specification: z.string().optional(),
+    quantity: z.number().min(0.1, 'Quantity must be at least 0.1').max(9999.9, 'Quantity too large'),
+    unitPrice: z.number().min(0, 'Price must be positive'),
+    lineTotal: z.number().min(0, 'Line total must be positive'),
+  })).min(1, 'At least one item is required'),
+  subtotal: z.number().min(0),
+  shippingFee: z.number().min(0).default(0),
+  bankCharge: z.number().min(0).default(0),
+  discount: z.number().min(0).default(0),
+  others: z.number().min(0).default(0),
+  total: z.number().min(0),
+});
+
+type QuotationFormData = z.infer<typeof quotationFormSchema>;
+
+interface EnhancedQuotationFormProps {
+  quotationId?: string;
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function EnhancedQuotationForm({
+  quotationId,
+  trigger,
+  open,
+  onOpenChange,
+}: EnhancedQuotationFormProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [staffInitials, setStaffInitials] = useState('');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const dialogOpen = open !== undefined ? open : isOpen;
+  const setDialogOpen = onOpenChange || setIsOpen;
+
+  // Get current staff member for initials
+  useEffect(() => {
+    // For demo purposes, using a hardcoded value
+    // In real implementation, get from authentication context
+    setStaffInitials('AAMA');
+  }, []);
+
+  // Fetch customers for dropdown
+  const { data: customers = [] } = useQuery({
+    queryKey: ['/api/customers'],
+  });
+
+  // Fetch products for line items
+  const { data: products = [] } = useQuery({
+    queryKey: ['/api/products'],
+  });
+
+  // Fetch price lists
+  const { data: priceLists = [] } = useQuery({
+    queryKey: ['/api/price-lists'],
+  });
+
+  // Fetch existing quotation if editing
+  const { data: existingQuotation } = useQuery({
+    queryKey: ['/api/quotations', quotationId],
+    enabled: !!quotationId,
+  });
+
+  const form = useForm<QuotationFormData>({
+    resolver: zodResolver(quotationFormSchema),
+    defaultValues: {
+      customerCode: '',
+      country: '',
+      paymentMethod: 'bank',
+      shippingMethod: 'DHL',
+      revisionNumber: 'R0',
+      customerServiceInstructions: '',
+      attachments: [],
+      items: [{ productId: '', productName: '', specification: '', quantity: 1.0, unitPrice: 0, lineTotal: 0 }],
+      subtotal: 0,
+      shippingFee: 0,
+      bankCharge: 0,
+      discount: 0,
+      others: 0,
+      total: 0,
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'items',
+  });
+
+  // Check if quotation can be revised (client requirement: no revision after next day)
+  const canRevise = () => {
+    if (!existingQuotation) return true;
+    const createdDate = new Date(existingQuotation.createdAt);
+    const nextDay = new Date(createdDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    return new Date() <= nextDay;
+  };
+
+  // Calculate totals
+  const watchedItems = form.watch('items');
+  const watchedShippingFee = form.watch('shippingFee');
+  const watchedBankCharge = form.watch('bankCharge');
+  const watchedDiscount = form.watch('discount');
+  const watchedOthers = form.watch('others');
+
+  useEffect(() => {
+    const subtotal = watchedItems.reduce((sum, item) => sum + (item.lineTotal || 0), 0);
+    const total = subtotal + (watchedShippingFee || 0) + (watchedBankCharge || 0) - (watchedDiscount || 0) + (watchedOthers || 0);
+    
+    form.setValue('subtotal', subtotal);
+    form.setValue('total', total);
+  }, [watchedItems, watchedShippingFee, watchedBankCharge, watchedDiscount, watchedOthers, form]);
+
+  // Update line total when quantity or unit price changes
+  const updateLineTotal = (index: number) => {
+    const quantity = form.getValues(`items.${index}.quantity`);
+    const unitPrice = form.getValues(`items.${index}.unitPrice`);
+    const lineTotal = quantity * unitPrice;
+    form.setValue(`items.${index}.lineTotal`, lineTotal);
+  };
+
+  // Create/Update quotation mutation
+  const createQuotationMutation = useMutation({
+    mutationFn: async (data: QuotationFormData) => {
+      const url = quotationId ? `/api/quotations/${quotationId}` : '/api/quotations';
+      const method = quotationId ? 'PATCH' : 'POST';
+      
+      return apiRequest(url, {
+        method,
+        body: JSON.stringify({
+          ...data,
+          createdByInitials: staffInitials,
+          attachments: uploadedFiles,
+          validUntil: data.validUntil ? new Date(data.validUntil).toISOString() : null,
+          canRevise: canRevise(),
+        }),
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: quotationId ? 'Quotation Updated' : 'Quotation Created',
+        description: `Quotation has been ${quotationId ? 'updated' : 'created'} successfully.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
+      setDialogOpen(false);
+      form.reset();
+      setUploadedFiles([]);
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || `Failed to ${quotationId ? 'update' : 'create'} quotation.`,
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleSubmit = (data: QuotationFormData) => {
+    createQuotationMutation.mutate(data);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files) {
+      // In real implementation, upload files to server/storage
+      const fileNames = Array.from(files).map(file => file.name);
+      setUploadedFiles(prev => [...prev, ...fileNames]);
+      form.setValue('attachments', [...uploadedFiles, ...fileNames]);
+    }
+  };
+
+  const removeFile = (fileName: string) => {
+    setUploadedFiles(prev => prev.filter(f => f !== fileName));
+    form.setValue('attachments', uploadedFiles.filter(f => f !== fileName));
+  };
+
+  return (
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Calculator className="h-5 w-5 text-blue-600" />
+            {quotationId ? 'Edit Quotation' : 'Create New Quotation'}
+            {staffInitials && (
+              <Badge variant="outline" className="ml-2">
+                Creator: {staffInitials}
+              </Badge>
+            )}
+          </DialogTitle>
+          <DialogDescription>
+            {quotationId 
+              ? `Update quotation details. ${!canRevise() ? 'Revision locked after next day.' : ''}`
+              : 'Create a new quotation with line items and pricing details.'
+            }
+          </DialogDescription>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            {/* Header Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Quotation Details</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="customerCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Customer Code *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-customer-code">
+                            <SelectValue placeholder="Select customer" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {customers.map((customer: any) => (
+                            <SelectItem key={customer.id} value={customer.customerCode || customer.id}>
+                              {customer.customerCode || customer.name} - {customer.country}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country *</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter country" data-testid="input-country" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="revisionNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Revision *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-revision">
+                            <SelectValue placeholder="Select revision" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="R0">R0 - Original</SelectItem>
+                          <SelectItem value="R1">R1 - Revision 1</SelectItem>
+                          <SelectItem value="R2">R2 - Revision 2</SelectItem>
+                          <SelectItem value="R3">R3 - Revision 3</SelectItem>
+                          <SelectItem value="R4">R4 - Revision 4</SelectItem>
+                          <SelectItem value="R5">R5 - Revision 5</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="paymentMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Payment Method</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-payment-method">
+                            <SelectValue placeholder="Select payment method" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="bank">Bank Transfer</SelectItem>
+                          <SelectItem value="agent">Agent</SelectItem>
+                          <SelectItem value="money transfer">Money Transfer</SelectItem>
+                          <SelectItem value="cash">Cash</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="shippingMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Shipping Method</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-shipping-method">
+                            <SelectValue placeholder="Select shipping method" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="DHL">DHL</SelectItem>
+                          <SelectItem value="UPS">UPS</SelectItem>
+                          <SelectItem value="Fed Ex">FedEx</SelectItem>
+                          <SelectItem value="Agent">Agent</SelectItem>
+                          <SelectItem value="Pick Up">Pick Up</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="validUntil"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valid Until</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="date" 
+                          data-testid="input-valid-until"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* File Upload Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <FileUp className="h-5 w-5" />
+                  File Attachments
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Input
+                    type="file"
+                    multiple
+                    onChange={handleFileUpload}
+                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    data-testid="input-file-upload"
+                  />
+                  {uploadedFiles.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {uploadedFiles.map((fileName, index) => (
+                        <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                          {fileName}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                            onClick={() => removeFile(fileName)}
+                            data-testid={`button-remove-file-${index}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Line Items */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Line Items</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Specification</TableHead>
+                      <TableHead>Qty (1 decimal)</TableHead>
+                      <TableHead>Unit Price</TableHead>
+                      <TableHead>Line Total</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {fields.map((field, index) => (
+                      <TableRow key={field.id}>
+                        <TableCell>
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.productId`}
+                            render={({ field }) => (
+                              <Select 
+                                onValueChange={(value) => {
+                                  field.onChange(value);
+                                  const product = products.find((p: any) => p.id === value);
+                                  if (product) {
+                                    form.setValue(`items.${index}.productName`, product.name);
+                                    form.setValue(`items.${index}.unitPrice`, parseFloat(product.price || '0'));
+                                    updateLineTotal(index);
+                                  }
+                                }}
+                                defaultValue={field.value}
+                              >
+                                <SelectTrigger data-testid={`select-product-${index}`}>
+                                  <SelectValue placeholder="Select product" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {products.map((product: any) => (
+                                    <SelectItem key={product.id} value={product.id}>
+                                      {product.name} - ${product.price}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+                          />
+                        </TableCell>
+                        
+                        <TableCell>
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.specification`}
+                            render={({ field }) => (
+                              <Input 
+                                {...field} 
+                                placeholder="Enter specification" 
+                                data-testid={`input-specification-${index}`}
+                              />
+                            )}
+                          />
+                        </TableCell>
+                        
+                        <TableCell>
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.quantity`}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                type="number"
+                                step="0.1"
+                                min="0.1"
+                                max="9999.9"
+                                placeholder="1.0"
+                                onChange={(e) => {
+                                  field.onChange(parseFloat(e.target.value) || 0);
+                                  updateLineTotal(index);
+                                }}
+                                data-testid={`input-quantity-${index}`}
+                              />
+                            )}
+                          />
+                        </TableCell>
+                        
+                        <TableCell>
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.unitPrice`}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                onChange={(e) => {
+                                  field.onChange(parseFloat(e.target.value) || 0);
+                                  updateLineTotal(index);
+                                }}
+                                data-testid={`input-unit-price-${index}`}
+                              />
+                            )}
+                          />
+                        </TableCell>
+                        
+                        <TableCell>
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.lineTotal`}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                type="number"
+                                step="0.01"
+                                readOnly
+                                className="bg-gray-50"
+                                data-testid={`text-line-total-${index}`}
+                              />
+                            )}
+                          />
+                        </TableCell>
+                        
+                        <TableCell>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => remove(index)}
+                            disabled={fields.length === 1}
+                            data-testid={`button-remove-item-${index}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => append({ 
+                    productId: '', 
+                    productName: '', 
+                    specification: '', 
+                    quantity: 1.0, 
+                    unitPrice: 0, 
+                    lineTotal: 0 
+                  })}
+                  data-testid="button-add-item"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Line Item
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Pricing Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Pricing Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <FormField
+                  control={form.control}
+                  name="shippingFee"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Shipping Fee</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="number" 
+                          step="0.01" 
+                          min="0"
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          data-testid="input-shipping-fee"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="bankCharge"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bank Charge</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="number" 
+                          step="0.01" 
+                          min="0"
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          data-testid="input-bank-charge"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="discount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Discount</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="number" 
+                          step="0.01" 
+                          min="0"
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          data-testid="input-discount"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="others"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Others</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="number" 
+                          step="0.01" 
+                          min="0"
+                          onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                          data-testid="input-others"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="col-span-2 md:col-span-4">
+                  <Separator />
+                  <div className="flex justify-between items-center mt-4">
+                    <span className="text-lg font-semibold">Subtotal:</span>
+                    <span className="text-lg" data-testid="text-subtotal">${form.watch('subtotal').toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-xl font-bold">Total:</span>
+                    <span className="text-xl font-bold text-green-600" data-testid="text-total">
+                      ${form.watch('total').toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Customer Instructions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Customer Service Instructions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FormField
+                  control={form.control}
+                  name="customerServiceInstructions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Textarea 
+                          {...field} 
+                          placeholder="Enter any special instructions or notes..."
+                          rows={3}
+                          data-testid="textarea-instructions"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}
+                data-testid="button-cancel"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={createQuotationMutation.isPending || (!canRevise() && quotationId)}
+                data-testid="button-save"
+              >
+                {createQuotationMutation.isPending ? (
+                  <>
+                    <Save className="h-4 w-4 mr-2 animate-spin" />
+                    {quotationId ? 'Updating...' : 'Creating...'}
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    {quotationId ? 'Update Quotation' : 'Create Quotation'}
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Revision Lock Warning */}
+            {quotationId && !canRevise() && (
+              <div className="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <AlertCircle className="h-5 w-5 text-yellow-600" />
+                <span className="text-yellow-800">
+                  This quotation cannot be revised after the next day from creation.
+                </span>
+              </div>
+            )}
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}

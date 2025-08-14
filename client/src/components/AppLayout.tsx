@@ -131,6 +131,7 @@ const navigationModules = [
 // Legacy navigation items for pages that don't need module grouping
 const standalonePages = [
   { path: '/admin-portal', label: 'Admin Portal', icon: Shield },
+  { path: '/enhanced-system', label: 'Enhanced System', icon: Settings },
 ];
 
 export function AppLayout({ children }: AppLayoutProps) {

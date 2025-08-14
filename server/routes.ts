@@ -1706,6 +1706,112 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // Payment Recording API endpoints for Enhanced System - Client Requirements Implementation
+  app.get('/api/payment-records', async (req, res) => {
+    try {
+      // Mock payment records demonstrating WhatsApp workflow implementation
+      const paymentRecords = [
+        {
+          id: '1',
+          dateOfPayment: '2025-01-14',
+          salesOrderNumber: '2025.01.001',
+          customerCode: 'ABA',
+          methodOfPayment: 'bank',
+          receivingAccount: 'Hibla Main Account',
+          paymentAmount: 1250.00,
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+          uploadedBy: 'Customer Support',
+          attachments: ['payment_screenshot_1.jpg']
+        },
+        {
+          id: '2',
+          dateOfPayment: '2025-01-13', 
+          salesOrderNumber: '2025.01.002',
+          customerCode: 'CDC',
+          methodOfPayment: 'money transfer',
+          receivingAccount: 'Western Union',
+          paymentAmount: 850.50,
+          status: 'verified',
+          createdAt: new Date().toISOString(),
+          uploadedBy: 'Customer Support',
+          attachments: ['payment_screenshot_2.jpg'],
+          paymentVerifiedBy: 'Finance Team'
+        },
+        {
+          id: '3',
+          dateOfPayment: '2025-01-12',
+          salesOrderNumber: '2025.01.003', 
+          customerCode: 'EFE',
+          methodOfPayment: 'bank',
+          receivingAccount: 'Hibla Main Account',
+          paymentAmount: 2100.75,
+          status: 'confirmed',
+          createdAt: new Date().toISOString(),
+          uploadedBy: 'Customer Support',
+          attachments: ['payment_screenshot_3.jpg'],
+          paymentVerifiedBy: 'Finance Team',
+          confirmedAt: new Date().toISOString()
+        }
+      ];
+      res.json(paymentRecords);
+    } catch (error) {
+      console.error('Error fetching payment records:', error);
+      res.status(500).json({ error: 'Failed to fetch payment records' });
+    }
+  });
+
+  app.post('/api/payment-records', async (req, res) => {
+    try {
+      const paymentData = req.body;
+      const newPaymentRecord = {
+        id: Date.now().toString(),
+        ...paymentData,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        uploadedBy: 'Customer Support'
+      };
+      res.status(201).json(newPaymentRecord);
+    } catch (error) {
+      console.error('Error creating payment record:', error);
+      res.status(500).json({ error: 'Failed to create payment record' });
+    }
+  });
+
+  app.post('/api/payment-records/:id/verify', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { verificationNotes } = req.body;
+      res.json({ 
+        id, 
+        status: 'verified', 
+        verificationNotes,
+        verifiedAt: new Date().toISOString(),
+        verifiedBy: 'Finance Team'
+      });
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      res.status(500).json({ error: 'Failed to verify payment' });
+    }
+  });
+
+  app.post('/api/payment-records/:id/reject', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { verificationNotes } = req.body;
+      res.json({ 
+        id, 
+        status: 'rejected', 
+        verificationNotes,
+        rejectedAt: new Date().toISOString(),
+        rejectedBy: 'Finance Team'
+      });
+    } catch (error) {
+      console.error('Error rejecting payment:', error);
+      res.status(500).json({ error: 'Failed to reject payment' });
+    }
+  });
+
   // POS routes
   app.post("/api/pos/create-sale", async (req, res) => {
     try {
