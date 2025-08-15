@@ -37,6 +37,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { EnhancedQuotationForm } from '@/components/forms/EnhancedQuotationForm';
+import { OrderAutomationVisualization } from '@/components/OrderAutomationVisualization';
 
 export function SalesOperationsDashboard() {
   const [activeTab, setActiveTab] = useState('overview');

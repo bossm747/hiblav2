@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { OrderAutomationVisualization } from '@/components/OrderAutomationVisualization';
 import {
   Factory,
   FileText,
@@ -235,6 +236,16 @@ export function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Order Automation Visualization */}
+      <OrderAutomationVisualization
+        quotationsCount={safeAnalytics?.overview?.quotationsCount || 0}
+        salesOrdersCount={safeAnalytics?.overview?.salesOrdersCount || 0}
+        jobOrdersCount={safeAnalytics?.overview?.jobOrdersCount || 0}
+        invoicesCount={0}
+        paymentsCount={0}
+        className="mb-6"
+      />
 
       {/* Quick Actions */}
       <Card className="container-shadow">
