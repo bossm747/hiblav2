@@ -38,12 +38,35 @@ import {
   Play,
 } from 'lucide-react';
 import { JobOrderModule } from '@/components/modules/JobOrderModule';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { JobOrderForm } from '@/components/forms/JobOrderForm';
+
+interface JobOrder {
+  id: string;
+  jobOrderNumber: string;
+  customerCode: string;
+  customerName?: string;
+  status: string;
+  priority?: string;
+  dueDate: string;
+  progress?: number;
+  createdAt: string;
+  updatedAt?: string;
+  items?: any[];
+}
 
 export function ProductionManagementDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [showJobOrderDialog, setShowJobOrderDialog] = useState(false);
 
-  // Fetch production data
-  const { data: jobOrders = [] } = useQuery({
+  // Fetch production data with proper typing
+  const { data: jobOrdersData = [] } = useQuery<JobOrder[]>({
     queryKey: ['/api/job-orders'],
   });
 
@@ -51,11 +74,14 @@ export function ProductionManagementDashboard() {
     queryKey: ['/api/job-order-items'],
   });
 
+  // Type-safe job orders
+  const jobOrders = jobOrdersData as JobOrder[];
+
   // Calculate production metrics
   const totalJobs = jobOrders.length;
-  const activeJobs = jobOrders.filter((job: any) => job.status === 'in-progress').length;
-  const completedJobs = jobOrders.filter((job: any) => job.status === 'completed').length;
-  const overdueJobs = jobOrders.filter((job: any) => 
+  const activeJobs = jobOrders.filter((job) => job.status === 'in-progress').length;
+  const completedJobs = jobOrders.filter((job) => job.status === 'completed').length;
+  const overdueJobs = jobOrders.filter((job) => 
     new Date(job.dueDate) < new Date() && job.status !== 'completed'
   ).length;
 
@@ -66,20 +92,19 @@ export function ProductionManagementDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Production Management Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Job Order Monitoring System</h1>
           <p className="text-muted-foreground">
-            Monitor job orders, track production progress, and manage manufacturing workflows
+            Comprehensive tracking system to identify bottlenecks, monitor production progress, and prevent delays
           </p>
         </div>
         <div className="flex gap-2">
-          <JobOrderModule 
-            trigger={
-              <Button className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700">
-                <Plus className="h-4 w-4 mr-2" />
-                New Job Order
-              </Button>
-            }
-          />
+          <Button 
+            className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700"
+            onClick={() => setShowJobOrderDialog(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Job Order
+          </Button>
           <Button variant="outline">
             <BarChart3 className="h-4 w-4 mr-2" />
             Production Report
@@ -145,8 +170,8 @@ export function ProductionManagementDashboard() {
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="job-orders">Job Orders</TabsTrigger>
-          <TabsTrigger value="production-line">Production Line</TabsTrigger>
-          <TabsTrigger value="quality-control">Quality Control</TabsTrigger>
+          <TabsTrigger value="warehouse-tracking">Warehouse Tracking</TabsTrigger>
+          <TabsTrigger value="bottleneck-analysis">Bottleneck Analysis</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -159,7 +184,7 @@ export function ProductionManagementDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {jobOrders.slice(0, 5).map((job: any) => (
+                  {jobOrders.slice(0, 5).map((job) => (
                     <div key={job.id} className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">{job.jobOrderNumber}</p>
@@ -231,9 +256,9 @@ export function ProductionManagementDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {jobOrders.map((job: any) => {
-                    const progress = job.status === 'completed' ? 100 : 
-                                   job.status === 'in-progress' ? 65 : 0;
+                  {jobOrders.map((job) => {
+                    const progress = job.progress || (job.status === 'completed' ? 100 : 
+                                   job.status === 'in-progress' ? 65 : 0);
                     return (
                       <TableRow key={job.id}>
                         <TableCell className="font-medium">{job.jobOrderNumber}</TableCell>
@@ -280,98 +305,123 @@ export function ProductionManagementDashboard() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="production-line" className="space-y-4">
+        <TabsContent value="warehouse-tracking" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Production Line Status</CardTitle>
-              <CardDescription>Real-time production line monitoring</CardDescription>
+              <CardTitle>Warehouse Transfer Tracking</CardTitle>
+              <CardDescription>Real-time tracking of product movements between warehouses</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Line A - Hair Processing</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="default">Active</Badge>
-                      <span className="text-sm text-muted-foreground">85% capacity</span>
-                    </div>
-                    <Progress value={85} className="mt-2" />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Line B - Quality Control</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="secondary">Busy</Badge>
-                      <span className="text-sm text-muted-foreground">92% capacity</span>
-                    </div>
-                    <Progress value={92} className="mt-2" />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Line C - Packaging</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <Badge variant="outline">Maintenance</Badge>
-                      <span className="text-sm text-muted-foreground">0% capacity</span>
-                    </div>
-                    <Progress value={0} className="mt-2" />
-                  </CardContent>
-                </Card>
+              <div className="space-y-4">
+                <div className="bg-yellow-50 dark:bg-yellow-950 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                    <h4 className="font-medium text-yellow-900 dark:text-yellow-100">Coming Soon: Real-time Transfer Tracking</h4>
+                  </div>
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                    This feature will track warehouse transfers in real-time with timestamps:
+                  </p>
+                  <ul className="text-sm text-yellow-800 dark:text-yellow-200 mt-2 space-y-1 ml-4">
+                    <li>• PH → Ready warehouse movements</li>
+                    <li>• WIP → Production transfers</li>
+                    <li>• Production → Ready stock movements</li>
+                    <li>• Complete audit trail with timestamps</li>
+                    <li>• Visible on printed PDF documents</li>
+                  </ul>
+                </div>
+                
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Transfer ID</TableHead>
+                      <TableHead>Job Order</TableHead>
+                      <TableHead>From</TableHead>
+                      <TableHead>To</TableHead>
+                      <TableHead>Quantity</TableHead>
+                      <TableHead>Timestamp</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground">
+                        No warehouse transfers recorded yet
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="quality-control" className="space-y-4">
+        <TabsContent value="bottleneck-analysis" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Quality Control</CardTitle>
-              <CardDescription>Quality assurance and control metrics</CardDescription>
+              <CardTitle>Bottleneck Analysis</CardTitle>
+              <CardDescription>Identify and resolve production bottlenecks</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-4">
-                  <h4 className="font-medium">Quality Metrics</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Pass Rate</span>
-                      <Badge variant="default">98.5%</Badge>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Current Bottlenecks</h4>
+                    <div className="space-y-3">
+                      <div className="p-3 border rounded-lg bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">Order Processing Delay</span>
+                          <Badge variant="destructive">Critical</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">3 orders delayed by 2+ days</p>
+                      </div>
+                      <div className="p-3 border rounded-lg bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">Inventory Shortage</span>
+                          <Badge variant="secondary">Medium</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Low stock in PH warehouse</p>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Defect Rate</span>
-                      <Badge variant="secondary">1.5%</Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Rework Rate</span>
-                      <Badge variant="outline">2.1%</Badge>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="font-medium">Performance Metrics</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Average Cycle Time</span>
+                        <Badge variant="outline">3.2 days</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">On-Time Delivery</span>
+                        <Badge variant="default">92%</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Resource Utilization</span>
+                        <Badge variant="secondary">85%</Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Delay Resolution Time</span>
+                        <Badge variant="outline">4.5 hours</Badge>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <h4 className="font-medium">Recent Quality Checks</h4>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Batch #2025-001</span>
-                      <Badge variant="default">Passed</Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Batch #2025-002</span>
-                      <Badge variant="default">Passed</Badge>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Batch #2025-003</span>
-                      <Badge variant="destructive">Failed</Badge>
-                    </div>
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-3">Resolution Actions</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <Button variant="outline" className="justify-start">
+                      <Users className="h-4 w-4 mr-2" />
+                      Reallocate Resources
+                    </Button>
+                    <Button variant="outline" className="justify-start">
+                      <Package className="h-4 w-4 mr-2" />
+                      Expedite Materials
+                    </Button>
+                    <Button variant="outline" className="justify-start">
+                      <ClipboardList className="h-4 w-4 mr-2" />
+                      Adjust Priorities
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -379,6 +429,19 @@ export function ProductionManagementDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Job Order Creation Dialog */}
+      <Dialog open={showJobOrderDialog} onOpenChange={setShowJobOrderDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Job Order</DialogTitle>
+            <DialogDescription>
+              Create a new production job order to track manufacturing progress
+            </DialogDescription>
+          </DialogHeader>
+          <JobOrderForm onSuccess={() => setShowJobOrderDialog(false)} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
