@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Card,
   CardContent,
@@ -24,6 +24,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
+import { DataTable } from '@/components/ui/data-table';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import {
   Factory,
   ClipboardList,
@@ -36,6 +39,7 @@ import {
   Eye,
   Edit,
   Play,
+  Package,
 } from 'lucide-react';
 import { JobOrderModule } from '@/components/modules/JobOrderModule';
 import {
@@ -64,6 +68,8 @@ interface JobOrder {
 export function ProductionManagementDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [showJobOrderDialog, setShowJobOrderDialog] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch production data with proper typing
   const { data: jobOrdersData = [] } = useQuery<JobOrder[]>({
@@ -243,64 +249,132 @@ export function ProductionManagementDashboard() {
               <CardDescription>Manage production job orders and track progress</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Job Order #</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Products</TableHead>
-                    <TableHead>Due Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Progress</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {jobOrders.map((job) => {
-                    const progress = job.progress || (job.status === 'completed' ? 100 : 
-                                   job.status === 'in-progress' ? 65 : 0);
-                    return (
-                      <TableRow key={job.id}>
-                        <TableCell className="font-medium">{job.jobOrderNumber}</TableCell>
-                        <TableCell>{job.customerCode}</TableCell>
-                        <TableCell>{job.items?.length || 0} items</TableCell>
-                        <TableCell>{new Date(job.dueDate).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant={
-                              job.status === 'completed' ? 'default' : 
-                              job.status === 'in-progress' ? 'secondary' : 'outline'
-                            }
-                          >
-                            {job.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Progress value={progress} className="w-16" />
-                            <span className="text-sm">{progress}%</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-3 w-3" />
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                            {job.status === 'pending' && (
-                              <Button size="sm" variant="outline">
-                                <Play className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <DataTable
+                data={jobOrders.map((job) => ({
+                  ...job,
+                  itemCount: job.items?.length || 0,
+                  progress: job.progress || (job.status === 'completed' ? 100 : 
+                            job.status === 'in-progress' ? 65 : 0),
+                }))}
+                columns={[
+                  {
+                    key: 'jobOrderNumber',
+                    header: 'Job Order #',
+                    accessor: (item: any) => item.jobOrderNumber,
+                    sortable: true,
+                    filterable: true,
+                  },
+                  {
+                    key: 'customerCode',
+                    header: 'Customer',
+                    accessor: (item: any) => item.customerCode,
+                    sortable: true,
+                    filterable: true,
+                  },
+                  {
+                    key: 'itemCount',
+                    header: 'Products',
+                    accessor: (item: any) => item.itemCount,
+                    sortable: true,
+                    render: (value: number) => `${value} items`,
+                    mobileHidden: true,
+                  },
+                  {
+                    key: 'dueDate',
+                    header: 'Due Date',
+                    accessor: (item: any) => item.dueDate,
+                    sortable: true,
+                    render: (value: string) => new Date(value).toLocaleDateString(),
+                  },
+                  {
+                    key: 'status',
+                    header: 'Status',
+                    accessor: (item: any) => item.status,
+                    sortable: true,
+                    filterable: true,
+                    filterType: 'select' as const,
+                    filterOptions: [
+                      { label: 'Pending', value: 'pending' },
+                      { label: 'In Progress', value: 'in-progress' },
+                      { label: 'Completed', value: 'completed' },
+                      { label: 'On Hold', value: 'on-hold' },
+                    ],
+                    render: (value: string) => (
+                      <Badge 
+                        variant={
+                          value === 'completed' ? 'default' : 
+                          value === 'in-progress' ? 'secondary' : 'outline'
+                        }
+                      >
+                        {value}
+                      </Badge>
+                    ),
+                  },
+                  {
+                    key: 'progress',
+                    header: 'Progress',
+                    accessor: (item: any) => item.progress,
+                    sortable: true,
+                    render: (value: number) => (
+                      <div className="flex items-center gap-2">
+                        <Progress value={value} className="w-16" />
+                        <span className="text-sm">{value}%</span>
+                      </div>
+                    ),
+                    mobileHidden: true,
+                  },
+                ]}
+                searchKeys={['jobOrderNumber', 'customerCode']}
+                onView={(job) => {
+                  toast({
+                    title: "View Job Order",
+                    description: `Viewing job order ${job.jobOrderNumber}`,
+                  });
+                }}
+                onEdit={(job) => {
+                  setShowJobOrderDialog(true);
+                  toast({
+                    title: "Edit Job Order",
+                    description: `Editing job order ${job.jobOrderNumber}`,
+                  });
+                }}
+                onDelete={async (job) => {
+                  if (confirm(`Delete job order ${job.jobOrderNumber}?`)) {
+                    try {
+                      await apiRequest(`/api/job-orders/${job.id}`, {
+                        method: 'DELETE',
+                      });
+                      queryClient.invalidateQueries({ queryKey: ['/api/job-orders'] });
+                      toast({
+                        title: "Success",
+                        description: "Job order deleted successfully",
+                      });
+                    } catch (error) {
+                      toast({
+                        title: "Error",
+                        description: "Failed to delete job order",
+                        variant: "destructive",
+                      });
+                    }
+                  }
+                }}
+                onPrint={(job) => window.open(`/api/job-orders/${job.id}/pdf`, '_blank')}
+                onApprove={(job) => {
+                  if (job.status === 'pending') {
+                    toast({
+                      title: "Start Production",
+                      description: `Starting production for ${job.jobOrderNumber}`,
+                    });
+                  }
+                }}
+                onCreate={() => setShowJobOrderDialog(true)}
+                createLabel="New Job Order"
+                pageSize={10}
+                mobileCardView={true}
+                stickyHeader={true}
+                showPagination={true}
+                showFilters={true}
+              />
             </CardContent>
           </Card>
         </TabsContent>

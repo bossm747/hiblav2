@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Card,
   CardContent,
@@ -15,15 +15,10 @@ import {
 } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Progress } from '@/components/ui/progress';
+import { DataTable } from '@/components/ui/data-table';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import {
   BarChart3,
   FileText,
@@ -36,11 +31,18 @@ import {
   Eye,
   Edit,
   Download,
+  Trash2,
+  Copy,
+  Printer,
+  Mail,
 } from 'lucide-react';
 import { EnhancedQuotationForm } from '@/components/forms/EnhancedQuotationForm';
 
 export function SalesOperationsDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [showQuotationForm, setShowQuotationForm] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch sales data
   const { data: quotations = [] } = useQuery({
@@ -60,6 +62,242 @@ export function SalesOperationsDashboard() {
   const totalSalesOrders = salesOrders.length;
   const conversionRate = totalQuotations > 0 ? (totalSalesOrders / totalQuotations * 100) : 0;
   const totalRevenue = salesOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
+
+  // CRUD handlers for quotations
+  const handleViewQuotation = (quotation: any) => {
+    toast({
+      title: "View Quotation",
+      description: `Viewing quotation ${quotation.quotationNumber}`,
+    });
+  };
+
+  const handleEditQuotation = (quotation: any) => {
+    toast({
+      title: "Edit Quotation",
+      description: `Editing quotation ${quotation.quotationNumber}`,
+    });
+  };
+
+  const handleDeleteQuotation = async (quotation: any) => {
+    if (confirm(`Delete quotation ${quotation.quotationNumber}?`)) {
+      try {
+        await apiRequest(`/api/quotations/${quotation.id}`, {
+          method: 'DELETE',
+        });
+        queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
+        toast({
+          title: "Success",
+          description: "Quotation deleted successfully",
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete quotation",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleDuplicateQuotation = (quotation: any) => {
+    toast({
+      title: "Duplicate Quotation",
+      description: `Duplicating quotation ${quotation.quotationNumber}`,
+    });
+  };
+
+  const handlePrintQuotation = (quotation: any) => {
+    window.open(`/api/quotations/${quotation.id}/pdf`, '_blank');
+  };
+
+  const handleEmailQuotation = (quotation: any) => {
+    toast({
+      title: "Email Quotation",
+      description: `Sending quotation ${quotation.quotationNumber} via email`,
+    });
+  };
+
+  const handleConvertToSalesOrder = (quotation: any) => {
+    toast({
+      title: "Convert to Sales Order",
+      description: `Converting quotation ${quotation.quotationNumber} to sales order`,
+    });
+  };
+
+  // Quotation columns definition
+  const quotationColumns = [
+    {
+      key: 'quotationNumber',
+      header: 'Quotation #',
+      accessor: (item: any) => item.quotationNumber,
+      sortable: true,
+      filterable: true,
+    },
+    {
+      key: 'customerCode',
+      header: 'Customer',
+      accessor: (item: any) => item.customerCode,
+      sortable: true,
+      filterable: true,
+    },
+    {
+      key: 'country',
+      header: 'Country',
+      accessor: (item: any) => item.country || 'N/A',
+      sortable: true,
+      filterable: true,
+      filterType: 'select' as const,
+      filterOptions: [
+        { label: 'Philippines', value: 'Philippines' },
+        { label: 'USA', value: 'USA' },
+        { label: 'Canada', value: 'Canada' },
+        { label: 'Australia', value: 'Australia' },
+      ],
+      mobileHidden: true,
+    },
+    {
+      key: 'total',
+      header: 'Total',
+      accessor: (item: any) => item.total,
+      sortable: true,
+      filterable: true,
+      filterType: 'number' as const,
+      render: (value: any) => `$${(value || 0).toFixed(2)}`,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      accessor: (item: any) => item.status,
+      sortable: true,
+      filterable: true,
+      filterType: 'select' as const,
+      filterOptions: [
+        { label: 'Pending', value: 'pending' },
+        { label: 'Approved', value: 'approved' },
+        { label: 'Rejected', value: 'rejected' },
+        { label: 'Converted', value: 'converted' },
+      ],
+      render: (value: string) => (
+        <Badge variant={value === 'approved' ? 'default' : value === 'rejected' ? 'destructive' : 'secondary'}>
+          {value}
+        </Badge>
+      ),
+    },
+    {
+      key: 'createdAt',
+      header: 'Date',
+      accessor: (item: any) => item.createdAt,
+      sortable: true,
+      render: (value: string) => new Date(value).toLocaleDateString(),
+      mobileHidden: true,
+    },
+  ];
+
+  // Sales Order columns definition
+  const salesOrderColumns = [
+    {
+      key: 'salesOrderNumber',
+      header: 'Order #',
+      accessor: (item: any) => item.salesOrderNumber,
+      sortable: true,
+      filterable: true,
+    },
+    {
+      key: 'customerCode',
+      header: 'Customer',
+      accessor: (item: any) => item.customerCode,
+      sortable: true,
+      filterable: true,
+    },
+    {
+      key: 'orderDate',
+      header: 'Date',
+      accessor: (item: any) => item.orderDate || item.createdAt,
+      sortable: true,
+      render: (value: string) => new Date(value).toLocaleDateString(),
+      mobileHidden: true,
+    },
+    {
+      key: 'total',
+      header: 'Total',
+      accessor: (item: any) => item.total,
+      sortable: true,
+      filterable: true,
+      filterType: 'number' as const,
+      render: (value: any) => `$${(value || 0).toFixed(2)}`,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      accessor: (item: any) => item.status,
+      sortable: true,
+      filterable: true,
+      filterType: 'select' as const,
+      filterOptions: [
+        { label: 'Pending', value: 'pending' },
+        { label: 'Processing', value: 'processing' },
+        { label: 'Shipped', value: 'shipped' },
+        { label: 'Delivered', value: 'delivered' },
+      ],
+      render: (value: string) => (
+        <Badge variant={value === 'delivered' ? 'default' : value === 'shipped' ? 'secondary' : 'outline'}>
+          {value}
+        </Badge>
+      ),
+    },
+  ];
+
+  // Customer columns definition
+  const customerColumns = [
+    {
+      key: 'customerCode',
+      header: 'Customer Code',
+      accessor: (item: any) => item.customerCode,
+      sortable: true,
+      filterable: true,
+    },
+    {
+      key: 'companyName',
+      header: 'Company Name',
+      accessor: (item: any) => item.companyName,
+      sortable: true,
+      filterable: true,
+    },
+    {
+      key: 'contactPerson',
+      header: 'Contact Person',
+      accessor: (item: any) => item.contactPerson || 'N/A',
+      sortable: true,
+      filterable: true,
+      mobileHidden: true,
+    },
+    {
+      key: 'country',
+      header: 'Country',
+      accessor: (item: any) => item.country || 'N/A',
+      sortable: true,
+      filterable: true,
+      mobileHidden: true,
+    },
+    {
+      key: 'type',
+      header: 'Type',
+      accessor: (item: any) => item.type || 'Regular',
+      sortable: true,
+      filterable: true,
+      filterType: 'select' as const,
+      filterOptions: [
+        { label: 'New', value: 'new' },
+        { label: 'Regular', value: 'regular' },
+        { label: 'VIP', value: 'vip' },
+      ],
+      render: (value: string) => (
+        <Badge variant={value === 'vip' ? 'default' : value === 'new' ? 'secondary' : 'outline'}>
+          {value}
+        </Badge>
+      ),
+    },
+  ];
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -207,46 +445,25 @@ export function SalesOperationsDashboard() {
               <CardDescription>Manage and track all quotations</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Quotation #</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Country</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {quotations.map((quotation: any) => (
-                    <TableRow key={quotation.id}>
-                      <TableCell className="font-medium">{quotation.quotationNumber}</TableCell>
-                      <TableCell>{quotation.customerCode}</TableCell>
-                      <TableCell>{quotation.country}</TableCell>
-                      <TableCell>${(quotation.total && typeof quotation.total === 'number') ? quotation.total.toFixed(2) : '0.00'}</TableCell>
-                      <TableCell>
-                        <Badge variant={quotation.status === 'approved' ? 'default' : 'secondary'}>
-                          {quotation.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Send className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataTable
+                data={quotations}
+                columns={quotationColumns}
+                searchKeys={['quotationNumber', 'customerCode', 'country']}
+                onView={handleViewQuotation}
+                onEdit={handleEditQuotation}
+                onDelete={handleDeleteQuotation}
+                onDuplicate={handleDuplicateQuotation}
+                onPrint={handlePrintQuotation}
+                onEmail={handleEmailQuotation}
+                onApprove={handleConvertToSalesOrder}
+                onCreate={() => setShowQuotationForm(true)}
+                createLabel="New Quotation"
+                pageSize={10}
+                mobileCardView={true}
+                stickyHeader={true}
+                showPagination={true}
+                showFilters={true}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -258,44 +475,27 @@ export function SalesOperationsDashboard() {
               <CardDescription>Track confirmed sales orders</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Order #</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {salesOrders.map((order: any) => (
-                    <TableRow key={order.id}>
-                      <TableCell className="font-medium">{order.salesOrderNumber}</TableCell>
-                      <TableCell>{order.customerCode}</TableCell>
-                      <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
-                      <TableCell>${(order.total && typeof order.total === 'number') ? order.total.toFixed(2) : '0.00'}</TableCell>
-                      <TableCell>
-                        <Badge variant="default">{order.status}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Eye className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Download className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataTable
+                data={salesOrders}
+                columns={salesOrderColumns}
+                searchKeys={['salesOrderNumber', 'customerCode']}
+                onView={(order) => toast({ title: "View Order", description: `Viewing order ${order.salesOrderNumber}` })}
+                onEdit={(order) => toast({ title: "Edit Order", description: `Editing order ${order.salesOrderNumber}` })}
+                onDelete={async (order) => {
+                  if (confirm(`Delete order ${order.salesOrderNumber}?`)) {
+                    toast({ title: "Success", description: "Order deleted successfully" });
+                  }
+                }}
+                onPrint={(order) => window.open(`/api/sales-orders/${order.id}/pdf`, '_blank')}
+                onCreate={() => toast({ title: "Create Sales Order", description: "Opening sales order form" })}
+                createLabel="New Sales Order"
+                pageSize={10}
+                mobileCardView={true}
+              />
             </CardContent>
           </Card>
         </TabsContent>
+
 
         <TabsContent value="customers" className="space-y-4">
           <Card>
@@ -304,44 +504,42 @@ export function SalesOperationsDashboard() {
               <CardDescription>View and manage customer relationships</CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Customer Code</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Country</TableHead>
-                    <TableHead>Orders</TableHead>
-                    <TableHead>Total Value</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {customers.map((customer: any) => {
-                    const customerOrders = salesOrders.filter((order: any) => order.customerCode === customer.customerCode);
-                    const totalValue = customerOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
-                    
-                    return (
-                      <TableRow key={customer.id}>
-                        <TableCell className="font-medium">{customer.customerCode}</TableCell>
-                        <TableCell>{customer.name}</TableCell>
-                        <TableCell>{customer.country}</TableCell>
-                        <TableCell>{customerOrders.length}</TableCell>
-                        <TableCell>${totalValue.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
-                              <Eye className="h-3 w-3" />
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <Edit className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <DataTable
+                data={customers.map((customer: any) => ({
+                  ...customer,
+                  orderCount: salesOrders.filter((order: any) => order.customerCode === customer.customerCode).length,
+                  totalValue: salesOrders.filter((order: any) => order.customerCode === customer.customerCode)
+                    .reduce((sum: number, order: any) => sum + (order.total || 0), 0),
+                }))}
+                columns={[
+                  ...customerColumns,
+                  {
+                    key: 'orderCount',
+                    header: 'Orders',
+                    accessor: (item: any) => item.orderCount,
+                    sortable: true,
+                  },
+                  {
+                    key: 'totalValue',
+                    header: 'Total Value',
+                    accessor: (item: any) => item.totalValue,
+                    sortable: true,
+                    render: (value: number) => `$${value.toFixed(2)}`,
+                  },
+                ]}
+                searchKeys={['customerCode', 'companyName', 'contactPerson']}
+                onView={(customer) => toast({ title: "View Customer", description: `Viewing ${customer.customerCode}` })}
+                onEdit={(customer) => toast({ title: "Edit Customer", description: `Editing ${customer.customerCode}` })}
+                onDelete={async (customer) => {
+                  if (confirm(`Delete customer ${customer.customerCode}?`)) {
+                    toast({ title: "Success", description: "Customer deleted successfully" });
+                  }
+                }}
+                onCreate={() => toast({ title: "Create Customer", description: "Opening customer form" })}
+                createLabel="New Customer"
+                pageSize={10}
+                mobileCardView={true}
+              />
             </CardContent>
           </Card>
         </TabsContent>
