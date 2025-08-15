@@ -14,9 +14,10 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CalendarIcon, DollarSign, Receipt, RefreshCw, CheckCircle, XCircle, Clock, CreditCard, Banknote, Smartphone, Building } from "lucide-react";
+import { CalendarIcon, DollarSign, Receipt, RefreshCw, CheckCircle, XCircle, Clock, CreditCard, Banknote, Smartphone, Building, Eye } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { PaymentRecordDetailModal } from "@/components/modals/PaymentRecordDetailModal";
 
 export default function PaymentRecording() {
   const queryClient = useQueryClient();
@@ -26,6 +27,8 @@ export default function PaymentRecording() {
   const [paymentDate, setPaymentDate] = useState<Date>(new Date());
   const [showRefundDialog, setShowRefundDialog] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
+  const [selectedPaymentRecordId, setSelectedPaymentRecordId] = useState<string | null>(null);
+  const [showPaymentDetailModal, setShowPaymentDetailModal] = useState(false);
 
   // Fetch invoices
   const { data: invoices = [] } = useQuery({
@@ -365,7 +368,7 @@ export default function PaymentRecording() {
                       </TableHeader>
                       <TableBody>
                         {invoicePayments.map((payment: any) => (
-                          <TableRow key={payment.id}>
+                          <TableRow key={payment.id} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900">
                             <TableCell>{format(new Date(payment.paymentDate), "PP")}</TableCell>
                             <TableCell>${payment.amount}</TableCell>
                             <TableCell>
@@ -377,18 +380,31 @@ export default function PaymentRecording() {
                             <TableCell>{payment.referenceNumber || "-"}</TableCell>
                             <TableCell>{getStatusBadge(payment.status)}</TableCell>
                             <TableCell>
-                              {payment.status === "completed" && (
+                              <div className="flex gap-2">
                                 <Button
-                                  size="sm"
                                   variant="outline"
+                                  size="sm"
                                   onClick={() => {
-                                    setSelectedPayment(payment);
-                                    setShowRefundDialog(true);
+                                    setSelectedPaymentRecordId(payment.id);
+                                    setShowPaymentDetailModal(true);
                                   }}
                                 >
-                                  Refund
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View
                                 </Button>
-                              )}
+                                {payment.status === "completed" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      setSelectedPayment(payment);
+                                      setShowRefundDialog(true);
+                                    }}
+                                  >
+                                    Refund
+                                  </Button>
+                                )}
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -426,7 +442,14 @@ export default function PaymentRecording() {
                       </TableHeader>
                       <TableBody>
                         {customerPayments.map((payment: any) => (
-                          <TableRow key={payment.id}>
+                          <TableRow 
+                            key={payment.id} 
+                            className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900"
+                            onClick={() => {
+                              setSelectedPaymentRecordId(payment.id);
+                              setShowPaymentDetailModal(true);
+                            }}
+                          >
                             <TableCell>{format(new Date(payment.paymentDate), "PP")}</TableCell>
                             <TableCell>{payment.invoiceId || "-"}</TableCell>
                             <TableCell>${payment.amount}</TableCell>
@@ -498,6 +521,38 @@ export default function PaymentRecording() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Payment Record Detail Modal */}
+      <PaymentRecordDetailModal
+        open={showPaymentDetailModal}
+        onOpenChange={setShowPaymentDetailModal}
+        paymentRecordId={selectedPaymentRecordId}
+        onEdit={(id) => {
+          toast({
+            title: "Edit Payment Record",
+            description: "Opening payment record for editing...",
+          });
+          setShowPaymentDetailModal(false);
+        }}
+        onApprove={(id) => {
+          toast({
+            title: "Payment Verified",
+            description: "Payment has been verified and approved.",
+          });
+        }}
+        onReject={(id) => {
+          toast({
+            title: "Payment Rejected",
+            description: "Payment has been rejected.",
+          });
+        }}
+        onDownloadProof={(id) => {
+          toast({
+            title: "Downloading Proof",
+            description: "Payment proof is being downloaded...",
+          });
+        }}
+      />
     </div>
   );
 }

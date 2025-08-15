@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { JobOrderForm } from '@/components/forms/JobOrderForm';
+import { JobOrderDetailModal } from '@/components/modals/JobOrderDetailModal';
 import { 
   Factory, 
   Plus, 
@@ -39,6 +40,8 @@ import { apiRequest } from '@/lib/queryClient';
 
 export function JobOrdersPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [selectedJobOrderId, setSelectedJobOrderId] = useState<string | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -243,10 +246,8 @@ export function JobOrdersPage() {
             ]}
             searchKeys={['jobOrderNumber', 'customerCode']}
             onView={(job) => {
-              toast({
-                title: "View Job Order",
-                description: `Viewing details for ${job.jobOrderNumber}`,
-              });
+              setSelectedJobOrderId(job.id);
+              setShowDetailModal(true);
             }}
             onEdit={(job) => {
               setShowCreateDialog(true);
@@ -271,6 +272,50 @@ export function JobOrdersPage() {
           />
         </CardContent>
       </Card>
+
+      {/* Job Order Detail Modal */}
+      <JobOrderDetailModal
+        open={showDetailModal}
+        onOpenChange={setShowDetailModal}
+        jobOrderId={selectedJobOrderId}
+        onEdit={(id) => {
+          setSelectedJobOrderId(id);
+          setShowCreateDialog(true);
+          setShowDetailModal(false);
+          toast({
+            title: "Edit Job Order",
+            description: "Opening job order for editing...",
+          });
+        }}
+        onDuplicate={(id) => {
+          toast({
+            title: "Duplicate Job Order",
+            description: "Creating a duplicate of this job order...",
+          });
+          setShowDetailModal(false);
+        }}
+        onStartProduction={(id) => {
+          toast({
+            title: "Production Started",
+            description: "Production has been started for this job order.",
+          });
+        }}
+        onCompleteProduction={(id) => {
+          toast({
+            title: "Production Completed",
+            description: "Production has been marked as completed.",
+          });
+        }}
+        onSendEmail={(id) => {
+          toast({
+            title: "Email Sent",
+            description: "Job order details have been sent via email.",
+          });
+        }}
+        onDownloadPDF={(id) => {
+          window.open(`/api/job-orders/${id}/pdf`, '_blank');
+        }}
+      />
     </div>
   );
 }

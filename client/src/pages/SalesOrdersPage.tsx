@@ -19,6 +19,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { SalesOrderForm } from '@/components/forms/SalesOrderForm';
+import { SalesOrderDetailModal } from '@/components/modals/SalesOrderDetailModal';
 import { 
   ShoppingCart, 
   Plus, 
@@ -46,6 +47,8 @@ export function SalesOrdersPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [selectedSalesOrderId, setSelectedSalesOrderId] = useState<string | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -93,11 +96,8 @@ export function SalesOrdersPage() {
 
   // Action handlers
   const handleView = (order: any) => {
-    // TODO: Implement view modal
-    toast({
-      title: "View Order",
-      description: `Viewing order ${order.salesOrderNumber}`,
-    });
+    setSelectedSalesOrderId(order.id);
+    setShowDetailModal(true);
   };
 
   const handleEdit = (order: any) => {
@@ -337,6 +337,46 @@ export function SalesOrdersPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Sales Order Detail Modal */}
+      <SalesOrderDetailModal
+        open={showDetailModal}
+        onOpenChange={setShowDetailModal}
+        salesOrderId={selectedSalesOrderId}
+        onEdit={(id) => {
+          setSelectedSalesOrderId(id);
+          // Find the order and set it for editing
+          const order = safeSalesOrders.find(o => o.id === id);
+          if (order) {
+            setSelectedOrder(order);
+            setShowEditDialog(true);
+          }
+          setShowDetailModal(false);
+        }}
+        onDuplicate={(id) => {
+          toast({
+            title: "Duplicate Order",
+            description: "Creating a duplicate of this sales order...",
+          });
+          setShowDetailModal(false);
+        }}
+        onConvertToJobOrder={(id) => {
+          handleCreateJobOrder(id);
+          setShowDetailModal(false);
+        }}
+        onConfirmPayment={(id) => {
+          toast({
+            title: "Payment Confirmed",
+            description: "Payment status has been updated.",
+          });
+        }}
+        onSendEmail={(id) => {
+          handleSendEmail(id);
+        }}
+        onDownloadPDF={(id) => {
+          handleDownloadPDF(id);
+        }}
+      />
     </div>
   );
 }
