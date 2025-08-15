@@ -121,7 +121,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   };
 
   const NavItems = ({ mobile = false }: { mobile?: boolean }) => (
-    <div className={cn('space-y-2', mobile && 'px-0')}>
+    <div className={cn('space-y-3', mobile && 'px-0')}>
       {navigationModules.map((module) => {
         const Icon = module.icon;
         const isModuleActive = location === module.path;
@@ -130,27 +130,35 @@ export function AppLayout({ children }: AppLayoutProps) {
           <Link key={module.path} href={module.path}>
             <Button
               variant={isModuleActive ? 'default' : 'ghost'}
-              size="sm"
+              size={mobile ? 'lg' : 'sm'}
               className={cn(
-                'w-full justify-start transition-all duration-200 h-auto py-2 relative group',
-                mobile && 'min-h-[44px] text-left p-3 rounded-lg active:scale-[0.98]',
-                mobile && 'hover:bg-muted',
-                isModuleActive && 'bg-primary text-primary-foreground',
+                'w-full justify-start transition-all duration-200 h-auto relative group',
+                mobile ? 'min-h-[52px] text-left p-4 rounded-xl active:scale-[0.98] text-base' : 'py-2',
+                mobile && 'hover:bg-muted shadow-sm',
+                isModuleActive && 'bg-primary text-primary-foreground shadow-md',
                 !isModuleActive && 'text-foreground hover:bg-muted'
               )}
               onClick={() => mobile && setSidebarOpen(false)}
             >
               <Icon className={cn(
-                mobile ? "h-5 w-5 mr-3" : "h-4 w-4 mr-2",
+                mobile ? "h-6 w-6 mr-4" : "h-4 w-4 mr-2",
                 "flex-shrink-0 transition-transform duration-200",
-                mobile && "group-hover:scale-110"
+                mobile && "group-hover:scale-105"
               )} />
               <div className="flex-1 text-left">
-                <div className="font-medium text-sm">{module.label}</div>
+                <div className={cn(
+                  "font-medium", 
+                  mobile ? "text-base" : "text-sm"
+                )}>{module.label}</div>
+                {mobile && (
+                  <div className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                    {module.description}
+                  </div>
+                )}
               </div>
               {isModuleActive && mobile && (
-                <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                  <div className="w-2 h-2 bg-white rounded-full opacity-80"></div>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                  <div className="w-3 h-3 bg-white rounded-full opacity-90 shadow-sm"></div>
                 </div>
               )}
             </Button>
@@ -190,16 +198,16 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="md:hidden bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg border-primary"
+                  className="md:hidden bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg border-primary min-h-[44px] px-4 rounded-xl"
                 >
                   <Menu className="h-6 w-6 mr-2" />
                   <span className="font-semibold">Menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[85vw] p-0 h-full max-w-sm min-w-80 bg-gradient-to-b from-background via-background to-muted/20">
+              <SheetContent side="left" className="w-[90vw] p-0 h-full max-w-sm bg-gradient-to-b from-background via-background to-muted/20 overflow-hidden">
                 <div className="flex flex-col h-full">
                   {/* Enhanced Mobile Header */}
-                  <div className="flex items-center justify-between h-16 px-4 border-b bg-gradient-to-r from-primary/10 via-cyan-500/10 to-purple-500/10 backdrop-blur-sm flex-shrink-0">
+                  <div className="flex items-center justify-between h-18 px-6 border-b bg-gradient-to-r from-primary/10 via-cyan-500/10 to-purple-500/10 backdrop-blur-sm flex-shrink-0">
                     <Link href="/" onClick={() => setSidebarOpen(false)} className="hover:opacity-90 transition-opacity">
                       <HiblaLogo size="md" showText />
                     </Link>
@@ -207,44 +215,44 @@ export function AppLayout({ children }: AppLayoutProps) {
                       variant="ghost" 
                       size="icon" 
                       onClick={() => setSidebarOpen(false)}
-                      className="h-8 w-8 hover:bg-primary/10 transition-colors"
+                      className="h-10 w-10 hover:bg-primary/10 transition-colors rounded-full min-h-[44px]"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-5 w-5" />
                     </Button>
                   </div>
                   
                   {/* Enhanced Scrollable Navigation Content */}
                   <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
-                    <nav className="p-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-2">
-                          <Factory className="h-3 w-3" />
+                    <nav className="p-6">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-6 px-3">
+                          <Factory className="h-4 w-4" />
                           Manufacturing System
                         </div>
                         <NavItems mobile />
                         
                         {/* Quick Actions Section */}
-                        <div className="mt-8 pt-6 border-t border-border/50">
-                          <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-2">
+                        <div className="mt-10 pt-8 border-t border-border/50">
+                          <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-3">
                             Quick Actions
                           </div>
-                          <div className="space-y-2">
+                          <div className="space-y-3">
                             <Button 
                               variant="outline" 
-                              size="sm" 
-                              className="w-full justify-start h-10"
+                              size="lg" 
+                              className="w-full justify-start h-12 rounded-xl text-base"
                               onClick={() => setSidebarOpen(false)}
                             >
-                              <Plus className="h-4 w-4 mr-3" />
+                              <Plus className="h-5 w-5 mr-3" />
                               New Quotation
                             </Button>
                             <Button 
                               variant="outline" 
-                              size="sm" 
-                              className="w-full justify-start h-10"
+                              size="lg" 
+                              className="w-full justify-start h-12 rounded-xl text-base"
                               onClick={() => setSidebarOpen(false)}
                             >
-                              <FileText className="h-4 w-4 mr-3" />
+                              <FileText className="h-5 w-5 mr-3" />
                               View Reports
                             </Button>
                           </div>
@@ -255,51 +263,54 @@ export function AppLayout({ children }: AppLayoutProps) {
                   
                   {/* Enhanced Mobile Footer with User Profile */}
                   <div className="border-t bg-gradient-to-r from-muted/30 to-muted/20 backdrop-blur-sm flex-shrink-0">
-                    <div className="p-4 space-y-3">
+                    <div className="p-6 space-y-4">
                       {/* User Profile Section */}
-                      <div className="flex items-center space-x-3">
-                        <div className="h-10 w-10 bg-gradient-to-br from-primary via-cyan-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
-                          <User className="h-5 w-5 text-white" />
+                      <div className="flex items-center space-x-4">
+                        <div className="h-12 w-12 bg-gradient-to-br from-primary via-cyan-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                          <User className="h-6 w-6 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold truncate">
+                          <p className="text-base font-semibold truncate">
                             {user?.name}
                           </p>
-                          <p className="text-xs text-muted-foreground truncate">
+                          <p className="text-sm text-muted-foreground truncate">
                             {user?.role || 'Manufacturing Staff'}
                           </p>
                         </div>
                       </div>
                       
                       {/* Action Buttons */}
-                      <div className="flex gap-2">
-                        <div className="flex items-center space-x-1 flex-1">
-                          <span className="text-xs font-medium text-muted-foreground">Theme</span>
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-muted-foreground">Theme</span>
                           <ThemeToggle />
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 px-3"
-                          onClick={() => {
-                            setSidebarOpen(false);
-                            // Add settings action
-                          }}
-                        >
-                          <Settings className="h-3 w-3 mr-1" />
-                          Settings
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="h-8 px-3"
-                          onClick={handleLogout}
-                        >
-                          <LogOut className="h-3 w-3" />
-                        </Button>
+                        <div className="flex gap-3">
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            className="flex-1 h-11 rounded-xl"
+                            onClick={() => {
+                              setSidebarOpen(false);
+                              // Add settings action
+                            }}
+                          >
+                            <Settings className="h-4 w-4 mr-2" />
+                            Settings
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="lg"
+                            className="flex-1 h-11 rounded-xl"
+                            onClick={handleLogout}
+                          >
+                            <LogOut className="h-4 w-4 mr-2" />
+                            Logout
+                          </Button>
+                        </div>
                       </div>
                       
-                      <div className="text-xs text-muted-foreground/70 text-center pt-1">
+                      <div className="text-sm text-muted-foreground/70 text-center pt-2">
                         Hibla Filipino Hair Manufacturing
                       </div>
                     </div>
@@ -308,7 +319,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               </SheetContent>
             </Sheet>
 
-            <div className="ml-3 md:ml-0 flex items-center">
+            <div className="ml-4 md:ml-0 flex items-center">
               <div className="md:hidden">
                 <HiblaLogo size="sm" showText={false} />
               </div>
@@ -318,20 +329,20 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 md:space-x-4">
-            <Badge variant="outline" className="hidden md:flex">
+          <div className="flex items-center space-x-1 md:space-x-4">
+            <Badge variant="outline" className="hidden lg:flex">
               Production Ready
             </Badge>
-            <Button variant="ghost" size="icon" className="hidden md:flex">
+            <Button variant="ghost" size="icon" className="hidden sm:flex h-10 w-10">
               <Bell className="h-4 w-4" />
             </Button>
             
             {/* Profile Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative">
+                <Button variant="ghost" size="icon" className="relative h-10 w-10">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-primary text-primary-foreground">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                       {user?.name?.charAt(0).toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
@@ -368,8 +379,10 @@ export function AppLayout({ children }: AppLayoutProps) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-6">
-          {children}
+        <main className="flex-1 p-4 sm:p-6 md:p-8">
+          <div className="w-full max-w-none">
+            {children}
+          </div>
         </main>
       </div>
     </div>
