@@ -336,21 +336,36 @@ export const invoices = pgTable("invoices", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Customer Payments
-export const customerPayments = pgTable("customer_payments", {
+// Payment Records - Enhanced for Internal Staff Workflow
+export const paymentRecords = pgTable("payment_records", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   paymentNumber: text("payment_number").notNull().unique(),
-  customerId: varchar("customer_id").references(() => customers.id).notNull(),
+  invoiceId: varchar("invoice_id").references(() => invoices.id).notNull(),
   salesOrderId: varchar("sales_order_id").references(() => salesOrders.id),
-  invoiceId: varchar("invoice_id").references(() => invoices.id),
+  customerId: varchar("customer_id").references(() => customers.id).notNull(),
+  customerCode: text("customer_code").notNull(),
+  // Payment Details
   amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
-  paymentMethod: text("payment_method").notNull(),
+  paymentMethod: text("payment_method").notNull(), // bank_transfer, agent, cash, mobile_payment
   referenceNumber: text("reference_number"),
   paymentDate: timestamp("payment_date").notNull(),
+  // Payment Proof Management
+  paymentProofImages: text("payment_proof_images").array(), // URLs to uploaded proof images
+  uploadedBy: varchar("uploaded_by").references(() => staff.id).notNull(), // Customer support staff
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  // Verification Workflow
+  status: text("status").default("submitted"), // submitted, verified, rejected, cancelled
+  verifiedBy: varchar("verified_by").references(() => staff.id), // Finance team staff
+  verifiedAt: timestamp("verified_at"),
+  rejectionReason: text("rejection_reason"),
+  verificationNotes: text("verification_notes"),
+  // Additional Details
   notes: text("notes"),
-  status: text("status").default("confirmed"), // pending, confirmed, cancelled
-  createdBy: varchar("created_by").references(() => staff.id).notNull(),
+  bankName: text("bank_name"),
+  senderName: text("sender_name"),
+  receiptNumber: text("receipt_number"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // ========================================
@@ -475,9 +490,11 @@ export const insertInvoiceSchema = createInsertSchema(invoices).omit({
   updatedAt: true,
 });
 
-export const insertCustomerPaymentSchema = createInsertSchema(customerPayments).omit({
+export const insertPaymentRecordSchema = createInsertSchema(paymentRecords).omit({
   id: true,
+  uploadedAt: true,
   createdAt: true,
+  updatedAt: true,
 });
 
 // Type Exports
@@ -512,9 +529,10 @@ export type InsertInventoryTransaction = z.infer<typeof insertInventoryTransacti
 export type ProductionReceipt = typeof productionReceipts.$inferSelect;
 export type InsertProductionReceipt = z.infer<typeof insertProductionReceiptSchema>;
 export type Invoice = typeof invoices.$inferSelect;
+export type PaymentRecord = typeof paymentRecords.$inferSelect;
+export type InsertPaymentRecord = z.infer<typeof insertPaymentRecordSchema>;
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
-export type CustomerPayment = typeof customerPayments.$inferSelect;
-export type InsertCustomerPayment = z.infer<typeof insertCustomerPaymentSchema>;
+// Removed old CustomerPayment - replaced with PaymentRecord
 export type EmailSettings = typeof emailSettings.$inferSelect;
 export type InsertEmailSettings = typeof emailSettings.$inferInsert;
 
@@ -525,7 +543,7 @@ export type InsertEmailSettings = typeof emailSettings.$inferInsert;
 export const customersRelations = relations(customers, ({ many }) => ({
   quotations: many(quotations),
   salesOrders: many(salesOrders),
-  customerPayments: many(customerPayments),
+  paymentRecords: many(paymentRecords),
 }));
 
 export const categoriesRelations = relations(categories, ({ one, many }) => ({
@@ -541,7 +559,7 @@ export const staffRelations = relations(staff, ({ many }) => ({
   inventoryTransactions: many(inventoryTransactions),
   quotations: many(quotations),
   invoices: many(invoices),
-  customerPayments: many(customerPayments),
+  paymentRecords: many(paymentRecords),
 }));
 
 export const productsRelations = relations(products, ({ one, many }) => ({

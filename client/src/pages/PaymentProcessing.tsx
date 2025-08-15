@@ -1,6 +1,6 @@
 import React from 'react';
 import { PaymentProcessingDashboard } from '@/components/payment/PaymentProcessingDashboard';
 
-export function FinancialOperationsDashboard() {
+export default function PaymentProcessing() {
   return <PaymentProcessingDashboard />;
 }

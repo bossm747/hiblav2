@@ -17,7 +17,7 @@ import {
   inventoryTransactions,
   productionReceipts,
   invoices,
-  customerPayments,
+  paymentRecords,
   emailSettings
 } from "@shared/schema";
 
@@ -48,8 +48,8 @@ import type {
   InsertInventoryTransaction,
   Invoice,
   InsertInvoice,
-  CustomerPayment,
-  InsertCustomerPayment,
+  PaymentRecord,
+  InsertPaymentRecord,
   ProductionReceipt,
   InsertProductionReceipt,
   EmailSettings,
@@ -365,17 +365,17 @@ export class Storage implements IStorage {
   }
   
   // Payment Management
-  async getCustomerPayments(): Promise<CustomerPayment[]> {
-    return await db.select().from(customerPayments).orderBy(desc(customerPayments.createdAt));
+  async getPaymentRecords(): Promise<PaymentRecord[]> {
+    return await db.select().from(paymentRecords).orderBy(desc(paymentRecords.createdAt));
   }
   
-  async getCustomerPaymentById(id: string): Promise<CustomerPayment | null> {
-    const result = await db.select().from(customerPayments).where(eq(customerPayments.id, id)).limit(1);
+  async getPaymentRecordById(id: string): Promise<PaymentRecord | null> {
+    const result = await db.select().from(paymentRecords).where(eq(paymentRecords.id, id)).limit(1);
     return result[0] || null;
   }
   
-  async createCustomerPayment(payment: InsertCustomerPayment): Promise<CustomerPayment> {
-    const [newPayment] = await db.insert(customerPayments).values(payment).returning();
+  async createPaymentRecord(payment: InsertPaymentRecord): Promise<PaymentRecord> {
+    const [newPayment] = await db.insert(paymentRecords).values(payment).returning();
     return newPayment;
   }
   
