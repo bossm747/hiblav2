@@ -29,7 +29,7 @@ export class TieredPricingService {
     }
 
     // Default to base price if no basePrice is set
-    let basePrice = parseFloat(product.basePrice || product.priceListB || "0.00");
+    let basePrice = parseFloat(product.basePrice || (product as any).priceListB || "0.00");
     let price = basePrice;
     let priceListName = "Regular Customer";
     let priceMultiplier = 1.0;
@@ -54,22 +54,22 @@ export class TieredPricingService {
         // Legacy VLOOKUP support
         switch (priceListId) {
           case 'A':
-            price = parseFloat(product.priceListA || "0.00");
+            price = parseFloat((product as any).priceListA || "0.00");
             priceListName = "Price List A (Legacy)";
             finalPriceListId = 'A';
             break;
           case 'B':
-            price = parseFloat(product.priceListB || "0.00");
+            price = parseFloat((product as any).priceListB || "0.00");
             priceListName = "Price List B (Legacy)";
             finalPriceListId = 'B';
             break;
           case 'C':
-            price = parseFloat(product.priceListC || "0.00");
+            price = parseFloat((product as any).priceListC || "0.00");
             priceListName = "Price List C (Legacy)";
             finalPriceListId = 'C';
             break;
           case 'D':
-            price = parseFloat(product.priceListD || "0.00");
+            price = parseFloat((product as any).priceListD || "0.00");
             priceListName = "Price List D (Legacy)";
             finalPriceListId = 'D';
             break;

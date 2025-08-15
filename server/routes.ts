@@ -3106,10 +3106,10 @@ export function registerRoutes(app: Express): void {
           } else {
             // Fallback for legacy price list codes (A, B, C, D)
             const legacyPrices = {
-              'A': product.priceListA,
-              'B': product.priceListB, 
-              'C': product.priceListC,
-              'D': product.priceListD
+              'A': (product as any).priceListA,
+              'B': (product as any).priceListB, 
+              'C': (product as any).priceListC,
+              'D': (product as any).priceListD
             };
             const legacyPrice = legacyPrices[priceListId as keyof typeof legacyPrices];
             if (legacyPrice) {
@@ -3131,10 +3131,10 @@ export function registerRoutes(app: Express): void {
         priceListPrice: finalPrice.toFixed(2),
         priceListName: priceListName,
         specification: product.description || '',
-        category: product.category
+        category: product.categoryId
       });
     } catch (error) {
-      console.error('VLOOKUP pricing error:', error);
+      console.error('VLOOKUP pricing error:', (error as any).message || error);
       res.status(500).json({ message: "Failed to get product pricing" });
     }
   });

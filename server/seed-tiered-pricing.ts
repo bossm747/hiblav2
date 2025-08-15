@@ -96,11 +96,11 @@ export async function seedTieredPricing() {
     
     for (const product of allProducts) {
       // Use priceListB as the base price (Regular Customer pricing)
-      if (product.priceListB) {
+      if ((product as any).priceListB) {
         await db
           .update(products)
           .set({
-            basePrice: product.priceListB, // Set Regular Customer price as base
+            basePrice: (product as any).priceListB, // Set Regular Customer price as base
           })
           .where(eq(products.id, product.id));
       }
