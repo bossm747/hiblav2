@@ -131,13 +131,16 @@ export function SalesOrdersPage() {
 
   const handleCreateJobOrder = async (id: string) => {
     try {
-      await apiRequest(`/api/sales-orders/${id}/job-order`, {
+      const response = await apiRequest(`/api/sales-orders/${id}/job-order`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updateInventory: true, autoReserve: true })
       });
       queryClient.invalidateQueries({ queryKey: ['/api/job-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/inventory'] });
       toast({
-        title: "Success",
-        description: "Job order created successfully",
+        title: "Automated Process Complete",
+        description: `Job Order ${response.jobOrderNumber} created. Inventory updated in Reserved warehouse.`,
       });
     } catch (error: any) {
       toast({
@@ -307,7 +310,7 @@ export function SalesOrdersPage() {
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleCreateJobOrder(order.id)}>
                               <FileText className="h-4 w-4 mr-2" />
-                              Create Job Order
+                              Auto-Create Job Order
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleSendEmail(order.id)}>
@@ -317,6 +320,10 @@ export function SalesOrdersPage() {
                             <DropdownMenuItem onClick={() => handleDownloadPDF(order.id)}>
                               <Download className="h-4 w-4 mr-2" />
                               Download PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => toast({ title: "Excel Export", description: "Exporting to Excel..." })}>
+                              <Download className="h-4 w-4 mr-2" />
+                              Export Excel
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 

@@ -288,15 +288,25 @@ export function SalesOperationsDashboard() {
       filterable: true,
       filterType: 'select' as const,
       filterOptions: [
-        { label: 'New', value: 'new' },
-        { label: 'Regular', value: 'regular' },
-        { label: 'VIP', value: 'vip' },
+        { label: 'New Customer', value: 'NEW' },
+        { label: 'Regular Customer', value: 'REGULAR' },
+        { label: 'Premier Customer', value: 'PREMIER' },
+        { label: 'Custom Pricing', value: 'CUSTOM' },
       ],
-      render: (value: string) => (
-        <Badge variant={value === 'vip' ? 'default' : value === 'new' ? 'secondary' : 'outline'}>
-          {value}
-        </Badge>
-      ),
+      render: (value: string) => {
+        const tierConfig = {
+          'NEW': { variant: 'secondary' as const, label: 'New' },
+          'REGULAR': { variant: 'outline' as const, label: 'Regular' },
+          'PREMIER': { variant: 'default' as const, label: 'Premier' },
+          'CUSTOM': { variant: 'destructive' as const, label: 'Custom' }
+        };
+        const config = tierConfig[value as keyof typeof tierConfig] || { variant: 'outline' as const, label: value };
+        return (
+          <Badge variant={config.variant}>
+            {config.label}
+          </Badge>
+        );
+      },
     },
   ];
 
@@ -319,10 +329,16 @@ export function SalesOperationsDashboard() {
               </Button>
             }
           />
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export Data
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Export PDF
+            </Button>
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Export Excel
+            </Button>
+          </div>
         </div>
       </div>
 

@@ -70,7 +70,7 @@ export function QuotationsPage() {
   const invoicesCount = 0; // TODO: Add when invoices API is ready
 
   // Filter quotations based on search
-  const filteredQuotations = quotations.filter((quotation: any) =>
+  const filteredQuotations = (quotations as any[]).filter((quotation: any) =>
     quotation?.quotationNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     quotation?.customerCode?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     quotation?.customerName?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -183,13 +183,16 @@ export function QuotationsPage() {
       const salesOrder = await apiRequest(`/api/quotations/${quotationId}/generate-sales-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dueDate: '2025-09-15', revisionNumber: 'R1' })
+        body: JSON.stringify({ dueDate: '2025-09-15', revisionNumber: 'R1', autoCreateJobOrder: true })
       });
       queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/sales-orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/job-orders'] });
+      
+      // Show enhanced success message for automated workflow
       toast({
-        title: "Success",
-        description: `Sales Order ${salesOrder.salesOrderNumber} created successfully`,
+        title: "Automated Workflow Complete",
+        description: `Sales Order ${salesOrder.salesOrderNumber} created successfully. Job Order will be auto-generated.`,
       });
     } catch (error: any) {
       toast({
@@ -282,10 +285,16 @@ export function QuotationsPage() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export All
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export PDF
+            </Button>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export Excel
+            </Button>
+          </div>
           <Button 
             variant="outline" 
             onClick={handleCreateVLOOKUP} 
@@ -304,8 +313,8 @@ export function QuotationsPage() {
       {/* Sales Workflow Visualizer */}
       <SalesWorkflowVisualizer
         quotationsCount={safeQuotations.length}
-        salesOrdersCount={salesOrders.length}
-        jobOrdersCount={jobOrders.length}
+        salesOrdersCount={(salesOrders as any[]).length}
+        jobOrdersCount={(jobOrders as any[]).length}
         invoicesCount={invoicesCount}
         onStepClick={handleStepClick}
       />
@@ -337,7 +346,7 @@ export function QuotationsPage() {
               <div>
                 <p className="text-sm font-medium text-green-600 dark:text-green-300">Conversion Rate</p>
                 <p className="text-2xl font-bold text-green-900 dark:text-green-100">
-                  {safeQuotations.length > 0 ? Math.round((salesOrders.length / safeQuotations.length) * 100) : 0}%
+                  {safeQuotations.length > 0 ? Math.round(((salesOrders as any[]).length / safeQuotations.length) * 100) : 0}%
                 </p>
               </div>
             </div>
@@ -353,7 +362,7 @@ export function QuotationsPage() {
               <div>
                 <p className="text-sm font-medium text-purple-600 dark:text-purple-300">Active Customers</p>
                 <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
-                  {new Set(safeQuotations.map(q => q.customerId)).size}
+                  {new Set(safeQuotations.map(q => q.customerCode)).size}
                 </p>
               </div>
             </div>

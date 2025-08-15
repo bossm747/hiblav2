@@ -57,7 +57,7 @@ export function CustomerManagementPage() {
     queryKey: ['/api/customers'],
   });
 
-  const filteredCustomers = customers.filter((customer: any) =>
+  const filteredCustomers = (customers as any[]).filter((customer: any) =>
     customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.customerCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.email?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -228,7 +228,7 @@ export function CustomerManagementPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{customers.length}</div>
+            <div className="text-2xl font-bold">{(customers as any[]).length}</div>
             <div className="text-xs text-green-600">Active partnerships</div>
           </CardContent>
         </Card>
@@ -241,7 +241,7 @@ export function CustomerManagementPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {customers.filter((c: any) => c.customerType === 'premium').length}
+              {(customers as any[]).filter((c: any) => c.customerType === 'premium').length}
             </div>
             <div className="text-xs text-purple-600">High-value accounts</div>
           </CardContent>
@@ -255,7 +255,7 @@ export function CustomerManagementPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {customers.filter((c: any) => c.country !== 'Philippines').length}
+              {(customers as any[]).filter((c: any) => c.country !== 'Philippines').length}
             </div>
             <div className="text-xs text-blue-600">Global reach</div>
           </CardContent>
@@ -410,7 +410,7 @@ export function CustomerManagementPage() {
                             >
                               {customer.isActive ? (
                                 <>
-                                  <UserX className="h-4 w-4 mr-2" />
+                                  <Users className="h-4 w-4 mr-2" />
                                   Deactivate
                                 </>
                               ) : (

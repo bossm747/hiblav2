@@ -119,9 +119,14 @@ export function SalesWorkflowVisualizer({
             Automated workflow from quotation to invoice
           </p>
         </div>
-        <Badge variant="outline" className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-          95% Automated
-        </Badge>
+        <div className="flex gap-2">
+          <Badge variant="outline" className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
+            95% Automated
+          </Badge>
+          <Badge variant="outline" className="bg-gradient-to-r from-green-500 to-blue-500 text-white border-0">
+            Real-time Tracking
+          </Badge>
+        </div>
       </div>
 
       {/* Workflow Steps */}
@@ -204,7 +209,7 @@ export function SalesWorkflowVisualizer({
               <div>
                 <p className="font-medium text-green-800 dark:text-green-200">Full Process Automation</p>
                 <p className="text-sm text-green-600 dark:text-green-300">
-                  One-click document generation • Automatic numbering • Inventory updates
+                  One-click document generation • Auto SO & JO creation • Reserved warehouse updates • Real-time monitoring
                 </p>
               </div>
             </div>
