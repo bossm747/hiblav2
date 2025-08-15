@@ -125,9 +125,12 @@ export interface IStorage {
   updateInvoice(id: string, invoice: Partial<InsertInvoice>): Promise<Invoice>;
   
   // Payment Management
-  getCustomerPayments(): Promise<CustomerPayment[]>;
-  getCustomerPaymentById(id: string): Promise<CustomerPayment | null>;
-  createCustomerPayment(payment: InsertCustomerPayment): Promise<CustomerPayment>;
+  getPaymentRecords(): Promise<PaymentRecord[]>;
+  getPaymentRecordById(id: string): Promise<PaymentRecord | null>;
+  createPaymentRecord(payment: InsertPaymentRecord): Promise<PaymentRecord>;
+  updatePaymentRecord(id: string, payment: Partial<InsertPaymentRecord>): Promise<PaymentRecord>;
+  getPendingPayments(): Promise<PaymentRecord[]>;
+  getPaymentStats(): Promise<any>;
   
   // Inventory Management
   getInventoryTransactions(): Promise<InventoryTransaction[]>;
@@ -377,6 +380,32 @@ export class Storage implements IStorage {
   async createPaymentRecord(payment: InsertPaymentRecord): Promise<PaymentRecord> {
     const [newPayment] = await db.insert(paymentRecords).values(payment).returning();
     return newPayment;
+  }
+
+  async updatePaymentRecord(id: string, payment: Partial<InsertPaymentRecord>): Promise<PaymentRecord> {
+    const [updatedPayment] = await db.update(paymentRecords)
+      .set({ ...payment, updatedAt: new Date() })
+      .where(eq(paymentRecords.id, id))
+      .returning();
+    return updatedPayment;
+  }
+
+  async getPendingPayments(): Promise<PaymentRecord[]> {
+    return await db.select().from(paymentRecords)
+      .where(eq(paymentRecords.status, 'submitted'))
+      .orderBy(desc(paymentRecords.createdAt));
+  }
+
+  async getPaymentStats(): Promise<any> {
+    const [stats] = await db.select({
+      totalSubmissions: sql<number>`count(*) filter (where status = 'submitted')`,
+      totalVerified: sql<number>`count(*) filter (where status = 'verified')`,
+      totalRejected: sql<number>`count(*) filter (where status = 'rejected')`,
+      todaySubmissions: sql<number>`count(*) filter (where date(created_at) = current_date and status = 'submitted')`,
+      pendingVerification: sql<number>`count(*) filter (where status = 'submitted')`,
+      totalAmount: sql<number>`coalesce(sum(amount::numeric), 0)`,
+    }).from(paymentRecords);
+    return stats;
   }
   
   // Inventory Management
