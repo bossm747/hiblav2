@@ -9,9 +9,10 @@ Hibla Manufacturing & Supply System is an **internal-only operations platform** 
 - No customer self-service features
 - No payment proof uploads from customers
 - All operations are handled internally by Hibla staff
-- Customer interactions occur through WhatsApp with staff managing all data entry
-- Payment screenshots received via WhatsApp and uploaded by customer support staff
+- Customer interactions managed through internal processes
+- Payment documentation handled by customer support staff
 - Finance team handles payment verification and confirmation process
+- **Key Focus**: Comprehensive job order monitoring to solve bottlenecks and delays from manual system
 
 ## Document Automation System (January 2025)
 **Complete automation of document generation eliminates manual document creation:**
@@ -34,19 +35,19 @@ Hibla Manufacturing & Supply System is an **internal-only operations platform** 
 - **Finance Team**: Verifies payment proof images, confirms payment receipt, updates payment status
 - **Production Team**: Manages job orders, tracks production progress, updates manufacturing status
 - **Inventory Team**: Manages stock levels, handles warehouse transfers, monitors inventory
-- **Shipping Team**: Handles order fulfillment, manages deliveries, updates shipping status
+- **Shipping Records**: Manual order fulfillment, document generation, internal tracking updates
 - **Management**: Views reports, monitors analytics, makes strategic decisions
 - **Admin**: System configuration, user management, pricing management
 
 ### Internal Workflow Process
-1. **Sales Process**: Staff receive customer inquiries via WhatsApp → Create quotations → Send PDFs to customers via WhatsApp → Convert approved quotes to sales orders
-2. **Production**: Sales orders generate job orders → Production team manages workflow → Quality control checkpoints
+1. **Sales Process**: Staff receive customer inquiries → Create quotations → Send PDFs to customers → Convert approved quotes to sales orders
+2. **Job Order Monitoring**: Sales orders generate job orders → Comprehensive tracking system → Real-time bottleneck identification → Delay alerts and issue resolution
 3. **Payment Workflow**: 
-   - Customers send payment screenshots via WhatsApp
-   - Customer support staff receive and upload payment images to system
+   - Customers send payment confirmation
+   - Customer support staff record payment documentation in system
    - Finance team verifies payments and confirms receipt
    - Payment status updated internally in system
-4. **Fulfillment**: Shipping team prepares orders → Generate shipping documents → Track delivery internally
+4. **Fulfillment**: Staff record shipping details → Generate shipping documents → Maintain internal delivery records
 
 ## User Preferences
 - Preferred communication style: Simple, everyday language
