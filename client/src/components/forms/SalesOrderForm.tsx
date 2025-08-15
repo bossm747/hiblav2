@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -23,36 +23,46 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingCart, CalendarIcon, Plus, Trash2 } from 'lucide-react';
+import { ShoppingCart, CalendarIcon, Plus, Trash2, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { apiRequest } from '@/lib/queryClient';
 
 const salesOrderItemSchema = z.object({
   productId: z.string().min(1, 'Product is required'),
   productName: z.string(),
-  quantity: z.string().min(1, 'Quantity is required'),
+  specification: z.string().optional(),
+  quantity: z.string().regex(/^\d+\.\d$/, 'Quantity must be decimal with 1 decimal place'),
   unitPrice: z.string().min(1, 'Unit price is required'),
   lineTotal: z.string(),
-  specification: z.string().optional(),
 });
 
 const salesOrderFormSchema = z.object({
-  customerCode: z.string().min(1, 'Customer code is required'),
-  country: z.string().min(1, 'Country is required'),
-  priceListId: z.string().min(1, 'Price list is required'),
-  revisionNumber: z.enum(['R1', 'R2', 'R3', 'R4', 'R5']),
-  paymentMethod: z.enum(['bank', 'cash', 'credit']),
-  shippingMethod: z.enum(['DHL', 'FedEx', 'EMS', 'Sea']),
+  hairTag: z.string().min(1, 'Hair Tag (Customer Code) is required'),
+  customerId: z.string().min(1, 'Customer is required'),
+  shippingMethod: z.enum(['DHL', 'UPS', 'Fed Ex', 'Agent', 'Pick Up']),
+  paymentMethod: z.enum(['bank', 'agent', 'money transfer', 'cash']),
+  orderDate: z.date().default(() => new Date()),
   dueDate: z.date(),
+  revisionNumber: z.enum(['R1', 'R2', 'R3', 'R4', 'R5']).default('R1'),
+  createdBy: z.string().min(1, 'Creator initials required'),
   subtotal: z.string().default('0.00'),
-  shippingFee: z.string().default('0.00'),
-  bankCharge: z.string().default('0.00'),
-  discount: z.string().default('0.00'),
+  shippingChargeUsd: z.string().default('0.00'),
+  bankChargeUsd: z.string().default('0.00'),
+  discountUsd: z.string().default('0.00'),
   others: z.string().default('0.00'),
-  total: z.string().default('0.00'),
+  pleasePayThisAmountUsd: z.string().default('0.00'),
   customerServiceInstructions: z.string().optional(),
   items: z.array(salesOrderItemSchema).min(1, 'At least one item is required'),
 });
@@ -69,10 +79,10 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
     {
       productId: '',
       productName: '',
-      quantity: '1',
+      specification: '',
+      quantity: '1.0',
       unitPrice: '0.00',
       lineTotal: '0.00',
-      specification: '',
     },
   ]);
 
@@ -82,80 +92,94 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
   const form = useForm<SalesOrderFormData>({
     resolver: zodResolver(salesOrderFormSchema),
     defaultValues: {
-      customerCode: '',
-      country: '',
-      priceListId: 'A',
-      revisionNumber: 'R1',
-      paymentMethod: 'bank',
+      hairTag: '',
+      customerId: '',
       shippingMethod: 'DHL',
+      paymentMethod: 'bank',
+      orderDate: new Date(),
       dueDate: new Date(),
+      revisionNumber: 'R1',
+      createdBy: '',
       subtotal: '0.00',
-      shippingFee: '0.00',
-      bankCharge: '0.00',
-      discount: '0.00',
+      shippingChargeUsd: '0.00',
+      bankChargeUsd: '0.00',
+      discountUsd: '0.00',
       others: '0.00',
-      total: '0.00',
+      pleasePayThisAmountUsd: '0.00',
       customerServiceInstructions: '',
       items: items,
     },
   });
 
-  const { data: products = [] } = useQuery({
+  const { data: products = [] } = useQuery<any[]>({
     queryKey: ['/api/products'],
   });
 
-  const { data: customers = [] } = useQuery({
+  const { data: customers = [] } = useQuery<any[]>({
     queryKey: ['/api/customers'],
   });
 
+  const { data: priceLists = [] } = useQuery<any[]>({
+    queryKey: ['/api/price-lists'],
+  });
+
   // Load quotation data if quotationId is provided
-  const { data: quotation } = useQuery({
+  const { data: quotation } = useQuery<any>({
     queryKey: ['/api/quotations', quotationId],
     enabled: !!quotationId,
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (quotation) {
-      form.setValue('customerCode', quotation.customerCode);
-      form.setValue('country', quotation.country);
-      form.setValue('priceListId', quotation.priceListId);
-      form.setValue('paymentMethod', quotation.paymentMethod);
-      form.setValue('shippingMethod', quotation.shippingMethod);
-      form.setValue('subtotal', quotation.subtotal);
-      form.setValue('shippingFee', quotation.shippingFee || '0.00');
-      form.setValue('bankCharge', quotation.bankCharge || '0.00');
-      form.setValue('discount', quotation.discount || '0.00');
+      const customer = customers.find((c: any) => c.customerCode === quotation.customerCode);
+      form.setValue('hairTag', quotation.customerCode || '');
+      form.setValue('customerId', customer?.id || '');
+      form.setValue('paymentMethod', quotation.paymentMethod || 'bank');
+      form.setValue('shippingMethod', quotation.shippingMethod || 'DHL');
+      form.setValue('subtotal', quotation.subtotal || '0.00');
+      form.setValue('shippingChargeUsd', quotation.shippingFee || '0.00');
+      form.setValue('bankChargeUsd', quotation.bankCharge || '0.00');
+      form.setValue('discountUsd', quotation.discount || '0.00');
       form.setValue('others', quotation.others || '0.00');
-      form.setValue('total', quotation.total);
       form.setValue('customerServiceInstructions', quotation.customerServiceInstructions || '');
       
-      if (quotation.items) {
-        setItems(quotation.items);
-        form.setValue('items', quotation.items);
+      if (quotation.items && quotation.items.length > 0) {
+        const formattedItems = quotation.items.map((item: any) => ({
+          ...item,
+          quantity: parseFloat(item.quantity || '0').toFixed(1),
+        }));
+        setItems(formattedItems);
+        form.setValue('items', formattedItems);
       }
+      
+      calculateTotals(items);
     }
-  }, [quotation, form]);
+  }, [quotation, customers, form, items]);
 
   const createSalesOrderMutation = useMutation({
     mutationFn: async (data: SalesOrderFormData) => {
-      const response = await fetch('/api/sales-orders', {
+      const selectedCustomer = customers.find((c: any) => c.id === data.customerId);
+      
+      const response = await apiRequest('/api/sales-orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           salesOrder: {
-            customerCode: data.customerCode,
-            country: data.country,
-            priceListId: data.priceListId,
+            customerId: data.customerId,
+            customerCode: data.hairTag,
+            country: selectedCustomer?.country || '',
             revisionNumber: data.revisionNumber,
             paymentMethod: data.paymentMethod,
             shippingMethod: data.shippingMethod,
+            orderDate: data.orderDate.toISOString(),
             dueDate: data.dueDate.toISOString(),
+            createdBy: data.createdBy,
             subtotal: data.subtotal,
-            shippingFee: data.shippingFee,
-            bankCharge: data.bankCharge,
-            discount: data.discount,
+            shippingChargeUsd: data.shippingChargeUsd,
+            bankChargeUsd: data.bankChargeUsd,
+            discountUsd: data.discountUsd,
             others: data.others,
-            total: data.total,
+            pleasePayThisAmountUsd: data.pleasePayThisAmountUsd,
             customerServiceInstructions: data.customerServiceInstructions,
             quotationId: quotationId,
           },
@@ -163,12 +187,7 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
         }),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create sales order');
-      }
-
-      return response.json();
+      return response;
     },
     onSuccess: () => {
       toast({
@@ -195,20 +214,20 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
     
     form.setValue('subtotal', subtotal);
     
-    const shippingFee = parseFloat(form.getValues('shippingFee') || '0');
-    const bankCharge = parseFloat(form.getValues('bankCharge') || '0');
-    const discount = parseFloat(form.getValues('discount') || '0');
+    const shippingChargeUsd = parseFloat(form.getValues('shippingChargeUsd') || '0');
+    const bankChargeUsd = parseFloat(form.getValues('bankChargeUsd') || '0');
+    const discountUsd = parseFloat(form.getValues('discountUsd') || '0');
     const others = parseFloat(form.getValues('others') || '0');
     
-    const total = (
+    const pleasePayThisAmountUsd = (
       parseFloat(subtotal) +
-      shippingFee +
-      bankCharge -
-      discount +
+      shippingChargeUsd +
+      bankChargeUsd -
+      discountUsd +
       others
     ).toFixed(2);
     
-    form.setValue('total', total);
+    form.setValue('pleasePayThisAmountUsd', pleasePayThisAmountUsd);
   };
 
   const addItem = () => {
@@ -217,14 +236,55 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
       {
         productId: '',
         productName: '',
-        quantity: '1',
+        specification: '',
+        quantity: '1.0',
         unitPrice: '0.00',
         lineTotal: '0.00',
-        specification: '',
       },
     ];
     setItems(newItems);
     form.setValue('items', newItems);
+  };
+
+  const updateItem = (index: number, field: string, value: string) => {
+    const newItems = [...items];
+    (newItems[index] as any)[field] = value;
+    
+    // Calculate line total when quantity or unit price changes
+    if (field === 'quantity' || field === 'unitPrice') {
+      const quantity = parseFloat(newItems[index].quantity || '0');
+      const unitPrice = parseFloat(newItems[index].unitPrice || '0');
+      newItems[index].lineTotal = (quantity * unitPrice).toFixed(2);
+    }
+    
+    // Update product name when product is selected
+    if (field === 'productId') {
+      const selectedProduct = products.find((p: any) => p.id === value);
+      if (selectedProduct) {
+        newItems[index].productName = selectedProduct.name;
+        newItems[index].unitPrice = selectedProduct.basePrice || '0.00';
+        const quantity = parseFloat(newItems[index].quantity || '0');
+        const unitPrice = parseFloat(selectedProduct.basePrice || '0');
+        newItems[index].lineTotal = (quantity * unitPrice).toFixed(2);
+      }
+    }
+    
+    setItems(newItems);
+    form.setValue('items', newItems);
+    calculateTotals(newItems);
+  };
+
+  const formatDecimalInput = (value: string): string => {
+    // Remove non-numeric characters except decimal point
+    const cleaned = value.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    if (parts.length > 2) {
+      return parts[0] + '.' + parts[1];
+    }
+    if (parts.length === 2) {
+      return parts[0] + '.' + parts[1].substring(0, 1);
+    }
+    return cleaned;
   };
 
   const removeItem = (index: number) => {
@@ -252,230 +312,312 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit((data) => createSalesOrderMutation.mutate(data))} className="space-y-6">
-            {/* Customer Information */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <FormField
-                control={form.control}
-                name="customerCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Customer</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select customer" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {customers.map((customer: any) => (
-                          <SelectItem key={customer.customerCode} value={customer.customerCode}>
-                            {customer.customerCode} - {customer.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            {/* SALES ORDER Header - Matching PDF Format */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold uppercase tracking-wide">SALES ORDER</h2>
+              </div>
               
-              <FormField
-                control={form.control}
-                name="country"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Country</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Philippines" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="revisionNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Revision Number</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="R1">R1</SelectItem>
-                        <SelectItem value="R2">R2</SelectItem>
-                        <SelectItem value="R3">R3</SelectItem>
-                        <SelectItem value="R4">R4</SelectItem>
-                        <SelectItem value="R5">R5</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="dueDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Due Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-300">NO.</label>
+                  <div className="bg-white dark:bg-gray-800 p-2 rounded border font-semibold">
+                    Auto-Generated
+                  </div>
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="hairTag"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">HAIR TAG</FormLabel>
+                      <Select onValueChange={(value) => {
+                        field.onChange(value);
+                        const customer = customers.find((c: any) => c.customerCode === value);
+                        if (customer) {
+                          form.setValue('customerId', customer.id);
+                        }
+                      }} value={field.value}>
                         <FormControl>
-                          <Button
-                            variant="outline"
-                            className={cn(
-                              'w-full pl-3 text-left font-normal',
-                              !field.value && 'text-muted-foreground'
-                            )}
-                          >
-                            {field.value ? format(field.value, 'PPP') : 'Pick a date'}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select customer" />
+                          </SelectTrigger>
                         </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) => date < new Date()}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                        <SelectContent>
+                          {customers.map((customer: any) => (
+                            <SelectItem key={customer.id} value={customer.customerCode}>
+                              {customer.customerCode}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="shippingMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">Shipping Method</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="DHL">DHL</SelectItem>
+                          <SelectItem value="UPS">UPS</SelectItem>
+                          <SelectItem value="Fed Ex">Fed Ex</SelectItem>
+                          <SelectItem value="Agent">Agent</SelectItem>
+                          <SelectItem value="Pick Up">Pick Up</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="revisionNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">Revision</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="R1">R1</SelectItem>
+                          <SelectItem value="R2">R2</SelectItem>
+                          <SelectItem value="R3">R3</SelectItem>
+                          <SelectItem value="R4">R4</SelectItem>
+                          <SelectItem value="R5">R5</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-300">ORDER DATE</label>
+                  <div className="bg-white dark:bg-gray-800 p-2 rounded border font-semibold">
+                    {format(new Date(), 'MMMM dd, yyyy')}
+                  </div>
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="dueDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">DUE DATE</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                'w-full pl-3 text-left font-normal',
+                                !field.value && 'text-muted-foreground'
+                              )}
+                            >
+                              {field.value ? format(field.value, 'MMMM dd, yyyy') : 'Pick a date'}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="paymentMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">Method of Payment</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="bank">bank</SelectItem>
+                          <SelectItem value="agent">agent</SelectItem>
+                          <SelectItem value="money transfer">money transfer</SelectItem>
+                          <SelectItem value="cash">cash</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="createdBy"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">Created By</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter initials" {...field} className="uppercase" maxLength={10} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
-            {/* Order Items */}
-            <div>
+            {/* Order Items Table - Matching PDF Format */}
+            <div className="mt-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">Order Items</h3>
+                <h3 className="text-lg font-semibold uppercase">Order Items</h3>
                 {!quotationId && (
-                  <Button type="button" onClick={addItem} size="sm">
+                  <Button type="button" onClick={addItem} size="sm" variant="outline">
                     <Plus className="h-4 w-4 mr-1" />
                     Add Item
                   </Button>
                 )}
               </div>
               
-              {items.map((item, index) => (
-                <div key={index} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 border rounded-lg mb-4">
-                  <div className="md:col-span-2">
-                    <label className="text-sm font-medium">Product</label>
-                    <div className="p-2 bg-muted rounded border">
-                      {item.productName || 'Product not selected'}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium">Quantity</label>
-                    <div className="p-2 bg-muted rounded border">
-                      {item.quantity}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium">Unit Price</label>
-                    <div className="p-2 bg-muted rounded border">
-                      ${item.unitPrice}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium">Line Total</label>
-                    <div className="p-2 bg-muted rounded border font-medium">
-                      ${item.lineTotal}
-                    </div>
-                  </div>
-                  
-                  {!quotationId && (
-                    <div className="flex items-end">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeItem(index)}
-                        disabled={items.length <= 1}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))}
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-gray-50 dark:bg-gray-900">
+                      <TableHead className="font-semibold">order item</TableHead>
+                      <TableHead className="font-semibold">specification</TableHead>
+                      <TableHead className="text-center font-semibold">quantity</TableHead>
+                      <TableHead className="text-right font-semibold">unit price</TableHead>
+                      <TableHead className="text-right font-semibold">line total</TableHead>
+                      {!quotationId && <TableHead className="w-16">Actions</TableHead>}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {items.map((item, index) => (
+                      <TableRow key={index}>
+                        <TableCell>
+                          {quotationId ? (
+                            <div className="font-medium">{item.productName || 'N/A'}</div>
+                          ) : (
+                            <Select 
+                              value={item.productId} 
+                              onValueChange={(value) => updateItem(index, 'productId', value)}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select product" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {products.map((product: any) => (
+                                  <SelectItem key={product.id} value={product.id}>
+                                    {product.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {quotationId ? (
+                            <div>{item.specification || '-'}</div>
+                          ) : (
+                            <Input 
+                              value={item.specification || ''}
+                              onChange={(e) => updateItem(index, 'specification', e.target.value)}
+                              placeholder="Specification"
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {quotationId ? (
+                            <div className="font-semibold">{item.quantity}</div>
+                          ) : (
+                            <Input 
+                              value={item.quantity}
+                              onChange={(e) => {
+                                const formatted = formatDecimalInput(e.target.value);
+                                if (formatted.match(/^\d*\.?\d?$/)) {
+                                  updateItem(index, 'quantity', formatted);
+                                }
+                              }}
+                              className="text-center font-semibold"
+                              placeholder="1.0"
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {quotationId ? (
+                            <div>{parseFloat(item.unitPrice || '0').toFixed(2)}</div>
+                          ) : (
+                            <Input 
+                              value={item.unitPrice}
+                              onChange={(e) => updateItem(index, 'unitPrice', e.target.value)}
+                              className="text-right"
+                              placeholder="0.00"
+                              type="number"
+                              step="0.01"
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          {parseFloat(item.lineTotal || '0').toFixed(2)}
+                        </TableCell>
+                        {!quotationId && (
+                          <TableCell>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeItem(index)}
+                              disabled={items.length <= 1}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
 
-            {/* Order Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="paymentMethod"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Payment Method</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="bank">Bank Transfer</SelectItem>
-                            <SelectItem value="cash">Cash</SelectItem>
-                            <SelectItem value="credit">Credit Card</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="shippingMethod"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Shipping Method</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="DHL">DHL</SelectItem>
-                            <SelectItem value="FedEx">FedEx</SelectItem>
-                            <SelectItem value="EMS">EMS</SelectItem>
-                            <SelectItem value="Sea">Sea Freight</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
+            {/* Financial Summary - Exact PDF Format */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+              <div>
                 <FormField
                   control={form.control}
                   name="customerServiceInstructions"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Customer Service Instructions</FormLabel>
+                      <FormLabel className="text-lg font-semibold lowercase">customer service instructions</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Special instructions for production..."
-                          className="min-h-[100px]"
+                          placeholder="Silky Bundles\nBrushed Back Closure/Frontal"
+                          className="min-h-[120px] font-mono"
                           {...field}
                         />
                       </FormControl>
@@ -484,33 +626,112 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
                   )}
                 />
               </div>
-
+              
               <div className="space-y-4">
-                <div className="bg-muted p-4 rounded-lg space-y-3">
-                  <div className="flex justify-between">
-                    <span>Subtotal:</span>
-                    <span className="font-medium">${form.watch('subtotal')}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Shipping Fee:</span>
-                    <span>${form.watch('shippingFee')}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Bank Charge:</span>
-                    <span>${form.watch('bankCharge')}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Discount:</span>
-                    <span>-${form.watch('discount')}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Others:</span>
-                    <span>${form.watch('others')}</span>
-                  </div>
-                  <div className="border-t pt-2">
-                    <div className="flex justify-between text-lg font-bold">
-                      <span>Total:</span>
-                      <span>${form.watch('total')}</span>
+                {/* Financial Breakdown exactly matching PDF */}
+                <div className="bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-6 rounded-lg border-2">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-right font-medium">sub total</span>
+                      <span className="font-semibold text-lg">{form.watch('subtotal')}</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-right">shipping charge USD</span>
+                      <div className="flex items-center gap-2">
+                        <FormField
+                          control={form.control}
+                          name="shippingChargeUsd"
+                          render={({ field }) => (
+                            <Input 
+                              {...field}
+                              className="w-20 text-right"
+                              type="number"
+                              step="0.01"
+                              onChange={(e) => {
+                                field.onChange(e.target.value);
+                                calculateTotals(items);
+                              }}
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-right">bank charge USD</span>
+                      <div className="flex items-center gap-2">
+                        <FormField
+                          control={form.control}
+                          name="bankChargeUsd"
+                          render={({ field }) => (
+                            <Input 
+                              {...field}
+                              className="w-20 text-right"
+                              type="number"
+                              step="0.01"
+                              onChange={(e) => {
+                                field.onChange(e.target.value);
+                                calculateTotals(items);
+                              }}
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-right">discount USD</span>
+                      <div className="flex items-center gap-2">
+                        <FormField
+                          control={form.control}
+                          name="discountUsd"
+                          render={({ field }) => (
+                            <Input 
+                              {...field}
+                              className="w-20 text-right"
+                              type="number"
+                              step="0.01"
+                              onChange={(e) => {
+                                field.onChange(e.target.value);
+                                calculateTotals(items);
+                              }}
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-right">others</span>
+                      <div className="flex items-center gap-2">
+                        <FormField
+                          control={form.control}
+                          name="others"
+                          render={({ field }) => (
+                            <Input 
+                              {...field}
+                              className="w-20 text-right"
+                              type="number"
+                              step="0.01"
+                              onChange={(e) => {
+                                field.onChange(e.target.value);
+                                calculateTotals(items);
+                              }}
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="border-t-2 border-gray-300 pt-3 mt-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-right font-bold">please pay this amount.</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold">USD</span>
+                          <span className="font-bold text-xl">{form.watch('pleasePayThisAmountUsd')}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
