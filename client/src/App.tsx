@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import AppLayout from "@/components/AppLayout";
-import AdminPortal from "@/pages/AdminPortal";
+import Login from "@/pages/Login";
 import { Dashboard } from "@/pages/Dashboard";
 import { SalesOperationsDashboard } from "@/pages/SalesOperationsDashboard";
 import { ProductionManagementDashboard } from "@/pages/ProductionManagementDashboard";
@@ -30,15 +30,15 @@ function AppRoutes() {
   const { user } = useAuth();
   const [location, setLocation] = useLocation();
   
-  // If not logged in and not on login page, redirect to admin portal
-  if (!user && location !== '/admin-portal') {
-    setLocation('/admin-portal');
+  // If not logged in and not on login page, redirect to login
+  if (!user && location !== '/login') {
+    setLocation('/login');
     return null;
   }
   
-  // Public route - Admin Portal (Login)
-  if (location === '/admin-portal') {
-    return <AdminPortal />;
+  // Public route - Login page
+  if (location === '/login') {
+    return <Login />;
   }
   
   // Protected routes - need authentication

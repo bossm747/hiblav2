@@ -117,7 +117,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       title: "Logged out successfully",
       description: "You have been logged out of your account",
     });
-    setLocation('/admin-portal');
+    setLocation('/login');
   };
 
   const NavItems = ({ mobile = false }: { mobile?: boolean }) => (
