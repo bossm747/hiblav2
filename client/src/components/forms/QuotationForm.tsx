@@ -111,7 +111,7 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
       revisionNumber: 'R0',
       customerCode: '',
       country: '',
-      priceListId: 'A',
+      priceListId: 'REG',
       paymentMethod: 'bank',
       shippingMethod: 'DHL',
       createdBy: '',
@@ -266,22 +266,22 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
     if (product) {
       const priceListId = form.getValues('priceListId');
       
-      // Fetch price using VLOOKUP with customer code
+      // Fetch price using existing tiered pricing service
       try {
         const customerCode = form.getValues('customerCode');
         const response = await fetch(
-          `/api/vlookup/product-price?productId=${productId}&priceListId=${priceListId}&customerCode=${customerCode}`
+          `/api/products/price-lookup?productId=${productId}&priceListId=${priceListId}&customerCode=${customerCode}`
         );
         if (response.ok) {
-          const priceData = await response.json();
+          const result = await response.json();
           const newItems = [...items];
           newItems[index] = {
             ...newItems[index],
             productId,
             productName: product.name,
-            unitPrice: priceData.priceListPrice,
-            lineTotal: (parseFloat(priceData.priceListPrice) * parseFloat(newItems[index].quantity)).toFixed(2),
-            specification: priceData.specification || newItems[index].specification,
+            unitPrice: result.price,
+            lineTotal: (parseFloat(result.price) * parseFloat(newItems[index].quantity)).toFixed(2),
+            specification: result.productName || newItems[index].specification,
           };
           setItems(newItems);
           form.setValue('items', newItems);
@@ -596,26 +596,32 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
                 name="priceListId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Price List</FormLabel>
+                    <FormLabel>Pricing Tier *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select price list" />
+                          <SelectValue placeholder="Select pricing tier" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {priceListsLoading ? (
-                          <SelectItem value="loading" disabled>Loading price lists...</SelectItem>
+                          <SelectItem value="loading" disabled>Loading pricing tiers...</SelectItem>
                         ) : priceListsError ? (
-                          <SelectItem value="error" disabled>Error: {(priceListsError as Error)?.message || 'Failed to load price lists'}</SelectItem>
+                          <SelectItem value="error" disabled>Error: {(priceListsError as Error)?.message || 'Failed to load pricing tiers'}</SelectItem>
                         ) : (priceLists as any[]).length === 0 ? (
-                          <SelectItem value="empty" disabled>No price lists available</SelectItem>
+                          <SelectItem value="empty" disabled>No pricing tiers available</SelectItem>
                         ) : (
-                          (priceLists as any[]).map((priceList: any) => (
-                            <SelectItem key={priceList.id} value={priceList.name}>
-                              Price List {priceList.name} - {priceList.description}
-                            </SelectItem>
-                          ))
+                          (priceLists as any[]).map((priceList: any) => {
+                            const multiplier = parseFloat(priceList.priceMultiplier || '1.0000');
+                            const percentage = multiplier === 1.0 ? 'Base Price' : 
+                              multiplier > 1.0 ? `+${Math.round((multiplier - 1) * 100)}%` : 
+                              `-${Math.round((1 - multiplier) * 100)}%`;
+                            return (
+                              <SelectItem key={priceList.id} value={priceList.code || priceList.id}>
+                                {priceList.name} ({percentage})
+                              </SelectItem>
+                            );
+                          })
                         )}
                       </SelectContent>
                     </Select>

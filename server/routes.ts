@@ -3076,7 +3076,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  // VLOOKUP functionality - Get product pricing by price list
+  // VLOOKUP functionality - Get product pricing by price list (Updated for Tiered Pricing)
   app.get("/api/vlookup/product-price", async (req, res) => {
     try {
       const { productId, priceListId, customerCode } = req.query;
@@ -3091,30 +3091,35 @@ export function registerRoutes(app: Express): void {
         return res.status(404).json({ message: "Product not found" });
       }
 
-      // Get customer tier pricing if customer code is provided
       let finalPrice = parseFloat(product.basePrice || product.srp || '0');
+      let priceListName = 'Base Price';
       
-      if (customerCode) {
-        const customer = await storage.getCustomerByCode(customerCode as string);
-        if (customer && customer.tier) {
-          // Apply tier-based pricing
-          const tierMultipliers = {
-            'new': 1.15,      // +15% for new customers
-            'regular': 1.0,   // Base price for regular customers
-            'premier': 0.85,  // -15% for premier customers
-            'custom': 1.0     // Custom pricing handled separately
-          };
-          
-          const multiplier = tierMultipliers[customer.tier as keyof typeof tierMultipliers] || 1.0;
-          finalPrice = finalPrice * multiplier;
-        }
-      }
-
-      // Check for price list specific pricing
+      // Use tiered pricing system based on selected price list
       if (priceListId && priceListId !== 'base') {
-        const priceListProducts = await storage.getProductPriceLists(productId as string, priceListId as string);
-        if (priceListProducts.length > 0) {
-          finalPrice = parseFloat(priceListProducts[0].price || finalPrice.toString());
+        try {
+          // Get price list by code
+          const priceList = await storage.getPriceListByCode(priceListId as string);
+          if (priceList) {
+            const multiplier = parseFloat(priceList.priceMultiplier || '1.0000');
+            finalPrice = finalPrice * multiplier;
+            priceListName = priceList.name;
+          } else {
+            // Fallback for legacy price list codes (A, B, C, D)
+            const legacyPrices = {
+              'A': product.priceListA,
+              'B': product.priceListB, 
+              'C': product.priceListC,
+              'D': product.priceListD
+            };
+            const legacyPrice = legacyPrices[priceListId as keyof typeof legacyPrices];
+            if (legacyPrice) {
+              finalPrice = parseFloat(legacyPrice);
+              priceListName = `Price List ${priceListId}`;
+            }
+          }
+        } catch (error) {
+          console.error('Error getting price list:', error);
+          // Fall back to base price
         }
       }
 
@@ -3124,6 +3129,7 @@ export function registerRoutes(app: Express): void {
         basePrice: product.basePrice,
         srp: product.srp,
         priceListPrice: finalPrice.toFixed(2),
+        priceListName: priceListName,
         specification: product.description || '',
         category: product.category
       });
