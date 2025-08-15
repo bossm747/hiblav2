@@ -47,16 +47,40 @@ function AppRoutes() {
   }
   
   // All protected routes are wrapped in AppLayout
+  let content = null;
+  
+  switch(location) {
+    case '/':
+      content = <Dashboard />;
+      break;
+    case '/sales-operations-dashboard':
+      content = <SalesOperationsDashboard />;
+      break;
+    case '/production-management-dashboard':
+      content = <ProductionManagementDashboard />;
+      break;
+    case '/inventory-warehouse-dashboard':
+      content = <InventoryWarehouseDashboard />;
+      break;
+    case '/financial-operations-dashboard':
+      content = <FinancialOperationsDashboard />;
+      break;
+    case '/reports-analytics-dashboard':
+      content = <ReportsAnalyticsDashboard />;
+      break;
+    case '/administration-dashboard':
+      content = <AdministrationDashboard />;
+      break;
+    case '/enhanced-system':
+      content = <EnhancedSystemPage />;
+      break;
+    default:
+      content = <Dashboard />; // Default to dashboard if route not found
+  }
+  
   return (
     <AppLayout>
-      <Route path="/" component={Dashboard} />
-      <Route path="/sales-operations-dashboard" component={SalesOperationsDashboard} />
-      <Route path="/production-management-dashboard" component={ProductionManagementDashboard} />
-      <Route path="/inventory-warehouse-dashboard" component={InventoryWarehouseDashboard} />
-      <Route path="/financial-operations-dashboard" component={FinancialOperationsDashboard} />
-      <Route path="/reports-analytics-dashboard" component={ReportsAnalyticsDashboard} />
-      <Route path="/administration-dashboard" component={AdministrationDashboard} />
-      <Route path="/enhanced-system" component={EnhancedSystemPage} />
+      {content}
     </AppLayout>
   );
 }
