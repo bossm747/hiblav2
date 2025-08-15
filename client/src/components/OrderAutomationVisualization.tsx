@@ -81,100 +81,52 @@ export function OrderAutomationVisualization({
 
   const automationProcesses: AutomationProcess[] = [
     {
-      id: 'document-generation',
-      name: 'Document Generation',
-      description: 'Automated PDF creation with YYYY.MM.### numbering',
-      icon: FileText,
+      id: 'quotation-to-sales',
+      name: 'Quotation to Sales Order',
+      description: 'One-click conversion from quotation to sales order',
+      icon: RefreshCw,
       automatedSteps: [
-        'Auto-extract creator initials from authentication',
-        'Generate YYYY.MM.### series numbering',
-        'Auto-populate customer details from database',
-        'Create print-ready PDFs with Hibla branding',
-        'Store documents in organized file system'
+        'One-click quotation approval converts to sales order',
+        'Automatic data transfer with same series number',
+        'Customer details auto-populated from quotation',
+        'Print-ready sales order PDF generated instantly',
+        'Status updates across all related documents'
       ],
       timeSaved: '95%',
       accuracy: '100%',
-      status: salesOrdersCount > 0 || quotationsCount > 0 ? 'active' : 'idle'
+      status: salesOrdersCount > 0 ? 'active' : 'idle'
     },
     {
-      id: 'order-conversion',
-      name: 'Order Conversion Automation',
-      description: 'Seamless quotation to sales order to job order flow',
-      icon: RefreshCw,
-      automatedSteps: [
-        'One-click quotation to sales order conversion',
-        'Automatic data inheritance and validation',
-        'Sales order to job order generation',
-        'Maintain same series numbers across documents',
-        'Update status tracking automatically'
-      ],
-      timeSaved: '90%',
-      accuracy: '100%',
-      status: salesOrdersCount > quotationsCount ? 'active' : 'idle'
-    },
-    {
-      id: 'inventory-management',
-      name: 'Inventory Automation',
-      description: 'Real-time stock updates and warehouse transfers',
-      icon: Package,
-      automatedSteps: [
-        'Auto-update Reserved Warehouse on order confirmation',
-        'Real-time inventory level tracking',
-        'Automatic low-stock alerts generation',
-        'Multi-warehouse transfer automation',
-        'Production material allocation'
-      ],
-      timeSaved: '85%',
-      accuracy: '99.8%',
-      status: jobOrdersCount > 0 ? 'processing' : 'idle'
-    },
-    {
-      id: 'payment-tracking',
-      name: 'Payment Processing',
-      description: 'Automated payment verification and documentation',
-      icon: CreditCard,
-      automatedSteps: [
-        'Customer payment proof upload workflow',
-        'Finance team verification automation',
-        'Payment status update propagation',
-        'Integration with sales order status',
-        'Automated payment confirmation emails'
-      ],
-      timeSaved: '80%',
-      accuracy: '99.5%',
-      status: paymentsCount > 0 ? 'active' : 'idle'
-    },
-    {
-      id: 'production-monitoring',
-      name: 'Production Tracking',
-      description: '8-column shipment tracking with bottleneck detection',
+      id: 'sales-to-job-order',
+      name: 'Sales Order to Job Order',
+      description: 'Automatic job order creation from confirmed sales orders',
       icon: Factory,
       automatedSteps: [
-        'Real-time production progress calculation',
-        'Automatic bottleneck identification',
-        'Shipment column auto-calculation',
-        'Order balance and ready quantity updates',
-        'Production delay alert system'
+        'Confirmed sales order automatically creates job order',
+        'Production items transferred with specifications',
+        '8-column shipment tracking table initialized',
+        'Production timeline and due dates calculated',
+        'Reserved warehouse inventory automatically updated'
       ],
       timeSaved: '92%',
-      accuracy: '99.9%',
-      status: jobOrdersCount > 0 ? 'processing' : 'idle'
+      accuracy: '100%',
+      status: jobOrdersCount > 0 ? 'active' : 'idle'
     },
     {
-      id: 'reporting-analytics',
-      name: 'Analytics & Reporting',
-      description: 'Automated insights and performance metrics',
+      id: 'job-order-monitoring',
+      name: 'Job Order Production Monitoring',
+      description: 'Real-time production tracking with 8-column shipment system',
       icon: BarChart3,
       automatedSteps: [
-        'Real-time dashboard data aggregation',
-        'Automated trend analysis and forecasting',
-        'Performance metrics calculation',
-        'Exception and delay reporting',
-        'Executive summary generation'
+        'Real-time production progress calculation',
+        '8-column shipment tracking with auto-calculations',
+        'Order balance and ready quantity auto-updates',
+        'Production bottleneck identification and alerts',
+        'Completion status tracking and notifications'
       ],
-      timeSaved: '88%',
-      accuracy: '100%',
-      status: 'active'
+      timeSaved: '90%',
+      accuracy: '99.9%',
+      status: jobOrdersCount > 0 ? 'processing' : 'idle'
     }
   ];
 
@@ -235,8 +187,8 @@ export function OrderAutomationVisualization({
                 <Workflow className="h-6 w-6 text-white" />
               </div>
               <div>
-                <CardTitle className="text-2xl font-bold">Order Automation System</CardTitle>
-                <p className="text-muted-foreground">Comprehensive workflow automation for Hibla Manufacturing</p>
+                <CardTitle className="text-2xl font-bold">Quotation to Job Order Automation</CardTitle>
+                <p className="text-muted-foreground">Automated workflow: Quotation → Sales Order → Job Order</p>
               </div>
             </div>
             <div className="text-right">
@@ -284,7 +236,7 @@ export function OrderAutomationVisualization({
       {/* Automated Processes Grid */}
       <div className="grid gap-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Automation Processes</h3>
+          <h3 className="text-lg font-semibold">Core Workflow Automation</h3>
           <Badge variant="outline" className="bg-gradient-to-r from-green-500 to-blue-500 text-white border-0">
             {overallStats.activeProcesses} Active
           </Badge>
@@ -389,13 +341,11 @@ export function OrderAutomationVisualization({
         </CardHeader>
         <CardContent>
           <div className="relative">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[
                 { name: 'Quotations', count: quotationsCount, icon: FileText, color: 'purple' },
                 { name: 'Sales Orders', count: salesOrdersCount, icon: ShoppingCart, color: 'blue' },
-                { name: 'Job Orders', count: jobOrdersCount, icon: Factory, color: 'orange' },
-                { name: 'Invoices', count: invoicesCount, icon: Receipt, color: 'green' },
-                { name: 'Payments', count: paymentsCount, icon: CreditCard, color: 'pink' }
+                { name: 'Job Orders', count: jobOrdersCount, icon: Factory, color: 'orange' }
               ].map((stage, index) => {
                 const Icon = stage.icon;
                 const isActive = stage.count > 0;
@@ -403,7 +353,7 @@ export function OrderAutomationVisualization({
                 return (
                   <div key={stage.name} className="relative">
                     {/* Connector */}
-                    {index < 4 && (
+                    {index < 2 && (
                       <div className="hidden md:block absolute top-1/2 -right-2 transform -translate-y-1/2 z-10">
                         <div className="bg-white dark:bg-gray-900 rounded-full p-1 border-2 border-gray-200 dark:border-gray-700">
                           <ArrowRight className={cn(

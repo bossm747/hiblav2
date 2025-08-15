@@ -1,0 +1,78 @@
+Process Flow and User Journey for Hibla Web App
+1. User Journey
+1.1 Customer Management
+
+Login: Staff logs into the system with credentials
+Dashboard: Access to customer management dashboard
+Actions: Add, edit, view customer information
+1.2 Product Management
+
+Pricing Tiers: Normal, New, VIP
+Product Actions: Add products, set SRP and STP, assign pricing tiers
+1.3 Quotation Management
+
+Create Quotation: Fill in required fields, auto-generate SO and JO
+Duplicate Quotation: Clone existing quotations
+Export: Generate PDF/Excel reports
+1.4 Sales Order Management
+
+Generate SO: Convert quotation to sales order
+Confirm SO: Change status to confirmed
+Export: Generate PDF/Excel reports
+1.5 Job Order Management
+
+Create JO: From confirmed SO
+Monitor: Real-time tracking of production and shipping
+Export: Generate PDF/Excel reports
+1.6 Inventory Management
+
+Track Assets: Monitor company assets and stock levels
+Update Inventory: Real-time updates with stock movements
+Export: Generate inventory reports
+2. Process Flow
+2.1 Quotation Process
+
+Staff creates a new quotation
+System auto-generates SO and JO
+Staff reviews and confirms
+System updates records
+Generate PDF/Excel reports
+2.2 Sales Order Process
+
+Quotation is converted to SO
+Staff confirms SO
+System updates inventory
+Generate PDF/Excel reports
+2.3 Job Order Process
+
+SO is used to create JO
+Staff monitors production
+System updates shipping status
+Generate PDF/Excel reports
+2.4 Inventory Process
+
+Assets are added to inventory
+Stock levels are updated
+System tracks movements
+Generate inventory reports
+3. Implementation Plan
+Phase 1: Core Features Development
+
+Develop customer and product management modules
+Implement quotation system with PDF generation
+Set up inventory tracking
+Phase 2: Order Management
+
+Sales order generation from quotations
+Job order creation and real-time monitoring
+Role-based access control
+Phase 3: Reporting and Analytics
+
+Implement advanced reporting features
+Add data export capabilities
+Introduce dashboard for key metrics
+4. Key Considerations
+Security: Implement proper authentication and authorization
+User Experience: Ensure intuitive interface for all user roles
+Testing: Perform thorough testing before deployment
+Training: Provide training for staff on new system

@@ -37,7 +37,7 @@ import {
   Mail,
 } from 'lucide-react';
 import { EnhancedQuotationForm } from '@/components/forms/EnhancedQuotationForm';
-import { OrderAutomationVisualization } from '@/components/OrderAutomationVisualization';
+import { SalesWorkflowVisualizer } from '@/components/sales/SalesWorkflowVisualizer';
 
 export function SalesOperationsDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -59,10 +59,10 @@ export function SalesOperationsDashboard() {
   });
 
   // Calculate metrics
-  const totalQuotations = quotations.length;
-  const totalSalesOrders = salesOrders.length;
+  const totalQuotations = (quotations as any[]).length;
+  const totalSalesOrders = (salesOrders as any[]).length;
   const conversionRate = totalQuotations > 0 ? (totalSalesOrders / totalQuotations * 100) : 0;
-  const totalRevenue = salesOrders.reduce((sum: number, order: any) => sum + (order.total || 0), 0);
+  const totalRevenue = (salesOrders as any[]).reduce((sum: number, order: any) => sum + (order.total || 0), 0);
 
   // CRUD handlers for quotations
   const handleViewQuotation = (quotation: any) => {
@@ -398,7 +398,7 @@ export function SalesOperationsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {quotations.slice(0, 5).map((quotation: any) => (
+                  {(quotations as any[]).slice(0, 5).map((quotation: any) => (
                     <div key={quotation.id} className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">{quotation.quotationNumber}</p>
@@ -423,20 +423,35 @@ export function SalesOperationsDashboard() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span>Pending Quotations</span>
-                    <Badge variant="outline">{quotations.filter((q: any) => q.status === 'pending').length}</Badge>
+                    <Badge variant="outline">{(quotations as any[]).filter((q: any) => q.status === 'pending').length}</Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Approved Quotations</span>
-                    <Badge variant="default">{quotations.filter((q: any) => q.status === 'approved').length}</Badge>
+                    <Badge variant="default">{(quotations as any[]).filter((q: any) => q.status === 'approved').length}</Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Converted to Sales</span>
-                    <Badge variant="success">{totalSalesOrders}</Badge>
+                    <Badge variant="default">{totalSalesOrders}</Badge>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
+          
+          {/* Sales Workflow Visualization */}
+          <SalesWorkflowVisualizer
+            quotationsCount={totalQuotations}
+            salesOrdersCount={totalSalesOrders}
+            jobOrdersCount={0}
+            invoicesCount={0}
+            onStepClick={(stepId) => {
+              if (stepId === 'quotations') {
+                setActiveTab('quotations');
+              } else if (stepId === 'sales-orders') {
+                setActiveTab('sales-orders');
+              }
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="quotations" className="space-y-4">
@@ -447,7 +462,7 @@ export function SalesOperationsDashboard() {
             </CardHeader>
             <CardContent>
               <DataTable
-                data={quotations}
+                data={quotations as any[]}
                 columns={quotationColumns}
                 searchKeys={['quotationNumber', 'customerCode', 'country']}
                 onView={handleViewQuotation}
@@ -477,7 +492,7 @@ export function SalesOperationsDashboard() {
             </CardHeader>
             <CardContent>
               <DataTable
-                data={salesOrders}
+                data={salesOrders as any[]}
                 columns={salesOrderColumns}
                 searchKeys={['salesOrderNumber', 'customerCode']}
                 onView={(order) => toast({ title: "View Order", description: `Viewing order ${order.salesOrderNumber}` })}
@@ -506,10 +521,10 @@ export function SalesOperationsDashboard() {
             </CardHeader>
             <CardContent>
               <DataTable
-                data={customers.map((customer: any) => ({
+                data={(customers as any[]).map((customer: any) => ({
                   ...customer,
-                  orderCount: salesOrders.filter((order: any) => order.customerCode === customer.customerCode).length,
-                  totalValue: salesOrders.filter((order: any) => order.customerCode === customer.customerCode)
+                  orderCount: (salesOrders as any[]).filter((order: any) => order.customerCode === customer.customerCode).length,
+                  totalValue: (salesOrders as any[]).filter((order: any) => order.customerCode === customer.customerCode)
                     .reduce((sum: number, order: any) => sum + (order.total || 0), 0),
                 }))}
                 columns={[
