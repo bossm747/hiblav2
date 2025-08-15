@@ -26,28 +26,30 @@ function validateEnvironment() {
 
 // Async seeding function to run after server startup
 async function seedDataAsync() {
-  try {
-    log('Starting background data seeding process...');
-    await seedWarehouses();
-    log('Warehouses seeded successfully');
-    
-    await seedShowcasePricing();
-    log('Pricing data seeded successfully');
-    
-    await seedStaff();
-    log('Staff data seeded successfully');
-    
-    await seedDefaultStaff();
-    log('Default staff accounts seeded successfully');
-    
-    log('Data seeding completed successfully');
-  } catch (error) {
-    // Don't fail the server if seeding fails
-    const errorMessage = error instanceof Error ? error.message : 'Unknown seeding error';
-    log(`Warning: Background data seeding failed: ${errorMessage}`);
-    console.warn('Seeding error details:', error);
-    log('Server continues running without seeded data');
-  }
+  // Use setTimeout with longer delay to ensure server is fully ready
+  setTimeout(async () => {
+    try {
+      // Test database connection first
+      if (process.env.DATABASE_URL) {
+        await seedWarehouses();
+        await seedShowcasePricing();
+        await seedStaff();
+        await seedDefaultStaff();
+        log('✅ Background data seeding completed');
+      } else {
+        log('⚠️ No database URL found, skipping seeding');
+      }
+    } catch (error) {
+      // Don't fail the server if seeding fails
+      const errorMessage = error instanceof Error ? error.message : 'Unknown seeding error';
+      log(`⚠️ Background data seeding failed: ${errorMessage}`);
+      // Only log details in development
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Seeding error details:', error);
+      }
+      log('Server continues running without seeded data');
+    }
+  }, 2000); // Longer delay to ensure server is fully ready
 }
 
 const app = express();
@@ -143,9 +145,13 @@ function setupGracefulShutdown(server: any) {
         const serverInstance = server.listen({
           port: port,
           host: "0.0.0.0",
-        }, () => {
+        }, async () => {
           log(`🚀 Hibla Manufacturing System started successfully`);
           log(`📡 Server listening on port ${port} (host: 0.0.0.0)`);
+          
+          // Wait for server to fully initialize before declaring ready
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
           log(`🏥 Health checks available at:`);
           log(`   GET http://0.0.0.0:${port}/ (root health check for deployment)`);
           log(`   GET http://0.0.0.0:${port}/health`);

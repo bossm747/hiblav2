@@ -2,7 +2,10 @@ import { db } from "./db";
 import { staff } from "@shared/schema";
 
 export async function seedStaff() {
-  console.log("🌱 Seeding staff database...");
+  // Reduced logging for production performance
+  if (process.env.NODE_ENV === 'development') {
+    console.log("🌱 Seeding staff database...");
+  }
 
   // Sample staff accounts for admin/cashier access (excluding admin which already exists)
   const sampleStaff = [
@@ -34,52 +37,35 @@ export async function seedStaff() {
 
   try {
     // Check existing staff data (don't clear due to foreign key constraints)
-    console.log("Checking existing staff data...");
+    // Quick check for existing staff (reduced logging for performance)
     const existingStaff = await db.select().from(staff);
     
-    if (existingStaff.length > 0) {
-      console.log(`Found ${existingStaff.length} existing staff members. Adding demo accounts...`);
+    if (process.env.NODE_ENV === 'development' && existingStaff.length > 0) {
+      console.log(`Found ${existingStaff.length} existing staff members`);
     }
 
     // Insert sample staff accounts (with conflict handling)
-    console.log("Inserting sample staff accounts...");
     const insertedStaff = await db.insert(staff).values(sampleStaff).onConflictDoNothing().returning();
     
-    console.log(`✅ Successfully seeded ${insertedStaff.length} staff accounts`);
-    console.log("\n👥 Sample Staff Accounts Created:");
-    console.log("==================================");
-    
-    insertedStaff.forEach((member, index) => {
-      console.log(`${index + 1}. ${member.name} (${member.role})`);
-      console.log(`   Email: ${member.email}`);
-      console.log(`   Phone: ${member.phone}`);
-      console.log(`   Permissions: ${member.permissions?.join(", ")}`);
-      console.log("   ---");
-    });
-    
-    // Display login credentials
-    console.log("\n🔐 Login Credentials for Testing:");
-    console.log("=================================");
-    console.log("Admin Access:");
-    console.log("  Email: admin@hibla.com");
-    console.log("  Password: admin123");
-    console.log("");
-    console.log("Cashier Access:");  
-    console.log("  Email: cashier@hibla.com");
-    console.log("  Password: cashier123");
-    console.log("");
-    console.log("Manager Access:");
-    console.log("  Email: manager@hibla.com");
-    console.log("  Password: manager123");
-    console.log("");
-    console.log("Sales Staff Access:");
-    console.log("  Email: sales@hibla.com");
-    console.log("  Password: sales123\n");
+    // Only show detailed logging in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`✅ Successfully seeded ${insertedStaff.length} staff accounts`);
+      if (insertedStaff.length > 0) {
+        console.log("\n🔐 Login Credentials for Testing:");
+        console.log("=================================");
+        console.log("Admin: admin@hibla.com / admin123");
+        console.log("Cashier: cashier@hibla.com / cashier123");
+        console.log("Manager: manager@hibla.com / manager123");
+        console.log("Sales: sales@hibla.com / sales123\n");
+      }
+    }
 
     return insertedStaff;
 
   } catch (error) {
-    console.error("❌ Error seeding staff data:", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("❌ Error seeding staff data:", error);
+    }
     throw error;
   }
 }

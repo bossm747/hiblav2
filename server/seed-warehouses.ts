@@ -3,13 +3,10 @@ import { warehouses, staff, inventoryTransactions, products } from "@shared/sche
 
 export async function seedWarehouses() {
   try {
-    console.log("🏭 Seeding warehouses...");
-
-    // Check if warehouses already exist
+    // Quick check if warehouses already exist (reduced logging for faster startup)
     const existingWarehouses = await db.select().from(warehouses).limit(1);
     if (existingWarehouses.length > 0) {
-      console.log("📦 Warehouses already exist, skipping...");
-      return;
+      return; // Silent skip for performance
     }
 
     // Get or create a default staff member for manager reference
@@ -128,13 +125,20 @@ export async function seedWarehouses() {
       ];
 
       await db.insert(inventoryTransactions).values(sampleTransactions);
-      console.log(`✅ Created ${sampleTransactions.length} sample inventory transactions`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Created ${sampleTransactions.length} inventory transactions`);
+      }
     }
 
-    console.log("🏭 Warehouse seeding completed successfully!");
+    // Reduced logging for production performance
+    if (process.env.NODE_ENV === 'development') {
+      console.log("🏭 Warehouse seeding completed");
+    }
     
   } catch (error) {
-    console.error("❌ Error seeding warehouses:", error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error("❌ Error seeding warehouses:", error);
+    }
     throw error;
   }
 }

@@ -2,7 +2,10 @@ import { db } from './db';
 import { priceLists } from '../shared/schema';
 
 async function seedShowcasePricing() {
-  console.log('🎯 Seeding showcase pricing system...');
+  // Reduced logging for faster startup - only log in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🎯 Seeding pricing system...');
+  }
 
   try {
     // Don't delete existing price lists - just add showcase ones if they don't exist
@@ -47,20 +50,30 @@ async function seedShowcasePricing() {
     // Use onConflictDoNothing to prevent duplicate key errors
     await db.insert(priceLists).values(showcasePriceLists).onConflictDoNothing();
 
-    console.log('✅ Showcase pricing system seeded successfully!');
-    console.log('📊 Created 3 price categories:');
-    console.log('   • New Customer (+5% SRP)');
-    console.log('   • Regular Customer (Default SRP)');
-    console.log('   • VIP Customer (+5% SRP)');
+    // Only log in development for performance
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Pricing system seeded');
+    }
 
   } catch (error) {
-    console.error('❌ Error seeding showcase pricing:', error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('❌ Error seeding pricing:', error);
+    }
     throw error;
   }
 }
 
-if (import.meta.url === new URL(import.meta.resolve('./seed-showcase-pricing.ts')).href) {
-  seedShowcasePricing().catch(console.error);
+// Only execute if run directly as a script (not during import)
+if (import.meta.url === `file://${process.argv[1]}`) {
+  seedShowcasePricing()
+    .then(() => {
+      console.log('Pricing seeding completed');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('Pricing seeding failed:', error);
+      process.exit(1);
+    });
 }
 
 export { seedShowcasePricing };

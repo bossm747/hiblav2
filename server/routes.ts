@@ -39,6 +39,45 @@ import { z } from "zod";
 
 export function registerRoutes(app: Express): void {
 
+  // ==============================================
+  // HEALTH CHECK ENDPOINTS (Fast response for deployment health checks)
+  // ==============================================
+  
+  // Root health check endpoint for deployment services (immediate response)
+  app.get("/", (req, res) => {
+    res.status(200).json({ 
+      status: "healthy", 
+      message: "Hibla Manufacturing System is running",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      uptime: process.uptime(),
+      version: "1.0.0"
+    });
+  });
+
+  // Health endpoint for deployment services
+  app.get("/health", (req, res) => {
+    res.status(200).json({ 
+      status: "healthy", 
+      message: "Hibla Manufacturing System is running",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      uptime: process.uptime(),
+      version: "1.0.0"
+    });
+  });
+
+  // API health endpoint
+  app.get("/api/health", (req, res) => {
+    res.status(200).json({ 
+      status: "healthy", 
+      message: "Manufacturing Management Platform API is running",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      uptime: process.uptime()
+    });
+  });
+
   // Middleware for JSON parsing
   app.use(express.json());
 
