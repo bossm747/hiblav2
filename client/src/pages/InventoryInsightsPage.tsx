@@ -164,8 +164,7 @@ export function InventoryInsightsPage() {
               <p>All products are well-stocked!</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
+            <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Product</TableHead>

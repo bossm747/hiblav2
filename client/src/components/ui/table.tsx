@@ -5,15 +5,40 @@ import { cn } from "@/lib/utils"
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="mobile-table-wrapper relative w-full overflow-auto">
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-sm min-w-[640px] sm:min-w-0", className)}
-      {...props}
-    />
-  </div>
-))
+>(({ className, ...props }, ref) => {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [hasScrolled, setHasScrolled] = React.useState(false);
+  
+  React.useEffect(() => {
+    const container = containerRef.current?.querySelector('.table-scroll-container');
+    if (!container) return;
+    
+    const handleScroll = () => {
+      if (container.scrollLeft > 0 && !hasScrolled) {
+        setHasScrolled(true);
+      }
+    };
+    
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [hasScrolled]);
+  
+  return (
+    <div ref={containerRef} className={cn("mobile-table-container relative w-full", hasScrolled && "scrolled")}>
+      <div className="table-scroll-container w-full overflow-x-auto overflow-y-hidden touch-pan-x scroll-smooth md:overflow-visible">
+        <table
+          ref={ref}
+          className={cn(
+            "w-full caption-bottom text-sm",
+            "min-w-[600px] md:min-w-0", // Minimum width for mobile, full width on desktop
+            className
+          )}
+          {...props}
+        />
+      </div>
+    </div>
+  );
+})
 Table.displayName = "Table"
 
 const TableHeader = React.forwardRef<

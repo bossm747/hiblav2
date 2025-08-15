@@ -595,3 +595,74 @@ html {
   transform: scale(0.98);
   transition: transform 0.1s ease;
 }
+
+/* Enhanced Mobile Table Styles */
+.mobile-table-container {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.mobile-table-container > div {
+  position: relative;
+}
+
+/* Scrollbar styling for mobile tables */
+.mobile-table-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.mobile-table-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mobile-table-container::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+
+@media (max-width: 768px) {
+  /* Visual indicators for scrollable content */
+  .mobile-table-container::after {
+    content: '← Swipe to see more →';
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px;
+    color: hsl(var(--muted-foreground) / 0.6);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  
+  .mobile-table-container.scrolled::after {
+    display: none;
+  }
+  
+  /* Improve touch targets for mobile */
+  .mobile-table-container table td,
+  .mobile-table-container table th {
+    padding: 12px 8px;
+    white-space: nowrap;
+  }
+  
+  /* Make table headers sticky on mobile for better UX */
+  .mobile-table-container thead {
+    position: sticky;
+    top: 0;
+    background: hsl(var(--background));
+    z-index: 10;
+  }
+  
+  /* Make clickable elements more accessible on mobile */
+  .mobile-table-container button,
+  .mobile-table-container a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Add padding to bottom of tables for swipe indicator */
+  .mobile-table-container {
+    padding-bottom: 24px;
+  }
+}
