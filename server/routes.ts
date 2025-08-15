@@ -1360,7 +1360,7 @@ export function registerRoutes(app: Express): void {
       objectStorageService.downloadObject(objectFile, res);
     } catch (error) {
       console.error("Error accessing object:", error);
-      if (error.name === 'ObjectNotFoundError') {
+      if ((error as any).name === 'ObjectNotFoundError') {
         return res.sendStatus(404);
       }
       return res.sendStatus(500);

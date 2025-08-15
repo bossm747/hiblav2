@@ -23,10 +23,7 @@ export function Dashboard() {
     staleTime: 0, // Always consider data stale
   });
 
-  // Debug logging
-  console.log('Dashboard - Analytics data:', analytics);
-  console.log('Dashboard - Loading state:', isLoading);
-  console.log('Dashboard - Error:', error);
+  // Analytics data with error handling
 
   // Type-safe data access with fallbacks
   const safeAnalytics = analytics as {
