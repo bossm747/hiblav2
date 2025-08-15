@@ -47,22 +47,22 @@ export function ManufacturingSidebar({ isOpen, onClose, className }: Manufacturi
     onClose();
   };
 
-  // Manufacturing navigation items
+  // Manufacturing navigation items - compact menu without descriptions
   const manufacturingItems: MenuItem[] = [
-    { name: "Dashboard", href: "/", icon: BarChart3, description: "Production overview & metrics" },
-    { name: "Quotations", href: "/quotations", icon: FileText, description: "Customer quotation management" },
-    { name: "Sales Orders", href: "/sales-orders", icon: ShoppingCart, description: "Sales order processing" },
-    { name: "Job Orders", href: "/job-orders", icon: Briefcase, description: "Production job management" },
-    { name: "Inventory", href: "/inventory", icon: Package, description: "Stock management" },
-    { name: "Products", href: "/products", icon: Package, description: "Product catalog management" },
-    { name: "Warehouses", href: "/warehouses", icon: Warehouse, description: "Warehouse location management" },
-    { name: "AI Insights", href: "/inventory-insights", icon: Zap, description: "Predictive inventory analytics" },
-    { name: "Reports", href: "/summary-reports", icon: FileBarChart, description: "Manufacturing reports" },
-    { name: "Price Management", href: "/price-management", icon: DollarSign, description: "Pricing & cost control" },
-    { name: "Customer Management", href: "/customer-management", icon: Users, description: "Customer relationship management" },
-    { name: "Staff Management", href: "/staff-management", icon: UserCheck, description: "Team & role management" },
-    { name: "Access Management", href: "/access-management", icon: Shield, description: "User roles & permissions control" },
-    { name: "Documentation", href: "/docs", icon: BookOpen, description: "User guides & process flows" },
+    { name: "Dashboard", href: "/", icon: BarChart3 },
+    { name: "Quotations", href: "/quotations", icon: FileText },
+    { name: "Sales Orders", href: "/sales-orders", icon: ShoppingCart },
+    { name: "Job Orders", href: "/job-orders", icon: Briefcase },
+    { name: "Inventory", href: "/inventory", icon: Package },
+    { name: "Products", href: "/products", icon: Package },
+    { name: "Warehouses", href: "/warehouses", icon: Warehouse },
+    { name: "AI Insights", href: "/inventory-insights", icon: Zap },
+    { name: "Reports", href: "/summary-reports", icon: FileBarChart },
+    { name: "Pricing", href: "/price-management", icon: DollarSign },
+    { name: "Customers", href: "/customer-management", icon: Users },
+    { name: "Staff", href: "/staff-management", icon: UserCheck },
+    { name: "Access", href: "/access-management", icon: Shield },
+    { name: "Docs", href: "/docs", icon: BookOpen },
   ];
 
   if (!isOpen) return null;
@@ -83,32 +83,25 @@ export function ManufacturingSidebar({ isOpen, onClose, className }: Manufacturi
       {/* Sidebar */}
       <div 
         className={cn(
-          "absolute left-0 top-0 h-full w-72 max-w-[85vw] bg-background shadow-2xl transition-transform duration-300 ease-out",
+          "absolute left-0 top-0 h-full w-52 max-w-[85vw] bg-background shadow-2xl transition-transform duration-300 ease-out",
           "border-r border-border"
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border bg-gradient-to-r from-primary/5 to-cyan-500/5">
+        <div className="flex items-center justify-between p-3 border-b border-border">
           <Link href="/" onClick={onClose} className="flex items-center hover:opacity-90 transition-opacity">
-            <div className="w-12 h-12 rounded-full overflow-hidden bg-white shadow-lg border-2 border-primary/20 flex items-center justify-center">
-              <img src={hiblaLogo} alt="Hibla Manufacturing" className="h-10 w-10 object-contain" />
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-white shadow-md border border-primary/20 flex items-center justify-center">
+              <img src={hiblaLogo} alt="Hibla" className="h-7 w-7 object-contain" />
             </div>
-            <div className="ml-3 flex flex-col">
-              <span className="font-bold text-lg text-foreground leading-tight">
-                HIBLA
-              </span>
-              <span className="text-xs text-muted-foreground font-medium tracking-wide">
-                MANUFACTURING
-              </span>
-            </div>
+            <span className="ml-2 font-bold text-sm text-foreground">HIBLA</span>
           </Link>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="hover:bg-white/10"
+            className="hover:bg-white/10 h-7 w-7 p-0"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </Button>
         </div>
 
@@ -121,7 +114,7 @@ export function ManufacturingSidebar({ isOpen, onClose, className }: Manufacturi
                 href={item.href}
                 onClick={onClose}
                 className={cn(
-                  "flex items-center w-full px-2 py-1.5 rounded-md text-left transition-all duration-200",
+                  "flex items-center w-full px-2 py-1 rounded-md text-left transition-all duration-200",
                   "hover:bg-muted hover:text-primary group active:scale-95",
                   "border border-transparent touch-manipulation",
                   location === item.href 
@@ -130,12 +123,10 @@ export function ManufacturingSidebar({ isOpen, onClose, className }: Manufacturi
                 )}
               >
                 <item.icon className={cn(
-                  "h-4 w-4 mr-2 transition-colors flex-shrink-0",
+                  "h-3.5 w-3.5 mr-2 transition-colors flex-shrink-0",
                   location === item.href ? "text-primary" : "text-foreground/60 group-hover:text-primary"
                 )} />
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-xs truncate">{item.name}</div>
-                </div>
+                <span className="flex-1 text-xs font-medium truncate">{item.name}</span>
               </Link>
             ))}
           </div>

@@ -60,21 +60,21 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
 
   const manufacturingSections: MenuSection[] = [
     {
-      title: "Manufacturing Operations",
+      title: "Operations",
       items: [
-        { name: "Dashboard", href: "/", icon: LayoutDashboard, description: "Production overview & metrics" },
-        { name: "Sales Operations", href: "/sales-operations", icon: ShoppingCart, description: "Quotations & sales orders" },
-        { name: "Production", href: "/production-module", icon: Briefcase, description: "Job orders & manufacturing" },
-        { name: "Inventory", href: "/inventory-warehouses", icon: Warehouse, description: "Stock & warehouse management" },
+        { name: "Dashboard", href: "/", icon: LayoutDashboard },
+        { name: "Sales", href: "/sales-operations", icon: ShoppingCart },
+        { name: "Production", href: "/production-module", icon: Briefcase },
+        { name: "Inventory", href: "/inventory-warehouses", icon: Warehouse },
       ]
     },
     {
-      title: "Management & Reports", 
+      title: "Management", 
       items: [
-        { name: "Financial Operations", href: "/financial-operations", icon: CreditCard, description: "Payments & invoices" },
-        { name: "Reports & Analytics", href: "/summary-reports", icon: BarChart3, description: "Manufacturing reports" },
-        { name: "Customer Management", href: "/customer-management", icon: Users, description: "Customer relationships" },
-        { name: "Administration", href: "/admin-portal", icon: Settings, description: "System configuration" },
+        { name: "Finance", href: "/financial-operations", icon: CreditCard },
+        { name: "Reports", href: "/summary-reports", icon: BarChart3 },
+        { name: "Customers", href: "/customer-management", icon: Users },
+        { name: "Admin", href: "/admin-portal", icon: Settings },
       ]
     }
   ];
@@ -83,8 +83,8 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
     {
       title: "Resources",
       items: [
-        { name: "Documentation", href: "/docs", icon: HelpCircle, description: "User guides & workflows" },
-        { name: "System Status", href: "/docs/project-status", icon: Info, description: "Current project state" },
+        { name: "Docs", href: "/docs", icon: HelpCircle },
+        { name: "Status", href: "/docs/project-status", icon: Info },
       ]
     }
   ];

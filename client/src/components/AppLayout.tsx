@@ -130,28 +130,23 @@ export function AppLayout({ children }: AppLayoutProps) {
           <Link key={module.path} href={module.path}>
             <Button
               variant={isModuleActive ? 'default' : 'ghost'}
-              size={mobile ? 'lg' : 'default'}
+              size="sm"
               className={cn(
-                'w-full justify-start touch-target transition-all duration-300 h-auto py-3 relative group',
-                mobile && 'min-h-[60px] text-left p-4 rounded-xl active:scale-[0.98] shadow-sm',
-                mobile && 'hover:bg-gradient-to-r hover:from-muted/80 hover:to-muted/60 hover:shadow-md',
-                mobile && 'border border-transparent hover:border-border/50',
-                isModuleActive && mobile && 'bg-gradient-to-r from-primary to-cyan-600 text-primary-foreground shadow-lg font-medium border-primary/20',
-                isModuleActive && !mobile && 'bg-primary text-primary-foreground shadow-lg',
-                !isModuleActive && mobile && 'text-foreground hover:text-foreground bg-gradient-to-r from-card to-card/80'
+                'w-full justify-start transition-all duration-200 h-auto py-2 relative group',
+                mobile && 'min-h-[44px] text-left p-3 rounded-lg active:scale-[0.98]',
+                mobile && 'hover:bg-muted',
+                isModuleActive && 'bg-primary text-primary-foreground',
+                !isModuleActive && 'text-foreground hover:bg-muted'
               )}
               onClick={() => mobile && setSidebarOpen(false)}
             >
               <Icon className={cn(
-                mobile ? "h-6 w-6 mr-4" : "h-5 w-5 mr-3",
+                mobile ? "h-5 w-5 mr-3" : "h-4 w-4 mr-2",
                 "flex-shrink-0 transition-transform duration-200",
                 mobile && "group-hover:scale-110"
               )} />
               <div className="flex-1 text-left">
-                <div className="font-semibold text-sm leading-tight">{module.label}</div>
-                <div className="text-xs text-muted-foreground leading-tight opacity-90 mt-0.5">
-                  {module.description}
-                </div>
+                <div className="font-medium text-sm">{module.label}</div>
               </div>
               {isModuleActive && mobile && (
                 <div className="absolute right-2 top-1/2 -translate-y-1/2">

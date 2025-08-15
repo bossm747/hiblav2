@@ -76,22 +76,22 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       {/* Sidebar */}
       <div className={cn(
-        "fixed top-0 left-0 h-full w-80 glass-dark border-r border-white/20 transform transition-transform duration-300 ease-in-out z-50 lg:translate-x-0 lg:static lg:inset-0 lg:w-64",
+        "fixed top-0 left-0 h-full w-52 glass-dark border-r border-white/20 transform transition-transform duration-300 ease-in-out z-50 lg:translate-x-0 lg:static lg:inset-0 lg:w-48",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Header */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-white/20">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center neon-glow-light">
-              <Waves className="h-5 w-5 text-white" />
+        <div className="flex items-center justify-between h-14 px-3 border-b border-white/20">
+          <div className="flex items-center space-x-2">
+            <div className="w-7 h-7 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center neon-glow-light">
+              <Waves className="h-4 w-4 text-white" />
             </div>
-            <h1 className="text-xl font-semibold text-foreground neon-text-cyan">Hibla Hair</h1>
+            <h1 className="text-sm font-semibold text-foreground neon-text-cyan">Hibla</h1>
           </div>
           <button 
             onClick={onClose}
-            className="lg:hidden p-2 rounded-lg glass hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
+            className="lg:hidden p-1.5 rounded-lg glass hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
         
@@ -104,7 +104,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <Link key={item.name} href={item.href}>
                   <div 
                     className={cn(
-                      "flex items-center space-x-2 px-2 py-1.5 rounded-md transition-all duration-200 group cursor-pointer",
+                      "flex items-center space-x-2 px-2 py-1 rounded-md transition-all duration-200 group cursor-pointer",
                       isActive 
                         ? "glass neon-glow-light border border-purple-400/50 text-foreground" 
                         : "hover:glass hover:bg-white/5 text-muted-foreground hover:text-foreground"
@@ -112,10 +112,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                     onClick={() => onClose()}
                   >
                     <item.icon className={cn(
-                      "h-4 w-4 flex-shrink-0 transition-colors",
+                      "h-3.5 w-3.5 flex-shrink-0 transition-colors",
                       isActive ? "text-purple-400" : "group-hover:text-cyan-400"
                     )} />
-                    <span className="text-xs font-medium">{item.name}</span>
+                    <span className="text-xs font-medium truncate">{item.name}</span>
                   </div>
                 </Link>
               );
@@ -127,9 +127,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div className="space-y-0.5">
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center space-x-2 px-2 py-1.5 rounded-md hover:glass hover:bg-white/5 text-muted-foreground hover:text-foreground transition-all duration-200 group cursor-pointer"
+                className="w-full flex items-center space-x-2 px-2 py-1 rounded-md hover:glass hover:bg-white/5 text-muted-foreground hover:text-foreground transition-all duration-200 group cursor-pointer"
               >
-                <LogOut className="h-4 w-4 flex-shrink-0 group-hover:text-red-400 transition-colors" />
+                <LogOut className="h-3.5 w-3.5 flex-shrink-0 group-hover:text-red-400 transition-colors" />
                 <span className="text-xs font-medium">Sign out</span>
               </button>
             </div>
@@ -138,14 +138,13 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         {/* Footer */}
         <div className="p-2 border-t border-white/20">
-          <div className="glass p-2 rounded-md">
+          <div className="glass p-1.5 rounded-md">
             <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                <span className="text-[10px] font-semibold text-white">H</span>
+              <div className="w-5 h-5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                <span className="text-[9px] font-semibold text-white">H</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-foreground truncate">Admin Panel</p>
-                <p className="text-[10px] text-muted-foreground truncate">Hibla Filipino Hair</p>
+                <p className="text-xs font-medium text-foreground truncate">Admin</p>
               </div>
             </div>
           </div>
