@@ -94,8 +94,9 @@ Hibla Manufacturing & Supply System is an **internal-only operations platform** 
 ### Key Features
 - **Database Schema**: Designed around manufacturing entities: Quotations, Sales Orders, Job Orders, Warehouses, Inventory, Shipments, Customers, Products.
 - **Quotation Management**: Automatic numbering, multi-item, status tracking, conversion to sales orders.
-- **Production Management**: Job order creation, item tracking, customer instructions, due date management, progress monitoring.
-- **Multi-Warehouse Inventory**: Stock level tracking, low stock alerts, transfers across multiple locations.
+- **Job Order Monitoring**: Comprehensive tracking system solving manual bottlenecks, real-time status updates, delay alerts.
+- **Warehouse Transfer Tracking** (In Development): Real-time movement tracking between warehouses with timestamps, audit trail, PDF integration.
+- **Multi-Warehouse Inventory**: Stock level tracking, low stock alerts, transfers across 6 locations (NG, PH, Reserved, Red, Admin, WIP).
 - **Manufacturing Dashboard**: Real-time production metrics, active order counts, item status, performance tracking.
 - **Advanced Reporting**: Summary reports with filtering and export capabilities.
 - **Consolidated Navigation Structure**: Simplified from 18 sub-menu items to 6 main management dashboards: Sales Operations Management, Production Management, Inventory & Warehouse Management, Financial Operations Management, Reports & Analytics, and Administration. Each dashboard provides comprehensive functionality for its operational area.

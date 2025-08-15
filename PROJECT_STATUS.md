@@ -44,6 +44,23 @@ A comprehensive **internal operations management platform** for Hibla Filipino H
 - ✅ **Added:** Comprehensive job order monitoring system to solve bottlenecks
 - ✅ **Enhanced:** Document automation, mobile responsiveness, consolidated navigation
 
+## 🚀 Current Development Focus (January 2025)
+
+### Job Order Enhancement - Warehouse Transfer Tracking
+**Status:** Planning Phase  
+**Priority:** High - Addresses critical operational need
+
+#### Feature Requirements:
+- **Real-time Transfer Updates**: Track products moving from warehouse to warehouse (e.g., PH → Ready)
+- **Timestamp Recording**: Capture exact date/time for each transfer movement
+- **PDF Integration**: Display transfer history on printed Job Order documents
+- **Movement Types**: 
+  - Raw materials to production (PH → WIP)
+  - Work in progress movements (WIP → Production)
+  - Finished goods to ready stock (Production → Ready)
+  - Quality control holds (Any → Red)
+- **Audit Trail**: Complete history of all warehouse movements per job order
+
 ## 📝 Future Enhancement Opportunities
 
 ### Operational Improvements
@@ -56,8 +73,8 @@ A comprehensive **internal operations management platform** for Hibla Filipino H
   - [ ] Smart production scheduling
   - [ ] Batch processing optimization
 - [ ] **Integration Capabilities**
-  - [ ] Advanced job order analytics
-  - [ ] Enhanced reporting features
+  - [ ] Enhanced job order reporting with transfer analytics
+  - [ ] Warehouse performance metrics
   - [ ] Accounting software sync
 
 ### System Enhancements
@@ -170,23 +187,29 @@ Mark order as shipped → Complete order in system
    - Tracks delays and issues
    - Prevents manual system problems
 
-2. PRODUCTION VISIBILITY
+2. WAREHOUSE TRANSFER TRACKING (NEW)
+   - Real-time movement updates (PH → Ready, etc.)
+   - Timestamp for each transfer
+   - Complete audit trail
+   - Visible on printed PDFs
+
+3. PRODUCTION VISIBILITY
    - Monitor every job order stage
    - Track completion percentages
    - Alert on delayed orders
    - Quality checkpoint tracking
 
-3. ISSUE RESOLUTION
+4. ISSUE RESOLUTION
    - Automatic delay notifications
    - Priority order highlighting
    - Resource allocation visibility
    - Performance metrics tracking
 
-4. REPORTING & ANALYTICS
+5. REPORTING & ANALYTICS
    - Job order completion rates
    - Average processing times
+   - Warehouse transfer history
    - Bottleneck identification
-   - Historical performance data
 ```
 
 ### C. Inventory Management Flow (Multi-Warehouse)
@@ -289,6 +312,7 @@ POST   /api/test-email
 - **Staff Accounts**: 18 users across 8 roles
 - **Document Automation**: 95% time reduction achieved
 - **Mobile Performance**: 100% responsive with swipeable tables
+- **Next Enhancement**: Warehouse transfer tracking for job orders
 
 ## 🚀 Deployment Status
 
