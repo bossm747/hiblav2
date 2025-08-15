@@ -63,25 +63,25 @@ const navigationModules = [
   },
   { 
     path: '/sales-operations-dashboard', 
-    label: 'Sales Operations Management', 
+    label: 'Sales Operations', 
     icon: FileText,
     description: 'Unified sales management - quotations, orders, customers'
   },
   { 
     path: '/production-management-dashboard', 
-    label: 'Production Management', 
+    label: 'Production', 
     icon: Factory,
     description: 'Complete production workflow management'
   },
   { 
     path: '/inventory-warehouse-dashboard', 
-    label: 'Inventory & Warehouse Management', 
+    label: 'Inventory & Warehouses', 
     icon: Package,
     description: 'Comprehensive inventory and warehouse operations'
   },
   { 
     path: '/financial-operations-dashboard', 
-    label: 'Financial Operations Management', 
+    label: 'Financial Operations', 
     icon: CreditCard,
     description: 'Payment processing, invoices, and financial workflows'
   },
