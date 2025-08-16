@@ -1,4 +1,5 @@
-import express, { type Express } from "express";
+import express, { type Express, type Request, type Response } from "express";
+import './types/session';
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { authService } from "./auth-service";
@@ -81,13 +82,22 @@ export function registerRoutes(app: Express): void {
       const result = await authService.authenticate(email, password);
       
       if (result.success && result.user) {
-        // Store user in session if needed
-        (req as any).session = { user: result.user };
+        // Store user in session with proper typing
+        req.session.user = result.user;
+        req.session.token = result.token;
         
-        res.json({ 
-          success: true, 
-          user: result.user,
-          token: result.token 
+        // Save session before sending response
+        req.session.save((err) => {
+          if (err) {
+            console.error('Session save error:', err);
+            return res.status(500).json({ error: "Session error" });
+          }
+          
+          res.json({ 
+            success: true, 
+            user: result.user,
+            token: result.token 
+          });
         });
       } else {
         res.status(401).json({ 
@@ -101,14 +111,34 @@ export function registerRoutes(app: Express): void {
   });
 
   app.post("/api/auth/logout", (req, res) => {
-    res.json({ success: true });
+    // Properly destroy session on logout
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destroy error:', err);
+        return res.status(500).json({ error: "Logout failed" });
+      }
+      
+      res.clearCookie('hibla.sid');
+      res.json({ success: true });
+    });
   });
 
-  app.get("/api/auth/me", (req, res) => {
-    // Return current session user or null
-    const sessionUser = (req as any).session?.user;
-    if (sessionUser) {
-      res.json({ user: sessionUser });
+  app.get("/api/auth/me", async (req, res) => {
+    // Return current session user with token validation
+    const sessionUser = req.session?.user;
+    const sessionToken = req.session?.token;
+    
+    if (sessionUser && sessionToken) {
+      // Validate token is still valid
+      const isValid = await authService.validateToken(sessionToken);
+      
+      if (isValid) {
+        res.json({ user: sessionUser });
+      } else {
+        // Token expired, clear session
+        req.session.destroy(() => {});
+        res.status(401).json({ error: "Session expired" });
+      }
     } else {
       res.status(401).json({ error: "Not authenticated" });
     }

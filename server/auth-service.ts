@@ -1,6 +1,8 @@
 import { storage } from "./storage";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { z } from "zod";
+import { productionConfig } from "./config/production";
 
 export interface AuthResult {
   success: boolean;
@@ -46,8 +48,17 @@ class AuthService {
         };
       }
 
-      // Generate token (in production, use JWT)
-      const token = `demo-token-${staff.id}-${Date.now()}`;
+      // Generate JWT token with production configuration
+      const token = jwt.sign(
+        { 
+          id: staff.id, 
+          email: staff.email, 
+          role: staff.role,
+          permissions: staff.permissions 
+        },
+        productionConfig.auth.jwtSecret,
+        { expiresIn: productionConfig.auth.jwtExpiresIn }
+      );
       
       console.log('Authentication successful for:', email);
       return {
@@ -74,7 +85,7 @@ class AuthService {
     try {
       // Hash the password before storing
       if (staffData.password) {
-        staffData.password = await bcrypt.hash(staffData.password, 10);
+        staffData.password = await bcrypt.hash(staffData.password, productionConfig.auth.bcryptRounds);
       }
       
       return await storage.createStaff(staffData);
@@ -99,25 +110,26 @@ class AuthService {
   }
 
   async validateToken(token: string): Promise<boolean> {
-    // Simple token validation for development
-    // In production, verify JWT token
-    return !!(token && token.startsWith('demo-token-'));
+    try {
+      const decoded = jwt.verify(token, productionConfig.auth.jwtSecret);
+      return !!decoded;
+    } catch (error) {
+      return false;
+    }
   }
 
   async getStaffByToken(token: string) {
-    // Extract staff ID from token (development only)
-    // In production, decode JWT to get user info
-    if (!token || !token.startsWith('demo-token-')) {
+    try {
+      const decoded = jwt.verify(token, productionConfig.auth.jwtSecret) as any;
+      
+      if (!decoded || !decoded.id) {
+        return null;
+      }
+      
+      return await storage.getStaffById(decoded.id);
+    } catch (error) {
       return null;
     }
-    
-    const parts = token.split('-');
-    if (parts.length < 3) {
-      return null;
-    }
-    
-    const staffId = parts[2];
-    return await storage.getStaffById(staffId);
   }
 }
 

@@ -1,5 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
+import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+import helmet from "helmet";
+import cors from "cors";
+import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 // import { startReminderScheduler } from "./notification-service";
@@ -12,6 +17,7 @@ import { cleanCustomerData as seedRealCustomersOnly } from './seed-real-customer
 import { seedRealHiblaData } from './seed-real-hibla-data';
 import { seedDatabase } from './seed-data';
 import path from 'path'; // Ensure path is imported
+import { productionConfig, validateProductionConfig } from './config/production';
 
 
 // Environment validation function
@@ -23,6 +29,9 @@ function validateEnvironment() {
     throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
   }
 
+  // Validate production configuration
+  validateProductionConfig();
+  
   log('Environment validation passed');
 }
 
@@ -62,6 +71,72 @@ async function seedDataAsync() {
 }
 
 const app = express();
+
+// Production security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'", "https:"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+}));
+
+// CORS configuration for production
+app.use(cors({
+  origin: productionConfig.cors.origins,
+  credentials: productionConfig.cors.credentials,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+}));
+
+// Rate limiting for API endpoints
+const apiLimiter = rateLimit({
+  windowMs: productionConfig.rateLimiting.api.windowMs,
+  max: productionConfig.rateLimiting.api.max,
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply rate limiting to API routes
+app.use('/api/', apiLimiter);
+
+// Stricter rate limiting for auth endpoints
+const authLimiter = rateLimit({
+  windowMs: productionConfig.rateLimiting.auth.windowMs,
+  max: productionConfig.rateLimiting.auth.max,
+  message: 'Too many authentication attempts, please try again later.',
+  skipSuccessfulRequests: true,
+});
+
+app.use('/api/auth/login', authLimiter);
+
+// Configure session store with PostgreSQL
+const PgSession = connectPgSimple(session);
+
+app.use(session({
+  store: new PgSession({
+    conString: process.env.DATABASE_URL,
+    tableName: 'user_sessions',
+    createTableIfMissing: true,
+  }),
+  secret: productionConfig.auth.sessionSecret,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: productionConfig.session.secure,
+    httpOnly: productionConfig.session.httpOnly,
+    maxAge: productionConfig.session.maxAge,
+    sameSite: productionConfig.session.sameSite
+  },
+  name: 'hibla.sid'
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
