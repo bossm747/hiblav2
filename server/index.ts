@@ -153,9 +153,10 @@ function setupGracefulShutdown(server: any) {
           await new Promise(resolve => setTimeout(resolve, 100));
           
           log(`🏥 Health checks available at:`);
-          log(`   GET http://0.0.0.0:${port}/ (root health check for deployment)`);
           log(`   GET http://0.0.0.0:${port}/health`);
           log(`   GET http://0.0.0.0:${port}/api/health`);
+          log(`🌐 React application available at:`);
+          log(`   GET http://0.0.0.0:${port}/ (Hibla Manufacturing System)`);          
           log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
           log(`✅ Server is ready to accept connections`);
 
