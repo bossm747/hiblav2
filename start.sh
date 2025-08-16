@@ -7,11 +7,11 @@ echo "🚀 Starting Hibla Manufacturing System in production..."
 export NODE_ENV=production
 
 # Build if dist doesn't exist
-if [ ! -f "dist/server.js" ]; then
+if [ ! -f "dist/index.js" ]; then
   echo "📦 Building application first..."
   ./build.sh
 fi
 
 # Start production server
 echo "🌐 Starting production server..."
-node dist/server.js
+node dist/index.js
