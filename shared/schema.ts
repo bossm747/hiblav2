@@ -35,11 +35,12 @@ export const customers = pgTable("customers", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Product Categories
+// Inventory Categories (for Products, Equipment, Assets, etc.)
 export const categories = pgTable("categories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull().unique(),
+  name: text("name").notNull().unique(), // e.g., "Hair Products", "Office Equipment", "Manufacturing Tools", "IT Assets"
   slug: text("slug").notNull().unique(),
+  type: text("type").notNull().default("product"), // product, equipment, asset, tool, supply
   description: text("description"),
   parentId: varchar("parent_id"), // for subcategories
   imageUrl: text("image_url"),
@@ -104,6 +105,46 @@ export const products = pgTable("products", {
   featuredImage: text("featured_image"),
   tags: text("tags").array(),
   isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Company Assets & Equipment (for internal inventory tracking)
+export const assets = pgTable("assets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // e.g., "Dell Laptop XPS 15", "Brother Printer MFC-L2750DW"
+  description: text("description"),
+  categoryId: varchar("category_id").references(() => categories.id).notNull(),
+  assetType: text("asset_type").notNull(), // equipment, tool, furniture, vehicle, etc.
+  assetTag: text("asset_tag").unique(), // Internal asset tracking number
+  serialNumber: text("serial_number"),
+  manufacturer: text("manufacturer"),
+  model: text("model"),
+  purchaseDate: timestamp("purchase_date"),
+  purchasePrice: decimal("purchase_price", { precision: 12, scale: 2 }),
+  currentValue: decimal("current_value", { precision: 12, scale: 2 }),
+  condition: text("condition").default("good"), // new, good, fair, poor, broken
+  // Multi-warehouse location tracking
+  ngWarehouse: integer("ng_warehouse").default(0),
+  phWarehouse: integer("ph_warehouse").default(0),
+  reservedWarehouse: integer("reserved_warehouse").default(0),
+  redWarehouse: integer("red_warehouse").default(0),
+  adminWarehouse: integer("admin_warehouse").default(0),
+  wipWarehouse: integer("wip_warehouse").default(0),
+  // Assignment and maintenance
+  assignedTo: varchar("assigned_to").references(() => staff.id),
+  assignedDate: timestamp("assigned_date"),
+  lastMaintenanceDate: timestamp("last_maintenance_date"),
+  nextMaintenanceDate: timestamp("next_maintenance_date"),
+  warrantyExpiry: timestamp("warranty_expiry"),
+  // Additional info
+  supplierId: varchar("supplier_id").references(() => suppliers.id),
+  notes: text("notes"),
+  images: text("images").array(),
+  documents: text("documents").array(), // receipts, warranties, manuals
+  isActive: boolean("is_active").default(true),
+  disposalDate: timestamp("disposal_date"),
+  disposalReason: text("disposal_reason"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -272,18 +313,20 @@ export const warehouses = pgTable("warehouses", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Inventory Transactions
+// Inventory Transactions (for both Products and Assets)
 export const inventoryTransactions = pgTable("inventory_transactions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  productId: varchar("product_id").references(() => products.id).notNull(),
+  itemType: text("item_type").notNull().default("product"), // product or asset
+  productId: varchar("product_id").references(() => products.id), // for products
+  assetId: varchar("asset_id").references(() => assets.id), // for assets
   warehouseId: varchar("warehouse_id").references(() => warehouses.id).notNull(),
-  movementType: text("movement_type").notNull(), // deposit, withdrawal, transfer, adjustment
+  movementType: text("movement_type").notNull(), // deposit, withdrawal, transfer, adjustment, assignment, return
   quantity: decimal("quantity", { precision: 10, scale: 1 }).notNull(),
   unitCost: decimal("unit_cost", { precision: 10, scale: 2 }),
   totalCost: decimal("total_cost", { precision: 10, scale: 2 }),
   reason: text("reason"),
-  reference: text("reference"), // sales order number, job order number
-  referenceType: text("reference_type"), // sales_order, job_order, manual
+  reference: text("reference"), // sales order number, job order number, asset tag
+  referenceType: text("reference_type"), // sales_order, job_order, manual, asset_assignment
   salesOrderId: varchar("sales_order_id").references(() => salesOrders.id),
   jobOrderId: varchar("job_order_id").references(() => jobOrders.id),
   fromWarehouseId: varchar("from_warehouse_id").references(() => warehouses.id),
@@ -426,6 +469,12 @@ export const insertProductSchema = createInsertSchema(products).omit({
   updatedAt: true,
 });
 
+export const insertAssetSchema = createInsertSchema(assets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertSupplierSchema = createInsertSchema(suppliers).omit({
   id: true,
   createdAt: true,
@@ -506,6 +555,8 @@ export type Staff = typeof staff.$inferSelect;
 export type InsertStaff = z.infer<typeof insertStaffSchema>;
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
+export type Asset = typeof assets.$inferSelect;
+export type InsertAsset = z.infer<typeof insertAssetSchema>;
 export type Supplier = typeof suppliers.$inferSelect;
 export type InsertSupplier = z.infer<typeof insertSupplierSchema>;
 export type PriceList = typeof priceLists.$inferSelect;
@@ -575,6 +626,22 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   quotationItems: many(quotationItems),
   salesOrderItems: many(salesOrderItems),
   jobOrderItems: many(jobOrderItems),
+}));
+
+export const assetsRelations = relations(assets, ({ one, many }) => ({
+  category: one(categories, {
+    fields: [assets.categoryId],
+    references: [categories.id],
+  }),
+  supplier: one(suppliers, {
+    fields: [assets.supplierId],
+    references: [suppliers.id],
+  }),
+  assignedStaff: one(staff, {
+    fields: [assets.assignedTo],
+    references: [staff.id],
+  }),
+  inventoryTransactions: many(inventoryTransactions),
 }));
 
 export const suppliersRelations = relations(suppliers, ({ many }) => ({
