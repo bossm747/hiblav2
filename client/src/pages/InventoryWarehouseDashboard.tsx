@@ -35,10 +35,16 @@ import {
   Eye,
   Edit,
   RefreshCw,
+  Monitor,
+  FolderTree,
+  Package2,
+  ArrowRight,
 } from 'lucide-react';
+import { useLocation } from 'wouter';
 
 export function InventoryWarehouseDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [, setLocation] = useLocation();
 
   // Fetch inventory data
   const { data: warehouses = [] } = useQuery({
@@ -154,6 +160,80 @@ export function InventoryWarehouseDashboard() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card 
+              className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-purple-500"
+              onClick={() => setLocation('/assets')}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Monitor className="h-5 w-5 text-purple-600" />
+                    Assets Management
+                  </span>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </CardTitle>
+                <CardDescription>
+                  Track company equipment, tools, and assets
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">Manage Assets</div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Monitor equipment, assign to staff, track maintenance
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-500"
+              onClick={() => setLocation('/categories')}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <FolderTree className="h-5 w-5 text-blue-600" />
+                    Categories
+                  </span>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </CardTitle>
+                <CardDescription>
+                  Organize products, equipment, and supplies
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">Manage Categories</div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Create and manage categories for all inventory types
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-green-500"
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Package2 className="h-5 w-5 text-green-600" />
+                    Inventory Tracking
+                  </span>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </CardTitle>
+                <CardDescription>
+                  Monitor stock levels and movements
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">Track Inventory</div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Real-time stock levels across all warehouses
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Low Stock Alerts */}
             <Card>

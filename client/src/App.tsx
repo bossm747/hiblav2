@@ -14,6 +14,8 @@ import { FinancialOperationsDashboard } from "@/pages/FinancialOperationsDashboa
 import { ReportsAnalyticsDashboard } from "@/pages/ReportsAnalyticsDashboard";
 import { AdministrationDashboard } from "@/pages/AdministrationDashboard";
 import { EnhancedSystemPage } from "@/pages/EnhancedSystemPage";
+import { AssetsManagementPage } from "@/pages/AssetsManagementPage";
+import { CategoriesManagementPage } from "@/pages/CategoriesManagementPage";
 
 // Create a query client
 const queryClient = new QueryClient({
@@ -73,6 +75,12 @@ function AppRoutes() {
       break;
     case '/enhanced-system':
       content = <EnhancedSystemPage />;
+      break;
+    case '/assets':
+      content = <AssetsManagementPage />;
+      break;
+    case '/categories':
+      content = <CategoriesManagementPage />;
       break;
     default:
       content = <Dashboard />; // Default to dashboard if route not found
