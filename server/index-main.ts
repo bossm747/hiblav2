@@ -10,6 +10,7 @@ import { seedWarehouses } from './seed-warehouses';
 import { seedShowcasePricing } from './seed-showcase-pricing';
 import { cleanCustomerData as seedRealCustomersOnly } from './seed-real-customers-only';
 import { seedRealHiblaData } from './seed-real-hibla-data';
+import { seedDatabase } from './seed-data';
 import path from 'path'; // Ensure path is imported
 
 
@@ -36,7 +37,8 @@ async function seedDataAsync() {
         seedWarehouses(),
         seedShowcasePricing(),
         seedStaff(),
-        seedDefaultStaff()
+        seedDefaultStaff(),
+        seedDatabase()
       ]);
 
       // Set a timeout for seeding operations

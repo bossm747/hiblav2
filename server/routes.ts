@@ -199,6 +199,123 @@ export function registerRoutes(app: Express): void {
   });
 
   // ==============================================
+  // MANUFACTURING WORKFLOW - SALES ORDERS
+  // ==============================================
+  
+  app.get("/api/sales-orders", async (req, res) => {
+    try {
+      const salesOrders = await storage.getSalesOrders();
+      res.json(salesOrders);
+    } catch (error) {
+      console.error("Error fetching sales orders:", error);
+      res.status(500).json({ error: "Failed to fetch sales orders" });
+    }
+  });
+
+  app.get("/api/sales-orders/:id", async (req, res) => {
+    try {
+      const salesOrder = await storage.getSalesOrderById(req.params.id);
+      if (!salesOrder) {
+        return res.status(404).json({ error: "Sales order not found" });
+      }
+      res.json(salesOrder);
+    } catch (error) {
+      console.error("Error fetching sales order:", error);
+      res.status(500).json({ error: "Failed to fetch sales order" });
+    }
+  });
+
+  app.post("/api/sales-orders", async (req, res) => {
+    try {
+      const salesOrderData = insertSalesOrderSchema.parse(req.body);
+      const salesOrder = await storage.createSalesOrder(salesOrderData);
+      res.status(201).json(salesOrder);
+    } catch (error) {
+      console.error("Error creating sales order:", error);
+      res.status(500).json({ error: "Failed to create sales order" });
+    }
+  });
+
+  // ==============================================
+  // MANUFACTURING WORKFLOW - JOB ORDERS
+  // ==============================================
+  
+  app.get("/api/job-orders", async (req, res) => {
+    try {
+      const jobOrders = await storage.getJobOrders();
+      res.json(jobOrders);
+    } catch (error) {
+      console.error("Error fetching job orders:", error);
+      res.status(500).json({ error: "Failed to fetch job orders" });
+    }
+  });
+
+  app.get("/api/job-orders/:id", async (req, res) => {
+    try {
+      const jobOrder = await storage.getJobOrderById(req.params.id);
+      if (!jobOrder) {
+        return res.status(404).json({ error: "Job order not found" });
+      }
+      res.json(jobOrder);
+    } catch (error) {
+      console.error("Error fetching job order:", error);
+      res.status(500).json({ error: "Failed to fetch job order" });
+    }
+  });
+
+  app.post("/api/job-orders", async (req, res) => {
+    try {
+      const jobOrderData = insertJobOrderSchema.parse(req.body);
+      const jobOrder = await storage.createJobOrder(jobOrderData);
+      res.status(201).json(jobOrder);
+    } catch (error) {
+      console.error("Error creating job order:", error);
+      res.status(500).json({ error: "Failed to create job order" });
+    }
+  });
+
+  app.get("/api/job-order-items", async (req, res) => {
+    try {
+      // Return all job order items
+      const jobOrders = await storage.getJobOrders();
+      const allItems = [];
+      for (const order of jobOrders) {
+        const items = await storage.getJobOrderItems(order.id);
+        allItems.push(...items);
+      }
+      res.json(allItems);
+    } catch (error) {
+      console.error("Error fetching job order items:", error);
+      res.status(500).json({ error: "Failed to fetch job order items" });
+    }
+  });
+
+  // ==============================================
+  // WAREHOUSE MANAGEMENT
+  // ==============================================
+  
+  app.get("/api/warehouses", async (req, res) => {
+    try {
+      const warehouses = await storage.getWarehouses();
+      res.json(warehouses);
+    } catch (error) {
+      console.error("Error fetching warehouses:", error);
+      res.status(500).json({ error: "Failed to fetch warehouses" });
+    }
+  });
+
+  app.post("/api/warehouses", async (req, res) => {
+    try {
+      const warehouseData = insertWarehouseSchema.parse(req.body);
+      const warehouse = await storage.createWarehouse(warehouseData);
+      res.status(201).json(warehouse);
+    } catch (error) {
+      console.error("Error creating warehouse:", error);
+      res.status(500).json({ error: "Failed to create warehouse" });
+    }
+  });
+
+  // ==============================================
   // MANUFACTURING WORKFLOW - QUOTATIONS
   // ==============================================
   
