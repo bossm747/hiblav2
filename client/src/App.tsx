@@ -18,6 +18,8 @@ import { AssetsManagementPage } from "@/pages/AssetsManagementPage";
 import { CategoriesManagementPage } from "@/pages/CategoriesManagementPage";
 import { DataImportExport } from "@/pages/DataImportExport";
 import { WarehouseTransferPage } from "@/pages/WarehouseTransferPage";
+import { VendorOnboarding } from "@/pages/VendorOnboarding";
+import { EnhancedReporting } from "@/pages/EnhancedReporting";
 
 // Create a query client
 const queryClient = new QueryClient({
@@ -89,6 +91,12 @@ function AppRoutes() {
       break;
     case '/warehouse-transfers':
       content = <WarehouseTransferPage />;
+      break;
+    case '/vendor-onboarding':
+      content = <VendorOnboarding />;
+      break;
+    case '/enhanced-reports':
+      content = <EnhancedReporting />;
       break;
     default:
       content = <Dashboard />; // Default to dashboard if route not found

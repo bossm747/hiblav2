@@ -296,6 +296,23 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // Update job order item shipment timestamp
+  app.post("/api/job-order-items/:id/ship", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const shippedAt = new Date(); // Current timestamp
+      const updatedItem = await storage.updateJobOrderItemShipped(id, shippedAt);
+      res.json({ 
+        success: true, 
+        item: updatedItem,
+        message: "Shipment timestamp updated successfully"
+      });
+    } catch (error) {
+      console.error("Error updating job order item shipment:", error);
+      res.status(500).json({ error: "Failed to update shipment timestamp" });
+    }
+  });
+
   // ==============================================
   // FINANCIAL MANAGEMENT
   // ==============================================

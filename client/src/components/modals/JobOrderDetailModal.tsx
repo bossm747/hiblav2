@@ -69,6 +69,7 @@ import {
   Target,
   Zap,
   Activity,
+  Ship,
 } from 'lucide-react';
 
 interface JobOrderDetailModalProps {
@@ -559,11 +560,14 @@ export function JobOrderDetailModal({
                       <TableHead className="text-center font-semibold w-20">Reserved</TableHead>
                       <TableHead className="text-center font-semibold w-20">Ready</TableHead>
                       <TableHead className="text-center font-semibold w-20">To Produce</TableHead>
+                      <TableHead className="text-center font-semibold">Shipped At</TableHead>
+                      <TableHead className="text-center font-semibold">Actions</TableHead>
                     </TableRow>
                     <TableRow className="bg-gray-100 dark:bg-gray-800">
                       <TableHead colSpan={3} className="font-normal text-center italic">Product Details</TableHead>
                       <TableHead colSpan={8} className="font-normal text-center italic">Shipments</TableHead>
                       <TableHead colSpan={4} className="font-normal text-center italic">Production Status</TableHead>
+                      <TableHead colSpan={2} className="font-normal text-center italic">Tracking</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -600,11 +604,67 @@ export function JobOrderDetailModal({
                           <TableCell className="text-center font-semibold bg-red-50 dark:bg-red-900">
                             {item.toProduce || '0.0'}
                           </TableCell>
+                          <TableCell className="text-center">
+                            {item.shippedAt ? (
+                              <div className="text-xs">
+                                <div className="font-medium">
+                                  {new Date(item.shippedAt).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                  })}
+                                </div>
+                                <div className="text-muted-foreground">
+                                  {new Date(item.shippedAt).toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={async () => {
+                                try {
+                                  const response = await fetch(`/api/job-order-items/${item.id}/ship`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' }
+                                  });
+                                  if (response.ok) {
+                                    // Refresh the data
+                                    queryClient.invalidateQueries({ queryKey: ['/api/job-order-items', jobOrderId] });
+                                    toast({
+                                      title: 'Success',
+                                      description: 'Shipment timestamp updated',
+                                    });
+                                  } else {
+                                    throw new Error('Failed to update shipment');
+                                  }
+                                } catch (error) {
+                                  toast({
+                                    title: 'Error',
+                                    description: 'Failed to update shipment timestamp',
+                                    variant: 'destructive',
+                                  });
+                                }
+                              }}
+                              disabled={!!item.shippedAt}
+                              title={item.shippedAt ? 'Already shipped' : 'Mark as shipped'}
+                            >
+                              <Ship className="h-3 w-3 mr-1" />
+                              {item.shippedAt ? 'Shipped' : 'Ship'}
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={16} className="text-center py-8">
+                        <TableCell colSpan={18} className="text-center py-8">
                           <div className="text-muted-foreground">
                             <Factory className="h-8 w-8 mx-auto mb-2 opacity-50" />
                             <p>No items in this job order</p>

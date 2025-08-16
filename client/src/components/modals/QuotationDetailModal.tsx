@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { quotationsApi } from '@/api/quotations';
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { HeaderInfoCard } from '@/components/ui/header-info-card';
+import { ActionDropdown, ActionItem } from '@/components/ui/action-dropdown';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -21,14 +26,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   FileText,
   Eye,
@@ -141,35 +138,95 @@ export function QuotationDetailModal({
 
   if (!quotationId) return null;
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      pending: { icon: Clock, className: "bg-yellow-100 text-yellow-800 border-yellow-300" },
-      approved: { icon: CheckCircle, className: "bg-green-100 text-green-800 border-green-300" },
-      rejected: { icon: XCircle, className: "bg-red-100 text-red-800 border-red-300" },
-      draft: { icon: Edit, className: "bg-gray-100 text-gray-800 border-gray-300" },
-    };
-
-    const config = statusConfig[status as keyof typeof statusConfig] || {
-      icon: FileText,
-      className: "bg-blue-100 text-blue-800 border-blue-300"
-    };
-
-    const IconComponent = config.icon;
-
-    return (
-      <Badge className={config.className}>
-        <IconComponent className="h-3 w-3 mr-1" />
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </Badge>
-    );
-  };
+  // Build action items for dropdown
+  const actionItems: ActionItem[] = [
+    {
+      label: 'Edit',
+      icon: Edit,
+      onClick: () => onEdit?.(quotationId),
+    },
+    {
+      label: 'Duplicate',
+      icon: Copy,
+      onClick: () => onDuplicate?.(quotationId),
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      color: 'destructive',
+      onClick: async () => {
+        if (confirm(`Are you sure you want to delete quotation ${safeQuotation.quotationNumber}?`)) {
+          try {
+            await quotationsApi.deleteQuotation(quotationId);
+            queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
+            toast({
+              title: 'Success',
+              description: `Quotation ${safeQuotation.quotationNumber} deleted successfully`,
+            });
+            onOpenChange(false);
+          } catch (error) {
+            toast({
+              title: 'Error',
+              description: 'Failed to delete quotation',
+              variant: 'destructive',
+            });
+          }
+        }
+      },
+    },
+    { separator: true },
+    {
+      label: 'Convert to Sales Order',
+      icon: ShoppingCart,
+      onClick: () => onConvertToSalesOrder?.(quotationId),
+      hidden: safeQuotation.status !== 'approved',
+    },
+    {
+      label: 'Approve',
+      icon: CheckCircle,
+      color: 'success',
+      onClick: () => onApprove?.(quotationId),
+      hidden: safeQuotation.status !== 'pending',
+    },
+    {
+      label: 'Reject',
+      icon: XCircle,
+      color: 'destructive',
+      onClick: () => onReject?.(quotationId),
+      hidden: safeQuotation.status !== 'pending',
+    },
+    { separator: true },
+    {
+      label: 'Export PDF',
+      icon: Download,
+      onClick: () => onDownloadPDF?.(quotationId),
+    },
+    {
+      label: 'Send Email',
+      icon: Mail,
+      onClick: () => onSendEmail?.(quotationId),
+    },
+    {
+      label: 'Print',
+      icon: Printer,
+      onClick: () => window.print(),
+    },
+  ];
 
   if (isLoading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="space-y-4 p-6">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-48" />
+            <div className="grid grid-cols-4 gap-4">
+              <Skeleton className="h-20" />
+              <Skeleton className="h-20" />
+              <Skeleton className="h-20" />
+              <Skeleton className="h-20" />
+            </div>
+            <Skeleton className="h-32 w-full" />
           </div>
         </DialogContent>
       </Dialog>

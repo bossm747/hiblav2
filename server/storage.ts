@@ -117,6 +117,7 @@ export interface IStorage {
   createJobOrder(jobOrder: InsertJobOrder): Promise<JobOrder>;
   updateJobOrder(id: string, jobOrder: Partial<InsertJobOrder>): Promise<JobOrder>;
   getJobOrderItems(jobOrderId: string): Promise<JobOrderItem[]>;
+  updateJobOrderItemShipped(id: string, shippedAt: Date): Promise<JobOrderItem>;
   
   // Financial Management
   getInvoices(): Promise<Invoice[]>;
@@ -345,6 +346,14 @@ export class Storage implements IStorage {
   
   async getJobOrderItems(jobOrderId: string): Promise<JobOrderItem[]> {
     return await db.select().from(jobOrderItems).where(eq(jobOrderItems.jobOrderId, jobOrderId));
+  }
+  
+  async updateJobOrderItemShipped(id: string, shippedAt: Date): Promise<JobOrderItem> {
+    const [updatedItem] = await db.update(jobOrderItems)
+      .set({ shippedAt })
+      .where(eq(jobOrderItems.id, id))
+      .returning();
+    return updatedItem;
   }
   
   // Financial Management

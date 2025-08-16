@@ -1,0 +1,62 @@
+Summary of Missing UI & Backend Elements
+1. Pages / Routes that are referenced but not present
+Expected Route / Page	Expected File (React)	Status	Comments
+/quotations	client/src/pages/Quotations.tsx	Missing	No component file; only the modal exists.
+/sales-orders	client/src/pages/SalesOrders.tsx	Missing	No page implementation.
+/job-orders	client/src/pages/JobOrders.tsx	Missing	Only the modal is present.
+/inventory	client/src/pages/Inventory.tsx	Missing	No UI for inventory list / movement.
+/reports	client/pages/Reports.tsx	Missing	No report page (Ready Items Summary, etc.)
+/warehouse-transfers	client/pages/WarehouseTransfer.tsx	Missing	Required for the Warehouse Transfer Tracking feature.
+/vendor-onboarding	client/pages/VendorOnboarding.tsx	Missing	Suggested earlier for rider/vendor onboarding (not needed for shipment tracking).
+/admin/notifications	client/pages/AdminNotifications.tsx	Missing	Admin tools (notification logs, manual send) are absent.
+/admin/templates	client/pages/TemplateManagement.tsx	Missing	Template management UI missing.
+/audit	client/pages/AuditLog.tsx	Missing	Delivery status/audit UI missing.
+2. Buttons that do not work (no handler / missing API call)
+Button / Action	Where it appears	Current implementation	Missing functionality
+Delete (Quotation)	QuotationDetailModal	UI present, onDelete not passed	Should call DELETE /api/quotations/:id and close modal.
+Delete (Job Order)	JobOrderDetailModal	UI present, onDelete not passed	Should call DELETE /api/job-orders/:id.
+Start Production	JobOrderDetailModal (status pending)	UI present, onStartProduction prop exists but no backend endpoint (/api/job-orders/:id/start).	
+Complete Production	JobOrderDetailModal (status in‑progress)	onCompleteProduction prop exists but no endpoint (/api/job-orders/:id/complete).	
+Export PDF (Quotation & Job Order)	Both modals	onDownloadPDF prop exists but no implementation; should call PDF generator service.	
+Send Email (Quotation & Job Order)	Both modals	onSendEmail prop exists but no endpoint; should call email service.	
+Print	Both modals	Calls window.print() – works, but no custom print layout.	
+Duplicate	Both modals	onDuplicate exists but no API call to clone the record.	
+Create Transfer	(Missing)	No UI button to create a warehouse transfer.	
+Export Excel / PDF (Reports)	Not implemented	No export logic for Ready Items Summary.	
+3. Missing components (referenced but not present)
+Component	Expected location	Reason needed
+FileBrowserModal	client/src/components/FileBrowserModal.tsx	Used for file uploads (e.g., attaching documents to quotations, job orders). Missing in the repo.
+OpenFileBrowserButton	client/src/components/OpenFileBrowserButton.tsx	Button that opens the file browser modal; missing.
+main.js (or index.tsx entry)	client/src/main.tsx	Application entry point; not found.
+ActionDropdown	client/src/components/ActionDropdown.tsx	Reusable dropdown for actions (edit, duplicate, delete, etc.). Currently each modal defines its own dropdown.
+StatusBadge	src/components/StatusBadge.tsx	Centralized badge logic; duplicated in modals.
+HeaderInfoCard	components/HeaderInfoCard.tsx	Reused header sections (quotation header, job order header). Not present.
+ReportFilter	components/ReportFilter.tsx	UI for filtering reports (date, customer code, order item). Missing.
+WarehouseTransferModal	components/modals/WarehouseTransferModal.tsx	UI for creating / editing warehouse transfers.
+NotificationLog	components/NotificationLog.tsx	Admin notification logs.
+TemplateManagement	components/TemplateManagement.tsx	Template management UI.
+AuditLog	components/AuditLog.tsx	Audit trail UI.
+4. Functionalities still missing
+Warehouse Transfer Tracking
+API endpoints: GET /api/warehouse-transfers, POST, PATCH, DELETE.
+Service: warehouse-transfer-service.ts (create, update, fetch, timestamp on shipment).
+UI: WarehouseTransferModal, table view, timestamp column, status badge.
+PDF/Excel export for transfer reports.
+Real‑time update (WebSocket/SSE) to show when a transfer occurs.
+Delete Handlers for quotations and job orders.
+Export PDF / Email implementations for both quotations and job orders.
+Duplicate / Convert to Sales Order logic (API endpoint to create a sales order from a quotation, and to duplicate a record).
+Report Export (Excel & PDF) for the Ready Items Summary.
+Vendor / Rider Onboarding (if needed later) – not required for shipment tracking but mentioned in earlier suggestions.
+Admin Tools: notification logs, template management, audit logs, manual notification send.
+Authentication & Role‑Based UI: Ensure role‑based navigation (admin vs. staff) is enforced; currently only generic routes exist.
+Testing & CI: No unit/E2E tests, no CI pipeline.
+Documentation: OpenAPI spec, developer README, user guides for new features.
+5. What to do next
+Create missing pages (quotations, sales orders, job orders, inventory, reports) using the existing UI patterns (cards, tables, dropdowns).
+Implement missing API endpoints for delete, duplicate, convert to sales order, and warehouse transfer.
+Add missing components (FileBrowserModal, OpenFileBrowserButton, ActionDropdown, StatusBadge, HeaderInfoCard, ReportFilter, WarehouseTransferModal).
+Wire up Delete, Export PDF, Send Email, Duplicate, and Transfer actions to the backend services.
+Add a simple timestamp field (shippedAt) to job_order_items and update it via a ship endpoint; display it in the Job Order modal.
+Add a simple Warehouse Transfer page with a table, create/edit modal, and export options.
+Add unit/E2E tests and CI pipeline to ensure future changes do not break existing functionality.

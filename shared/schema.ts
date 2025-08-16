@@ -295,6 +295,8 @@ export const jobOrderItems = pgTable("job_order_items", {
   ready: decimal("ready", { precision: 10, scale: 2 }).default("0"),
   toProduce: decimal("to_produce", { precision: 10, scale: 2 }).default("0"),
   orderBalance: decimal("order_balance", { precision: 10, scale: 2 }).default("0"),
+  // Simple shipment tracking - records when items are moved between warehouses
+  shippedAt: timestamp("shipped_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -515,6 +517,7 @@ export const insertJobOrderSchema = createInsertSchema(jobOrders).omit({
 
 export const insertJobOrderItemSchema = createInsertSchema(jobOrderItems).omit({
   id: true,
+  shippedAt: true,
   createdAt: true,
 });
 

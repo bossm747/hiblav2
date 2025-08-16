@@ -6,26 +6,36 @@
 
 @layer base {
   :root {
-    /* Primary Brand Colors - Purple, Cyan, Pink Gradient */
+    /* Enhanced Brand Colors - Hibla Manufacturing Palette */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 262 83% 58%;
+    --primary: 262 83% 58%; /* Purple */
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
+    --secondary: 184 81% 29%; /* Cyan */
+    --secondary-foreground: 210 40% 98%;
     --muted: 210 40% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 184 81% 29%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent: 332 81% 60%; /* Pink */
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 262 83% 58%;
+    
+    /* Status Colors */
+    --success: 142 76% 36%;
+    --success-foreground: 210 40% 98%;
+    --warning: 48 96% 53%;
+    --warning-foreground: 222.2 84% 4.9%;
+    --info: 208 85% 55%;
+    --info-foreground: 210 40% 98%;
+    
+    /* Chart Colors */
     --chart-1: 262 83% 58%;
     --chart-2: 184 81% 29%;
     --chart-3: 332 81% 60%;
@@ -37,28 +47,38 @@
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 224 71% 6%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 224 71% 6%;
     --popover-foreground: 210 40% 98%;
     --primary: 262 83% 58%;
     --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 184 81% 44%;
+    --secondary-foreground: 222.2 84% 4.9%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 184 81% 29%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 332 81% 60%;
+    --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 262 83% 58%;
+    
+    /* Status Colors Dark */
+    --success: 142 76% 45%;
+    --success-foreground: 222.2 84% 4.9%;
+    --warning: 48 96% 60%;
+    --warning-foreground: 222.2 84% 4.9%;
+    --info: 208 85% 65%;
+    --info-foreground: 222.2 84% 4.9%;
+    
+    /* Chart Colors Dark */
     --chart-1: 262 83% 58%;
-    --chart-2: 184 81% 29%;
+    --chart-2: 184 81% 44%;
     --chart-3: 332 81% 60%;
-    --chart-4: 142 76% 36%;
-    --chart-5: 48 96% 53%;
+    --chart-4: 142 76% 45%;
+    --chart-5: 48 96% 60%;
   }
 }
 
@@ -68,22 +88,18 @@
   }
   
   html {
-    /* Responsive text scaling */
+    @apply font-sans;
     font-size: 16px;
   }
   
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
-    /* Enhanced mobile experience */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Touch optimization */
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
-    /* Prevent iOS bounce scrolling */
     overscroll-behavior: none;
-    /* Prevent horizontal scrolling on mobile */
     overflow-x: hidden;
   }
   
@@ -107,9 +123,10 @@
   }
   
   /* Enhanced focus states for better accessibility */
-  *:focus {
+  *:focus-visible {
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
+    transition: outline-color 0.2s ease;
   }
   
   /* Improved scrollbar styling */
@@ -206,6 +223,36 @@
   /* Manufacturing-specific styles */
   .manufacturing-gradient {
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+  }
+  
+  /* Hover & Focus States */
+  .interactive-card {
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
+  }
+  
+  .interactive-button {
+    @apply transition-all duration-200 hover:shadow-md active:scale-95;
+  }
+  
+  /* Status Badges */
+  .badge-success {
+    @apply bg-green-100 text-green-800 border-green-300 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800;
+  }
+  
+  .badge-warning {
+    @apply bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800;
+  }
+  
+  .badge-error {
+    @apply bg-red-100 text-red-800 border-red-300 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800;
+  }
+  
+  .badge-info {
+    @apply bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800;
+  }
+  
+  .badge-pending {
+    @apply bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800;
   }
   
   /* Enhanced shadow system for professional appearance */
