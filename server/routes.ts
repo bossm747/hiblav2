@@ -345,6 +345,88 @@ export function registerRoutes(app: Express): void {
   });
 
   // ==============================================
+  // WAREHOUSE TRANSFER TRACKING
+  // ==============================================
+  
+  const inventoryTransferService = new InventoryTransferService();
+
+  app.get("/api/warehouse-transfers", async (req, res) => {
+    try {
+      const filters = {
+        warehouseId: req.query.warehouseId as string,
+        productId: req.query.productId as string,
+        dateFrom: req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined,
+        dateTo: req.query.dateTo ? new Date(req.query.dateTo as string) : undefined,
+      };
+      const transfers = await inventoryTransferService.getTransferHistory(filters);
+      res.json(transfers);
+    } catch (error) {
+      console.error("Error fetching transfers:", error);
+      res.status(500).json({ error: "Failed to fetch transfers" });
+    }
+  });
+
+  app.post("/api/warehouse-transfers", async (req, res) => {
+    try {
+      const transfer = await inventoryTransferService.createTransfer({
+        ...req.body,
+        transferredBy: req.body.transferredBy || 'admin'
+      });
+      res.status(201).json(transfer);
+    } catch (error) {
+      console.error("Error creating transfer:", error);
+      res.status(500).json({ error: error.message || "Failed to create transfer" });
+    }
+  });
+
+  app.get("/api/warehouse-transfers/inventory-levels", async (req, res) => {
+    try {
+      const levels = await inventoryTransferService.getInventoryLevels();
+      res.json(levels);
+    } catch (error) {
+      console.error("Error fetching inventory levels:", error);
+      res.status(500).json({ error: "Failed to fetch inventory levels" });
+    }
+  });
+
+  app.get("/api/warehouse-transfers/low-stock", async (req, res) => {
+    try {
+      const threshold = parseInt(req.query.threshold as string) || 10;
+      const alerts = await inventoryTransferService.getLowStockAlerts(threshold);
+      res.json(alerts);
+    } catch (error) {
+      console.error("Error fetching low stock alerts:", error);
+      res.status(500).json({ error: "Failed to fetch low stock alerts" });
+    }
+  });
+
+  app.post("/api/warehouse-transfers/adjust", async (req, res) => {
+    try {
+      const adjustment = await inventoryTransferService.adjustInventory({
+        ...req.body,
+        adjustedBy: req.body.adjustedBy || 'admin'
+      });
+      res.json(adjustment);
+    } catch (error) {
+      console.error("Error adjusting inventory:", error);
+      res.status(500).json({ error: "Failed to adjust inventory" });
+    }
+  });
+
+  app.get("/api/warehouse-transfers/:warehouseId/:productId/stock", async (req, res) => {
+    try {
+      const stock = await inventoryTransferService.getWarehouseStock(
+        req.params.warehouseId,
+        req.params.productId
+      );
+      res.json({ stock });
+    } catch (error) {
+      console.error("Error fetching stock:", error);
+      res.status(500).json({ error: "Failed to fetch stock" });
+    }
+  });
+
+  // ==============================================
   // DASHBOARD ANALYTICS
   // ==============================================
   

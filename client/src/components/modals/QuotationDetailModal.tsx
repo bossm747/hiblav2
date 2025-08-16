@@ -1,5 +1,7 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import {
   Dialog,
   DialogContent,
@@ -81,6 +83,8 @@ export function QuotationDetailModal({
   onSendEmail,
   onDownloadPDF,
 }: QuotationDetailModalProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: quotationData, isLoading } = useQuery({
     queryKey: ['/api/quotations', quotationId],
     queryFn: async () => {
@@ -227,7 +231,30 @@ export function QuotationDetailModal({
                 Duplicate
               </DropdownMenuItem>
               
-              <DropdownMenuItem className="text-red-600">
+              <DropdownMenuItem 
+                className="text-red-600"
+                onClick={async () => {
+                  if (confirm(`Are you sure you want to delete quotation ${safeQuotation.quotationNumber}?`)) {
+                    try {
+                      await apiRequest(`/api/quotations/${quotationId}`, {
+                        method: 'DELETE',
+                      });
+                      queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
+                      toast({
+                        title: 'Success',
+                        description: `Quotation ${safeQuotation.quotationNumber} deleted successfully`,
+                      });
+                      onOpenChange(false);
+                    } catch (error) {
+                      toast({
+                        title: 'Error',
+                        description: 'Failed to delete quotation',
+                        variant: 'destructive',
+                      });
+                    }
+                  }
+                }}
+              >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
               </DropdownMenuItem>

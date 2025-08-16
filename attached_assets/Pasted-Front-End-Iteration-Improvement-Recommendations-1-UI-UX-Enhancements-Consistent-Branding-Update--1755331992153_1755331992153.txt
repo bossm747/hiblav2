@@ -1,0 +1,53 @@
+Front‑End Iteration & Improvement Recommendations
+1. UI/UX Enhancements
+Consistent Branding: Update global CSS variables to match the new brand palette (primary, secondary, accent colors). Apply the new color scheme to all shadcn/ui components (cards, buttons, badges) using Tailwind @apply and CSS variables.
+Responsive Layouts: Ensure all pages use a responsive grid (grid-cols-1 md:grid-cols-2 lg:grid-cols-4) and add max-w-screen-xl containers for better large‑screen readability.
+Dark‑Mode Support: Add dark: variants for background, text, and border colors on cards, modals, and tables. Use bg-gray-50 dark:bg-gray-900 patterns.
+Typography: Adopt the Inter font (or the brand’s preferred font) across the app. Add font-sans to the root html element and use text-sm/text-base consistently.
+Hover & Focus States: Add subtle transition and hover:shadow-lg to interactive cards and buttons for a more polished feel.
+Status Indicators: Use color‑coded badges (green for approved, yellow for pending, red for rejected, blue for in‑progress) across all tables and modals.
+Loading Skeletons: Replace static loading spinners with skeleton loaders (<Skeleton> component) for tables, charts, and item lists to improve perceived performance.
+2. Component & Code Refactoring
+Extract Reusable UI Blocks:
+ActionDropdown: a reusable component that receives an array of actions (label, icon, handler, color). Use it in QuotationDetailModal, JobOrderDetailModal, and any future modals.
+StatusBadge: centralize badge logic (icon, color) in a single component to avoid duplication.
+HeaderInfoCard: generic card for header sections (quotation header, job order header) with props for icon, label, value.
+State Management:
+Move API calls to a dedicated api folder (api/quotations.ts, api/jobOrders.ts) that expose typed functions (fetchQuotation, fetchJobOrder, updateJobOrder).
+Use React Query’s useMutation for all write operations (edit, duplicate, delete, start/complete production) to handle optimistic updates and error handling.
+Form Validation: Integrate react-hook-form with zod schemas for all forms (quotation, sales order, job order) to enforce required fields, numeric formats (decimal quantities), and file‑upload validation.
+Error Handling UI: Create a global ErrorToast component that displays error messages from API calls. Use toast from react-hot-toast or shadcn/ui Alert component.
+3. New Feature Implementations
+3.1. Vendor / Rider Onboarding Flow
+Stepper UI: Use Tabs or Stepper component to guide users through:
+Account Setup – basic info, password.
+Document Upload – drag‑and‑drop area with preview, validation (PDF, image, size limit).
+Verification Status – real‑time status badge (pending, verified, rejected) with progress bar.
+File Upload: Leverage existing multer backend endpoint; add client‑side FileUploader component with progress bar (<Progress>). Show success toast and update status badge.
+Real‑Time Feedback: Use WebSocket or SSE to push verification status updates to the UI (e.g., socket.io or SSE client). Show a toast when status changes.
+3.2. Warehouse Transfer Tracking UI (the only missing core feature)
+New Modal: WarehouseTransferModal with actions: create, edit, delete, export PDF, send email, print.
+Table View: Add a TransferTable component with columns: Transfer ID, From Warehouse, To Warehouse, Item, Qty, Status, Timestamp.
+Progress Bar: Show transfer progress (e.g., Progress component) per transfer.
+API Integration: Add /api/warehouse-transfers endpoints (GET, POST, PATCH, DELETE) and a service warehouse-transfer-service.ts.
+PDF Generation: Reuse existing PDF generator utility to produce transfer reports.
+Real‑Time Updates: Use socket.io or SSE to push transfer status changes to the UI.
+3.3. Enhanced Reporting UI
+Filterable Reports: Add a ReportFilter component with date picker, customer code dropdown, and order item search.
+Export Options: Add buttons for Excel (xlsx) and PDF export using xlsx and pdf-lib libraries.
+Download Buttons: Place export buttons in the ReportHeader component for consistency.
+4. Performance & Accessibility
+Lazy Loading: Use React.lazy and Suspense for heavy components (e.g., JobOrderDetailModal).
+Code Splitting: Split routes (/quotations, /job-orders, /reports) into separate chunks using dynamic imports.
+Image Optimization: Use next/image (or react-image) with loading="lazy" for all icons and images.
+ARIA & Keyboard: Ensure all dropdowns, modals, and buttons have proper aria- attributes and are keyboard‑navigable.
+WCAG 2.1: Verify color contrast ratios, add alt text for icons, and ensure focus outlines are visible.
+5. Testing & CI/CD
+Unit Tests: Add jest + @testing-library/react tests for each UI component (especially ActionDropdown, StatusBadge, and the new onboarding stepper).
+E2E Tests: Use Playwright to test the full flow: create quotation → convert to sales order → generate job order → start production → complete production.
+CI Pipeline: Add GitHub Actions workflow to run lint, type‑check, unit tests, and build on each PR.
+Storybook: Document all UI components in Storybook for design system consistency.
+6. Documentation & Onboarding
+API Docs: Generate OpenAPI spec from the backend routes and host it via Swagger UI.
+Developer Docs: Update README.md with steps to run the app, environment variables, and how to add new UI components.
+User Guides: Create a short video or interactive tutorial for the new vendor/rider onboarding flow

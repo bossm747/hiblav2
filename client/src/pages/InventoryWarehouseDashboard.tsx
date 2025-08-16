@@ -84,7 +84,10 @@ export function InventoryWarehouseDashboard() {
             <Plus className="h-4 w-4 mr-2" />
             Add Stock
           </Button>
-          <Button variant="outline">
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation('/warehouse-transfers')}
+          >
             <ArrowUpDown className="h-4 w-4 mr-2" />
             Transfer Stock
           </Button>

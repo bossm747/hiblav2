@@ -1,5 +1,7 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 import {
   Dialog,
   DialogContent,
@@ -92,6 +94,8 @@ export function JobOrderDetailModal({
   onSendEmail,
   onDownloadPDF,
 }: JobOrderDetailModalProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: jobOrderData, isLoading } = useQuery({
     queryKey: ['/api/job-orders', jobOrderId],
     queryFn: async () => {
@@ -255,7 +259,30 @@ export function JobOrderDetailModal({
                 Duplicate
               </DropdownMenuItem>
               
-              <DropdownMenuItem className="text-red-600">
+              <DropdownMenuItem 
+                className="text-red-600"
+                onClick={async () => {
+                  if (confirm(`Are you sure you want to delete job order ${safeJobOrder.jobOrderNumber}?`)) {
+                    try {
+                      await apiRequest(`/api/job-orders/${jobOrderId}`, {
+                        method: 'DELETE',
+                      });
+                      queryClient.invalidateQueries({ queryKey: ['/api/job-orders'] });
+                      toast({
+                        title: 'Success',
+                        description: `Job order ${safeJobOrder.jobOrderNumber} deleted successfully`,
+                      });
+                      onOpenChange(false);
+                    } catch (error) {
+                      toast({
+                        title: 'Error',
+                        description: 'Failed to delete job order',
+                        variant: 'destructive',
+                      });
+                    }
+                  }
+                }}
+              >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
               </DropdownMenuItem>
