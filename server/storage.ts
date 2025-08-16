@@ -67,6 +67,7 @@ export interface IStorage {
   // Staff Management
   getStaff(): Promise<Staff[]>;
   getStaffById(id: string): Promise<Staff | null>;
+  getStaffByEmail(email: string): Promise<Staff | null>;
   createStaff(staff: InsertStaff): Promise<Staff>;
   updateStaff(id: string, staff: Partial<InsertStaff>): Promise<Staff>;
   deleteStaff(id: string): Promise<void>;
@@ -183,6 +184,11 @@ export class Storage implements IStorage {
   
   async getStaffById(id: string): Promise<Staff | null> {
     const result = await db.select().from(staff).where(eq(staff.id, id)).limit(1);
+    return result[0] || null;
+  }
+  
+  async getStaffByEmail(email: string): Promise<Staff | null> {
+    const result = await db.select().from(staff).where(eq(staff.email, email)).limit(1);
     return result[0] || null;
   }
   

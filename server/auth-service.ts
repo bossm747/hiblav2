@@ -86,7 +86,7 @@ class AuthService {
 
   async updateStaffPermissions(staffId: string, permissions: string[]) {
     try {
-      const staff = await storage.getStaff(staffId);
+      const staff = await storage.getStaffById(staffId);
       if (!staff) {
         throw new Error("Staff not found");
       }
@@ -101,7 +101,7 @@ class AuthService {
   async validateToken(token: string): Promise<boolean> {
     // Simple token validation for development
     // In production, verify JWT token
-    return token && token.startsWith('demo-token-');
+    return !!(token && token.startsWith('demo-token-'));
   }
 
   async getStaffByToken(token: string) {
@@ -117,7 +117,7 @@ class AuthService {
     }
     
     const staffId = parts[2];
-    return await storage.getStaff(staffId);
+    return await storage.getStaffById(staffId);
   }
 }
 

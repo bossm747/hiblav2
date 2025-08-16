@@ -77,12 +77,22 @@ export function registerRoutes(app: Express): void {
         return res.status(400).json({ error: "Email and password are required" });
       }
       
-      // Simple authentication check
-      if (email === "admin@hibla.com" && password === "admin123") {
-        const user = { id: "1", email, name: "Admin User", role: "admin" };
-        res.json({ success: true, user });
+      // Use real authentication service with database lookup and bcrypt
+      const result = await authService.authenticate(email, password);
+      
+      if (result.success && result.user) {
+        // Store user in session if needed
+        (req as any).session = { user: result.user };
+        
+        res.json({ 
+          success: true, 
+          user: result.user,
+          token: result.token 
+        });
       } else {
-        res.status(401).json({ error: "Invalid credentials" });
+        res.status(401).json({ 
+          error: result.message || "Invalid credentials" 
+        });
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -95,8 +105,13 @@ export function registerRoutes(app: Express): void {
   });
 
   app.get("/api/auth/me", (req, res) => {
-    // For now, always return a default user
-    res.json({ user: { id: "1", email: "admin@hibla.com", name: "Admin User", role: "admin" } });
+    // Return current session user or null
+    const sessionUser = (req as any).session?.user;
+    if (sessionUser) {
+      res.json({ user: sessionUser });
+    } else {
+      res.status(401).json({ error: "Not authenticated" });
+    }
   });
 
   // ==============================================
