@@ -74,13 +74,19 @@ Hibla Manufacturing & Supply System is an **internal-only operations platform** 
 - Current Focus: Internal manufacturing workflow management
 
 ## Deployment Infrastructure (January 2025)
-**Production-ready deployment architecture with comprehensive health monitoring:**
-- **Health Check Endpoints**: Fast-responding endpoints at `/`, `/health`, and `/api/health` for deployment services
-- **Non-blocking Server Startup**: Background data seeding ensures immediate server availability for health checks
+**Production-ready deployment architecture:**
+- **Health Check Endpoints**: Simple endpoints at `/health` and `/api/health` (returns 'OK')
+- **Non-blocking Server Startup**: Background data seeding runs separately from server startup
 - **Production Stability**: Event loop keepalive mechanisms prevent premature process termination
 - **Zero-downtime Deployments**: Server starts immediately while initialization processes run asynchronously
-- **Multi-format Health Responses**: Root endpoint serves HTML for browsers and JSON for deployment services
 - **Comprehensive Error Handling**: Production-safe error handling prevents crashes during deployment
+
+## CRITICAL DEPLOYMENT RULES (DO NOT VIOLATE):
+1. **NEVER add handlers to root path "/"** - This blocks the React app from rendering
+2. **NEVER use complex JSON responses in health checks** - Use simple 'OK' response
+3. **NEVER use `npm run dev` in deployment** - Always use `npm start` or production commands
+4. **NEVER wait for database seeding before starting server** - Run seeding asynchronously
+5. **Health checks must be at `/health` and `/api/health` ONLY** - Not at root "/"
 
 ## System Architecture
 

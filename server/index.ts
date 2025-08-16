@@ -2,7 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { registerRoutes } from "./routes";
 // import { startReminderScheduler } from "./notification-service";
 import { seedHiblaAssets } from './seed-hibla-assets';
 import { seedStaff } from './seed-staff';
