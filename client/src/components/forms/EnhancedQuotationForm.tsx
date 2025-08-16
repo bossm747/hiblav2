@@ -142,7 +142,7 @@ export function EnhancedQuotationForm({
     queryKey: ['/api/products'],
   });
 
-  // Fetch price lists
+  // Fetch price lists for VLOOKUP pricing
   const { data: priceLists = [] } = useQuery({
     queryKey: ['/api/price-lists'],
   });
@@ -208,6 +208,21 @@ export function EnhancedQuotationForm({
     const unitPrice = form.getValues(`items.${index}.unitPrice`);
     const lineTotal = quantity * unitPrice;
     form.setValue(`items.${index}.lineTotal`, lineTotal);
+  };
+
+  // VLOOKUP function to calculate price based on price list/tier
+  const calculatePriceWithVLOOKUP = (basePrice: number, priceListId?: string) => {
+    if (!priceListId || !priceLists.length) {
+      return basePrice; // Return base price if no price list selected
+    }
+    
+    const selectedPriceList = priceLists.find((pl: any) => pl.id === priceListId);
+    if (!selectedPriceList) {
+      return basePrice;
+    }
+    
+    const multiplier = parseFloat(selectedPriceList.priceMultiplier || '1.0');
+    return basePrice * multiplier;
   };
 
   // Create/Update quotation mutation
@@ -310,6 +325,20 @@ export function EnhancedQuotationForm({
                             form.setValue('country', customer.country || '');
                             form.setValue('priceListId', customer.priceListId || '');
                             
+                            // Recalculate all item prices when customer (and their price list) changes
+                            const items = form.getValues('items');
+                            items.forEach((item, index) => {
+                              if (item.productId) {
+                                const product = products.find((p: any) => p.id === item.productId);
+                                if (product) {
+                                  const basePrice = parseFloat(product.basePrice || '0');
+                                  const calculatedPrice = calculatePriceWithVLOOKUP(basePrice, customer.priceListId);
+                                  form.setValue(`items.${index}.unitPrice`, calculatedPrice);
+                                  updateLineTotal(index);
+                                }
+                              }
+                            });
+                            
                             toast({
                               title: "Customer Details Auto-Populated",
                               description: `Details for ${customer.name} loaded. You can modify them if needed.`,
@@ -355,6 +384,67 @@ export function EnhancedQuotationForm({
                       <p className="text-xs text-muted-foreground">
                         Auto-filled from customer record but can be modified
                       </p>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="priceListId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Price Tier (VLOOKUP for pricing)</FormLabel>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          // Recalculate all item prices when price tier changes
+                          const items = form.getValues('items');
+                          items.forEach((item, index) => {
+                            if (item.productId) {
+                              const product = products.find((p: any) => p.id === item.productId);
+                              if (product) {
+                                const basePrice = parseFloat(product.basePrice || '0');
+                                const calculatedPrice = calculatePriceWithVLOOKUP(basePrice, value);
+                                form.setValue(`items.${index}.unitPrice`, calculatedPrice);
+                                updateLineTotal(index);
+                              }
+                            }
+                          });
+                          
+                          const selectedPriceList = priceLists.find((pl: any) => pl.id === value);
+                          if (selectedPriceList) {
+                            const multiplier = parseFloat(selectedPriceList.priceMultiplier || '1.0');
+                            const percentChange = (multiplier - 1) * 100;
+                            toast({
+                              title: "Price Tier Applied",
+                              description: `Using ${selectedPriceList.name} pricing (${percentChange > 0 ? '+' : ''}${percentChange.toFixed(0)}% from base)`,
+                              duration: 3000,
+                            });
+                          }
+                        }} 
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-testid="select-price-tier" className="bg-amber-50 dark:bg-amber-950/20">
+                            <SelectValue placeholder="Select price tier for VLOOKUP" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {priceLists.map((priceList: any) => {
+                            const multiplier = parseFloat(priceList.priceMultiplier || '1.0');
+                            const percentChange = (multiplier - 1) * 100;
+                            return (
+                              <SelectItem key={priceList.id} value={priceList.id}>
+                                {priceList.name} ({priceList.code}) - {percentChange > 0 ? '+' : ''}{percentChange.toFixed(0)}% from base
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        VLOOKUP: Automatically calculates prices based on selected tier
+                      </p>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -525,8 +615,32 @@ export function EnhancedQuotationForm({
                                   const product = products.find((p: any) => p.id === value);
                                   if (product) {
                                     form.setValue(`items.${index}.productName`, product.name);
-                                    form.setValue(`items.${index}.unitPrice`, parseFloat(product.price || '0'));
+                                    
+                                    // VLOOKUP: Calculate price based on selected price tier
+                                    const basePrice = parseFloat(product.basePrice || '0');
+                                    const selectedPriceListId = form.getValues('priceListId');
+                                    const calculatedPrice = calculatePriceWithVLOOKUP(basePrice, selectedPriceListId);
+                                    
+                                    form.setValue(`items.${index}.unitPrice`, calculatedPrice);
                                     updateLineTotal(index);
+                                    
+                                    // Show price calculation info
+                                    if (selectedPriceListId) {
+                                      const priceList = priceLists.find((pl: any) => pl.id === selectedPriceListId);
+                                      if (priceList) {
+                                        toast({
+                                          title: "VLOOKUP Price Calculated",
+                                          description: `Base: $${basePrice.toFixed(2)} × ${priceList.name} = $${calculatedPrice.toFixed(2)}`,
+                                          duration: 2000,
+                                        });
+                                      }
+                                    } else {
+                                      toast({
+                                        title: "Using Base Price",
+                                        description: `No price tier selected. Using base price: $${basePrice.toFixed(2)}`,
+                                        duration: 2000,
+                                      });
+                                    }
                                   }
                                 }}
                                 defaultValue={field.value}
@@ -535,11 +649,17 @@ export function EnhancedQuotationForm({
                                   <SelectValue placeholder="Select product" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {products.map((product: any) => (
-                                    <SelectItem key={product.id} value={product.id}>
-                                      {product.name} - ${product.price}
-                                    </SelectItem>
-                                  ))}
+                                  {products.map((product: any) => {
+                                    const basePrice = parseFloat(product.basePrice || '0');
+                                    const selectedPriceListId = form.getValues('priceListId');
+                                    const displayPrice = calculatePriceWithVLOOKUP(basePrice, selectedPriceListId);
+                                    
+                                    return (
+                                      <SelectItem key={product.id} value={product.id}>
+                                        {product.name} - ${displayPrice.toFixed(2)} {selectedPriceListId && `(base: $${basePrice.toFixed(2)})`}
+                                      </SelectItem>
+                                    );
+                                  })}
                                 </SelectContent>
                               </Select>
                             )}
