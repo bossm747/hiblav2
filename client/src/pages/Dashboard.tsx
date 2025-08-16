@@ -47,66 +47,34 @@ export function Dashboard() {
 
   // Analytics data with error handling
 
-  // Type-safe data access with fallbacks - matching actual API response
-  const safeAnalytics = analytics as {
-    overview?: {
-      totalCustomers?: string | number;
-      totalProducts?: string | number;
-      activeQuotations?: string | number;
-      activeSalesOrders?: string | number;
-      activeJobOrders?: string | number;
-    };
-    inventory?: {
-      lowStockCount?: number;
-      totalProducts?: number;
-    };
-    revenue?: {
-      total?: number;
-      trend?: string;
-      growth?: string;
-    };
-    orders?: {
-      total?: number;
-      trend?: string;
-      growth?: string;
-    };
-    conversion?: {
-      rate?: number;
-      trend?: string;
-      growth?: string;
-    };
-    avgOrderValue?: {
-      value?: number;
-      trend?: string;
-      growth?: string;
-    };
-  } | undefined;
-
+  // Type-safe data access with proper conversion - matching actual API response
+  const overview = analytics?.overview || {};
+  
   const metrics = [
     {
       title: 'Active Quotations',
-      value: Number(safeAnalytics?.overview?.activeQuotations || 0),
+      value: parseInt(overview.activeQuotations?.toString() || '0'),
       icon: FileText,
       description: 'Current quotations',
       trend: 'up'
     },
     {
       title: 'Sales Orders',
-      value: Number(safeAnalytics?.overview?.activeSalesOrders || 0),
+      value: parseInt(overview.activeSalesOrders?.toString() || '0'),
       icon: ShoppingCart,
       description: 'Processing orders',
       trend: 'stable'
     },
     {
       title: 'Job Orders',
-      value: Number(safeAnalytics?.overview?.activeJobOrders || 0),
+      value: parseInt(overview.activeJobOrders?.toString() || '0'),
       icon: Factory,
       description: 'In production',
       trend: 'up'
     },
     {
       title: 'Total Products',
-      value: Number(safeAnalytics?.overview?.totalProducts || 0),
+      value: parseInt(overview.totalProducts?.toString() || '0'),
       icon: Package,
       description: 'Active catalog items',
       trend: 'stable'
@@ -185,23 +153,23 @@ export function Dashboard() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">Active Job Orders</span>
-                    <span className="text-sm text-muted-foreground">{safeAnalytics?.overview?.activeJobOrders || 0}</span>
+                    <span className="text-sm text-muted-foreground">{overview.activeJobOrders || 0}</span>
                   </div>
-                  <Progress value={Math.min((Number(safeAnalytics?.overview?.activeJobOrders) || 0) * 10, 100)} className="h-2" />
+                  <Progress value={Math.min(parseInt(overview.activeJobOrders?.toString() || '0') * 10, 100)} className="h-2" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">Sales Orders Processing</span>
-                    <span className="text-sm text-muted-foreground">{safeAnalytics?.overview?.activeSalesOrders || 0}</span>
+                    <span className="text-sm text-muted-foreground">{overview.activeSalesOrders || 0}</span>
                   </div>
-                  <Progress value={Math.min((Number(safeAnalytics?.overview?.activeSalesOrders) || 0) * 10, 100)} className="h-2" />
+                  <Progress value={Math.min(parseInt(overview.activeSalesOrders?.toString() || '0') * 10, 100)} className="h-2" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">Pending Quotations</span>
-                    <span className="text-sm text-muted-foreground">{safeAnalytics?.overview?.activeQuotations || 0}</span>
+                    <span className="text-sm text-muted-foreground">{overview.activeQuotations || 0}</span>
                   </div>
-                  <Progress value={Math.min((Number(safeAnalytics?.overview?.activeQuotations) || 0) * 5, 100)} className="h-2" />
+                  <Progress value={Math.min(parseInt(overview.activeQuotations?.toString() || '0') * 5, 100)} className="h-2" />
                 </div>
               </div>
             )}
@@ -233,22 +201,22 @@ export function Dashboard() {
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
                   <div className="text-sm">
-                    <p className="font-medium">{safeAnalytics?.overview?.activeQuotations || 0} Active Quotations</p>
+                    <p className="font-medium">{overview.activeQuotations || 0} Active Quotations</p>
                     <p className="text-muted-foreground">Manufacturing pipeline</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-blue-500 rounded-full" />
                   <div className="text-sm">
-                    <p className="font-medium">{safeAnalytics?.overview?.activeSalesOrders || 0} Sales Orders</p>
+                    <p className="font-medium">{overview.activeSalesOrders || 0} Sales Orders</p>
                     <p className="text-muted-foreground">Processing orders</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full" />
+                  <div className="w-2 h-2 bg-orange-500 rounded-full" />
                   <div className="text-sm">
-                    <p className="font-medium">{safeAnalytics?.inventory?.lowStockCount || 0} Low Stock Items</p>
-                    <p className="text-muted-foreground">Inventory alerts</p>
+                    <p className="font-medium">{overview.totalCustomers || 0} Total Customers</p>
+                    <p className="text-muted-foreground">Business relationships</p>
                   </div>
                 </div>
               </div>
@@ -259,9 +227,9 @@ export function Dashboard() {
 
       {/* Order Automation Visualization */}
       <OrderAutomationVisualization
-        quotationsCount={Number(safeAnalytics?.overview?.activeQuotations) || 0}
-        salesOrdersCount={Number(safeAnalytics?.overview?.activeSalesOrders) || 0}
-        jobOrdersCount={Number(safeAnalytics?.overview?.activeJobOrders) || 0}
+        quotationsCount={parseInt(overview.activeQuotations?.toString() || '0')}
+        salesOrdersCount={parseInt(overview.activeSalesOrders?.toString() || '0')}
+        jobOrdersCount={parseInt(overview.activeJobOrders?.toString() || '0')}
         invoicesCount={0}
         paymentsCount={0}
         className="mb-6"
