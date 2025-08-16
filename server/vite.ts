@@ -68,18 +68,39 @@ export async function setupVite(app: Express, server: Server) {
 }
 
 export function serveStatic(app: Express) {
-  const distPath = path.resolve(import.meta.dirname, "public");
+  const distPath = path.resolve(import.meta.dirname, "..", "dist", "public");
+  const indexPath = path.resolve(distPath, "index.html");
 
-  if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
-    );
-  }
+  log(`Static files path: ${distPath}`);
+  log(`Index file path: ${indexPath}`);
+  log(`Index file exists: ${fs.existsSync(indexPath)}`);
 
-  app.use(express.static(distPath));
+  // Serve static files from dist/public with proper headers
+  app.use(express.static(distPath, {
+    maxAge: '1y',
+    etag: false
+  }));
 
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
+  // Handle client-side routing - serve index.html for non-API routes
+  app.get("*", (req, res, next) => {
+    // Skip API routes and health checks
+    if (req.path.startsWith("/api") || req.path === "/health") {
+      return next();
+    }
+
+    // Check if file exists in static directory
+    const filePath = path.join(distPath, req.path);
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      return res.sendFile(filePath);
+    }
+
+    // Fallback to index.html for client-side routing
+    if (fs.existsSync(indexPath)) {
+      log(`Serving index.html for route: ${req.path}`);
+      res.sendFile(indexPath);
+    } else {
+      log(`Production build not found at ${indexPath}`);
+      res.status(404).send("Production build not found. Run 'npm run build' first.");
+    }
   });
 }
