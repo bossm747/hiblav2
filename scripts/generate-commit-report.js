@@ -124,7 +124,7 @@ function generateCommitReport(days = 2) {
 
     // Save to file
     const reportContent = generateMarkdownReport(detailedCommits, days, authorStats, allChangedFiles);
-    const reportPath = path.join(__dirname, '..', `commit-report-${days}days-${new Date().toISOString().split('T')[0]}.md`);
+    const reportPath = `commit-report-${days}days-${new Date().toISOString().split('T')[0]}.md`;
     
     fs.writeFileSync(reportPath, reportContent);
     console.log(`💾 Report saved to: ${reportPath}`);
