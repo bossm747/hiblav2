@@ -24,32 +24,26 @@ function validateEnvironment() {
   log('Environment validation passed');
 }
 
-// Async seeding function to run after server startup
+// Async seeding function to run separately from server startup
 async function seedDataAsync() {
-  // Use setTimeout with longer delay to ensure server is fully ready
-  setTimeout(async () => {
-    try {
-      // Test database connection first
-      if (process.env.DATABASE_URL) {
-        await seedWarehouses();
-        await seedShowcasePricing();
-        await seedStaff();
-        await seedDefaultStaff();
-        log('✅ Background data seeding completed');
-      } else {
-        log('⚠️ No database URL found, skipping seeding');
-      }
-    } catch (error) {
-      // Don't fail the server if seeding fails
-      const errorMessage = error instanceof Error ? error.message : 'Unknown seeding error';
-      log(`⚠️ Background data seeding failed: ${errorMessage}`);
-      // Only log details in development
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('Seeding error details:', error);
-      }
-      log('Server continues running without seeded data');
+  try {
+    if (process.env.DATABASE_URL) {
+      await seedWarehouses();
+      await seedShowcasePricing();
+      await seedStaff();
+      await seedDefaultStaff();
+      log('✅ Background data seeding completed');
+    } else {
+      log('⚠️ No database URL found, skipping seeding');
     }
-  }, 2000); // Longer delay to ensure server is fully ready
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown seeding error';
+    log(`⚠️ Background data seeding failed: ${errorMessage}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Seeding error details:', error);
+    }
+    log('Server continues running without seeded data');
+  }
 }
 
 const app = express();
@@ -170,8 +164,8 @@ function setupGracefulShutdown(server: any) {
           // Keep the process alive
           log('🔄 Process will stay alive to serve requests');
           
-          // Start data seeding asynchronously after server is running
-          seedDataAsync();
+          // Start data seeding operations run asynchronously
+          setTimeout(() => seedDataAsync(), 0);
           
           resolve(serverInstance);
         });

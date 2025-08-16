@@ -45,14 +45,7 @@ export function registerRoutes(app: Express): void {
   
   // Health endpoint for deployment services
   app.get("/health", (req, res) => {
-    res.status(200).json({ 
-      status: "healthy", 
-      message: "Hibla Manufacturing System is running",
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      uptime: process.uptime(),
-      version: "1.0.0"
-    });
+    res.status(200).send('OK');
   });
 
   // API health endpoint
