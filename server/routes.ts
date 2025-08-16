@@ -54,18 +54,7 @@ export function registerRoutes(app: Express): void {
 
   // API health endpoint (lightweight)
   app.get("/api/health", (req, res) => {
-    try {
-      res.status(200).json({ 
-        status: "healthy", 
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
-      });
-    } catch (error) {
-      res.status(500).json({ 
-        status: "unhealthy", 
-        error: "Health check failed" 
-      });
-    }
+    res.status(200).send('OK');
   });
 
   // Middleware for JSON parsing

@@ -115,8 +115,6 @@ function setupGracefulShutdown(server: any) {
     validateEnvironment();
 
     // Deployment health status tracking
-    let isDeploymentReady = false;
-    let seedingComplete = false;
 
     // Fast health check routes (must be before other routes)
     app.get('/health', (req, res) => {
@@ -130,14 +128,8 @@ function setupGracefulShutdown(server: any) {
         res.status(408).send('Health check timeout');
       });
       
-      // Detailed health for monitoring
-      res.status(200).json({
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development',
-        deploymentReady: isDeploymentReady,
-        seedingComplete: seedingComplete
-      });
+      // Simple health check response
+      res.status(200).send('OK');
     });
     log('Health check routes registered');
 
@@ -182,7 +174,6 @@ function setupGracefulShutdown(server: any) {
       log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 
       // Mark as deployment ready immediately for health checks
-      isDeploymentReady = true;
       log(`✅ Server is ready to accept connections`);
 
       // Initialize data in background with proper delay
