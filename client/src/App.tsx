@@ -16,6 +16,7 @@ import { AdministrationDashboard } from "@/pages/AdministrationDashboard";
 import { EnhancedSystemPage } from "@/pages/EnhancedSystemPage";
 import { AssetsManagementPage } from "@/pages/AssetsManagementPage";
 import { CategoriesManagementPage } from "@/pages/CategoriesManagementPage";
+import { DataImportExport } from "@/pages/DataImportExport";
 
 // Create a query client
 const queryClient = new QueryClient({
@@ -81,6 +82,9 @@ function AppRoutes() {
       break;
     case '/categories':
       content = <CategoriesManagementPage />;
+      break;
+    case '/data-import-export':
+      content = <DataImportExport />;
       break;
     default:
       content = <Dashboard />; // Default to dashboard if route not found

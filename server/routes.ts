@@ -36,6 +36,7 @@ import multer from "multer";
 import path from "path";
 import { promises as fs } from "fs";
 import { z } from "zod";
+import { importExportRouter } from "./routes/importExport";
 
 export function registerRoutes(app: Express): void {
 
@@ -59,6 +60,11 @@ export function registerRoutes(app: Express): void {
 
   // Middleware for JSON parsing
   app.use(express.json());
+
+  // ==============================================
+  // IMPORT/EXPORT ROUTES
+  // ==============================================
+  app.use("/api", importExportRouter);
 
   // ==============================================
   // AUTHENTICATION ROUTES (Simplified)

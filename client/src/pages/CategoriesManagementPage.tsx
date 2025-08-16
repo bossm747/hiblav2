@@ -44,7 +44,8 @@ import {
   Wrench,
   Package2,
   ShoppingBag,
-  Folder
+  Folder,
+  Download
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -167,13 +168,49 @@ export function CategoriesManagementPage() {
             Manage categories for products, equipment, assets, tools, and supplies
           </p>
         </div>
-        <Button 
-          onClick={() => setShowCreateDialog(true)}
-          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Category
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                const response = await fetch('/api/export/categories?format=xlsx', {
+                  headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                  }
+                });
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `categories_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                toast({
+                  title: 'Export successful',
+                  description: 'Categories data has been exported'
+                });
+              } catch (error) {
+                toast({
+                  title: 'Export failed',
+                  description: 'Failed to export categories',
+                  variant: 'destructive'
+                });
+              }
+            }}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+          <Button 
+            onClick={() => setShowCreateDialog(true)}
+            className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Category
+          </Button>
+        </div>
       </div>
 
       {/* Statistics Cards */}

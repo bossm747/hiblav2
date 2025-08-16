@@ -51,7 +51,9 @@ import {
   AlertTriangle,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  Download,
+  Upload
 } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -236,13 +238,49 @@ export function AssetsManagementPage() {
             Track and manage company equipment, tools, and assets
           </p>
         </div>
-        <Button 
-          onClick={() => setShowCreateDialog(true)}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Asset
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={async () => {
+              try {
+                const response = await fetch('/api/export/assets?format=xlsx', {
+                  headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                  }
+                });
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `assets_export_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                toast({
+                  title: 'Export successful',
+                  description: 'Assets data has been exported'
+                });
+              } catch (error) {
+                toast({
+                  title: 'Export failed',
+                  description: 'Failed to export assets',
+                  variant: 'destructive'
+                });
+              }
+            }}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+          <Button 
+            onClick={() => setShowCreateDialog(true)}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Asset
+          </Button>
+        </div>
       </div>
 
       {/* Statistics Cards */}

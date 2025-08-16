@@ -34,10 +34,14 @@ import {
   Trash2,
   Key,
   RefreshCw,
+  FileSpreadsheet,
+  ArrowRight,
 } from 'lucide-react';
+import { useLocation } from 'wouter';
 
 export function AdministrationDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [, setLocation] = useLocation();
 
   // Fetch admin data
   const { data: staff = [] } = useQuery({
@@ -141,6 +145,81 @@ export function AdministrationDashboard() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card 
+              className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-blue-500"
+              onClick={() => setLocation('/data-import-export')}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <FileSpreadsheet className="h-5 w-5 text-blue-600" />
+                    Data Import/Export
+                  </span>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </CardTitle>
+                <CardDescription>
+                  Bulk import and export system data
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">Manage Data</div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Import CSV/Excel files or export data
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-purple-500"
+              onClick={() => setLocation('/assets')}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Database className="h-5 w-5 text-purple-600" />
+                    Assets Management
+                  </span>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </CardTitle>
+                <CardDescription>
+                  Track company equipment and assets
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">Manage Assets</div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Equipment, tools, and company assets
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-green-500"
+              onClick={() => setLocation('/categories')}
+            >
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Settings className="h-5 w-5 text-green-600" />
+                    Categories
+                  </span>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </CardTitle>
+                <CardDescription>
+                  Manage system categories
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">Manage Categories</div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Product, asset, and equipment categories
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* System Status */}
             <Card>
