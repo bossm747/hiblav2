@@ -28,10 +28,22 @@ function validateEnvironment() {
 async function seedDataAsync() {
   try {
     if (process.env.DATABASE_URL) {
-      await seedWarehouses();
-      await seedShowcasePricing();
-      await seedStaff();
-      await seedDefaultStaff();
+      log('🌱 Starting background data seeding...');
+      
+      // Run seeding operations with timeout to prevent blocking
+      const seedingPromise = Promise.all([
+        seedWarehouses(),
+        seedShowcasePricing(),
+        seedStaff(),
+        seedDefaultStaff()
+      ]);
+      
+      // Set a timeout for seeding operations
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Seeding timeout')), 30000)
+      );
+      
+      await Promise.race([seedingPromise, timeoutPromise]);
       log('✅ Background data seeding completed');
     } else {
       log('⚠️ No database URL found, skipping seeding');
@@ -126,66 +138,39 @@ function setupGracefulShutdown(server: any) {
       log('Production environment with static files setup complete');
     }
 
-    // Start server first, then seed data asynchronously
-    // This ensures health checks work immediately while seeding runs in background
-
-
     // Configure server port with proper fallback handling
     const port = parseInt(process.env.PORT || '5000', 10);
 
     // Start server with improved error handling
-    const startServer = () => {
-      return new Promise((resolve, reject) => {
-        const serverInstance = server.listen({
-          port: port,
-          host: "0.0.0.0",
-        }, async () => {
-          log(`🚀 Hibla Manufacturing System started successfully`);
-          log(`📡 Server listening on port ${port} (host: 0.0.0.0)`);
-          
-          // Wait for server to fully initialize before declaring ready
-          await new Promise(resolve => setTimeout(resolve, 100));
-          
-          log(`🏥 Health checks available at:`);
-          log(`   GET http://0.0.0.0:${port}/health`);
-          log(`   GET http://0.0.0.0:${port}/api/health`);
-          log(`🌐 React application available at:`);
-          log(`   GET http://0.0.0.0:${port}/ (Hibla Manufacturing System)`);          
-          log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-          log(`✅ Server is ready to accept connections`);
+    const serverInstance = server.listen({
+      port: port,
+      host: "0.0.0.0",
+    }, () => {
+      log(`🚀 Hibla Manufacturing System started successfully`);
+      log(`📡 Server listening on port ${port} (host: 0.0.0.0)`);
+      log(`🏥 Health checks available at:`);
+      log(`   GET http://0.0.0.0:${port}/health`);
+      log(`   GET http://0.0.0.0:${port}/api/health`);
+      log(`🌐 React application available at:`);
+      log(`   GET http://0.0.0.0:${port}/ (Hibla Manufacturing System)`);          
+      log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+      log(`✅ Server is ready to accept connections`);
 
-          // Start the notification reminder scheduler - Temporarily disabled
-          // startReminderScheduler();
-          // log('Notification reminder scheduler started');
+      // Setup graceful shutdown
+      setupGracefulShutdown(serverInstance);
 
-          // Setup graceful shutdown
-          setupGracefulShutdown(serverInstance);
+      // Start data seeding asynchronously (non-blocking)
+      setTimeout(() => seedDataAsync(), 1000);
+    });
 
-          // Keep the process alive
-          log('🔄 Process will stay alive to serve requests');
-          
-          // Start data seeding operations run asynchronously
-          setTimeout(() => seedDataAsync(), 0);
-          
-          resolve(serverInstance);
-        });
-
-        // Handle server startup errors
-        serverInstance.on('error', (error: any) => {
-          log(`Server error: ${error.message}`);
-          reject(error);
-        });
-      });
-    };
-
-    // Start the server and handle global errors
-    await startServer();
-
-    // Keep the process alive with a simple interval
-    setInterval(() => {
-      // This ensures the event loop stays active
-      // No-op function that runs every 60 seconds
-    }, 60000);
+    // Handle server startup errors
+    serverInstance.on('error', (error: any) => {
+      log(`Server error: ${error.message}`);
+      if (error.code === 'EADDRINUSE') {
+        log(`Port ${port} is already in use`);
+        process.exit(1);
+      }
+    });
 
     // Keep the process alive and handle unhandled errors
     process.on('uncaughtException', (error) => {

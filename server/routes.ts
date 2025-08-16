@@ -43,20 +43,29 @@ export function registerRoutes(app: Express): void {
   // HEALTH CHECK ENDPOINTS (Fast response for deployment health checks)
   // ==============================================
   
-  // Health endpoint for deployment services
+  // Health endpoint for deployment services (optimized for fast response)
   app.get("/health", (req, res) => {
-    res.status(200).send('OK');
+    try {
+      res.status(200).send('OK');
+    } catch (error) {
+      res.status(500).send('ERROR');
+    }
   });
 
-  // API health endpoint
+  // API health endpoint (lightweight)
   app.get("/api/health", (req, res) => {
-    res.status(200).json({ 
-      status: "healthy", 
-      message: "Manufacturing Management Platform API is running",
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development',
-      uptime: process.uptime()
-    });
+    try {
+      res.status(200).json({ 
+        status: "healthy", 
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+      });
+    } catch (error) {
+      res.status(500).json({ 
+        status: "unhealthy", 
+        error: "Health check failed" 
+      });
+    }
   });
 
   // Middleware for JSON parsing
