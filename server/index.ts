@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { registerRoutes } from "./routes";
 // import { startReminderScheduler } from "./notification-service";
 import { seedHiblaAssets } from './seed-hibla-assets';
 import { seedStaff } from './seed-staff';
@@ -124,7 +125,17 @@ function setupGracefulShutdown(server: any) {
       res.status(200).send('OK');
     });
 
+    app.get('/', (req, res) => {
+      // Fast root endpoint for deployment health checks
+      res.status(200).send('Server is ready');
+    });
+
     app.get('/api/health', (req, res) => {
+      // Set response timeout to ensure quick response
+      res.setTimeout(5000, () => {
+        res.status(408).send('Health check timeout');
+      });
+      
       // Detailed health for monitoring
       res.status(200).json({
         status: 'ok',
@@ -148,6 +159,10 @@ function setupGracefulShutdown(server: any) {
       res.status(status).json({ message });
     });
 
+    // Register API routes first
+    registerRoutes(app);
+    log('API routes registered');
+
     // Setup development or production environment
     if (app.get("env") === "development") {
       await setupVite(app, server);
@@ -161,11 +176,8 @@ function setupGracefulShutdown(server: any) {
     const port = parseInt(process.env.PORT || '5000', 10);
     const host = '0.0.0.0'; // Explicitly define host for consistency
 
-    // Start server
-    const serverInstance = server.listen({
-      port: port,
-      host: host,
-    }, async () => {
+    // Start server with explicit binding for Cloud Run
+    const serverInstance = server.listen(port, '0.0.0.0', async () => {
       log(`🚀 Hibla Manufacturing System started successfully`);
       log(`📡 Server listening on port ${port} (host: ${host})`);
       log(`🏥 Health checks available at:`);
@@ -179,8 +191,11 @@ function setupGracefulShutdown(server: any) {
       isDeploymentReady = true;
       log(`✅ Server is ready to accept connections`);
 
-      // Initialize data in background (non-blocking)
-      setTimeout(() => seedDataAsync(), 2000); // Increased delay for deployment stability
+      // Initialize data in background with proper delay
+      setTimeout(() => {
+        log('Starting delayed initialization...');
+        seedDataAsync();
+      }, 3000); // 3 second delay after "Server is ready" message
     });
 
     // Handle server startup errors
@@ -226,30 +241,11 @@ function setupGracefulShutdown(server: any) {
       });
     });
 
-    // Serve static files and React app
-    if (process.env.NODE_ENV === 'production') {
-      // In production, serve built React files
-      const clientBuildPath = path.join(__dirname, '../client/dist');
-      app.use(express.static(clientBuildPath));
-
-      // Fast root endpoint for deployment health checks
-      app.get('/', (req, res) => {
-        if (!isDeploymentReady) {
-          res.status(503).send('Service starting...');
-          return;
-        }
-        res.sendFile(path.join(clientBuildPath, 'index.html'));
-      });
-
-      app.get('*', (req, res) => {
-        res.sendFile(path.join(clientBuildPath, 'index.html'));
-      });
-    } else {
-      // In development, proxy to Vite
-      const vite = await setupVite(app, server); // Assuming setupVite returns the Vite instance
-      app.use(vite.ssrFixStacktrace);
-      app.use(vite.middlewares);
-    }
+    // Keep process alive with periodic heartbeat
+    setInterval(() => {
+      // Periodic heartbeat to keep process alive
+      log(`Server heartbeat - Active connections: ${serverInstance.listening}`);
+    }, 60000); // Every minute
 
   } catch (error) {
     // Catch any initialization errors

@@ -1,14 +1,21 @@
 
 #!/bin/bash
-echo "🚀 Starting Hibla Manufacturing System for deployment..."
+
+# Production startup script for Hibla Manufacturing System
+echo "Starting Hibla Manufacturing System in production mode..."
 
 # Set production environment
 export NODE_ENV=production
+export PORT=5000
 
-# Build the React application first
-echo "📦 Building React application..."
+# Ensure dependencies are installed
+echo "Installing dependencies..."
+npm ci --production
+
+# Build the application
+echo "Building application..."
 npm run build
 
-# Start the server with optimized settings
-echo "🌐 Starting production server..."
+# Start the server
+echo "Starting server..."
 node server/index.js
