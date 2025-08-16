@@ -1,21 +1,25 @@
 
 #!/bin/bash
 
-# Production startup script for Hibla Manufacturing System
-echo "Starting Hibla Manufacturing System in production mode..."
+# Exit on any error
+set -e
+
+echo "🚀 Starting Hibla Manufacturing System in production mode..."
 
 # Set production environment
 export NODE_ENV=production
 export PORT=5000
 
-# Ensure dependencies are installed
-echo "Installing dependencies..."
-npm ci --production
+# Ensure we're binding to all interfaces for deployment
+export HOST=0.0.0.0
 
-# Build the application
-echo "Building application..."
-npm run build
+# Add any additional environment variables here if needed
+# export DATABASE_URL="your_production_db_url"
 
-# Start the server
-echo "Starting server..."
-node server/index.js
+echo "📦 Environment: $NODE_ENV"
+echo "🌐 Port: $PORT"
+echo "🖥️  Host: $HOST"
+
+# Start the production server
+echo "🎯 Starting server..."
+node dist/index.js
