@@ -1,34 +1,44 @@
 import { QueryClient } from '@tanstack/react-query';
 
-// Create a reusable fetch function for API requests
-async function apiRequest(url: string, options?: RequestInit) {
-  const response = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-    ...options,
-  });
-
-  if (!response.ok) {
-    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-  }
-
-  return response.json();
-}
-
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: ({ queryKey }) => {
-        const [url] = queryKey as string[];
-        return apiRequest(url);
-      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
       retry: 1,
       refetchOnWindowFocus: false,
-      staleTime: 0, // Always consider data stale for real-time updates
     },
   },
 });
 
-export { apiRequest };
+// Get the API base URL
+const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return '';
+};
+
+export async function apiRequest<T = any>(
+  url: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const baseUrl = getApiBaseUrl();
+  const fullUrl = url.startsWith('/') ? `${baseUrl}${url}` : url;
+
+  const response = await fetch(fullUrl, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    credentials: 'include', // Include cookies for session management
+    ...options,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`API Error: ${response.status} - ${errorText}`);
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+}

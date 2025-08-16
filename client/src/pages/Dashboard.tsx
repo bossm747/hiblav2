@@ -20,9 +20,30 @@ import {
 export function Dashboard() {
   const { data: analytics, isLoading, error } = useQuery({
     queryKey: ['/api/dashboard/analytics'],
+    queryFn: async () => {
+      const response = await fetch('/api/dashboard/analytics');
+      if (!response.ok) {
+        throw new Error('Failed to fetch dashboard analytics');
+      }
+      return response.json();
+    },
     refetchInterval: 30000, // Refetch every 30 seconds
     staleTime: 0, // Always consider data stale
   });
+
+  // Add error logging for debugging
+  if (error) {
+    console.error('Dashboard API Error:', error);
+  }
+
+  // Add loading state logging
+  if (isLoading) {
+    console.log('Dashboard loading analytics data...');
+  }
+
+  if (analytics) {
+    console.log('Dashboard analytics data:', analytics);
+  }
 
   // Analytics data with error handling
 

@@ -866,8 +866,11 @@ export function registerRoutes(app: Express): void {
   
   app.get("/api/dashboard/analytics", async (req, res) => {
     try {
+      console.log("📊 Fetching dashboard analytics...");
       const stats = await storage.getDashboardStats();
-      res.json({
+      console.log("📊 Raw stats from storage:", stats);
+      
+      const response = {
         overview: {
           totalCustomers: stats.customers || 0,
           totalProducts: stats.products || 0,
@@ -875,9 +878,12 @@ export function registerRoutes(app: Express): void {
           activeSalesOrders: stats.salesOrders || 0,
           activeJobOrders: stats.jobOrders || 0
         }
-      });
+      };
+      
+      console.log("📊 Sending dashboard response:", response);
+      res.json(response);
     } catch (error) {
-      console.error("Error fetching dashboard analytics:", error);
+      console.error("❌ Error fetching dashboard analytics:", error);
       res.status(500).json({ error: "Failed to fetch dashboard analytics" });
     }
   });
