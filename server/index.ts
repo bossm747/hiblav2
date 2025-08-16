@@ -125,11 +125,6 @@ function setupGracefulShutdown(server: any) {
       res.status(200).send('OK');
     });
 
-    app.get('/', (req, res) => {
-      // Fast root endpoint for deployment health checks
-      res.status(200).send('Server is ready');
-    });
-
     app.get('/api/health', (req, res) => {
       // Set response timeout to ensure quick response
       res.setTimeout(5000, () => {
