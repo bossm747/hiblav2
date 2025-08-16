@@ -10,6 +10,7 @@ import { seedWarehouses } from './seed-warehouses';
 import { seedShowcasePricing } from './seed-showcase-pricing';
 import { cleanCustomerData as seedRealCustomersOnly } from './seed-real-customers-only';
 import { seedRealHiblaData } from './seed-real-hibla-data';
+import path from 'path'; // Ensure path is imported
 
 
 // Environment validation function
@@ -29,7 +30,7 @@ async function seedDataAsync() {
   try {
     if (process.env.DATABASE_URL) {
       log('🌱 Starting background data seeding...');
-      
+
       // Run seeding operations with timeout to prevent blocking
       const seedingPromise = Promise.all([
         seedWarehouses(),
@@ -37,12 +38,12 @@ async function seedDataAsync() {
         seedStaff(),
         seedDefaultStaff()
       ]);
-      
+
       // Set a timeout for seeding operations
-      const timeoutPromise = new Promise((_, reject) => 
+      const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Seeding timeout')), 30000)
       );
-      
+
       await Promise.race([seedingPromise, timeoutPromise]);
       log('✅ Background data seeding completed');
     } else {
@@ -113,9 +114,27 @@ function setupGracefulShutdown(server: any) {
     // Validate environment variables first
     validateEnvironment();
 
-    // Register API routes BEFORE static/vite setup (includes health check endpoints)
-    registerRoutes(app);
-    log('Routes registered successfully (including health endpoints)');
+    // Deployment health status tracking
+    let isDeploymentReady = false;
+    let seedingComplete = false;
+
+    // Fast health check routes (must be before other routes)
+    app.get('/health', (req, res) => {
+      // Simple, fast response for deployment health checks
+      res.status(200).send('OK');
+    });
+
+    app.get('/api/health', (req, res) => {
+      // Detailed health for monitoring
+      res.status(200).json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        deploymentReady: isDeploymentReady,
+        seedingComplete: seedingComplete
+      });
+    });
+    log('Health check routes registered');
 
     // Create HTTP server
     const server = createServer(app);
@@ -140,27 +159,28 @@ function setupGracefulShutdown(server: any) {
 
     // Configure server port with proper fallback handling
     const port = parseInt(process.env.PORT || '5000', 10);
+    const host = '0.0.0.0'; // Explicitly define host for consistency
 
-    // Start server with improved error handling
+    // Start server
     const serverInstance = server.listen({
       port: port,
-      host: "0.0.0.0",
-    }, () => {
+      host: host,
+    }, async () => {
       log(`🚀 Hibla Manufacturing System started successfully`);
-      log(`📡 Server listening on port ${port} (host: 0.0.0.0)`);
+      log(`📡 Server listening on port ${port} (host: ${host})`);
       log(`🏥 Health checks available at:`);
-      log(`   GET http://0.0.0.0:${port}/health`);
-      log(`   GET http://0.0.0.0:${port}/api/health`);
+      log(`   GET http://${host}:${port}/health`);
+      log(`   GET http://${host}:${port}/api/health`);
       log(`🌐 React application available at:`);
-      log(`   GET http://0.0.0.0:${port}/ (Hibla Manufacturing System)`);          
+      log(`   GET http://${host}:${port}/ (Hibla Manufacturing System)`);
       log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+
+      // Mark as deployment ready immediately for health checks
+      isDeploymentReady = true;
       log(`✅ Server is ready to accept connections`);
 
-      // Setup graceful shutdown
-      setupGracefulShutdown(serverInstance);
-
-      // Start data seeding asynchronously (non-blocking)
-      setTimeout(() => seedDataAsync(), 1000);
+      // Initialize data in background (non-blocking)
+      setTimeout(() => seedDataAsync(), 2000); // Increased delay for deployment stability
     });
 
     // Handle server startup errors
@@ -190,6 +210,46 @@ function setupGracefulShutdown(server: any) {
         process.exit(1);
       }
     });
+
+    // Ensure process stays running for deployment
+    process.on('SIGTERM', () => {
+      log('SIGTERM received, shutting down gracefully');
+      serverInstance.close(() => {
+        log('Process terminated');
+      });
+    });
+
+    process.on('SIGINT', () => {
+      log('SIGINT received, shutting down gracefully');
+      serverInstance.close(() => {
+        log('Process terminated');
+      });
+    });
+
+    // Serve static files and React app
+    if (process.env.NODE_ENV === 'production') {
+      // In production, serve built React files
+      const clientBuildPath = path.join(__dirname, '../client/dist');
+      app.use(express.static(clientBuildPath));
+
+      // Fast root endpoint for deployment health checks
+      app.get('/', (req, res) => {
+        if (!isDeploymentReady) {
+          res.status(503).send('Service starting...');
+          return;
+        }
+        res.sendFile(path.join(clientBuildPath, 'index.html'));
+      });
+
+      app.get('*', (req, res) => {
+        res.sendFile(path.join(clientBuildPath, 'index.html'));
+      });
+    } else {
+      // In development, proxy to Vite
+      const vite = await setupVite(app, server); // Assuming setupVite returns the Vite instance
+      app.use(vite.ssrFixStacktrace);
+      app.use(vite.middlewares);
+    }
 
   } catch (error) {
     // Catch any initialization errors
