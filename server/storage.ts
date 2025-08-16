@@ -116,6 +116,7 @@ export interface IStorage {
   getJobOrderById(id: string): Promise<JobOrder | null>;
   createJobOrder(jobOrder: InsertJobOrder): Promise<JobOrder>;
   updateJobOrder(id: string, jobOrder: Partial<InsertJobOrder>): Promise<JobOrder>;
+  deleteJobOrder(id: string): Promise<void>;
   getJobOrderItems(jobOrderId: string): Promise<JobOrderItem[]>;
   updateJobOrderItemShipped(id: string, shippedAt: Date): Promise<JobOrderItem>;
   
@@ -342,6 +343,10 @@ export class Storage implements IStorage {
   async updateJobOrder(id: string, jobOrder: Partial<InsertJobOrder>): Promise<JobOrder> {
     const [updatedJobOrder] = await db.update(jobOrders).set(jobOrder).where(eq(jobOrders.id, id)).returning();
     return updatedJobOrder;
+  }
+  
+  async deleteJobOrder(id: string): Promise<void> {
+    await db.delete(jobOrders).where(eq(jobOrders.id, id));
   }
   
   async getJobOrderItems(jobOrderId: string): Promise<JobOrderItem[]> {

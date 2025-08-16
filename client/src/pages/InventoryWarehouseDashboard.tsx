@@ -47,25 +47,25 @@ export function InventoryWarehouseDashboard() {
   const [, setLocation] = useLocation();
 
   // Fetch inventory data
-  const { data: warehouses = [] } = useQuery({
+  const { data: warehouses = [] } = useQuery<any[]>({
     queryKey: ['/api/warehouses'],
   });
 
-  const { data: products = [] } = useQuery({
+  const { data: products = [] } = useQuery<any[]>({
     queryKey: ['/api/products'],
   });
 
-  const { data: inventoryTransactions = [] } = useQuery({
+  const { data: inventoryTransactions = [] } = useQuery<any[]>({
     queryKey: ['/api/inventory/transactions'],
   });
 
   // Calculate inventory metrics
-  const totalProducts = products.length;
-  const lowStockProducts = products.filter((product: any) => 
+  const totalProducts = (products as any[]).length;
+  const lowStockProducts = (products as any[]).filter((product: any) => 
     product.stockLevel <= product.reorderPoint
   ).length;
-  const totalWarehouses = warehouses.length;
-  const totalInventoryValue = products.reduce((sum: number, product: any) => 
+  const totalWarehouses = (warehouses as any[]).length;
+  const totalInventoryValue = (products as any[]).reduce((sum: number, product: any) => 
     sum + (product.stockLevel * product.price), 0
   );
 
