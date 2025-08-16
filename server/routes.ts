@@ -1,8 +1,9 @@
 import express, { type Express, type Request, type Response } from "express";
-import './types/session';
+import './types/session.d';
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { authService } from "./auth-service";
+import { requireAuth, requireRole, requirePermission } from "./middleware/auth";
 import { generateSalesOrderHTML, generateJobOrderHTML } from "./pdf-generator";
 import { aiImageService, type ImageGenerationRequest } from "./ai-image-service";
 import { db } from "./db";
@@ -81,6 +82,9 @@ export function registerRoutes(app: Express): void {
       // Use real authentication service with database lookup and bcrypt
       const result = await authService.authenticate(email, password);
       
+      console.log('Auth result - Has token?:', !!result.token);
+      console.log('Auth result - Token value:', result.token ? 'JWT token present' : 'No token');
+      
       if (result.success && result.user) {
         // Store user in session with proper typing
         req.session.user = result.user;
@@ -93,6 +97,7 @@ export function registerRoutes(app: Express): void {
             return res.status(500).json({ error: "Session error" });
           }
           
+          console.log('Sending response with token?:', !!result.token);
           res.json({ 
             success: true, 
             user: result.user,
@@ -148,7 +153,7 @@ export function registerRoutes(app: Express): void {
   // CUSTOMER MANAGEMENT (B2B)
   // ==============================================
   
-  app.get("/api/customers", async (req, res) => {
+  app.get("/api/customers", requireAuth, async (req, res) => {
     try {
       const customers = await storage.getCustomers();
       res.json(customers);
@@ -158,7 +163,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/customers/:id", async (req, res) => {
+  app.get("/api/customers/:id", requireAuth, async (req, res) => {
     try {
       const customer = await storage.getCustomerById(req.params.id);
       if (!customer) {
@@ -171,7 +176,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/customers", async (req, res) => {
+  app.post("/api/customers", requireAuth, async (req, res) => {
     try {
       const customerData = insertCustomerSchema.parse(req.body);
       const customer = await storage.createCustomer(customerData);
@@ -182,7 +187,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.put("/api/customers/:id", async (req, res) => {
+  app.put("/api/customers/:id", requireAuth, async (req, res) => {
     try {
       const customerData = insertCustomerSchema.partial().parse(req.body);
       const customer = await storage.updateCustomer(req.params.id, customerData);
@@ -197,7 +202,7 @@ export function registerRoutes(app: Express): void {
   // STAFF MANAGEMENT
   // ==============================================
   
-  app.get("/api/staff", async (req, res) => {
+  app.get("/api/staff", requireAuth, async (req, res) => {
     try {
       const staff = await storage.getStaff();
       res.json(staff);
@@ -207,7 +212,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/staff", async (req, res) => {
+  app.post("/api/staff", requireAuth, async (req, res) => {
     try {
       const staffData = insertStaffSchema.parse(req.body);
       const staff = await storage.createStaff(staffData);
@@ -222,7 +227,7 @@ export function registerRoutes(app: Express): void {
   // PRODUCT MANAGEMENT
   // ==============================================
   
-  app.get("/api/products", async (req, res) => {
+  app.get("/api/products", requireAuth, async (req, res) => {
     try {
       const products = await storage.getProducts();
       res.json(products);
@@ -232,7 +237,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/products", async (req, res) => {
+  app.post("/api/products", requireAuth, async (req, res) => {
     try {
       const productData = insertProductSchema.parse(req.body);
       const product = await storage.createProduct(productData);
@@ -247,7 +252,7 @@ export function registerRoutes(app: Express): void {
   // MANUFACTURING WORKFLOW - SALES ORDERS
   // ==============================================
   
-  app.get("/api/sales-orders", async (req, res) => {
+  app.get("/api/sales-orders", requireAuth, async (req, res) => {
     try {
       const salesOrders = await storage.getSalesOrders();
       res.json(salesOrders);
@@ -257,7 +262,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/sales-orders/:id", async (req, res) => {
+  app.get("/api/sales-orders/:id", requireAuth, async (req, res) => {
     try {
       const salesOrder = await storage.getSalesOrderById(req.params.id);
       if (!salesOrder) {
@@ -270,7 +275,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/sales-orders", async (req, res) => {
+  app.post("/api/sales-orders", requireAuth, async (req, res) => {
     try {
       const salesOrderData = insertSalesOrderSchema.parse(req.body);
       const salesOrder = await storage.createSalesOrder(salesOrderData);
@@ -285,7 +290,7 @@ export function registerRoutes(app: Express): void {
   // MANUFACTURING WORKFLOW - JOB ORDERS
   // ==============================================
   
-  app.get("/api/job-orders", async (req, res) => {
+  app.get("/api/job-orders", requireAuth, async (req, res) => {
     try {
       const jobOrders = await storage.getJobOrders();
       res.json(jobOrders);
@@ -295,7 +300,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/job-orders/:id", async (req, res) => {
+  app.get("/api/job-orders/:id", requireAuth, async (req, res) => {
     try {
       const jobOrder = await storage.getJobOrderById(req.params.id);
       if (!jobOrder) {
@@ -308,7 +313,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/job-orders", async (req, res) => {
+  app.post("/api/job-orders", requireAuth, async (req, res) => {
     try {
       const jobOrderData = insertJobOrderSchema.parse(req.body);
       const jobOrder = await storage.createJobOrder(jobOrderData);
@@ -319,7 +324,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/job-order-items", async (req, res) => {
+  app.get("/api/job-order-items", requireAuth, async (req, res) => {
     try {
       // Return all job order items
       const jobOrders = await storage.getJobOrders();
@@ -339,7 +344,7 @@ export function registerRoutes(app: Express): void {
   // WAREHOUSE MANAGEMENT
   // ==============================================
   
-  app.get("/api/warehouses", async (req, res) => {
+  app.get("/api/warehouses", requireAuth, async (req, res) => {
     try {
       const warehouses = await storage.getWarehouses();
       res.json(warehouses);
@@ -349,7 +354,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/warehouses", async (req, res) => {
+  app.post("/api/warehouses", requireAuth, async (req, res) => {
     try {
       const warehouseData = insertWarehouseSchema.parse(req.body);
       const warehouse = await storage.createWarehouse(warehouseData);
@@ -364,7 +369,7 @@ export function registerRoutes(app: Express): void {
   // MANUFACTURING WORKFLOW - QUOTATIONS
   // ==============================================
   
-  app.get("/api/quotations", async (req, res) => {
+  app.get("/api/quotations", requireAuth, async (req, res) => {
     try {
       const quotations = await storage.getQuotations();
       res.json(quotations);
@@ -374,7 +379,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/quotations/:id", async (req, res) => {
+  app.get("/api/quotations/:id", requireAuth, async (req, res) => {
     try {
       const quotation = await storage.getQuotationById(req.params.id);
       if (!quotation) {
@@ -387,7 +392,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/quotations", async (req, res) => {
+  app.post("/api/quotations", requireAuth, async (req, res) => {
     try {
       const quotationData = insertQuotationSchema.parse(req.body);
       const quotation = await storage.createQuotation(quotationData);
@@ -398,7 +403,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/quotations/:id/items", async (req, res) => {
+  app.get("/api/quotations/:id/items", requireAuth, async (req, res) => {
     try {
       const items = await storage.getQuotationItems(req.params.id);
       res.json(items);
@@ -408,7 +413,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.patch("/api/quotations/:id", async (req, res) => {
+  app.patch("/api/quotations/:id", requireAuth, async (req, res) => {
     try {
       const quotation = await storage.updateQuotation(req.params.id, req.body);
       res.json(quotation);
@@ -418,7 +423,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.delete("/api/quotations/:id", async (req, res) => {
+  app.delete("/api/quotations/:id", requireAuth, async (req, res) => {
     try {
       await storage.deleteQuotation(req.params.id);
       res.status(204).send();
@@ -428,7 +433,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/quotations/:id/duplicate", async (req, res) => {
+  app.post("/api/quotations/:id/duplicate", requireAuth, async (req, res) => {
     try {
       const original = await storage.getQuotationById(req.params.id);
       if (!original) {
@@ -458,7 +463,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/quotations/:id/convert-to-sales-order", async (req, res) => {
+  app.post("/api/quotations/:id/convert-to-sales-order", requireAuth, async (req, res) => {
     try {
       const quotation = await storage.getQuotationById(req.params.id);
       if (!quotation) {
@@ -496,7 +501,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/quotations/:id/pdf", async (req, res) => {
+  app.get("/api/quotations/:id/pdf", requireAuth, async (req, res) => {
     try {
       const quotation = await storage.getQuotationById(req.params.id);
       if (!quotation) {
@@ -512,7 +517,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/quotations/:id/email", async (req, res) => {
+  app.post("/api/quotations/:id/email", requireAuth, async (req, res) => {
     try {
       const quotation = await storage.getQuotationById(req.params.id);
       if (!quotation) {
@@ -530,7 +535,7 @@ export function registerRoutes(app: Express): void {
   // MANUFACTURING WORKFLOW - SALES ORDERS
   // ==============================================
   
-  app.get("/api/sales-orders", async (req, res) => {
+  app.get("/api/sales-orders", requireAuth, async (req, res) => {
     try {
       const salesOrders = await storage.getSalesOrders();
       res.json(salesOrders);
@@ -540,7 +545,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/sales-orders", async (req, res) => {
+  app.post("/api/sales-orders", requireAuth, async (req, res) => {
     try {
       const salesOrderData = insertSalesOrderSchema.parse(req.body);
       const salesOrder = await storage.createSalesOrder(salesOrderData);
@@ -555,7 +560,7 @@ export function registerRoutes(app: Express): void {
   // MANUFACTURING WORKFLOW - JOB ORDERS
   // ==============================================
   
-  app.get("/api/job-orders", async (req, res) => {
+  app.get("/api/job-orders", requireAuth, async (req, res) => {
     try {
       const jobOrders = await storage.getJobOrders();
       res.json(jobOrders);
@@ -565,7 +570,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/job-orders", async (req, res) => {
+  app.post("/api/job-orders", requireAuth, async (req, res) => {
     try {
       const jobOrderData = insertJobOrderSchema.parse(req.body);
       const jobOrder = await storage.createJobOrder(jobOrderData);
@@ -576,7 +581,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/job-orders/:id", async (req, res) => {
+  app.get("/api/job-orders/:id", requireAuth, async (req, res) => {
     try {
       const jobOrder = await storage.getJobOrderById(req.params.id);
       if (!jobOrder) {
@@ -589,7 +594,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.patch("/api/job-orders/:id", async (req, res) => {
+  app.patch("/api/job-orders/:id", requireAuth, async (req, res) => {
     try {
       const jobOrder = await storage.updateJobOrder(req.params.id, req.body);
       res.json(jobOrder);
@@ -599,7 +604,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.delete("/api/job-orders/:id", async (req, res) => {
+  app.delete("/api/job-orders/:id", requireAuth, async (req, res) => {
     try {
       await storage.deleteJobOrder(req.params.id);
       res.status(204).send();
@@ -609,7 +614,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/job-orders/:id/duplicate", async (req, res) => {
+  app.post("/api/job-orders/:id/duplicate", requireAuth, async (req, res) => {
     try {
       const original = await storage.getJobOrderById(req.params.id);
       if (!original) {
@@ -636,7 +641,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/job-orders/:id/start-production", async (req, res) => {
+  app.post("/api/job-orders/:id/start-production", requireAuth, async (req, res) => {
     try {
       const jobOrder = await storage.updateJobOrder(req.params.id, { 
         productionDate: new Date() 
@@ -648,7 +653,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/job-orders/:id/complete-production", async (req, res) => {
+  app.post("/api/job-orders/:id/complete-production", requireAuth, async (req, res) => {
     try {
       const jobOrder = await storage.updateJobOrder(req.params.id, { 
         received: 'completed' 
@@ -660,7 +665,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/job-orders/:id/pause-production", async (req, res) => {
+  app.post("/api/job-orders/:id/pause-production", requireAuth, async (req, res) => {
     try {
       const jobOrder = await storage.updateJobOrder(req.params.id, { 
         received: 'paused' 
@@ -672,7 +677,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/job-orders/:id/pdf", async (req, res) => {
+  app.get("/api/job-orders/:id/pdf", requireAuth, async (req, res) => {
     try {
       const jobOrder = await storage.getJobOrderById(req.params.id);
       if (!jobOrder) {
@@ -689,7 +694,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/job-orders/:id/email", async (req, res) => {
+  app.post("/api/job-orders/:id/email", requireAuth, async (req, res) => {
     try {
       const jobOrder = await storage.getJobOrderById(req.params.id);
       if (!jobOrder) {
@@ -703,7 +708,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/job-order-items/:jobOrderId", async (req, res) => {
+  app.get("/api/job-order-items/:jobOrderId", requireAuth, async (req, res) => {
     try {
       const items = await storage.getJobOrderItems(req.params.jobOrderId);
       res.json(items);
@@ -714,7 +719,7 @@ export function registerRoutes(app: Express): void {
   });
 
   // Update job order item shipment timestamp
-  app.post("/api/job-order-items/:id/ship", async (req, res) => {
+  app.post("/api/job-order-items/:id/ship", requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
       const shippedAt = new Date(); // Current timestamp
@@ -734,7 +739,7 @@ export function registerRoutes(app: Express): void {
   // FINANCIAL MANAGEMENT
   // ==============================================
   
-  app.get("/api/invoices", async (req, res) => {
+  app.get("/api/invoices", requireAuth, async (req, res) => {
     try {
       const invoices = await storage.getInvoices();
       res.json(invoices);
@@ -744,7 +749,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/payments", async (req, res) => {
+  app.get("/api/payments", requireAuth, async (req, res) => {
     try {
       const payments = await storage.getPaymentRecords();
       res.json(payments);
@@ -758,7 +763,7 @@ export function registerRoutes(app: Express): void {
   // WAREHOUSE & INVENTORY
   // ==============================================
   
-  app.get("/api/warehouses", async (req, res) => {
+  app.get("/api/warehouses", requireAuth, async (req, res) => {
     try {
       const warehouses = await storage.getWarehouses();
       res.json(warehouses);
@@ -768,7 +773,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/inventory/transactions", async (req, res) => {
+  app.get("/api/inventory/transactions", requireAuth, async (req, res) => {
     try {
       const transactions = await storage.getInventoryTransactions();
       res.json(transactions);
@@ -784,7 +789,7 @@ export function registerRoutes(app: Express): void {
   
   const inventoryTransferService = new InventoryTransferService();
 
-  app.get("/api/warehouse-transfers", async (req, res) => {
+  app.get("/api/warehouse-transfers", requireAuth, async (req, res) => {
     try {
       const filters = {
         warehouseId: req.query.warehouseId as string,
@@ -800,7 +805,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/warehouse-transfers", async (req, res) => {
+  app.post("/api/warehouse-transfers", requireAuth, async (req, res) => {
     try {
       const transfer = await inventoryTransferService.createTransfer({
         ...req.body,
@@ -813,7 +818,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/warehouse-transfers/inventory-levels", async (req, res) => {
+  app.get("/api/warehouse-transfers/inventory-levels", requireAuth, async (req, res) => {
     try {
       const levels = await inventoryTransferService.getInventoryLevels();
       res.json(levels);
@@ -823,7 +828,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/warehouse-transfers/low-stock", async (req, res) => {
+  app.get("/api/warehouse-transfers/low-stock", requireAuth, async (req, res) => {
     try {
       const threshold = parseInt(req.query.threshold as string) || 10;
       const alerts = await inventoryTransferService.getLowStockAlerts(threshold);
@@ -834,7 +839,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.post("/api/warehouse-transfers/adjust", async (req, res) => {
+  app.post("/api/warehouse-transfers/adjust", requireAuth, async (req, res) => {
     try {
       const adjustment = await inventoryTransferService.adjustInventory({
         ...req.body,
@@ -847,7 +852,7 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  app.get("/api/warehouse-transfers/:warehouseId/:productId/stock", async (req, res) => {
+  app.get("/api/warehouse-transfers/:warehouseId/:productId/stock", requireAuth, async (req, res) => {
     try {
       const stock = await inventoryTransferService.getWarehouseStock(
         req.params.warehouseId,
@@ -864,7 +869,7 @@ export function registerRoutes(app: Express): void {
   // DASHBOARD ANALYTICS
   // ==============================================
   
-  app.get("/api/dashboard/analytics", async (req, res) => {
+  app.get("/api/dashboard/analytics", requireAuth, async (req, res) => {
     try {
       console.log("📊 Fetching dashboard analytics...");
       const stats = await storage.getDashboardStats();
@@ -889,7 +894,7 @@ export function registerRoutes(app: Express): void {
   });
 
   // Reports Analytics endpoint
-  app.get("/api/reports/analytics", async (req, res) => {
+  app.get("/api/reports/analytics", requireAuth, async (req, res) => {
     try {
       const stats = await storage.getDashboardStats();
       res.json({
@@ -916,7 +921,7 @@ export function registerRoutes(app: Express): void {
   // EMAIL SETTINGS
   // ==============================================
   
-  app.get("/api/email-settings", async (req, res) => {
+  app.get("/api/email-settings", requireAuth, async (req, res) => {
     try {
       const settings = await storage.getEmailSettings();
       res.json(settings || {});
@@ -956,7 +961,7 @@ export function registerRoutes(app: Express): void {
   // ==============================================
 
   // Payment statistics for dashboard
-  app.get("/api/payments/stats", async (req, res) => {
+  app.get("/api/payments/stats", requireAuth, async (req, res) => {
     try {
       const stats = await storage.getPaymentStats();
       res.json(stats);
@@ -967,7 +972,7 @@ export function registerRoutes(app: Express): void {
   });
 
   // Pending payments for verification queue
-  app.get("/api/payments/pending-verification", async (req, res) => {
+  app.get("/api/payments/pending-verification", requireAuth, async (req, res) => {
     try {
       const payments = await storage.getPendingPayments();
       res.json(payments);
@@ -992,7 +997,7 @@ export function registerRoutes(app: Express): void {
   });
 
   // Submit payment proof
-  app.post("/api/payments/submit-proof", async (req, res) => {
+  app.post("/api/payments/submit-proof", requireAuth, async (req, res) => {
     try {
       const paymentData = insertPaymentRecordSchema.parse(req.body);
       
@@ -1020,7 +1025,7 @@ export function registerRoutes(app: Express): void {
   });
 
   // Verify payment (approve/reject)
-  app.post("/api/payments/:id/verify", async (req, res) => {
+  app.post("/api/payments/:id/verify", requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
       const { action, notes, rejectionReason } = req.body;
@@ -1045,7 +1050,7 @@ export function registerRoutes(app: Express): void {
   });
 
   // Pending invoices for payment processing
-  app.get("/api/invoices/pending-payment", async (req, res) => {
+  app.get("/api/invoices/pending-payment", requireAuth, async (req, res) => {
     try {
       const pendingInvoices = await db.select().from(invoices)
         .where(eq(invoices.paymentStatus, 'pending'))
@@ -1058,7 +1063,7 @@ export function registerRoutes(app: Express): void {
   });
 
   // Sales orders ready for invoice generation
-  app.get("/api/sales-orders/ready-for-invoice", async (req, res) => {
+  app.get("/api/sales-orders/ready-for-invoice", requireAuth, async (req, res) => {
     try {
       const readySalesOrders = await db.select().from(salesOrders)
         .where(and(
@@ -1074,7 +1079,7 @@ export function registerRoutes(app: Express): void {
   });
 
   // Recent auto-generated invoices
-  app.get("/api/invoices/recent-auto-generated", async (req, res) => {
+  app.get("/api/invoices/recent-auto-generated", requireAuth, async (req, res) => {
     try {
       const recentInvoices = await db.select().from(invoices)
         .orderBy(desc(invoices.createdAt))
@@ -1087,7 +1092,7 @@ export function registerRoutes(app: Express): void {
   });
 
   // Invoice automation stats
-  app.get("/api/invoices/automation-stats", async (req, res) => {
+  app.get("/api/invoices/automation-stats", requireAuth, async (req, res) => {
     try {
       const [stats] = await db.select({
         totalGenerated: sql<number>`count(*)`,
@@ -1107,7 +1112,7 @@ export function registerRoutes(app: Express): void {
   });
 
   // Generate invoice from sales order
-  app.post("/api/sales-orders/:id/generate-invoice", async (req, res) => {
+  app.post("/api/sales-orders/:id/generate-invoice", requireAuth, async (req, res) => {
     try {
       const salesOrderId = req.params.id;
       const salesOrder = await db.select().from(salesOrders)
@@ -1148,7 +1153,7 @@ export function registerRoutes(app: Express): void {
   });
 
   // Bulk generate invoices
-  app.post("/api/invoices/bulk-generate", async (req, res) => {
+  app.post("/api/invoices/bulk-generate", requireAuth, async (req, res) => {
     try {
       const { salesOrderIds } = req.body;
       let generatedCount = 0;

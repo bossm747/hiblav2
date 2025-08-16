@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from '../auth-service';
-import '../types/session';
+import '../types/session.d';
 
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   const sessionUser = req.session?.user;

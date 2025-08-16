@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
-import { Login } from "@/pages/Login";
+import Login from "@/pages/Login";
 import { Dashboard } from "@/pages/Dashboard";
 import { SalesOperationsDashboard } from "@/pages/SalesOperationsDashboard";
 import { ProductionManagementDashboard } from "@/pages/ProductionManagementDashboard";
