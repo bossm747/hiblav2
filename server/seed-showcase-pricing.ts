@@ -68,11 +68,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   seedShowcasePricing()
     .then(() => {
       console.log('Pricing seeding completed');
-      process.exit(0);
     })
     .catch((error) => {
       console.error('Pricing seeding failed:', error);
-      process.exit(1);
     });
 }
 

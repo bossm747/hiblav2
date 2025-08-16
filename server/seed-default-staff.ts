@@ -120,11 +120,9 @@ if (isMain) {
       console.log('Manager:', credentials.manager);
       console.log('Staff:', credentials.staff);
       console.log('========================\n');
-      process.exit(0);
     })
     .catch((error) => {
       console.error('Seeding failed:', error);
-      process.exit(1);
     });
 }
 

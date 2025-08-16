@@ -75,10 +75,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   seedStaff()
     .then(() => {
       console.log("🌱 Staff database seeding completed!");
-      process.exit(0);
     })
     .catch((error) => {
       console.error("💥 Seeding failed:", error);
-      process.exit(1);
     });
 }

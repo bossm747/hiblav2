@@ -179,7 +179,9 @@ function setupGracefulShutdown(server: any) {
       // Initialize data in background with proper delay
       setTimeout(() => {
         log('Starting delayed initialization...');
-        seedDataAsync();
+        seedDataAsync().catch(err => {
+          log('Seeding error (non-fatal):', err.message);
+        });
       }, 3000); // 3 second delay after "Server is ready" message
     });
 
@@ -227,10 +229,15 @@ function setupGracefulShutdown(server: any) {
     });
 
     // Keep process alive with periodic heartbeat
-    setInterval(() => {
+    const heartbeatInterval = setInterval(() => {
       // Periodic heartbeat to keep process alive
-      log(`Server heartbeat - Active connections: ${serverInstance.listening}`);
+      if (serverInstance && serverInstance.listening) {
+        log(`Server heartbeat - Active connections: ${serverInstance.listening}`);
+      }
     }, 60000); // Every minute
+    
+    // Prevent process from exiting
+    heartbeatInterval.ref();
 
   } catch (error) {
     // Catch any initialization errors
