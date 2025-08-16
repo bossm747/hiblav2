@@ -23,10 +23,10 @@ if (isDeployment || hasDeploymentFlag) {
   process.env.NODE_ENV = 'production';
   
   // Ensure production build exists
-  if (!existsSync('dist/index.js')) {
+  if (!existsSync('dist/server.js')) {
     console.log('📦 Building application for production deployment...');
     try {
-      execSync('npm run build', { stdio: 'inherit' });
+      execSync('./build.sh', { stdio: 'inherit' });
       console.log('✅ Production build complete');
     } catch (error) {
       console.error('❌ Build failed:', error);
@@ -39,7 +39,7 @@ if (isDeployment || hasDeploymentFlag) {
   // Start production server
   console.log('🌐 Starting PRODUCTION server...');
   console.log('🔒 NODE_ENV=' + process.env.NODE_ENV);
-  import('../dist/index.js');
+  import('../dist/server.js');
 } else {
   // Development mode - run the main development server
   console.log('🔧 Running in DEVELOPMENT mode');

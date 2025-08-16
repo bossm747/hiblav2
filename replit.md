@@ -90,13 +90,19 @@ Hibla Manufacturing & Supply System is an **internal-only operations platform** 
 6. **NEVER duplicate imports** - Check for duplicate import statements
 7. **NEVER add "Server is ready" handlers** - These block the React app
 8. **DEPLOYMENT WRAPPER IN PLACE** - server/index.ts detects deployment and forces production mode
+9. **BUILD OUTPUTS TO dist/server.js** - Avoids ESBuild overwrite conflict with dist/index.js
 
 ## Deployment Solution (PERMANENT FIX):
 The `server/index.ts` file now contains a smart wrapper that:
 - Detects when running in Replit deployment (checks REPL_OWNER)
 - Automatically switches to production mode when deployed
-- Builds and serves production app even when called with 'npm run dev'
+- Builds using `./build.sh` to avoid ESBuild conflicts
+- Serves from `dist/server.js` (not dist/index.js) to prevent overwrite issues
 - This bypasses the .replit file limitation that we cannot edit
+
+### Build Scripts:
+- `./build.sh` - Builds frontend and backend separately, outputs to dist/server.js
+- `./start.sh` - Starts production server from dist/server.js
 
 ## System Architecture
 
