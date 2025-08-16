@@ -26,15 +26,14 @@ export function Dashboard() {
 
   // Analytics data with error handling
 
-  // Type-safe data access with fallbacks
+  // Type-safe data access with fallbacks - matching actual API response
   const safeAnalytics = analytics as {
     overview?: {
-      quotationsCount?: number;
-      salesOrdersCount?: number;
-      jobOrdersCount?: number;
-      customersCount?: number;
-      staffCount?: number;
-      productsCount?: number;
+      totalCustomers?: string | number;
+      totalProducts?: string | number;
+      activeQuotations?: string | number;
+      activeSalesOrders?: string | number;
+      activeJobOrders?: string | number;
     };
     inventory?: {
       lowStockCount?: number;
@@ -65,28 +64,28 @@ export function Dashboard() {
   const metrics = [
     {
       title: 'Active Quotations',
-      value: safeAnalytics?.overview?.quotationsCount || 0,
+      value: Number(safeAnalytics?.overview?.activeQuotations || 0),
       icon: FileText,
-      description: '+12% from last month',
+      description: 'Current quotations',
       trend: 'up'
     },
     {
       title: 'Sales Orders',
-      value: safeAnalytics?.overview?.salesOrdersCount || 0,
+      value: Number(safeAnalytics?.overview?.activeSalesOrders || 0),
       icon: ShoppingCart,
       description: 'Processing orders',
       trend: 'stable'
     },
     {
       title: 'Job Orders',
-      value: safeAnalytics?.overview?.jobOrdersCount || 0,
+      value: Number(safeAnalytics?.overview?.activeJobOrders || 0),
       icon: Factory,
       description: 'In production',
       trend: 'up'
     },
     {
       title: 'Total Products',
-      value: safeAnalytics?.overview?.productsCount || 0,
+      value: Number(safeAnalytics?.overview?.totalProducts || 0),
       icon: Package,
       description: 'Active catalog items',
       trend: 'stable'
@@ -165,23 +164,23 @@ export function Dashboard() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">Active Job Orders</span>
-                    <span className="text-sm text-muted-foreground">{safeAnalytics?.overview?.jobOrdersCount || 0}</span>
+                    <span className="text-sm text-muted-foreground">{safeAnalytics?.overview?.activeJobOrders || 0}</span>
                   </div>
-                  <Progress value={Math.min((safeAnalytics?.overview?.jobOrdersCount || 0) * 10, 100)} className="h-2" />
+                  <Progress value={Math.min((Number(safeAnalytics?.overview?.activeJobOrders) || 0) * 10, 100)} className="h-2" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">Sales Orders Processing</span>
-                    <span className="text-sm text-muted-foreground">{safeAnalytics?.overview?.salesOrdersCount || 0}</span>
+                    <span className="text-sm text-muted-foreground">{safeAnalytics?.overview?.activeSalesOrders || 0}</span>
                   </div>
-                  <Progress value={Math.min((safeAnalytics?.overview?.salesOrdersCount || 0) * 10, 100)} className="h-2" />
+                  <Progress value={Math.min((Number(safeAnalytics?.overview?.activeSalesOrders) || 0) * 10, 100)} className="h-2" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">Pending Quotations</span>
-                    <span className="text-sm text-muted-foreground">{safeAnalytics?.overview?.quotationsCount || 0}</span>
+                    <span className="text-sm text-muted-foreground">{safeAnalytics?.overview?.activeQuotations || 0}</span>
                   </div>
-                  <Progress value={Math.min((safeAnalytics?.overview?.quotationsCount || 0) * 5, 100)} className="h-2" />
+                  <Progress value={Math.min((Number(safeAnalytics?.overview?.activeQuotations) || 0) * 5, 100)} className="h-2" />
                 </div>
               </div>
             )}
@@ -213,14 +212,14 @@ export function Dashboard() {
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
                   <div className="text-sm">
-                    <p className="font-medium">{safeAnalytics?.overview?.quotationsCount || 0} Active Quotations</p>
+                    <p className="font-medium">{safeAnalytics?.overview?.activeQuotations || 0} Active Quotations</p>
                     <p className="text-muted-foreground">Manufacturing pipeline</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-blue-500 rounded-full" />
                   <div className="text-sm">
-                    <p className="font-medium">{safeAnalytics?.overview?.salesOrdersCount || 0} Sales Orders</p>
+                    <p className="font-medium">{safeAnalytics?.overview?.activeSalesOrders || 0} Sales Orders</p>
                     <p className="text-muted-foreground">Processing orders</p>
                   </div>
                 </div>
@@ -239,9 +238,9 @@ export function Dashboard() {
 
       {/* Order Automation Visualization */}
       <OrderAutomationVisualization
-        quotationsCount={safeAnalytics?.overview?.quotationsCount || 0}
-        salesOrdersCount={safeAnalytics?.overview?.salesOrdersCount || 0}
-        jobOrdersCount={safeAnalytics?.overview?.jobOrdersCount || 0}
+        quotationsCount={Number(safeAnalytics?.overview?.activeQuotations) || 0}
+        salesOrdersCount={Number(safeAnalytics?.overview?.activeSalesOrders) || 0}
+        jobOrdersCount={Number(safeAnalytics?.overview?.activeJobOrders) || 0}
         invoicesCount={0}
         paymentsCount={0}
         className="mb-6"

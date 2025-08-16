@@ -1,0 +1,212 @@
+b504911|bossm747|2025-08-16|Assistant checkpoint: Fix commit report markdown file generation
+ead9efb|pareng-boyong|2025-08-16|Checkpoint before assistant change: Organize the website's navigation into logical, role-based modules
+7406af3|pareng-boyong|2025-08-16|Add auto-pricing to quotations based on selected price tiers
+925a1d4|pareng-boyong|2025-08-16|Organize and refine documentation pages for clarity and consistency
+f0ee574|pareng-boyong|2025-08-16|Add functionality to import and export data for system management
+aa85c7a|pareng-boyong|2025-08-16|Add tools to import and export data in various formats
+b0903a7|bossm747|2025-08-16|Assistant checkpoint: Fix ESBuild file conflict in build script
+0eecbc0|pareng-boyong|2025-08-16|Add assets and categories management pages and navigation links
+ea40634|pareng-boyong|2025-08-16|Expand inventory management to include company assets and equipment
+f76478d|pareng-boyong|2025-08-16|Improve server stability and error handling during startup
+9f05680|pareng-boyong|2025-08-16|Update build process to ensure production server starts correctly
+9eb366f|pareng-boyong|2025-08-16|Improve deployment process by streamlining build and start scripts
+984f058|pareng-boyong|2025-08-16|Improve deployment stability by enforcing production settings automatically
+7fdad46|pareng-boyong|2025-08-16|Adjust server startup to use production mode for deployments
+ba3af50|pareng-boyong|2025-08-16|Improve deployment reliability and prevent past issues
+3f4528f|pareng-boyong|2025-08-16|Streamline deployment and health check endpoints for improved operations
+8e895d0|pareng-boyong|2025-08-16|Ensure the system always runs in production mode during deployment
+a319e40|bossm747|2025-08-16|Assistant checkpoint: Fix production static file serving
+8cec5d5|bossm747|2025-08-16|Assistant checkpoint: Build and prepare production startup
+f957e52|pareng-boyong|2025-08-16|Checkpoint before assistant change: Update the command to start the development server
+8584dff|bossm747|2025-08-16|Assistant checkpoint: Fixed all deployment issues: host binding, health checks, startup delays, process management, and Vite errors
+3183217|pareng-boyong|2025-08-16|Checkpoint before assistant change: Update project to use the correct command for starting
+274b940|bossm747|2025-08-16|Assistant checkpoint: Fix all deployment health check and startup issues
+e98fe8e|pareng-boyong|2025-08-16|Checkpoint before assistant change: Add visual assets to the project for enhanced user experience
+9937679|pareng-boyong|2025-08-16|Update deployment to run in production mode efficiently
+07f9541|pareng-boyong|2025-08-16|Update application to run in development mode
+62d827d|bossm747|2025-08-16|Assistant checkpoint: Fixed deployment issues with server lifecycle
+6ec12fc|pareng-boyong|2025-08-16|Checkpoint before assistant change: Add image to help troubleshoot deployment issues
+12d9d18|pareng-boyong|2025-08-16|Adjust data seeding to run independently and simplify health check
+95a6e06|pareng-boyong|2025-08-16|Make the main page display the application rather than a status message
+2896003|pareng-boyong|2025-08-16|Configure external port for seamless web app access
+15bf9dc|pareng-boyong|2025-08-15|Improve server startup and health checks for faster deployment
+a283257|pareng-boyong|2025-08-15|Saved your changes before starting work
+3b725b5|pareng-boyong|2025-08-15|Enhance sales workflow with real-time tracking and automation features
+0fe989a|pareng-boyong|2025-08-15|Improve mobile navigation responsiveness and visual appeal
+e47b7e1|pareng-boyong|2025-08-15|Add comprehensive payment processing system with dual-staff verification
+d5482fa|pareng-boyong|2025-08-15|Enhance financial operations with payment processing and invoice automation
+940c616|pareng-boyong|2025-08-15|Align order automation visuals with client-requested sales workflows
+305fc31|pareng-boyong|2025-08-15|Add visualization for order automation processes
+da80568|pareng-boyong|2025-08-15|Add detailed view modals for orders and payment records
+6e5b0f1|pareng-boyong|2025-08-15|Enhance forms for sales orders and job orders with new fields
+5d4c190|pareng-boyong|2025-08-15|Add important operational and sales document templates
+8cfe5e5|pareng-boyong|2025-08-15|Remove health check endpoints and simplify authentication
+34a5bf4|pareng-boyong|2025-08-15|Streamline core system operations by removing outdated health and authentication endpoints
+b838d6e|pareng-boyong|2025-08-15|Add administrative portal for managing platform operations and data
+5ac7257|pareng-boyong|2025-08-15|Refine data structures and remove redundancies
+2667cdc|pareng-boyong|2025-08-15|Update pricing logic to correctly handle different price lists and categories
+7f0c909|pareng-boyong|2025-08-15|Update pricing logic to use a tiered system
+bbf2406|pareng-boyong|2025-08-15|Shorten sidebar menu titles to improve desktop view
+6810e11|pareng-boyong|2025-08-15|Prepare the system for live use by fixing bugs and adding deployment instructions
+b5d86a3|pareng-boyong|2025-08-15|Ensure system is responsive to deployment health checks
+71179b9|pareng-boyong|2025-08-15|Streamline interface by simplifying navigation and reducing text
+955cd0f|pareng-boyong|2025-08-15|Add real data seeding for price lists and staff
+f4f12d3|pareng-boyong|2025-08-15|Enhance all data tables with sorting, filtering, and action buttons
+1d8ba32|pareng-boyong|2025-08-15|Improve dashboard experience for operations management
+2ed617d|pareng-boyong|2025-08-15|Improve job order monitoring and prevent production delays
+d2c7020|bossm747|2025-08-15|Assistant checkpoint: Generate Git commit report for last 2 days
+cc7ff7b|pareng-boyong|2025-08-15|Plan warehouse transfer tracking for job orders
+21c913e|pareng-boyong|2025-08-15|Streamline internal operations by focusing on job order tracking
+b605181|pareng-boyong|2025-08-15|Update quotation for a custom internal operations management system
+8eee135|pareng-boyong|2025-08-15|Enhance system capabilities with automated document creation and expanded user access
+530ba37|pareng-boyong|2025-08-15|Create a detailed quotation for a manufacturing web application
+85e4507|pareng-boyong|2025-08-15|Add script to generate commit history reports automatically
+bf1a646|pareng-boyong|2025-08-15|Make all tables swipeable on mobile devices for better viewing
+3000178|pareng-boyong|2025-08-15|Update login page and redirect for better user experience
+b016474|pareng-boyong|2025-08-15|Improve navigation by dynamically displaying dashboard pages
+d9e65cb|pareng-boyong|2025-08-15|Add a mobile-friendly menu button for easier navigation on smaller screens
+42dc4dd|pareng-boyong|2025-08-14|Improve navigation and access for all user roles and devices
+30cf1e8|pareng-boyong|2025-08-14|Update routing and health check endpoints for system stability
+78e45b7|pareng-boyong|2025-08-14|Improve system health checks for better service visibility
+dc2b545|pareng-boyong|2025-08-14|Update customer and quotation data structures
+b428629|pareng-boyong|2025-08-14|Improve data handling and presentation in product and staff management features
+0096033|bossm747|2025-08-14|Assistant checkpoint
+6f4f5fd|bossm747|2025-08-14|Assistant checkpoint: Add root endpoint for deployment health checks
+8201088|pareng-boyong|2025-08-14|Enhance product creation and management interface
+0db138c|pareng-boyong|2025-08-14|Fix health check endpoint and server status logging
+f124f57|pareng-boyong|2025-08-14|Ensure application stays running after initialization
+05785cd|bossm747|2025-08-14|Assistant checkpoint: Configure deployment settings and fix port handling
+32220cf|pareng-boyong|2025-08-14|Make the platform stable and responsive to deployment checks
+957091b|pareng-boyong|2025-08-14|Improve server startup and health check reliability for deployment
+0dea2c7|pareng-boyong|2025-08-14|Enhance mobile drawer sidebar with improved styling and functionality
+2bc24b6|pareng-boyong|2025-08-14|Streamline navigation by consolidating management modules into distinct dashboards
+6a7733a|pareng-boyong|2025-08-14|Add a sales operations dashboard with key metrics and new quotation functionality
+c1b76ce|pareng-boyong|2025-08-14|Update quotation form to automatically populate customer details
+1cff38e|pareng-boyong|2025-08-14|Automate creator initials for quotations using logged-in user data
+f3aee55|pareng-boyong|2025-08-14|Add enhanced system features for manufacturing workflows
+e0cb186|pareng-boyong|2025-08-14|Enhance quotation management with new fields and quantity precision
+0000194|pareng-boyong|2025-08-13|Revamp sales pages to visualize the automated workflow and add new features
+0a5c161|pareng-boyong|2025-08-13|Update mobile sidebar with manufacturing and management sections
+ec20191|pareng-boyong|2025-08-13|Update platform to support WhatsApp payment verification workflows
+d73f8ac|pareng-boyong|2025-08-13|Streamline sales operations by integrating VLOOKUP quotes into the main quotations page
+063aa66|pareng-boyong|2025-08-13|Automate sales order, job order, and invoice creation with PDF generation
+31bb9c5|pareng-boyong|2025-08-13|Organize and consolidate related business functions into unified modules
+3d05907|pareng-boyong|2025-08-13|Organize application navigation into logical modules
+53082d7|pareng-boyong|2025-08-13|Update login system to redirect users to the correct entry point
+bb858bd|pareng-boyong|2025-08-13|Streamline admin login by using the main authentication system
+1d77362|pareng-boyong|2025-08-13|Enlarge the company logo and remove the text title from the display
+762a6e7|pareng-boyong|2025-08-13|Update login page appearance and preloader duration
+d1ed0b9|pareng-boyong|2025-08-12|Remove all customer-facing features and redirect to internal admin portal
+475cf4b|pareng-boyong|2025-08-12|Adjust system for internal use by removing customer-facing features
+de5cfc7|pareng-boyong|2025-08-12|Remove customer-facing features and streamline internal operations
+457d45f|pareng-boyong|2025-08-12|Improve production deployment stability and responsiveness
+dd1088a|pareng-boyong|2025-08-12|Improve login security and reliability by hashing passwords
+9e02864|pareng-boyong|2025-08-12|Add logout functionality to the user profile dropdown menu
+eb10727|pareng-boyong|2025-08-12|Remove placeholder login and logout endpoints from authentication routes
+4a347b1|pareng-boyong|2025-08-12|Adjust initial data seeding for smoother application startup
+ba99be3|bossm747|2025-08-12|Assistant checkpoint: Fix authentication and ensure staff seeding
+c1cc260|pareng-boyong|2025-08-12|Add a way for users to safely log out of the system
+5fea7bc|pareng-boyong|2025-08-12|Enhance pages with customer and sales order management features
+36e8fab|pareng-boyong|2025-08-12|Implement secure user login and enhance staff management features
+21de74d|pareng-boyong|2025-08-12|Fix export errors and remove duplicate price list functions
+1f444ec|pareng-boyong|2025-08-12|Make documentation page independent and standardize mobile headers
+3111303|pareng-boyong|2025-08-11|Improve order confirmation to accurately track inventory and staff involvement
+0e3c5e9|pareng-boyong|2025-08-11|Add new features for managing invoices, production, and inventory transfers
+9f34f63|pareng-boyong|2025-08-11|Complete customer payment and order tracking features
+f7c405c|pareng-boyong|2025-08-11|Add user journey and process flow documentation
+b2bc33c|pareng-boyong|2025-08-11|Update customer portal to view and manage quotations and orders
+f143490|pareng-boyong|2025-08-11|Enhance quotation management and email notifications
+9f7d301|pareng-boyong|2025-08-11|Make price list optional for quotations
+61af998|pareng-boyong|2025-08-11|Restore and integrate authentication services and AI stylist features
+9b586a2|pareng-boyong|2025-08-11|Update documentation to reflect project progress and future plans
+52db5c8|pareng-boyong|2025-08-11|Update quotation actions to use improved API request methods
+31603d0|pareng-boyong|2025-08-11|Add feature to summarize ready items from job orders with filtering
+8b490a6|pareng-boyong|2025-08-11|Enhance quotation form to fetch product prices with customer-specific data
+9b70c83|pareng-boyong|2025-08-11|Add export functionality for quotations and sales orders
+278c4a0|pareng-boyong|2025-08-11|Enhance user interface with improved responsiveness and touch interactions
+1d2e364|pareng-boyong|2025-08-11|Make sidebars more compact and visually streamlined
+f1aee9e|pareng-boyong|2025-08-11|Fix broken links to documentation sections within the application
+9dbb6ed|pareng-boyong|2025-08-11|Restructure documentation layout for improved user experience
+18d717c|pareng-boyong|2025-08-11|Improve documentation pages with updated content and structure
+3825993|pareng-boyong|2025-08-11|Add a new page to report project implementation status and progress
+7870df3|pareng-boyong|2025-08-11|Add comprehensive documentation section and content for the platform
+6f087c3|pareng-boyong|2025-08-11|Add access management feature and enhance user roles and permissions
+c2dc5ba|pareng-boyong|2025-08-11|Combine staff and admin access into a single portal entry point
+13928be|pareng-boyong|2025-08-11|Remove hero section CTA and clarify portal access tabs
+28d15b5|pareng-boyong|2025-08-11|Improve user authentication by implementing secure password hashing
+1a77426|pareng-boyong|2025-08-11|Add comprehensive authentication and access management features
+0ba45de|pareng-boyong|2025-08-11|Add a landing page and animated preloader component for the system
+528310f|pareng-boyong|2025-08-11|Add separate portals for customers and administrators
+429063e|pareng-boyong|2025-08-11|Enable customers to view their orders, quotations, and invoices
+c41598f|pareng-boyong|2025-08-11|Improve email service reliability and testing functionality
+b6414c7|pareng-boyong|2025-08-11|Add beautiful, modern HTML email templates for Hibla
+2b213ca|pareng-boyong|2025-08-11|Add email configuration and sending functionality for notifications
+e5b50dc|pareng-boyong|2025-08-11|Add functionality to record and manage customer payments and invoices
+d897415|pareng-boyong|2025-08-11|Add comprehensive roadmap for missing system features
+29e4151|pareng-boyong|2025-08-11|Add documentation section with user journey and process flow visuals
+a60fb5e|pareng-boyong|2025-08-11|Map out user journeys and business process flows for the platform
+45f6526|pareng-boyong|2025-08-10|Implement core manufacturing workflows and enhance document generation
+e9d1571|pareng-boyong|2025-08-10|Enhance backend error handling and order management capabilities
+73ad980|pareng-boyong|2025-08-10|Improve modal dialogs with descriptive text and loading indicators
+12d608d|pareng-boyong|2025-08-10|Add a feature test script and system analysis documentation
+b0be863|pareng-boyong|2025-08-10|Add more action options to product and quotation detail modals
+787ee47|pareng-boyong|2025-08-10|Improve website usability and responsiveness across all devices
+de62b24|pareng-boyong|2025-08-10|Prevent new customer modal from closing unexpectedly when clicked outside
+7781baa|pareng-boyong|2025-08-10|Add ability to retrieve specific items for a quotation
+6a4c66b|pareng-boyong|2025-08-10|Display full quotation details with organized layout and actions
+40d1be2|pareng-boyong|2025-08-10|Add a detailed view modal and new actions for quotations
+fd14597|pareng-boyong|2025-08-10|Prevent premature closing of the new customer modal on the quotation form
+149b618|pareng-boyong|2025-08-10|Refine quotation form and add descriptions to modal dialogs
+b513746|pareng-boyong|2025-08-10|Update quotation form and pricing logic for improved accuracy and user experience
+987eaa7|pareng-boyong|2025-08-10|Enhance modals with descriptions and refine product display
+fe08762|pareng-boyong|2025-08-10|Allow manual entry of quotation numbers on the form
+8b7dbd8|pareng-boyong|2025-08-10|Adjust mobile sidebar to occupy half the screen with scrollable content
+f14740f|pareng-boyong|2025-08-10|Enhance sidebar navigation for mobile and add product/warehouse views
+acdb48f|pareng-boyong|2025-08-10|Add product and warehouse management to navigation
+7c9193c|pareng-boyong|2025-08-09|Introduce robust inventory and warehouse management features
+6fd10e6|pareng-boyong|2025-08-09|Update brand identity and enhance visual design with new shadows
+278c108|pareng-boyong|2025-08-09|Enhance mobile experience and integrate official branding
+29c2fb8|pareng-boyong|2025-08-09|Manage price lists with a new modal for creating, editing, and deleting them
+faadedf|pareng-boyong|2025-08-09|Add flexible pricing options for products
+d396d27|pareng-boyong|2025-08-09|Add functionality to create new price lists and remove bulk updates
+b0c55b7|pareng-boyong|2025-08-09|Ensure prices display correctly on the price management page
+801f29d|pareng-boyong|2025-08-09|Enhance price management with new customer pricing tiers
+fd987e1|pareng-boyong|2025-08-09|Revamp pricing system with simplified structure and new management module
+d806da1|pareng-boyong|2025-08-09|Add AI-powered enhancements for product details and images
+cfa1349|pareng-boyong|2025-08-09|Enhance product management with detailed views and CRUD operations
+8690d23|pareng-boyong|2025-08-09|Add a dedicated page for managing product information and inventory
+3ac5684|pareng-boyong|2025-08-09|Organize inventory and sales processes with detailed requirements
+0c01f6f|pareng-boyong|2025-08-09|Update reports page to safely display business analytics data
+bc1b39a|pareng-boyong|2025-08-09|Update data fetching behavior for real-time updates
+dd4bb1d|bossm747|2025-08-09|Assistant checkpoint: Fix dashboard analytics endpoint with error handling
+5b16eaa|pareng-boyong|2025-08-09|Update the manufacturing dashboard to show real-time status and loading indicators
+b8e9d10|pareng-boyong|2025-08-09|Improve dashboard data handling to prevent errors
+e990817|pareng-boyong|2025-08-09|Update dashboard and reports with real-time analytics
+04c6663|pareng-boyong|2025-08-09|Improve the deletion confirmation for price lists
+186b441|pareng-boyong|2025-08-09|Add functionality to manage pricing lists for salon services and products
+f060baa|pareng-boyong|2025-08-09|Enhance product pricing with tiered and customer-specific options
+3c07094|pareng-boyong|2025-08-09|Allow users to cancel adding new customers and edit existing customer codes on quotations
+09b1b16|pareng-boyong|2025-08-09|Enhance quotation form with dynamic customer search and creation
+cb1fc09|pareng-boyong|2025-08-09|Streamline navigation by removing redundant quotation creation option
+982a7a8|pareng-boyong|2025-08-09|Add printable sales and job order documents
+8ecdd7e|pareng-boyong|2025-08-09|Improve error handling and data fetching for quotation form dropdowns
+147e63c|pareng-boyong|2025-08-09|Fix errors when loading data for dropdown selections on the quotation form
+ab9038a|pareng-boyong|2025-08-09|Create professional quotations with improved data handling
+8755f2d|pareng-boyong|2025-08-09|Created a checkpoint
+015bc0f|pareng-boyong|2025-08-09|Verify frontend dropdown data for accurate selections
+75efb80|pareng-boyong|2025-08-09|Populate quotation form dropdowns with correct data
+8b357f0|pareng-boyong|2025-08-09|Implement exact job order and sales order details from PDF
+82f69a0|pareng-boyong|2025-08-09|Generate exact sales order receipts matching PDF format
+1c8527b|pareng-boyong|2025-08-09|Update system tests with new sample data and real-world product details
+6addf63|pareng-boyong|2025-08-09|Add price lookup functionality and testing scripts for the system
+b1d098c|pareng-boyong|2025-08-09|Add customer and staff management modules to the platform
+e3ec474|pareng-boyong|2025-08-09|Add forms for creating inventory, job orders, sales orders, and quotations
+dada9bd|pareng-boyong|2025-08-09|Revamp the entire user interface with a modern theme and new components
+cd6dc8d|pareng-boyong|2025-08-09|Align frontend with core backend functionality and dashboard
+3ff6d31|pareng-boyong|2025-08-09|Populate the database with initial job and sales order data
+bd8227f|pareng-boyong|2025-08-09|Add VLOOKUP functionality for quotation price testing
+e52cef8|pareng-boyong|2025-08-09|Complete quotation system and implement VLOOKUP features
+4b5f0e9|pareng-boyong|2025-08-09|Enhance quotation system with VLOOKUP pricing and debugging
+a89fa7c|pareng-boyong|2025-08-09|Improve quotation system by adding customer and staff creation
+d9bd107|pareng-boyong|2025-08-09|Update quotation form to match client requirements for data entry and validation
+82f9fb3|pareng-boyong|2025-08-09|Update branding and improve loading and data fetching

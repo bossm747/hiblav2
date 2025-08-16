@@ -366,6 +366,30 @@ export function registerRoutes(app: Express): void {
     }
   });
 
+  // Reports Analytics endpoint
+  app.get("/api/reports/analytics", async (req, res) => {
+    try {
+      const stats = await storage.getDashboardStats();
+      res.json({
+        overview: {
+          totalQuotations: stats.quotations || 0,
+          totalSalesOrders: stats.salesOrders || 0,
+          totalJobOrders: stats.jobOrders || 0,
+          totalRevenue: 0, // Placeholder - can be calculated from orders
+          averageOrderValue: 0 // Placeholder - can be calculated
+        },
+        performance: {
+          conversionRate: 0,
+          orderFulfillmentRate: 0,
+          averageProductionTime: 0
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching reports analytics:", error);
+      res.status(500).json({ error: "Failed to fetch reports analytics" });
+    }
+  });
+
   // ==============================================
   // EMAIL SETTINGS
   // ==============================================
