@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 # Production build script
@@ -10,8 +11,8 @@ rm -rf dist
 echo "📦 Building frontend with Vite..."
 npx vite build
 
-# Build backend with ESBuild - output to dist/index.js for npm start compatibility
+# Build backend with ESBuild - using the exact command from package.json
 echo "📦 Building backend with ESBuild..."
-npx esbuild server/index-main.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
 
 echo "✅ Build complete!"
