@@ -13,6 +13,6 @@ npx vite build
 
 # Build backend with ESBuild - using the main server file
 echo "📦 Building backend with ESBuild..."
-npx esbuild server/index-main.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
 
 echo "✅ Build complete!"

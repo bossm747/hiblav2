@@ -449,10 +449,7 @@ export function registerRoutes(app: Express): void {
         createdBy: original.createdBy,
         status: 'draft',
         priceListId: original.priceListId,
-        paymentTerms: original.paymentTerms,
-        leadTime: original.leadTime,
-        validity: original.validity,
-        creatorInitials: original.creatorInitials,
+        createdByInitials: original.createdByInitials,
         discount: original.discount,
         canRevise: original.canRevise
       });
@@ -481,16 +478,12 @@ export function registerRoutes(app: Express): void {
         customerCode: quotation.customerCode,
         country: quotation.country,
         customerId: quotation.customerId,
-        priceListId: quotation.priceListId,
         subtotal: quotation.subtotal,
-        total: quotation.total,
         createdBy: quotation.createdBy,
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         pleasePayThisAmountUsd: quotation.total,
         status: 'pending',
-        paymentTerms: quotation.paymentTerms,
-        creatorInitials: quotation.creatorInitials,
-        discount: quotation.discount
+        discountUsd: quotation.discount
       });
       // Update quotation status
       await storage.updateQuotation(req.params.id, { status: 'approved' });
@@ -814,7 +807,7 @@ export function registerRoutes(app: Express): void {
       res.status(201).json(transfer);
     } catch (error) {
       console.error("Error creating transfer:", error);
-      res.status(500).json({ error: error.message || "Failed to create transfer" });
+      res.status(500).json({ error: (error as Error).message || "Failed to create transfer" });
     }
   });
 
