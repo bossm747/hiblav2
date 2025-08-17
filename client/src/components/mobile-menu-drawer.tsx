@@ -146,7 +146,6 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
             </div>
             <div className="min-w-0 flex-1">
               <h2 className="text-base xs:text-lg sm:text-xl font-semibold text-foreground neon-text-cyan truncate">Menu</h2>
-              <p className="text-xs xs:text-xs sm:text-sm text-muted-foreground truncate">Hibla Filipino Hair</p>
             </div>
           </div>
           <Button
@@ -244,18 +243,8 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
                               </Badge>
                             )}
                           </div>
-                          {item.description && (
-                            <p className="text-xs sm:text-sm text-muted-foreground truncate mt-0.5">
-                              {item.description}
-                            </p>
-                          )}
                         </div>
                       </div>
-
-                      <ChevronRight className={cn(
-                        "h-4 w-4 sm:h-5 sm:w-5 transition-colors flex-shrink-0",
-                        isActive(item.href) ? "text-purple-400" : "text-muted-foreground group-hover:text-cyan-400"
-                      )} />
                     </div>
                   </Link>
                 ))}
