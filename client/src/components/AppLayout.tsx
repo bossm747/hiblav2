@@ -150,11 +150,6 @@ export function AppLayout({ children }: AppLayoutProps) {
                   "font-medium", 
                   mobile ? "text-base" : "text-sm"
                 )}>{module.label}</div>
-                {mobile && (
-                  <div className="text-xs text-muted-foreground mt-1 line-clamp-1">
-                    {module.description}
-                  </div>
-                )}
               </div>
               {isModuleActive && mobile && (
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">

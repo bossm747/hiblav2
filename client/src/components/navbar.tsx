@@ -4,7 +4,7 @@ import { ShoppingCart, Heart, User, Menu, X, Search, LogOut } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ManufacturingSidebar } from "@/components/layout/manufacturing-sidebar";
+
 import { ThemeToggle } from "@/components/theme-toggle";
 import logoPath from "@assets/Hiblalogo_1753513948082.png?url";
 
@@ -117,13 +117,7 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Mobile-Only Navigation Sidebar */}
-        <div className="lg:hidden">
-          <ManufacturingSidebar 
-            isOpen={mobileMenuOpen} 
-            onClose={() => setMobileMenuOpen(false)} 
-          />
-        </div>
+
       </div>
     </header>
   );
