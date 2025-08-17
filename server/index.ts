@@ -39,7 +39,7 @@ if (isDeployment || hasDeploymentFlag) {
   // Start production server
   console.log('🌐 Starting PRODUCTION server...');
   console.log('🔒 NODE_ENV=' + process.env.NODE_ENV);
-  import('../dist/index-main.js');
+  import('./index-main.js');
 } else {
   // Development mode - run the main development server
   console.log('🔧 Running in DEVELOPMENT mode');

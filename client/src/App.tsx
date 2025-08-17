@@ -19,6 +19,7 @@ import { DataImportExport } from "@/pages/DataImportExport";
 import { WarehouseTransferPage } from "@/pages/WarehouseTransferPage";
 import { VendorOnboarding } from "@/pages/VendorOnboarding";
 import { EnhancedReporting } from "@/pages/EnhancedReporting";
+import { TestConnection } from "@/pages/TestConnection";
 
 // Create a query client
 const queryClient = new QueryClient({
@@ -96,6 +97,9 @@ function AppRoutes() {
       break;
     case '/enhanced-reports':
       content = <EnhancedReporting />;
+      break;
+    case '/test-connection':
+      content = <TestConnection />;
       break;
     default:
       content = <Dashboard />; // Default to dashboard if route not found

@@ -862,6 +862,18 @@ export function registerRoutes(app: Express): void {
   // DASHBOARD ANALYTICS
   // ==============================================
   
+  // Debug route to test authentication
+  app.get("/api/test-auth", (req, res) => {
+    console.log("🧪 TEST ROUTE - Headers:", Object.keys(req.headers));
+    console.log("🧪 TEST ROUTE - Authorization header:", req.headers.authorization);
+    console.log("🧪 TEST ROUTE - Session user:", !!req.session?.user);
+    res.json({ 
+      message: "Test route reached", 
+      hasAuthHeader: !!req.headers.authorization,
+      hasSession: !!req.session?.user 
+    });
+  });
+  
   app.get("/api/dashboard/analytics", requireAuth, async (req, res) => {
     try {
       console.log("📊 Fetching dashboard analytics...");

@@ -63,6 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // Include cookies for session
         body: JSON.stringify({ email, password }),
       });
 
@@ -79,12 +80,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           (window as any).authToken = data.token;
         }
         
+        console.log('✅ Login successful, token stored:', !!data.token);
         return { success: true, message: data.message };
       } else {
+        console.error('❌ Login failed:', data.message);
         return { success: false, message: data.message };
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       return { success: false, message: 'Login failed. Please try again.' };
     }
   };

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { OrderAutomationVisualization } from '@/components/OrderAutomationVisualization';
+import { dashboardApi, type DashboardAnalytics } from '@/api/dashboard';
 import {
   Factory,
   FileText,
@@ -18,15 +19,9 @@ import {
 } from 'lucide-react';
 
 export function Dashboard() {
-  const { data: analytics, isLoading, error } = useQuery({
-    queryKey: ['/api/dashboard/analytics'],
-    queryFn: async () => {
-      const response = await fetch('/api/dashboard/analytics');
-      if (!response.ok) {
-        throw new Error('Failed to fetch dashboard analytics');
-      }
-      return response.json();
-    },
+  const { data: analytics, isLoading, error } = useQuery<DashboardAnalytics>({
+    queryKey: ['dashboard', 'analytics'],
+    queryFn: dashboardApi.getAnalytics,
     refetchInterval: 30000, // Refetch every 30 seconds
     staleTime: 0, // Always consider data stale
   });
@@ -48,7 +43,13 @@ export function Dashboard() {
   // Analytics data with error handling
 
   // Type-safe data access with proper conversion - matching actual API response
-  const overview = analytics?.overview || {};
+  const overview = analytics?.overview || {
+    activeQuotations: 0,
+    activeSalesOrders: 0,
+    activeJobOrders: 0,
+    totalProducts: 0,
+    totalCustomers: 0
+  };
   
   const metrics = [
     {
