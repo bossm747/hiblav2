@@ -26,19 +26,24 @@ export function Dashboard() {
     staleTime: 0, // Always consider data stale
   });
 
-  // Add error logging for debugging
-  if (error) {
-    console.error('Dashboard API Error:', error);
-  }
-
-  // Add loading state logging
-  if (isLoading) {
-    console.log('Dashboard loading analytics data...');
-  }
-
-  if (analytics) {
-    console.log('Dashboard analytics data:', analytics);
-  }
+  // Add comprehensive error and data logging for debugging
+  React.useEffect(() => {
+    console.log('🔍 Dashboard Component State:', {
+      isLoading,
+      hasError: !!error,
+      hasData: !!analytics,
+      errorMessage: error?.message,
+      token: localStorage.getItem('auth_token') ? 'Present' : 'Missing'
+    });
+    
+    if (error) {
+      console.error('❌ Dashboard API Error:', error);
+    }
+    
+    if (analytics) {
+      console.log('✅ Dashboard analytics received:', analytics);
+    }
+  }, [isLoading, error, analytics]);
 
   // Analytics data with error handling
 
@@ -91,6 +96,28 @@ export function Dashboard() {
 
   return (
     <div className="container-responsive space-y-4 sm:space-y-6">
+      {/* Debug Info */}
+      {(isLoading || error || !analytics) && (
+        <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-blue-800 dark:text-blue-200 text-sm">System Status</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm space-y-1">
+            <p className="text-blue-700 dark:text-blue-300">
+              Loading: {isLoading ? 'Yes' : 'No'} | 
+              Error: {error ? 'Yes' : 'No'} | 
+              Data: {analytics ? 'Loaded' : 'None'} | 
+              Token: {localStorage.getItem('auth_token') ? 'Present' : 'Missing'}
+            </p>
+            {error && (
+              <p className="text-red-600 dark:text-red-400 font-mono text-xs">
+                Error: {error.message}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0 flex-1">
@@ -102,8 +129,8 @@ export function Dashboard() {
           </p>
         </div>
         <Badge variant="outline" className="text-xs sm:text-sm flex-shrink-0 w-fit">
-          <div className={`w-2 h-2 ${isLoading ? 'bg-yellow-500' : 'bg-green-500'} rounded-full mr-2`} />
-          {isLoading ? 'Loading...' : 'System Online'}
+          <div className={`w-2 h-2 ${isLoading ? 'bg-yellow-500' : error ? 'bg-red-500' : 'bg-green-500'} rounded-full mr-2`} />
+          {isLoading ? 'Loading...' : error ? 'Error' : 'System Online'}
         </Badge>
       </div>
 

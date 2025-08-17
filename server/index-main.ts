@@ -72,6 +72,9 @@ async function seedDataAsync() {
 
 const app = express();
 
+// Trust proxy for rate limiting to work properly with X-Forwarded-For headers
+app.set('trust proxy', true);
+
 // Production security headers
 app.use(helmet({
   contentSecurityPolicy: {
