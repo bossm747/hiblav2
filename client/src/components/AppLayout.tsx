@@ -53,49 +53,42 @@ interface AppLayoutProps {
   children: React.ReactNode;
 }
 
-// Consolidated navigation structure based on client requirements and workflow analysis
+// Consolidated navigation structure - clean mobile design without descriptions
 const navigationModules = [
   { 
     path: '/', 
     label: 'Dashboard', 
-    icon: Home,
-    description: 'Real-time manufacturing overview'
+    icon: Home
   },
   { 
     path: '/sales-operations-dashboard', 
     label: 'Sales Operations', 
-    icon: FileText,
-    description: 'Unified sales management - quotations, orders, customers'
+    icon: FileText
   },
   { 
     path: '/production-management-dashboard', 
     label: 'Production', 
-    icon: Factory,
-    description: 'Complete production workflow management'
+    icon: Factory
   },
   { 
     path: '/inventory-warehouse-dashboard', 
     label: 'Inventory & Warehouses', 
-    icon: Package,
-    description: 'Comprehensive inventory and warehouse operations'
+    icon: Package
   },
   { 
     path: '/financial-operations-dashboard', 
     label: 'Financial Operations', 
-    icon: CreditCard,
-    description: 'Payment processing, invoices, and financial workflows'
+    icon: CreditCard
   },
   { 
     path: '/reports-analytics-dashboard', 
     label: 'Reports & Analytics', 
-    icon: FileBarChart,
-    description: 'Business intelligence and performance analytics'
+    icon: FileBarChart
   },
   { 
     path: '/administration-dashboard', 
     label: 'Administration', 
-    icon: Settings,
-    description: 'System configuration and user management'
+    icon: Settings
   },
 ];
 
