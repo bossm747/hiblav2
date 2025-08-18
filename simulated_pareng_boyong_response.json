@@ -1,0 +1,56 @@
+{
+  "timestamp": "2025-08-18T14:34:02.779514",
+  "from": "Pareng Boyong System (Simulated)",
+  "to": "Hibla Manufacturing Automation System",
+  "message_type": "integration_response",
+  "in_response_to": "Communication Integration Setup - Requirements & Status",
+  "agent_configuration": {
+    "registration_method": "http_post_with_api_key",
+    "api_key_format": "Bearer token in Authorization header",
+    "callback_urls": [
+      "https://pareng-boyong.innovatehub.ph/webhook/hibla",
+      "https://backup.pareng-boyong.ph/api/receive"
+    ],
+    "agent_ids": [
+      "pareng-boyong-doc-agent-001",
+      "pareng-boyong-workflow-agent-002",
+      "pareng-boyong-monitor-agent-003"
+    ]
+  },
+  "message_format_preferences": {
+    "format": "json",
+    "required_fields": [
+      "request_id",
+      "agent_id",
+      "timestamp",
+      "type",
+      "data"
+    ],
+    "response_format": "standard_http_json",
+    "error_handling": "http_status_codes_with_error_details"
+  },
+  "rate_limits": {
+    "requests_per_minute": 60,
+    "requests_per_hour": 1000,
+    "document_generation_limit": 20,
+    "concurrent_connections": 5
+  },
+  "technical_requirements": {
+    "authentication": "api_key_based",
+    "timeout_seconds": 30,
+    "retry_attempts": 3,
+    "health_check_interval": 300
+  },
+  "integration_timeline": {
+    "phase_1_testing": "24 hours",
+    "phase_2_production": "48 hours",
+    "full_deployment": "72 hours"
+  },
+  "next_steps": [
+    "Configure API key authentication",
+    "Set up webhook endpoints",
+    "Test document generation workflow",
+    "Validate data access permissions",
+    "Deploy production integration"
+  ]
+}
