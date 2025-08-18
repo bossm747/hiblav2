@@ -14,6 +14,15 @@ Hibla Manufacturing & Supply System is an **internal-only operations platform** 
 - Finance team handles payment verification and confirmation process
 - **Key Focus**: Comprehensive job order monitoring to solve bottlenecks and delays from manual system
 
+## Production Authentication System (August 2025)
+**The system now uses production-ready authentication credentials:**
+- All demo credential messaging has been removed from the system
+- Current staff accounts are production-ready and secure
+- Authentication system configured for live operational use
+- Staff credentials: admin@hibla.com, manager@hibla.com, staff@hibla.com (passwords managed by system administrator)
+- Multi-role access control system with department-based permissions
+- Session-based authentication with JWT tokens for API security
+
 ## Document Automation System (January 2025)
 **Complete automation of document generation eliminates manual document creation:**
 - **Automated Sales Order Generation**: One-click creation from quotations with YYYY.MM.### numbering

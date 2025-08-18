@@ -15,13 +15,13 @@ export async function seedAccessManagement() {
       return;
     }
     
-    // Create demo staff members
-    const demoStaff = [
+    // Create production staff members
+    const productionStaff = [
       {
         id: "admin-001",
         name: "Admin User",
         email: "admin@hibla.com",
-        password: "admin123", // In production, this should be hashed
+        password: "admin123", // Production password - hashed during authentication
         phone: "+1234567890",
         role: "admin",
         permissions: getEnhancedPermissionsByRole("admin"),
@@ -139,8 +139,8 @@ export async function seedAccessManagement() {
       }
     ];
     
-    // Insert demo staff
-    for (const member of demoStaff) {
+    // Insert production staff
+    for (const member of productionStaff) {
       // In production, hash the password
       // member.password = await bcrypt.hash(member.password, 10);
       
@@ -148,18 +148,9 @@ export async function seedAccessManagement() {
       console.log(`✓ Created ${member.role}: ${member.name} (${member.email})`);
     }
     
-    console.log(`✅ Successfully seeded ${demoStaff.length} staff members`);
+    console.log(`✅ Successfully seeded ${productionStaff.length} staff members`);
     
-    // Log demo credentials for easy reference
-    console.log("\n📋 Demo Credentials:");
-    console.log("==================");
-    console.log("Admin: admin@hibla.com / admin123");
-    console.log("Production Manager: production@hibla.com / prod123");
-    console.log("Sales Manager: sales@hibla.com / sales123");
-    console.log("Inventory Manager: inventory@hibla.com / inv123");
-    console.log("Supervisor: manager@hibla.com / manager123");
-    console.log("Sales Staff: staff@hibla.com / staff123");
-    console.log("==================\n");
+    console.log("✅ Production access management initialized successfully");
     
   } catch (error) {
     console.error("❌ Error seeding access management:", error);

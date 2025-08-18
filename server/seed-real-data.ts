@@ -19,8 +19,8 @@ async function seedRealData() {
   console.log("🌱 Starting to seed real data into database...");
   
   try {
-    // Clear existing demo data first (optional)
-    console.log("Clearing existing demo data...");
+    // Initialize fresh production data
+    console.log("Initializing production data...");
     
     // 1. Seed Price Lists
     console.log("Seeding price lists...");

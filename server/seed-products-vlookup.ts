@@ -1,4 +1,4 @@
-// Seed products with VLOOKUP pricing for testing
+// Seed products with VLOOKUP pricing for production
 import { db } from "./db";
 import { products } from "@shared/schema";
 
@@ -66,7 +66,7 @@ async function seedProductsForVLOOKUP() {
     for (const product of sampleProducts) {
       await db.insert(products).values(product).onConflictDoNothing();
     }
-    console.log('Products seeded successfully for VLOOKUP testing!');
+    console.log('Products seeded successfully for VLOOKUP pricing!');
   } catch (error) {
     console.error('Error seeding products:', error);
   }

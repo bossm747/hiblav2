@@ -98,12 +98,8 @@ async function seedDefaultStaff() {
 
     console.log('Default staff seeding completed!');
     
-    // Return demo credentials for reference
-    return {
-      admin: { email: 'admin@hibla.com', password: 'admin123' },
-      manager: { email: 'manager@hibla.com', password: 'manager123' },
-      staff: { email: 'staff@hibla.com', password: 'staff123' }
-    };
+    // Staff seeding completed successfully
+    return true;
   } catch (error) {
     console.error('Error seeding default staff:', error);
     throw error;
@@ -114,12 +110,8 @@ async function seedDefaultStaff() {
 const isMain = import.meta.url === `file://${process.argv[1]}`;
 if (isMain) {
   seedDefaultStaff()
-    .then((credentials) => {
-      console.log('\n=== Demo Credentials ===');
-      console.log('Admin:', credentials.admin);
-      console.log('Manager:', credentials.manager);
-      console.log('Staff:', credentials.staff);
-      console.log('========================\n');
+    .then(() => {
+      console.log('✅ Production staff accounts initialized successfully');
     })
     .catch((error) => {
       console.error('Seeding failed:', error);

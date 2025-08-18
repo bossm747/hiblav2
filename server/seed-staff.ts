@@ -51,12 +51,7 @@ export async function seedStaff() {
     if (process.env.NODE_ENV === 'development') {
       console.log(`✅ Successfully seeded ${insertedStaff.length} staff accounts`);
       if (insertedStaff.length > 0) {
-        console.log("\n🔐 Login Credentials for Testing:");
-        console.log("=================================");
-        console.log("Admin: admin@hibla.com / admin123");
-        console.log("Cashier: cashier@hibla.com / cashier123");
-        console.log("Manager: manager@hibla.com / manager123");
-        console.log("Sales: sales@hibla.com / sales123\n");
+        console.log("✅ Production staff accounts ready for use");
       }
     }
 
