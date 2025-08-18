@@ -151,25 +151,28 @@ export function EnhancedQuotationForm({
     setStaffInitials(getCreatorInitials());
   }, [user]);
 
-  // Fetch customers for dropdown
+  // Fetch customers for dropdown - only when user is authenticated
   const { data: customers = [], isLoading: customersLoading, error: customersError } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
-    retry: 3,
-    retryDelay: 1000,
+    enabled: !!user && !!localStorage.getItem('auth_token'), // Only fetch when authenticated
+    retry: 1,
+    retryDelay: 2000,
   });
 
-  // Fetch products for line items
+  // Fetch products for line items - only when user is authenticated
   const { data: products = [], isLoading: productsLoading, error: productsError } = useQuery<Product[]>({
     queryKey: ['/api/products'],
-    retry: 3,
-    retryDelay: 1000,
+    enabled: !!user && !!localStorage.getItem('auth_token'), // Only fetch when authenticated
+    retry: 1,
+    retryDelay: 2000,
   });
 
-  // Fetch price lists for VLOOKUP pricing
+  // Fetch price lists for VLOOKUP pricing - only when user is authenticated
   const { data: priceLists = [], isLoading: priceListsLoading, error: priceListsError } = useQuery<PriceList[]>({
     queryKey: ['/api/price-lists'],
-    retry: 3,
-    retryDelay: 1000,
+    enabled: !!user && !!localStorage.getItem('auth_token'), // Only fetch when authenticated
+    retry: 1,
+    retryDelay: 2000,
   });
 
   // Debug logging
@@ -399,13 +402,17 @@ export function EnhancedQuotationForm({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {customersLoading ? (
+                          {!user ? (
+                            <SelectItem value="auth" disabled>
+                              Please login to load customers
+                            </SelectItem>
+                          ) : customersLoading ? (
                             <SelectItem value="loading" disabled>
                               Loading customers...
                             </SelectItem>
                           ) : customersError ? (
                             <SelectItem value="error" disabled>
-                              Error loading customers
+                              Authentication error - please refresh page
                             </SelectItem>
                           ) : customers.length === 0 ? (
                             <SelectItem value="empty" disabled>
@@ -489,13 +496,17 @@ export function EnhancedQuotationForm({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {priceListsLoading ? (
+                          {!user ? (
+                            <SelectItem value="auth" disabled>
+                              Please login to load price tiers
+                            </SelectItem>
+                          ) : priceListsLoading ? (
                             <SelectItem value="loading" disabled>
                               Loading price tiers...
                             </SelectItem>
                           ) : priceListsError ? (
                             <SelectItem value="error" disabled>
-                              Error loading price tiers
+                              Authentication error - please refresh page
                             </SelectItem>
                           ) : priceLists.length === 0 ? (
                             <SelectItem value="empty" disabled>
