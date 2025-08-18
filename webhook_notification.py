@@ -1,118 +1,214 @@
 #!/usr/bin/env python3
 """
-Webhook Notification System for Hibla Document Service
-=====================================================
-
-Sends status notifications to webhook listeners about document service status.
+Webhook Notification System for Subordinate Agent Communication
+============================================================
+Establishes communication channels for subordinate agents
 """
 
 import requests
 import json
+import time
 from datetime import datetime
 
-def send_checkpoint_notification():
-    """Send checkpoint notification with service status"""
+class WebhookNotificationSystem:
+    def __init__(self):
+        self.base_url = "http://localhost:5000"
+        self.doc_service_url = "http://localhost:5001"
+        self.agent_endpoints = []
+        
+    def register_subordinate_agent(self, agent_id, callback_url):
+        """Register a subordinate agent for notifications"""
+        agent_info = {
+            'agent_id': agent_id,
+            'callback_url': callback_url,
+            'registered_at': datetime.now().isoformat(),
+            'status': 'active'
+        }
+        self.agent_endpoints.append(agent_info)
+        print(f"📡 Registered subordinate agent: {agent_id}")
+        return agent_info
     
-    # Service status details
-    status_data = {
-        "timestamp": datetime.now().isoformat(),
-        "service": "hibla-document-generation",
-        "status": "operational",
-        "port": 5001,
-        "endpoints": {
-            "health": "http://localhost:5001/health",
-            "generate": "http://localhost:5001/api/documents/generate"
-        },
-        "capabilities": [
-            "Markdown to PDF conversion",
-            "Markdown to DOCX conversion", 
-            "Multi-format document generation",
-            "Autonomous workflow integration"
-        ],
-        "integration_status": {
-            "main_application": "connected",
-            "database": "available", 
-            "authentication": "bypassed_for_internal_service",
-            "file_storage": "local_documents_directory"
-        },
-        "workflow_readiness": {
-            "quotation_documents": True,
-            "sales_order_documents": True,
-            "job_order_documents": True,
-            "invoice_documents": True,
-            "custom_documents": True
-        },
-        "message": "Document Generation Service is operational and ready to serve autonomous workflow requests"
-    }
+    def send_automation_status(self):
+        """Send automation status to all registered agents"""
+        status_payload = {
+            'timestamp': datetime.now().isoformat(),
+            'system': 'hibla-automation',
+            'status': 'operational',
+            'services': {
+                'main_app': self.check_service_health(self.base_url),
+                'document_service': self.check_document_service(),
+            },
+            'capabilities': [
+                'document_generation',
+                'workflow_automation',
+                'real_time_processing',
+                'multi_format_output'
+            ],
+            'endpoints': {
+                'health': f"{self.base_url}/health",
+                'api': f"{self.base_url}/api",
+                'document_gen': f"{self.doc_service_url}/api/documents/generate"
+            }
+        }
+        
+        # Broadcast to all registered agents
+        for agent in self.agent_endpoints:
+            try:
+                self.send_notification(agent['callback_url'], status_payload)
+                print(f"✅ Status sent to agent: {agent['agent_id']}")
+            except Exception as e:
+                print(f"❌ Failed to notify agent {agent['agent_id']}: {e}")
     
-    print("🔔 Checkpoint Notification:")
-    print(f"📊 Service Status: {status_data['status'].upper()}")
-    print(f"🌐 Service Port: {status_data['port']}")
-    print(f"⚡ Capabilities: {len(status_data['capabilities'])} features available")
-    print(f"🔗 Integration: {status_data['integration_status']['main_application']}")
-    print(f"📄 Document Types: {len([k for k, v in status_data['workflow_readiness'].items() if v])} supported")
+    def send_document_ready_notification(self, document_info):
+        """Notify agents when documents are generated"""
+        notification = {
+            'event': 'document_ready',
+            'timestamp': datetime.now().isoformat(),
+            'document': document_info,
+            'service_url': self.doc_service_url
+        }
+        
+        for agent in self.agent_endpoints:
+            try:
+                self.send_notification(agent['callback_url'], notification)
+                print(f"📄 Document notification sent to: {agent['agent_id']}")
+            except Exception as e:
+                print(f"❌ Failed to notify agent about document: {e}")
     
-    # Log the notification (simulate webhook)
-    print(f"\n📨 Webhook Notification Payload:")
-    print(json.dumps(status_data, indent=2))
+    def send_workflow_trigger(self, workflow_type, data):
+        """Send workflow triggers to subordinate agents"""
+        trigger_payload = {
+            'event': 'workflow_trigger',
+            'workflow_type': workflow_type,
+            'data': data,
+            'timestamp': datetime.now().isoformat(),
+            'source': 'hibla-automation-system'
+        }
+        
+        for agent in self.agent_endpoints:
+            try:
+                self.send_notification(agent['callback_url'], trigger_payload)
+                print(f"🔄 Workflow trigger sent to: {agent['agent_id']}")
+            except Exception as e:
+                print(f"❌ Failed to send workflow trigger: {e}")
     
-    return status_data
-
-def notify_subordinate_agents():
-    """Notify subordinate agents that service is ready"""
+    def check_service_health(self, url):
+        """Check if a service is healthy"""
+        try:
+            response = requests.get(f"{url}/health", timeout=5)
+            return response.status_code == 200
+        except:
+            return False
     
-    agent_instructions = {
-        "document_service_ready": True,
-        "available_commands": [
-            "POST /api/documents/generate - Generate documents from content",
-            "GET /health - Check service status"
-        ],
-        "usage_examples": {
-            "quotation_generation": {
-                "url": "http://localhost:5001/api/documents/generate",
-                "method": "POST",
-                "payload": {
-                    "filename_base": "quotation_QT-20250818-001",
-                    "content": "# QUOTATION CONTENT HERE",
-                    "formats": ["md", "pdf", "docx"]
+    def check_document_service(self):
+        """Check document generation service status"""
+        try:
+            response = requests.get(f"{self.doc_service_url}/health", timeout=5)
+            return response.status_code == 200
+        except:
+            return False
+    
+    def send_notification(self, callback_url, payload):
+        """Send notification to a specific callback URL"""
+        headers = {'Content-Type': 'application/json'}
+        response = requests.post(callback_url, json=payload, headers=headers, timeout=10)
+        return response.status_code == 200
+    
+    def broadcast_system_ready(self):
+        """Broadcast that the automation system is ready"""
+        ready_notification = {
+            'event': 'system_ready',
+            'timestamp': datetime.now().isoformat(),
+            'system': 'hibla-automation',
+            'message': 'Automation system is operational and ready for requests',
+            'api_documentation': {
+                'document_generation': {
+                    'endpoint': f"{self.doc_service_url}/api/documents/generate",
+                    'method': 'POST',
+                    'payload': {
+                        'filename_base': 'document_name',
+                        'content': 'markdown content',
+                        'formats': ['md', 'pdf', 'docx']
+                    }
+                },
+                'health_check': {
+                    'endpoint': f"{self.doc_service_url}/health",
+                    'method': 'GET'
                 }
             },
-            "sales_order_generation": {
-                "url": "http://localhost:5001/api/documents/generate", 
-                "method": "POST",
-                "payload": {
-                    "filename_base": "sales_order_SO-20250818-001",
-                    "content": "# SALES ORDER CONTENT HERE",
-                    "formats": ["pdf", "docx"]
-                }
+            'subordinate_agent_instructions': {
+                'registration': 'Register with webhook system for notifications',
+                'document_requests': 'Use POST requests to document generation endpoint',
+                'status_monitoring': 'Subscribe to workflow trigger notifications',
+                'error_handling': 'Implement retry logic for failed requests'
             }
-        },
-        "next_steps": [
-            "Service is running and accepting requests",
-            "Integrate with main application APIs for data retrieval",
-            "Implement automatic document generation triggers",
-            "Set up document delivery workflows"
-        ]
+        }
+        
+        print("📢 BROADCASTING SYSTEM READY TO SUBORDINATE AGENTS")
+        print("=" * 60)
+        print(f"🎯 System: {ready_notification['system']}")
+        print(f"⏰ Timestamp: {ready_notification['timestamp']}")
+        print(f"📄 Document Service: {self.doc_service_url}")
+        print(f"🌐 Main App: {self.base_url}")
+        
+        print("\n📋 API ENDPOINTS FOR SUBORDINATE AGENTS:")
+        for endpoint_name, endpoint_data in ready_notification['api_documentation'].items():
+            print(f"   🔗 {endpoint_name.replace('_', ' ').title()}")
+            print(f"      URL: {endpoint_data['endpoint']}")
+            print(f"      Method: {endpoint_data['method']}")
+            if 'payload' in endpoint_data:
+                print(f"      Payload: {json.dumps(endpoint_data['payload'], indent=8)}")
+        
+        print("\n🤖 SUBORDINATE AGENT INSTRUCTIONS:")
+        for instruction_key, instruction_value in ready_notification['subordinate_agent_instructions'].items():
+            print(f"   ✅ {instruction_key.replace('_', ' ').title()}: {instruction_value}")
+        
+        # If there are registered agents, broadcast to them
+        if self.agent_endpoints:
+            for agent in self.agent_endpoints:
+                try:
+                    self.send_notification(agent['callback_url'], ready_notification)
+                    print(f"📡 System ready notification sent to: {agent['agent_id']}")
+                except Exception as e:
+                    print(f"❌ Failed to notify agent: {e}")
+        else:
+            print("\n📢 NO REGISTERED AGENTS - BROADCASTING TO CONSOLE")
+            print("🔍 Subordinate agents can register using:")
+            print("   webhook_system.register_subordinate_agent('agent_id', 'callback_url')")
+        
+        return ready_notification
+
+def main():
+    """Main webhook notification demonstration"""
+    print("🚀 Starting Webhook Notification System...")
+    
+    # Initialize webhook system
+    webhook_system = WebhookNotificationSystem()
+    
+    # Example: Register a subordinate agent (would normally be done by the agent)
+    # webhook_system.register_subordinate_agent('pareng-boyong-agent-1', 'http://agent-callback-url/webhook')
+    
+    # Broadcast system ready status
+    webhook_system.broadcast_system_ready()
+    
+    # Send automation status
+    webhook_system.send_automation_status()
+    
+    # Example document notification
+    example_doc = {
+        'filename': 'automation_workflow_document',
+        'formats': ['md', 'pdf', 'docx'],
+        'status': 'generated',
+        'paths': {
+            'md': './documents/automation_workflow_document.md',
+            'pdf': './documents/automation_workflow_document.pdf',
+            'docx': './documents/automation_workflow_document.docx'
+        }
     }
+    webhook_system.send_document_ready_notification(example_doc)
     
-    print("\n🤖 Subordinate Agent Notification:")
-    print(f"✅ Document Generation Service is ready for agent requests")
-    print(f"🔄 Available for autonomous workflow operations") 
-    print(f"📋 {len(agent_instructions['available_commands'])} API endpoints ready")
-    print(f"🎯 {len(agent_instructions['next_steps'])} recommended next steps")
-    
-    return agent_instructions
+    print("\n✅ Webhook notification system demonstration complete")
+    print("🔄 System ready for subordinate agent communication")
 
 if __name__ == "__main__":
-    print("🚀 Hibla Document Service - Checkpoint Notification System")
-    print("=" * 65)
-    
-    # Send checkpoint notification
-    checkpoint_data = send_checkpoint_notification()
-    
-    # Notify subordinate agents 
-    agent_data = notify_subordinate_agents()
-    
-    print(f"\n🎉 All notifications sent successfully!")
-    print(f"📅 Timestamp: {checkpoint_data['timestamp']}")
-    print(f"🔄 Service ready for continuous autonomous operation")
+    main()
