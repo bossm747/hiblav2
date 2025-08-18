@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { DataTable } from '@/components/ui/data-table';
 import {
   BarChart3,
   FileText,
@@ -35,6 +36,8 @@ import {
   Printer,
   Mail,
   Loader2,
+  ArrowRight,
+  CheckCircle,
 } from 'lucide-react';
 import { EnhancedQuotationForm } from '@/components/forms/EnhancedQuotationForm';
 import { SalesWorkflowVisualizer } from '@/components/sales/SalesWorkflowVisualizer';
@@ -407,124 +410,213 @@ function QuotationsTable({ onRefresh }: { onRefresh: () => void }) {
     );
   }
 
+  const formatCurrency = (value: number | string) => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      draft: { variant: 'secondary' as const, label: 'Draft' },
+      pending: { variant: 'default' as const, label: 'Pending' },
+      approved: { variant: 'default' as const, label: 'Approved' },
+      expired: { variant: 'destructive' as const, label: 'Expired' },
+      converted: { variant: 'default' as const, label: 'Converted' },
+    };
+    const config = statusConfig[status as keyof typeof statusConfig] || { variant: 'secondary' as const, label: status };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const quotationColumns = [
+    {
+      key: 'quotationNumber',
+      label: 'Quote #',
+      sortable: true,
+      filterable: true,
+    },
+    {
+      key: 'customerCode',
+      label: 'Customer',
+      sortable: true,
+      filterable: true,
+    },
+    {
+      key: 'country',
+      label: 'Country',
+      sortable: true,
+      filterable: true,
+      filterType: 'select' as const,
+      filterOptions: [
+        { value: 'USA', label: 'USA' },
+        { value: 'Canada', label: 'Canada' },
+        { value: 'Philippines', label: 'Philippines' },
+        { value: 'Australia', label: 'Australia' },
+        { value: 'Nigeria', label: 'Nigeria' },
+      ],
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      sortable: true,
+      filterable: true,
+      filterType: 'select' as const,
+      filterOptions: [
+        { value: 'draft', label: 'Draft' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'approved', label: 'Approved' },
+        { value: 'expired', label: 'Expired' },
+        { value: 'converted', label: 'Converted' },
+      ],
+      render: (value: string) => getStatusBadge(value),
+    },
+    {
+      key: 'total',
+      label: 'Total',
+      sortable: true,
+      render: (value: string) => formatCurrency(value),
+    },
+    {
+      key: 'validUntil',
+      label: 'Valid Until',
+      sortable: true,
+      render: (value: string) => value ? formatDate(value) : 'No expiry',
+    },
+    {
+      key: 'createdAt',
+      label: 'Created',
+      sortable: true,
+      render: (value: string) => formatDate(value),
+    },
+  ];
+
+  const quotationActions = [
+    {
+      label: 'View Details',
+      icon: Eye,
+      onClick: (quotation: any) => {
+        toast({
+          title: "Viewing Quotation",
+          description: `Opening quotation ${quotation.quotationNumber}`,
+        });
+      },
+    },
+    {
+      label: 'Edit Quotation',
+      icon: Edit,
+      onClick: (quotation: any) => {
+        // This will be handled by opening the EnhancedQuotationForm with the quotation ID
+        toast({
+          title: "Edit Quotation",
+          description: `Opening edit form for ${quotation.quotationNumber}`,
+        });
+      },
+    },
+    {
+      label: 'Convert to Sales Order',
+      icon: ArrowRight,
+      onClick: (quotation: any) => handleConvertToSalesOrder(quotation),
+      condition: (quotation: any) => quotation.status === 'approved',
+    },
+    {
+      label: 'Duplicate Quotation',
+      icon: Copy,
+      onClick: (quotation: any) => {
+        toast({
+          title: "Duplicating Quotation",
+          description: `Creating copy of ${quotation.quotationNumber}`,
+        });
+      },
+    },
+    {
+      label: 'Download PDF',
+      icon: Download,
+      onClick: (quotation: any) => {
+        toast({
+          title: "Downloading PDF",
+          description: `Generating PDF for ${quotation.quotationNumber}`,
+        });
+      },
+    },
+    {
+      label: 'Send Email',
+      icon: Mail,
+      onClick: (quotation: any) => {
+        toast({
+          title: "Sending Email",
+          description: `Sending quotation ${quotation.quotationNumber} via email`,
+        });
+      },
+    },
+    {
+      label: 'Delete Quotation',
+      icon: Trash2,
+      onClick: (quotation: any) => handleDeleteQuotation(quotation),
+      variant: 'destructive' as const,
+      className: 'text-red-600 hover:text-red-700',
+    },
+  ];
+
+  const globalQuotationActions = [
+    {
+      label: 'New Quotation',
+      icon: Plus,
+      onClick: () => {
+        // This will trigger the EnhancedQuotationForm
+        const newQuotationButton = document.querySelector('[data-testid="new-quotation-trigger"]') as HTMLButtonElement;
+        if (newQuotationButton) {
+          newQuotationButton.click();
+        }
+      },
+    },
+    {
+      label: 'Export All',
+      icon: Download,
+      onClick: () => {
+        toast({
+          title: "Exporting Data",
+          description: "Downloading all quotations as Excel file",
+        });
+      },
+      variant: 'outline' as const,
+    },
+  ];
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Quotation Management</CardTitle>
-            <CardDescription>View and manage all quotations ({quotations.length} total)</CardDescription>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/quotations'] })}
-              variant="outline"
-              size="sm"
-            >
-              Refresh
+    <>
+      {/* Hidden trigger for the New Quotation form */}
+      <div style={{ display: 'none' }}>
+        <EnhancedQuotationForm 
+          trigger={
+            <Button data-testid="new-quotation-trigger">
+              Hidden Trigger
             </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {quotations.length === 0 ? (
-          <div className="text-center py-12">
-            <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Quotations Found</h3>
-            <p className="text-muted-foreground mb-4">
-              Create your first quotation to get started.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2 px-4 font-semibold">Quotation #</th>
-                  <th className="text-left py-2 px-4 font-semibold">Customer</th>
-                  <th className="text-left py-2 px-4 font-semibold">Country</th>
-                  <th className="text-left py-2 px-4 font-semibold">Status</th>
-                  <th className="text-left py-2 px-4 font-semibold">Total</th>
-                  <th className="text-left py-2 px-4 font-semibold">Created</th>
-                  <th className="text-left py-2 px-4 font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {quotations.map((quotation) => (
-                  <tr key={quotation.id} className="border-b hover:bg-muted/50">
-                    <td className="py-3 px-4 font-mono text-sm">
-                      {quotation.quotationNumber}
-                      {quotation.revisionNumber && (
-                        <Badge variant="secondary" className="ml-1 text-xs">
-                          {quotation.revisionNumber}
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">{quotation.customerCode || 'N/A'}</td>
-                    <td className="py-3 px-4">{quotation.country || 'N/A'}</td>
-                    <td className="py-3 px-4">
-                      <Badge 
-                        variant={quotation.status === 'approved' ? 'default' : 'secondary'}
-                      >
-                        {quotation.status || 'pending'}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4 font-semibold">
-                      ${quotation.total || '0.00'}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-muted-foreground">
-                      {quotation.createdAt ? new Date(quotation.createdAt).toLocaleDateString() : 'N/A'}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            toast({
-                              title: "View Quotation",
-                              description: `Viewing ${quotation.quotationNumber}`,
-                            });
-                          }}
-                        >
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            toast({
-                              title: "Edit Quotation",
-                              description: `Editing ${quotation.quotationNumber}`,
-                            });
-                          }}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleConvertToSalesOrder(quotation)}
-                        >
-                          <Send className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteQuotation(quotation)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          }
+        />
+      </div>
+      
+      <DataTable
+        title="Quotation Management"
+        data={quotations}
+        columns={quotationColumns}
+        actions={quotationActions}
+        globalActions={globalQuotationActions}
+        searchPlaceholder="Search quotations by number, customer, or country..."
+        isLoading={isLoading}
+        onRefresh={() => {
+          queryClient.invalidateQueries({ queryKey: ['/api/quotations'] });
+          onRefresh();
+        }}
+        emptyMessage="No quotations found. Create your first quotation to get started."
+      />
+    </>
   );
 }
 
@@ -624,113 +716,199 @@ function SalesOrdersTable({ onRefresh }: { onRefresh: () => void }) {
     );
   }
 
+  const formatCurrency = (value: number | string) => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      pending: { variant: 'outline' as const, label: 'Pending' },
+      confirmed: { variant: 'default' as const, label: 'Confirmed' },
+      processing: { variant: 'default' as const, label: 'Processing' },
+      shipped: { variant: 'secondary' as const, label: 'Shipped' },
+      delivered: { variant: 'default' as const, label: 'Delivered' },
+      cancelled: { variant: 'destructive' as const, label: 'Cancelled' },
+    };
+    const config = statusConfig[status as keyof typeof statusConfig] || { variant: 'outline' as const, label: status };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const salesOrderColumns = [
+    {
+      key: 'salesOrderNumber',
+      label: 'Order #',
+      sortable: true,
+      filterable: true,
+    },
+    {
+      key: 'customerCode',
+      label: 'Customer',
+      sortable: true,
+      filterable: true,
+    },
+    {
+      key: 'country',
+      label: 'Country',
+      sortable: true,
+      filterable: true,
+      filterType: 'select' as const,
+      filterOptions: [
+        { value: 'USA', label: 'USA' },
+        { value: 'Canada', label: 'Canada' },
+        { value: 'Philippines', label: 'Philippines' },
+        { value: 'Australia', label: 'Australia' },
+        { value: 'Nigeria', label: 'Nigeria' },
+      ],
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      sortable: true,
+      filterable: true,
+      filterType: 'select' as const,
+      filterOptions: [
+        { value: 'pending', label: 'Pending' },
+        { value: 'confirmed', label: 'Confirmed' },
+        { value: 'processing', label: 'Processing' },
+        { value: 'shipped', label: 'Shipped' },
+        { value: 'delivered', label: 'Delivered' },
+        { value: 'cancelled', label: 'Cancelled' },
+      ],
+      render: (value: string) => getStatusBadge(value),
+    },
+    {
+      key: 'total',
+      label: 'Total',
+      sortable: true,
+      render: (value: string, row: any) => formatCurrency(value || row.pleasePayThisAmountUsd || 0),
+    },
+    {
+      key: 'dueDate',
+      label: 'Due Date',
+      sortable: true,
+      render: (value: string) => value ? formatDate(value) : 'N/A',
+    },
+    {
+      key: 'isConfirmed',
+      label: 'Confirmed',
+      filterable: true,
+      filterType: 'select' as const,
+      filterOptions: [
+        { value: 'true', label: 'Confirmed' },
+        { value: 'false', label: 'Pending' },
+      ],
+      render: (value: boolean) => value ? (
+        <Badge variant="default">✓ Confirmed</Badge>
+      ) : (
+        <Badge variant="outline">Pending</Badge>
+      ),
+    },
+    {
+      key: 'createdAt',
+      label: 'Created',
+      sortable: true,
+      render: (value: string) => formatDate(value),
+    },
+  ];
+
+  const salesOrderActions = [
+    {
+      label: 'View Details',
+      icon: Eye,
+      onClick: (order: any) => {
+        toast({
+          title: "Viewing Sales Order",
+          description: `Opening sales order ${order.salesOrderNumber}`,
+        });
+      },
+    },
+    {
+      label: 'Edit Order',
+      icon: Edit,
+      onClick: (order: any) => {
+        toast({
+          title: "Edit Sales Order",
+          description: `Opening edit form for ${order.salesOrderNumber}`,
+        });
+      },
+    },
+    {
+      label: 'Confirm Order',
+      icon: CheckCircle,
+      onClick: (order: any) => handleConfirmSalesOrder(order),
+      condition: (order: any) => !order.isConfirmed,
+    },
+    {
+      label: 'Create Job Order',
+      icon: ArrowRight,
+      onClick: (order: any) => {
+        toast({
+          title: "Creating Job Order",
+          description: `Creating job order from ${order.salesOrderNumber}`,
+        });
+      },
+      condition: (order: any) => order.isConfirmed,
+    },
+    {
+      label: 'Download PDF',
+      icon: Download,
+      onClick: (order: any) => {
+        toast({
+          title: "Downloading PDF",
+          description: `Generating PDF for ${order.salesOrderNumber}`,
+        });
+      },
+    },
+    {
+      label: 'Send Email',
+      icon: Mail,
+      onClick: (order: any) => {
+        toast({
+          title: "Sending Email",
+          description: `Sending sales order ${order.salesOrderNumber} via email`,
+        });
+      },
+    },
+  ];
+
+  const globalSalesOrderActions = [
+    {
+      label: 'Export All',
+      icon: Download,
+      onClick: () => {
+        toast({
+          title: "Exporting Data",
+          description: "Downloading all sales orders as Excel file",
+        });
+      },
+      variant: 'outline' as const,
+    },
+  ];
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Sales Order Management</CardTitle>
-            <CardDescription>View and manage all sales orders ({salesOrders.length} total)</CardDescription>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/sales-orders'] })}
-              variant="outline"
-              size="sm"
-            >
-              Refresh
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {salesOrders.length === 0 ? (
-          <div className="text-center py-12">
-            <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Sales Orders Found</h3>
-            <p className="text-muted-foreground mb-4">
-              Convert quotations to create sales orders.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2 px-4 font-semibold">Order #</th>
-                  <th className="text-left py-2 px-4 font-semibold">Customer</th>
-                  <th className="text-left py-2 px-4 font-semibold">Country</th>
-                  <th className="text-left py-2 px-4 font-semibold">Status</th>
-                  <th className="text-left py-2 px-4 font-semibold">Total</th>
-                  <th className="text-left py-2 px-4 font-semibold">Due Date</th>
-                  <th className="text-left py-2 px-4 font-semibold">Confirmed</th>
-                  <th className="text-left py-2 px-4 font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {salesOrders.map((order) => (
-                  <tr key={order.id} className="border-b hover:bg-muted/50">
-                    <td className="py-3 px-4 font-mono text-sm">
-                      {order.salesOrderNumber}
-                    </td>
-                    <td className="py-3 px-4">{order.customerCode || 'N/A'}</td>
-                    <td className="py-3 px-4">{order.country || 'N/A'}</td>
-                    <td className="py-3 px-4">
-                      <Badge 
-                        variant={
-                          order.status === 'confirmed' ? 'default' : 
-                          order.status === 'shipped' ? 'secondary' : 
-                          'outline'
-                        }
-                      >
-                        {order.status || 'pending'}
-                      </Badge>
-                    </td>
-                    <td className="py-3 px-4 font-semibold">
-                      ${order.total || order.pleasePayThisAmountUsd || '0.00'}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-muted-foreground">
-                      {order.dueDate ? new Date(order.dueDate).toLocaleDateString() : 'N/A'}
-                    </td>
-                    <td className="py-3 px-4">
-                      {order.isConfirmed ? (
-                        <Badge variant="default">✓ Confirmed</Badge>
-                      ) : (
-                        <Badge variant="outline">Pending</Badge>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex gap-1">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            toast({
-                              title: "View Sales Order",
-                              description: `Viewing ${order.salesOrderNumber}`,
-                            });
-                          }}
-                        >
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            toast({
-                              title: "Edit Sales Order",
-                              description: `Editing ${order.salesOrderNumber}`,
-                            });
-                          }}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        {!order.isConfirmed && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleConfirmSalesOrder(order)}
-                          >
+    <DataTable
+      title="Sales Order Management"
+      data={salesOrders}
+      columns={salesOrderColumns}
+      actions={salesOrderActions}
+      globalActions={globalSalesOrderActions}
+      searchPlaceholder="Search sales orders by number, customer, or country..."
+      isLoading={isLoading}
+      onRefresh={() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/sales-orders'] });
+        onRefresh();
+      }}
+      emptyMessage="No sales orders found. Convert quotations to create sales orders."
+    />
                             ✓
                           </Button>
                         )}
