@@ -11,4 +11,6 @@ dependencies = [
     "reportlab>=4.4.3",
     "requests>=2.32.4",
     "schedule>=1.2.2",
+    "sseclient>=0.0.27",
+    "sseclient-py>=1.8.0",
 ]
