@@ -1,0 +1,18 @@
+{
+  "timestamp": "2025-08-18T16:59:26.282237",
+  "from": "hibla-manufacturing-system",
+  "to": "pareng-boyong-agents",
+  "type": "integration_test",
+  "test_data": {
+    "hibla_status": "operational",
+    "manufacturing_data": "available",
+    "document_generation": "ready",
+    "sse_connection": "established"
+  },
+  "request": "Please confirm receipt and send integration requirements",
+  "callback_info": {
+    "mcp_client": "listening_via_sse",
+    "session_based": true,
+    "real_time": true
+  }
+}

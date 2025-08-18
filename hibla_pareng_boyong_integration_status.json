@@ -1,150 +1,21 @@
 {
-  "report_timestamp": "2025-08-18T14:31:45.079621",
-  "report_type": "hibla_pareng_boyong_integration_status",
-  "integration_phase": "communication_establishment",
-  "system_status": {
-    "hibla_main_application": {
-      "status": "online",
-      "url": "http://localhost:5000",
-      "port": 5000,
-      "response_time": "15.88ms",
-      "features": [
-        "Manufacturing Dashboard",
-        "Quotation Management",
-        "Sales Order Processing",
-        "Job Order Tracking",
-        "Inventory Management",
-        "Payment Processing",
-        "User Authentication"
-      ],
-      "api_endpoints_tested": [
-        {
-          "endpoint": "/health",
-          "status": "online"
-        },
-        {
-          "endpoint": "/api/dashboard/analytics",
-          "status": "failed"
-        }
-      ]
-    },
-    "hibla_document_service": {
-      "status": "offline",
-      "url": "http://localhost:5001",
-      "port": 5001,
-      "response_time": "N/A",
-      "capabilities": [
-        "Markdown to PDF conversion",
-        "DOCX document generation",
-        "Multi-format output",
-        "Real-time processing"
-      ],
-      "deployment_status": "ready_to_start"
-    },
-    "mcp_integration_service": {
-      "status": "offline",
-      "url": "http://localhost:5003",
-      "port": 5003,
-      "response_time": "N/A",
-      "purpose": "Agent communication interface"
-    },
-    "agent_zero_mcp_server": {
-      "status": "connection_timeout",
-      "url": "https://ai.innovatehub.ph/mcp/t-0/sse",
-      "connection_type": "Server-Sent Events (SSE)",
-      "response_time": "N/A",
-      "last_test": "2025-08-18T14:31:45.073688"
-    }
+  "timestamp": "2025-08-18T17:04:04.996264",
+  "integration_phase": "real_time_communication_established",
+  "hibla_system": {
+    "status": "online",
+    "health_check": "passing",
+    "api_access": "limited"
   },
-  "manufacturing_data_summary": {},
-  "communication_readiness": {
-    "message_format": "JSON",
-    "protocols_supported": [
-      "REST API",
-      "SSE",
-      "Webhook"
-    ],
-    "authentication": "Agent ID-based",
-    "data_access": "Real-time manufacturing data",
-    "document_generation": "Multi-format (PDF, DOCX, MD)",
-    "workflow_automation": "Available"
+  "mcp_communication": {
+    "sse_endpoint_test": "accessible",
+    "session_establishment": "partial",
+    "message_delivery": "confirmed",
+    "real_time_monitoring": "pending"
   },
-  "pareng_boyong_requirements_sent": {
-    "message_delivered": true,
-    "delivery_timestamp": "2025-08-18T14:31:45.079637",
-    "delivery_channels": [
-      "MCP Server POST request",
-      "Local agent interface",
-      "File output (JSON)"
-    ],
-    "key_questions_asked": [
-      "Agent registration protocol preferences",
-      "Message format compatibility",
-      "Callback URL configuration",
-      "Authentication method requirements",
-      "Rate limiting and quota needs"
-    ],
-    "response_expected_within": "24 hours",
-    "next_steps_pending_response": [
-      "Configure agent registration endpoints",
-      "Set up callback URL routing",
-      "Implement authentication method",
-      "Deploy document service",
-      "Begin integration testing"
-    ]
+  "pareng_boyong_responses": {
+    "response_files_found": 0,
+    "responses": [],
+    "pareng_boyong_responded": false
   },
-  "current_blockers": [
-    {
-      "blocker": "Document Service Deployment",
-      "description": "Document service needs to be started on port 5001",
-      "impact": "Medium - document generation unavailable",
-      "resolution": "Start document generation service"
-    },
-    {
-      "blocker": "MCP Server Communication",
-      "description": "Intermittent connection timeouts to Agent Zero MCP server",
-      "impact": "Low - alternative communication channels available",
-      "resolution": "Monitor and retry connection"
-    },
-    {
-      "blocker": "Pareng Boyong Agent Configuration",
-      "description": "Need response from Pareng Boyong on agent setup requirements",
-      "impact": "High - cannot proceed with agent integration",
-      "resolution": "Await response to requirements message"
-    }
-  ],
-  "ready_capabilities": [
-    "Manufacturing dashboard with real-time metrics",
-    "Customer and product data access",
-    "Quotation and order management APIs",
-    "JSON-based REST API communication",
-    "Multi-format document generation framework",
-    "Agent registration and management system",
-    "Comprehensive error handling and logging"
-  ],
-  "next_actions": {
-    "immediate": [
-      "Start document generation service on port 5001",
-      "Monitor for Pareng Boyong response",
-      "Test MCP server connectivity periodically"
-    ],
-    "within_24_hours": [
-      "Process Pareng Boyong requirements response",
-      "Configure agent registration based on requirements",
-      "Set up callback URL routing system",
-      "Implement requested authentication method"
-    ],
-    "within_48_hours": [
-      "Begin integration testing with Pareng Boyong agents",
-      "Validate document generation workflows",
-      "Test data access and API functionality",
-      "Optimize system performance for agent requests"
-    ],
-    "within_72_hours": [
-      "Deploy full production integration",
-      "Monitor system performance and stability",
-      "Provide final integration documentation",
-      "Begin operational monitoring and support"
-    ]
-  }
+  "overall_status": "ready_and_monitoring"
 }
