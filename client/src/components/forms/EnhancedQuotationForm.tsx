@@ -152,19 +152,45 @@ export function EnhancedQuotationForm({
   }, [user]);
 
   // Fetch customers for dropdown
-  const { data: customers = [] } = useQuery<Customer[]>({
+  const { data: customers = [], isLoading: customersLoading, error: customersError } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
+    retry: 3,
+    retryDelay: 1000,
   });
 
   // Fetch products for line items
-  const { data: products = [] } = useQuery<Product[]>({
+  const { data: products = [], isLoading: productsLoading, error: productsError } = useQuery<Product[]>({
     queryKey: ['/api/products'],
+    retry: 3,
+    retryDelay: 1000,
   });
 
   // Fetch price lists for VLOOKUP pricing
-  const { data: priceLists = [] } = useQuery<PriceList[]>({
+  const { data: priceLists = [], isLoading: priceListsLoading, error: priceListsError } = useQuery<PriceList[]>({
     queryKey: ['/api/price-lists'],
+    retry: 3,
+    retryDelay: 1000,
   });
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🔍 EnhancedQuotationForm Data Status:', {
+      user: { authenticated: !!user, name: user?.name, email: user?.email },
+      authToken: !!localStorage.getItem('auth_token'),
+      customers: { count: customers.length, loading: customersLoading, error: customersError?.message },
+      products: { count: products.length, loading: productsLoading, error: productsError?.message },
+      priceLists: { count: priceLists.length, loading: priceListsLoading, error: priceListsError?.message }
+    });
+    
+    // Show auth error if user is not authenticated
+    if (!user && !customersLoading) {
+      toast({
+        title: "Authentication Required",
+        description: "Please login to access customer and pricing data",
+        variant: "destructive",
+      });
+    }
+  }, [user, customers, products, priceLists, customersLoading, productsLoading, priceListsLoading, customersError, productsError, priceListsError, toast]);
 
   // Fetch existing quotation if editing
   const { data: existingQuotation } = useQuery({
@@ -373,11 +399,25 @@ export function EnhancedQuotationForm({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {customers.map((customer: any) => (
-                            <SelectItem key={customer.id} value={customer.customerCode || customer.id}>
-                              {customer.customerCode || customer.name} - {customer.country}
+                          {customersLoading ? (
+                            <SelectItem value="loading" disabled>
+                              Loading customers...
                             </SelectItem>
-                          ))}
+                          ) : customersError ? (
+                            <SelectItem value="error" disabled>
+                              Error loading customers
+                            </SelectItem>
+                          ) : customers.length === 0 ? (
+                            <SelectItem value="empty" disabled>
+                              No customers available
+                            </SelectItem>
+                          ) : (
+                            customers.map((customer: any) => (
+                              <SelectItem key={customer.id} value={customer.customerCode || customer.id}>
+                                {customer.customerCode || customer.name} - {customer.country}
+                              </SelectItem>
+                            ))
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -449,15 +489,29 @@ export function EnhancedQuotationForm({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {priceLists.map((priceList: any) => {
-                            const multiplier = parseFloat(priceList.priceMultiplier || '1.0');
-                            const percentChange = (multiplier - 1) * 100;
-                            return (
-                              <SelectItem key={priceList.id} value={priceList.id}>
-                                {priceList.name} ({priceList.code}) - {percentChange > 0 ? '+' : ''}{percentChange.toFixed(0)}% from base
-                              </SelectItem>
-                            );
-                          })}
+                          {priceListsLoading ? (
+                            <SelectItem value="loading" disabled>
+                              Loading price tiers...
+                            </SelectItem>
+                          ) : priceListsError ? (
+                            <SelectItem value="error" disabled>
+                              Error loading price tiers
+                            </SelectItem>
+                          ) : priceLists.length === 0 ? (
+                            <SelectItem value="empty" disabled>
+                              No price tiers available
+                            </SelectItem>
+                          ) : (
+                            priceLists.map((priceList: any) => {
+                              const multiplier = parseFloat(priceList.priceMultiplier || '1.0');
+                              const percentChange = (multiplier - 1) * 100;
+                              return (
+                                <SelectItem key={priceList.id} value={priceList.id}>
+                                  {priceList.name} ({priceList.code}) - {percentChange > 0 ? '+' : ''}{percentChange.toFixed(0)}% from base
+                                </SelectItem>
+                              );
+                            })
+                          )}
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">
