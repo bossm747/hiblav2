@@ -33,23 +33,22 @@ export interface QuotationItem {
 export const quotationsApi = {
   // Fetch all quotations
   async fetchQuotations(): Promise<Quotation[]> {
-    const response = await fetch('/api/quotations');
-    if (!response.ok) throw new Error('Failed to fetch quotations');
-    return response.json();
+    return apiRequest('/api/quotations');
   },
 
   // Fetch single quotation
   async fetchQuotation(id: string): Promise<Quotation> {
-    const response = await fetch(`/api/quotations/${id}`);
-    if (!response.ok) throw new Error('Failed to fetch quotation');
-    return response.json();
+    return apiRequest(`/api/quotations/${id}`);
   },
 
   // Fetch quotation items
   async fetchQuotationItems(quotationId: string): Promise<QuotationItem[]> {
-    const response = await fetch(`/api/quotation-items/${quotationId}`);
-    if (!response.ok) return [];
-    return response.json();
+    try {
+      return await apiRequest(`/api/quotation-items/${quotationId}`);
+    } catch (error) {
+      console.warn('Failed to fetch quotation items:', error);
+      return [];
+    }
   },
 
   // Create quotation
@@ -105,7 +104,12 @@ export const quotationsApi = {
 
   // Export PDF
   async exportPDF(id: string): Promise<Blob> {
-    const response = await fetch(`/api/quotations/${id}/pdf`);
+    const response = await fetch(`/api/quotations/${id}/pdf`, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+      },
+      credentials: 'include',
+    });
     if (!response.ok) throw new Error('Failed to export PDF');
     return response.blob();
   },
