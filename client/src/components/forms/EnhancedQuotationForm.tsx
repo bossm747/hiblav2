@@ -182,11 +182,11 @@ export function EnhancedQuotationForm({
       priceLists: { count: priceLists.length, loading: priceListsLoading, error: priceListsError?.message }
     });
     
-    // Show auth error if user is not authenticated
-    if (!user && !customersLoading) {
+    // Show auth error if user is not authenticated and APIs are failing
+    if (!user && !customersLoading && customersError) {
       toast({
-        title: "Authentication Required",
-        description: "Please login to access customer and pricing data",
+        title: "Authentication Required", 
+        description: "Please refresh the page or login again to access data",
         variant: "destructive",
       });
     }
