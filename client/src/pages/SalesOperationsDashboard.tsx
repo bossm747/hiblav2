@@ -35,9 +35,12 @@ import {
   Copy,
   Printer,
   Mail,
+  Loader2,
 } from 'lucide-react';
 import { EnhancedQuotationForm } from '@/components/forms/EnhancedQuotationForm';
 import { SalesWorkflowVisualizer } from '@/components/sales/SalesWorkflowVisualizer';
+import { quotationsApi } from '@/api/quotations';
+import { salesOrdersApi } from '@/api/sales-orders';
 
 export function SalesOperationsDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -45,17 +48,34 @@ export function SalesOperationsDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch sales data
-  const { data: quotations = [] } = useQuery({
+  // Fetch sales data with proper queryFn functions
+  const { data: quotations = [], isLoading: quotationsLoading, error: quotationsError } = useQuery({
     queryKey: ['/api/quotations'],
+    queryFn: quotationsApi.fetchQuotations,
   });
 
-  const { data: salesOrders = [] } = useQuery({
+  const { data: salesOrders = [], isLoading: salesOrdersLoading, error: salesOrdersError } = useQuery({
     queryKey: ['/api/sales-orders'],
+    queryFn: salesOrdersApi.getAll,
   });
 
-  const { data: customers = [] } = useQuery({
+  const { data: customers = [], isLoading: customersLoading, error: customersError } = useQuery({
     queryKey: ['/api/customers'],
+    queryFn: async () => {
+      const response = await apiRequest('/api/customers');
+      return response;
+    },
+  });
+
+  // Loading states
+  const isAnyLoading = quotationsLoading || salesOrdersLoading || customersLoading;
+  const hasAnyError = quotationsError || salesOrdersError || customersError;
+
+  // Debug logging
+  console.log('🔍 Sales Operations Dashboard - Data State:', {
+    quotations: { count: quotations?.length || 0, loading: quotationsLoading, error: !!quotationsError },
+    salesOrders: { count: salesOrders?.length || 0, loading: salesOrdersLoading, error: !!salesOrdersError },
+    customers: { count: customers?.length || 0, loading: customersLoading, error: !!customersError },
   });
 
   // Calculate metrics
@@ -350,9 +370,17 @@ export function SalesOperationsDashboard() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalQuotations}</div>
+            <div className="text-2xl font-bold">
+              {quotationsLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : quotationsError ? (
+                <span className="text-red-500">Error</span>
+              ) : (
+                totalQuotations
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +12% from last month
+              {quotationsError ? 'Failed to load data' : '+12% from last month'}
             </p>
           </CardContent>
         </Card>
@@ -363,9 +391,17 @@ export function SalesOperationsDashboard() {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalSalesOrders}</div>
+            <div className="text-2xl font-bold">
+              {salesOrdersLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : salesOrdersError ? (
+                <span className="text-red-500">Error</span>
+              ) : (
+                totalSalesOrders
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
-              +8% from last month
+              {salesOrdersError ? 'Failed to load data' : '+8% from last month'}
             </p>
           </CardContent>
         </Card>
