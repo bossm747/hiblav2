@@ -48,22 +48,55 @@ export function SalesOperationsDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch sales data with proper queryFn functions
+  // Fetch sales data with debugging and error handling
   const { data: quotations = [], isLoading: quotationsLoading, error: quotationsError } = useQuery({
     queryKey: ['/api/quotations'],
-    queryFn: quotationsApi.fetchQuotations,
+    enabled: true, // Explicitly enable the query
+    staleTime: 0, // Force refetch to debug
+    queryFn: async () => {
+      console.log('🔄 Fetching quotations...');
+      try {
+        const result = await quotationsApi.fetchQuotations();
+        console.log('✅ Quotations fetched:', result?.length || 0);
+        return result;
+      } catch (error) {
+        console.error('❌ Error fetching quotations:', error);
+        throw error;
+      }
+    },
   });
 
   const { data: salesOrders = [], isLoading: salesOrdersLoading, error: salesOrdersError } = useQuery({
     queryKey: ['/api/sales-orders'],
-    queryFn: salesOrdersApi.getAll,
+    enabled: true, // Explicitly enable the query
+    staleTime: 0, // Force refetch to debug
+    queryFn: async () => {
+      console.log('🔄 Fetching sales orders...');
+      try {
+        const result = await salesOrdersApi.getAll();
+        console.log('✅ Sales orders fetched:', result?.length || 0);
+        return result;
+      } catch (error) {
+        console.error('❌ Error fetching sales orders:', error);
+        throw error;
+      }
+    },
   });
 
   const { data: customers = [], isLoading: customersLoading, error: customersError } = useQuery({
     queryKey: ['/api/customers'],
+    enabled: true, // Explicitly enable the query
+    staleTime: 0, // Force refetch to debug
     queryFn: async () => {
-      const response = await apiRequest('/api/customers');
-      return response;
+      console.log('🔄 Fetching customers...');
+      try {
+        const result = await apiRequest('/api/customers');
+        console.log('✅ Customers fetched:', result?.length || 0);
+        return result;
+      } catch (error) {
+        console.error('❌ Error fetching customers:', error);
+        throw error;
+      }
     },
   });
 
@@ -71,12 +104,38 @@ export function SalesOperationsDashboard() {
   const isAnyLoading = quotationsLoading || salesOrdersLoading || customersLoading;
   const hasAnyError = quotationsError || salesOrdersError || customersError;
 
-  // Debug logging
+  // Debug logging with more details
   console.log('🔍 Sales Operations Dashboard - Data State:', {
-    quotations: { count: quotations?.length || 0, loading: quotationsLoading, error: !!quotationsError },
-    salesOrders: { count: salesOrders?.length || 0, loading: salesOrdersLoading, error: !!salesOrdersError },
-    customers: { count: customers?.length || 0, loading: customersLoading, error: !!customersError },
+    quotations: { 
+      count: quotations?.length || 0, 
+      loading: quotationsLoading, 
+      error: quotationsError ? quotationsError.message : null,
+      data: quotations 
+    },
+    salesOrders: { 
+      count: salesOrders?.length || 0, 
+      loading: salesOrdersLoading, 
+      error: salesOrdersError ? salesOrdersError.message : null,
+      data: salesOrders 
+    },
+    customers: { 
+      count: customers?.length || 0, 
+      loading: customersLoading, 
+      error: customersError ? customersError.message : null,
+      data: customers 
+    },
   });
+
+  // Additional debugging for empty arrays
+  if (quotations?.length === 0 && !quotationsLoading) {
+    console.warn('⚠️ Quotations array is empty but not loading');
+  }
+  if (salesOrders?.length === 0 && !salesOrdersLoading) {
+    console.warn('⚠️ Sales orders array is empty but not loading');
+  }
+  if (customers?.length === 0 && !customersLoading) {
+    console.warn('⚠️ Customers array is empty but not loading');
+  }
 
   // Calculate metrics
   const totalQuotations = (quotations as any[]).length;
