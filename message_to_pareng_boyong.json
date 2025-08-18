@@ -1,0 +1,248 @@
+{
+  "timestamp": "2025-08-18T14:30:18.449600",
+  "from": "Hibla Manufacturing Automation System",
+  "to": "Pareng Boyong & Subordinate Agents",
+  "message_type": "integration_requirements",
+  "priority": "high",
+  "subject": "Communication Integration Setup - Requirements & Status",
+  "current_status": {
+    "hibla_system": {
+      "main_application": {
+        "status": "OPERATIONAL",
+        "url": "http://localhost:5000",
+        "port": 5000,
+        "capabilities": [
+          "manufacturing_dashboard",
+          "quotation_management",
+          "sales_order_processing",
+          "job_order_tracking",
+          "inventory_management",
+          "payment_processing",
+          "user_authentication"
+        ],
+        "api_endpoints": {
+          "health_check": "/health",
+          "dashboard_analytics": "/api/dashboard/analytics",
+          "quotations": "/api/quotations",
+          "sales_orders": "/api/sales-orders",
+          "job_orders": "/api/job-orders"
+        },
+        "authentication": "JWT session-based",
+        "data_format": "JSON"
+      },
+      "document_service": {
+        "status": "READY TO DEPLOY",
+        "url": "http://localhost:5001",
+        "port": 5001,
+        "capabilities": [
+          "markdown_to_pdf_conversion",
+          "docx_document_generation",
+          "multi_format_output",
+          "real_time_processing",
+          "template_based_generation"
+        ],
+        "api_endpoints": {
+          "health_check": "/health",
+          "document_generation": "/api/documents/generate"
+        },
+        "supported_formats": [
+          "PDF",
+          "DOCX",
+          "MD"
+        ],
+        "processing_time": "< 5 seconds"
+      },
+      "mcp_integration": {
+        "status": "CONFIGURED",
+        "target_server": "https://ai.innovatehub.ph/mcp/t-0/sse",
+        "connection_type": "Server-Sent Events (SSE)",
+        "communication_port": 5003,
+        "message_format": "JSON",
+        "supported_operations": [
+          "document_request",
+          "system_status_request",
+          "data_request",
+          "workflow_trigger"
+        ]
+      }
+    },
+    "manufacturing_data": {
+      "customers": 16,
+      "products": 21,
+      "active_quotations": 22,
+      "active_sales_orders": 10,
+      "active_job_orders": 5,
+      "real_time_access": true,
+      "database": "PostgreSQL with Drizzle ORM"
+    }
+  },
+  "what_hibla_needs_from_pareng_boyong": {
+    "communication_requirements": [
+      {
+        "requirement": "Agent Registration Protocol",
+        "description": "How should subordinate agents register with our system?",
+        "current_setup": "HTTP POST to /api/agent/register with agent_id and capabilities",
+        "question": "Do you need a different registration method?"
+      },
+      {
+        "requirement": "Message Format Specification",
+        "description": "What message format do your agents expect?",
+        "current_setup": "JSON with request_id, type, and data fields",
+        "question": "Is this compatible with your agent protocol?"
+      },
+      {
+        "requirement": "Callback URL Configuration",
+        "description": "Where should we send responses to your agents?",
+        "current_setup": "Agent provides callback_url during registration",
+        "question": "What are your agent callback endpoints?"
+      },
+      {
+        "requirement": "Authentication Method",
+        "description": "How should we authenticate your agents?",
+        "current_setup": "Agent ID-based identification",
+        "question": "Do you need API keys or tokens?"
+      },
+      {
+        "requirement": "Rate Limiting & Quotas",
+        "description": "What are your expected usage patterns?",
+        "current_setup": "No limits currently configured",
+        "question": "How many requests per minute/hour do you need?"
+      }
+    ],
+    "technical_specifications": [
+      {
+        "item": "Network Connectivity",
+        "question": "Can your agents reach our endpoints at localhost:5000-5003?",
+        "solution": "May need public URLs or VPN setup"
+      },
+      {
+        "item": "MCP Server Response",
+        "question": "Is https://ai.innovatehub.ph/mcp/t-0/sse responding properly?",
+        "current_issue": "Getting connection timeouts during testing"
+      },
+      {
+        "item": "Data Format Preferences",
+        "question": "Do you need specific JSON structure for responses?",
+        "current_format": "Standard REST API JSON responses"
+      },
+      {
+        "item": "Error Handling Protocol",
+        "question": "How should we handle failed requests or errors?",
+        "current_setup": "HTTP status codes with error messages"
+      }
+    ]
+  },
+  "what_hibla_provides_to_pareng_boyong": {
+    "manufacturing_intelligence": [
+      "Real-time dashboard analytics",
+      "Customer management data",
+      "Product catalog access",
+      "Quotation tracking and management",
+      "Sales order processing",
+      "Job order workflow monitoring",
+      "Inventory levels and alerts",
+      "Payment processing status"
+    ],
+    "document_automation": [
+      "Professional PDF generation",
+      "Microsoft Word document creation",
+      "Markdown processing",
+      "Multi-format simultaneous output",
+      "Hibla-branded templates",
+      "Real-time document generation"
+    ],
+    "workflow_automation": [
+      "Quotation to sales order conversion",
+      "Automated job order creation",
+      "Payment verification workflows",
+      "Inventory update triggers",
+      "Report generation",
+      "Status notification system"
+    ],
+    "api_access": [
+      "RESTful API endpoints",
+      "JSON data format",
+      "Real-time data access",
+      "Comprehensive error handling",
+      "Session-based authentication",
+      "Health monitoring endpoints"
+    ]
+  },
+  "immediate_action_items": [
+    {
+      "priority": 1,
+      "item": "Verify MCP Server Connectivity",
+      "description": "Test connection to https://ai.innovatehub.ph/mcp/t-0/sse",
+      "owner": "Both parties",
+      "timeline": "Next 24 hours"
+    },
+    {
+      "priority": 2,
+      "item": "Define Agent Registration Process",
+      "description": "Establish how Pareng Boyong agents will register with Hibla system",
+      "owner": "Pareng Boyong",
+      "timeline": "Next 48 hours"
+    },
+    {
+      "priority": 3,
+      "item": "Configure Callback URLs",
+      "description": "Set up endpoint URLs where Hibla can send responses",
+      "owner": "Pareng Boyong",
+      "timeline": "Next 48 hours"
+    },
+    {
+      "priority": 4,
+      "item": "Test Document Generation",
+      "description": "Verify document automation works for agent requests",
+      "owner": "Hibla (ready), Pareng Boyong (test)",
+      "timeline": "After connectivity is established"
+    },
+    {
+      "priority": 5,
+      "item": "Implement Production Integration",
+      "description": "Deploy full communication system in production",
+      "owner": "Both parties",
+      "timeline": "After testing is complete"
+    }
+  ],
+  "testing_protocols": {
+    "phase_1_connectivity": {
+      "description": "Basic connection testing",
+      "steps": [
+        "Verify MCP server response",
+        "Test HTTP endpoints",
+        "Check JSON message parsing",
+        "Validate error handling"
+      ]
+    },
+    "phase_2_functionality": {
+      "description": "Feature integration testing",
+      "steps": [
+        "Agent registration flow",
+        "Document generation requests",
+        "Data access verification",
+        "Workflow automation triggers"
+      ]
+    },
+    "phase_3_production": {
+      "description": "Production readiness testing",
+      "steps": [
+        "Load testing with multiple agents",
+        "Error recovery testing",
+        "Performance optimization",
+        "Security validation"
+      ]
+    }
+  },
+  "contact_information": {
+    "hibla_system_status": "http://localhost:5000/health",
+    "hibla_api_documentation": "Available upon request",
+    "hibla_test_endpoints": [
+      "GET http://localhost:5000/health",
+      "GET http://localhost:5000/api/dashboard/analytics",
+      "POST http://localhost:5001/api/documents/generate"
+    ],
+    "response_expected": "Within 24 hours",
+    "integration_timeline": "72 hours for full deployment"
+  }
+}
