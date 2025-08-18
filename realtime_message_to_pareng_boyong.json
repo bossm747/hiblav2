@@ -1,0 +1,105 @@
+{
+  "timestamp": "2025-08-18T14:38:37.126595",
+  "from": "hibla-manufacturing-system",
+  "to": "pareng-boyong-agents",
+  "type": "integration_request",
+  "priority": "high",
+  "subject": "Real-time MCP Communication Established",
+  "system_status": {
+    "mcp_client": "active_realtime_connection",
+    "hibla_main_app": "operational",
+    "manufacturing_data": "live_access_available",
+    "document_generation": "ready_to_deploy"
+  },
+  "realtime_capabilities": {
+    "sse_connection": "established",
+    "message_handling": "automatic",
+    "response_processing": "immediate",
+    "session_management": "active"
+  },
+  "integration_requirements": [
+    {
+      "requirement": "Agent Registration Format",
+      "question": "What JSON structure should agents use to register?",
+      "example": {
+        "agent_id": "pareng-boyong-001",
+        "agent_type": "document_processor",
+        "capabilities": [
+          "pdf_generation",
+          "data_analysis"
+        ],
+        "callback_url": "https://your-endpoint.com/webhook"
+      }
+    },
+    {
+      "requirement": "Authentication Method",
+      "question": "Should we use API keys, JWT tokens, or agent ID verification?",
+      "current_options": [
+        "api_key",
+        "jwt_token",
+        "agent_id_verification"
+      ]
+    },
+    {
+      "requirement": "Message Protocol",
+      "question": "What fields are required in requests/responses?",
+      "current_format": {
+        "request_id": "unique_identifier",
+        "agent_id": "requesting_agent",
+        "type": "message_type",
+        "data": "message_payload"
+      }
+    },
+    {
+      "requirement": "Rate Limits",
+      "question": "What are your expected request volumes?",
+      "options": "requests_per_minute, concurrent_connections, daily_limits"
+    },
+    {
+      "requirement": "Callback Configuration",
+      "question": "Where should Hibla send responses?",
+      "current_setup": "agent_provided_webhook_urls"
+    }
+  ],
+  "hibla_ready_services": {
+    "manufacturing_data_api": {
+      "endpoint": "http://localhost:5000/api/dashboard/analytics",
+      "data_available": {
+        "customers": 16,
+        "products": 21,
+        "quotations": 22,
+        "sales_orders": 10,
+        "job_orders": 5
+      },
+      "update_frequency": "real_time"
+    },
+    "document_generation": {
+      "endpoint": "http://localhost:5001/api/documents/generate",
+      "formats": [
+        "PDF",
+        "DOCX",
+        "MD"
+      ],
+      "processing_time": "under_5_seconds",
+      "template_support": "hibla_branding"
+    },
+    "real_time_communication": {
+      "mcp_client": "http://localhost:5005",
+      "connection_type": "persistent_sse",
+      "message_queue": "active",
+      "response_handling": "automatic"
+    }
+  },
+  "next_steps_timeline": {
+    "immediate": "Process your integration requirements",
+    "within_6_hours": "Configure authentication and endpoints",
+    "within_12_hours": "Deploy document service with your specifications",
+    "within_24_hours": "Complete production integration testing"
+  },
+  "contact_methods": [
+    "Real-time SSE: Current connection active",
+    "HTTP API: POST to MCP server endpoints",
+    "Webhook: http://localhost:5004/webhook/pareng-boyong",
+    "File exchange: JSON response files"
+  ]
+}
