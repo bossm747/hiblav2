@@ -462,6 +462,12 @@ export class Storage implements IStorage {
     return updatedSettings;
   }
   
+
+  
+  async deletePriceList(id: string): Promise<void> {
+    await db.delete(priceLists).where(eq(priceLists.id, id));
+  }
+
   // Dashboard Analytics
   async getDashboardStats(): Promise<any> {
     const [customerCount] = await db.select({ count: sql<number>`count(*)` }).from(customers);

@@ -249,6 +249,65 @@ export function registerRoutes(app: Express): void {
   });
 
   // ==============================================
+  // PRICE LISTS MANAGEMENT
+  // ==============================================
+  
+  app.get("/api/price-lists", requireAuth, async (req, res) => {
+    try {
+      const priceLists = await storage.getPriceLists();
+      res.json(priceLists);
+    } catch (error) {
+      console.error("Error fetching price lists:", error);
+      res.status(500).json({ error: "Failed to fetch price lists" });
+    }
+  });
+
+  app.get("/api/price-lists/:id", requireAuth, async (req, res) => {
+    try {
+      const priceList = await storage.getPriceListById(req.params.id);
+      if (!priceList) {
+        return res.status(404).json({ error: "Price list not found" });
+      }
+      res.json(priceList);
+    } catch (error) {
+      console.error("Error fetching price list:", error);
+      res.status(500).json({ error: "Failed to fetch price list" });
+    }
+  });
+
+  app.post("/api/price-lists", requireAuth, async (req, res) => {
+    try {
+      const priceListData = insertPriceListSchema.parse(req.body);
+      const priceList = await storage.createPriceList(priceListData);
+      res.status(201).json(priceList);
+    } catch (error) {
+      console.error("Error creating price list:", error);
+      res.status(500).json({ error: "Failed to create price list" });
+    }
+  });
+
+  app.put("/api/price-lists/:id", requireAuth, async (req, res) => {
+    try {
+      const priceListData = insertPriceListSchema.partial().parse(req.body);
+      const priceList = await storage.updatePriceList(req.params.id, priceListData);
+      res.json(priceList);
+    } catch (error) {
+      console.error("Error updating price list:", error);
+      res.status(500).json({ error: "Failed to update price list" });
+    }
+  });
+
+  app.delete("/api/price-lists/:id", requireAuth, async (req, res) => {
+    try {
+      await storage.deletePriceList(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting price list:", error);
+      res.status(500).json({ error: "Failed to delete price list" });
+    }
+  });
+
+  // ==============================================
   // MANUFACTURING WORKFLOW - SALES ORDERS
   // ==============================================
   

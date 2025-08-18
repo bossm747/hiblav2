@@ -93,6 +93,28 @@ interface EnhancedQuotationFormProps {
   onOpenChange?: (open: boolean) => void;
 }
 
+// Types for API responses
+interface Customer {
+  id: string;
+  customerCode: string;
+  name: string;
+  country: string;
+  priceListId: string;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  basePrice: string;
+}
+
+interface PriceList {
+  id: string;
+  name: string;
+  code: string;
+  priceMultiplier: string;
+}
+
 export function EnhancedQuotationForm({
   quotationId,
   trigger,
@@ -114,9 +136,6 @@ export function EnhancedQuotationForm({
   useEffect(() => {
     // Automatically generate creator initials from logged-in user
     const getCreatorInitials = () => {
-      if (user?.firstName && user?.lastName) {
-        return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
-      }
       if (user?.name) {
         const names = user.name.split(' ');
         return names.length > 1 
@@ -133,17 +152,17 @@ export function EnhancedQuotationForm({
   }, [user]);
 
   // Fetch customers for dropdown
-  const { data: customers = [] } = useQuery({
+  const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
   });
 
   // Fetch products for line items
-  const { data: products = [] } = useQuery({
+  const { data: products = [] } = useQuery<Product[]>({
     queryKey: ['/api/products'],
   });
 
   // Fetch price lists for VLOOKUP pricing
-  const { data: priceLists = [] } = useQuery({
+  const { data: priceLists = [] } = useQuery<PriceList[]>({
     queryKey: ['/api/price-lists'],
   });
 
