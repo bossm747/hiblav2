@@ -658,8 +658,6 @@ function SalesOrdersTable({ onRefresh }: { onRefresh: () => void }) {
   const handleConfirmSalesOrder = async (salesOrder: any) => {
     try {
       await salesOrdersApi.update(salesOrder.id, { 
-        isConfirmed: true,
-        confirmedAt: new Date(),
         status: 'confirmed'
       });
       queryClient.invalidateQueries({ queryKey: ['/api/sales-orders'] });
@@ -909,25 +907,5 @@ function SalesOrdersTable({ onRefresh }: { onRefresh: () => void }) {
       }}
       emptyMessage="No sales orders found. Convert quotations to create sales orders."
     />
-                            ✓
-                          </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteSalesOrder(order)}
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </CardContent>
-    </Card>
   );
 }
