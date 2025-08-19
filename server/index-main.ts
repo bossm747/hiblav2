@@ -75,16 +75,30 @@ const app = express();
 // Trust proxy for rate limiting to work properly with X-Forwarded-For headers
 app.set('trust proxy', true);
 
-// Production security headers - Permissive for cloaked domains and iframe embedding
-app.use(helmet({
-  contentSecurityPolicy: false, // Disable CSP for iframe embedding
-  crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: false, // Allow cross-origin resource sharing
-  crossOriginOpenerPolicy: false,
-  referrerPolicy: { policy: "no-referrer-when-downgrade" },
-  // Explicitly allow iframe embedding from any domain
-  frameguard: false, // This disables X-Frame-Options
-}));
+// Custom security headers optimized for iframe embedding and cloaked domains
+app.use((req: Request, res: Response, next: NextFunction) => {
+  // Essential security headers (keeping only what's needed)
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-DNS-Prefetch-Control', 'off');  
+  res.setHeader('X-Download-Options', 'noopen');
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  
+  // IFRAME-FRIENDLY HEADERS - Allow embedding from any domain
+  res.setHeader('X-Frame-Options', 'ALLOWALL');
+  
+  // CORS-FRIENDLY HEADERS - Allow cross-origin resource sharing  
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  
+  // Referrer policy for external domains
+  res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
+  
+  // NO CSP - Allow all scripts and resources for maximum compatibility
+  // (CSP removed entirely for iframe embedding compatibility)
+  
+  next();
+});
 
 // CORS configuration for production - Allow cloaked domains
 app.use(cors({
@@ -276,17 +290,26 @@ function setupGracefulShutdown(server: any) {
 
     // Fast health check routes (must be before other routes)
     app.get('/health', (req, res) => {
-      // Simple, fast response for deployment health checks
+      // Set iframe-friendly headers
+      res.removeHeader('X-Frame-Options');
+      res.setHeader('X-Frame-Options', 'ALLOWALL');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
       res.status(200).send('OK');
     });
 
     app.get('/api/health', (req, res) => {
+      // Set iframe-friendly headers
+      res.removeHeader('X-Frame-Options');  
+      res.setHeader('X-Frame-Options', 'ALLOWALL');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+      
       // Set response timeout to ensure quick response
       res.setTimeout(5000, () => {
         res.status(408).send('Health check timeout');
       });
       
-      // Simple health check response
       res.status(200).send('OK');
     });
     log('Health check routes registered');
@@ -313,6 +336,20 @@ function setupGracefulShutdown(server: any) {
       log('Development environment with Vite setup complete');
     } else {
       serveStatic(app);
+      
+      // Add catch-all route handler to ensure iframe headers on all static routes
+      app.use('*', (req, res, next) => {
+        // Only apply to non-API routes
+        if (!req.path.startsWith('/api') && !req.path.startsWith('/health')) {
+          // Override headers for iframe embedding
+          res.removeHeader('X-Frame-Options');
+          res.setHeader('X-Frame-Options', 'ALLOWALL');
+          res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+          res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+        }
+        next();
+      });
+      
       log('Production environment with static files setup complete');
     }
 
