@@ -21,16 +21,7 @@ import { VendorOnboarding } from "@/pages/VendorOnboarding";
 import { EnhancedReporting } from "@/pages/EnhancedReporting";
 import { TestConnection } from "@/pages/TestConnection";
 import { CreateCustomer } from "@/pages/CreateCustomer";
-import { QuotationForm } from "@/components/forms/QuotationForm";
 
-// Create a simple page wrapper for the QuotationForm
-function QuotationFormPage() {
-  return (
-    <div className="w-full p-4 md:p-6">
-      <QuotationForm />
-    </div>
-  );
-}
 
 // Create a query client
 const queryClient = new QueryClient({
@@ -70,11 +61,9 @@ function AppRoutes() {
     case '/':
       content = <Dashboard />;
       break;
+    case '/sales':
     case '/sales-operations-dashboard':
       content = <SalesOperationsDashboard />;
-      break;
-    case '/sales':
-      content = <QuotationFormPage />;
       break;
     case '/production-management-dashboard':
       content = <ProductionManagementDashboard />;
