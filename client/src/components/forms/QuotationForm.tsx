@@ -365,9 +365,9 @@ export function QuotationForm() {
       {/* Main Form Card - Full Width */}
       <Card data-testid="quotation-form" className="w-full">
         <CardContent className="space-y-6 p-6">
-          {/* Price Tier Selection - Must come first */}
-          <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
-            <h3 className="font-semibold text-purple-800 mb-3">Step 1: Select Price Tier</h3>
+          {/* Single Row Form - Price Tier and Customer Selection */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Price Tier Selection - Must come first */}
             <div className="space-y-2">
               <Label className="text-purple-700">Price Tier * (Required before product selection)</Label>
               <Select value={formData.priceListId} onValueChange={(value) => setFormData(prev => ({ ...prev, priceListId: value }))}>
@@ -383,10 +383,8 @@ export function QuotationForm() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          {/* Customer Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Customer Selection */}
             <div className="space-y-2">
               <Label>Customer *</Label>
               <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
@@ -486,6 +484,8 @@ export function QuotationForm() {
                 </PopoverContent>
               </Popover>
             </div>
+
+            {/* Revision Number */}
             <div className="space-y-2">
               <Label>Revision Number</Label>
               <Input
