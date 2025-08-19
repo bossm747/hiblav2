@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Search, Filter, Plus, Eye, Edit, Trash2, Download, Share, Printer, FileText } from 'lucide-react';
-// import { QuotationDetailModal } from './QuotationDetailModal';
+import { QuotationForm } from '@/components/forms/QuotationForm';
 
 interface Quotation {
   id: string;
@@ -260,10 +260,20 @@ export function QuotationListView() {
             Manage all quotations with advanced search and filtering
           </p>
         </div>
-        <Button className="gap-2" data-testid="button-new-quotation">
-          <Plus className="w-4 h-4" />
-          New Quotation
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="gap-2" data-testid="button-new-quotation">
+              <Plus className="w-4 h-4" />
+              New Quotation
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create New Quotation</DialogTitle>
+            </DialogHeader>
+            <QuotationForm />
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Search and Filter Bar */}

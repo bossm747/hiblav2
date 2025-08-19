@@ -61,6 +61,7 @@ function AppRoutes() {
       content = <Dashboard />;
       break;
     case '/sales-operations-dashboard':
+    case '/sales':
       content = <SalesOperationsDashboard />;
       break;
     case '/production-management-dashboard':
