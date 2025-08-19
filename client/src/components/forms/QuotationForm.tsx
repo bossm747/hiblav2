@@ -320,7 +320,7 @@ export function QuotationForm() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-6">
+    <div className="w-full max-w-6xl mx-auto p-4 md:p-6">
       <Card data-testid="quotation-form">
         <CardHeader>
           <CardTitle>Create New Quotation</CardTitle>
@@ -329,12 +329,32 @@ export function QuotationForm() {
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Price Tier Selection - Must come first */}
+          <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
+            <h3 className="font-semibold text-purple-800 mb-3">Step 1: Select Price Tier</h3>
+            <div className="space-y-2">
+              <Label className="text-purple-700">Price Tier * (Required before product selection)</Label>
+              <Select value={formData.priceListId} onValueChange={(value) => setFormData(prev => ({ ...prev, priceListId: value }))}>
+                <SelectTrigger data-testid="select-price-tier" className="h-12 text-base md:text-sm">
+                  <SelectValue placeholder="Choose price tier to unlock product pricing" />
+                </SelectTrigger>
+                <SelectContent>
+                  {priceLists.map((priceList) => (
+                    <SelectItem key={priceList.id} value={priceList.id}>
+                      {priceList.name} - {priceList.type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           {/* Customer Selection */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Customer *</Label>
               <Select value={formData.customerId} onValueChange={handleCustomerChange}>
-                <SelectTrigger data-testid="select-customer">
+                <SelectTrigger data-testid="select-customer" className="h-12 text-base md:text-sm">
                   <SelectValue placeholder="Select a customer" />
                 </SelectTrigger>
                 <SelectContent>
@@ -352,24 +372,29 @@ export function QuotationForm() {
                 value={formData.revisionNumber}
                 onChange={(e) => setFormData(prev => ({ ...prev, revisionNumber: e.target.value }))}
                 data-testid="input-revision-number"
+                className="h-12 text-base md:text-sm"
               />
             </div>
           </div>
 
           {/* Customer Info Display */}
           {selectedCustomer && (
-            <div className="p-4 bg-gray-50 rounded-lg grid grid-cols-3 gap-4">
-              <div>
-                <Label>Customer Code</Label>
-                <p className="font-mono">{formData.customerCode}</p>
-              </div>
-              <div>
-                <Label>Country</Label>
-                <p>{formData.country}</p>
-              </div>
-              <div>
-                <Label>Price List</Label>
-                <p>{priceLists.find(pl => pl.id === formData.priceListId)?.name || 'Default'}</p>
+            <div className="p-4 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Customer Code</Label>
+                  <p className="font-mono text-base mt-1">{formData.customerCode}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Country</Label>
+                  <p className="text-base mt-1">{formData.country}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Price List</Label>
+                  <p className="text-base mt-1 font-semibold text-purple-700">
+                    {priceLists.find(pl => pl.id === formData.priceListId)?.name || 'Default'}
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -386,15 +411,16 @@ export function QuotationForm() {
 
             {formData.items.map((item, index) => (
               <Card key={index} className="p-4">
-                <div className="grid grid-cols-6 gap-4">
-                  <div className="space-y-2">
-                    <Label>Product *</Label>
+                <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-6 md:gap-4">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Product * {!formData.priceListId && <span className="text-red-500">(Select price tier first)</span>}</Label>
                     <Select 
                       value={item.productId} 
                       onValueChange={(value) => updateItem(index, 'productId', value)}
+                      disabled={!formData.priceListId}
                     >
-                      <SelectTrigger data-testid={`select-product-${index}`}>
-                        <SelectValue placeholder="Select product" />
+                      <SelectTrigger data-testid={`select-product-${index}`} className="h-12 text-base md:text-sm">
+                        <SelectValue placeholder={formData.priceListId ? "Select product" : "Choose price tier first"} />
                       </SelectTrigger>
                       <SelectContent>
                         {products.map((product) => (
@@ -466,14 +492,14 @@ export function QuotationForm() {
           <Separator />
 
           {/* Payment & Shipping */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Method of Payment</Label>
               <Select 
                 value={formData.paymentMethod} 
                 onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value }))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-12 text-base md:text-sm">
                   <SelectValue placeholder="Select payment method" />
                 </SelectTrigger>
                 <SelectContent>
@@ -490,7 +516,7 @@ export function QuotationForm() {
                 value={formData.shippingMethod} 
                 onValueChange={(value) => setFormData(prev => ({ ...prev, shippingMethod: value }))}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-12 text-base md:text-sm">
                   <SelectValue placeholder="Select shipping method" />
                 </SelectTrigger>
                 <SelectContent>
@@ -507,14 +533,14 @@ export function QuotationForm() {
           {/* Financial Summary */}
           <div className="p-4 bg-blue-50 rounded-lg">
             <h3 className="font-semibold mb-4">Financial Summary (A+B+C+D+E)</h3>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <Label>Sub Total (A)</Label>
                 <Input
                   type="number"
                   value={formData.subtotal.toFixed(2)}
                   readOnly
-                  className="bg-white font-semibold"
+                  className="bg-white font-semibold h-12 text-base md:text-sm"
                 />
               </div>
               <div>
@@ -524,6 +550,7 @@ export function QuotationForm() {
                   step="0.01"
                   value={formData.shippingFee}
                   onChange={(e) => setFormData(prev => ({ ...prev, shippingFee: parseFloat(e.target.value) || 0 }))}
+                  className="h-12 text-base md:text-sm"
                 />
               </div>
               <div>
@@ -533,6 +560,7 @@ export function QuotationForm() {
                   step="0.01"
                   value={formData.bankCharge}
                   onChange={(e) => setFormData(prev => ({ ...prev, bankCharge: parseFloat(e.target.value) || 0 }))}
+                  className="h-12 text-base md:text-sm"
                 />
               </div>
               <div>
@@ -543,6 +571,7 @@ export function QuotationForm() {
                   max="0"
                   value={formData.discount}
                   onChange={(e) => setFormData(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
+                  className="h-12 text-base md:text-sm"
                 />
               </div>
               <div>
@@ -552,6 +581,7 @@ export function QuotationForm() {
                   step="0.01"
                   value={formData.others}
                   onChange={(e) => setFormData(prev => ({ ...prev, others: parseFloat(e.target.value) || 0 }))}
+                  className="h-12 text-base md:text-sm"
                 />
               </div>
               <div>
@@ -560,7 +590,7 @@ export function QuotationForm() {
                   type="number"
                   value={formData.total.toFixed(2)}
                   readOnly
-                  className="bg-yellow-100 font-bold text-lg"
+                  className="bg-yellow-100 font-bold text-lg h-12 md:text-base"
                 />
               </div>
             </div>
@@ -574,40 +604,49 @@ export function QuotationForm() {
               onChange={(e) => setFormData(prev => ({ ...prev, customerServiceInstructions: e.target.value }))}
               placeholder="Enter any special instructions..."
               rows={3}
+              className="text-base md:text-sm"
             />
           </div>
 
           {/* Valid Until */}
           <div className="space-y-2">
-            <Label>Valid Until</Label>
+            <Label>Valid Until (Optional)</Label>
             <Input
               type="date"
               value={formData.validUntil}
               onChange={(e) => setFormData(prev => ({ ...prev, validUntil: e.target.value }))}
+              className="h-12 text-base md:text-sm"
+              data-testid="input-valid-until"
             />
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4 pt-6">
+          <div className="flex flex-col md:flex-row gap-4 pt-6">
             <Button 
               onClick={submitQuotation} 
-              disabled={isLoading} 
-              className="flex-1"
+              disabled={isLoading || !formData.priceListId} 
+              className="flex-1 h-12 text-base md:text-sm"
               data-testid="button-create-quotation"
             >
-              {isLoading ? 'Creating...' : 'Create Quotation'}
+              {isLoading ? 'Creating...' : !formData.priceListId ? 'Select Price Tier First' : 'Create Quotation'}
             </Button>
-            <Button type="button" variant="outline" className="flex-1">
+            <Button type="button" variant="outline" className="flex-1 h-12 text-base md:text-sm">
               Save as Draft
             </Button>
-            <Button type="button" variant="outline" className="flex-1">
+            <Button type="button" variant="outline" className="flex-1 h-12 text-base md:text-sm">
               Duplicate Quotation
             </Button>
           </div>
 
           {/* Status Display */}
           <div className="text-sm text-muted-foreground text-center pt-4 border-t">
-            Items: {formData.items.length}/300 | Total Amount: ${formData.total.toFixed(2)} | Creator Initials: Auto-generated
+            <div className="flex flex-col md:flex-row justify-center items-center gap-2 md:gap-4">
+              <span>Items: {formData.items.length}/300</span>
+              <span className="hidden md:inline">|</span>
+              <span>Total: ${formData.total.toFixed(2)}</span>
+              <span className="hidden md:inline">|</span>
+              <span>Creator: Auto-generated</span>
+            </div>
           </div>
         </CardContent>
       </Card>
