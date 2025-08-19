@@ -320,15 +320,33 @@ export function QuotationForm() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 md:p-6">
-      <Card data-testid="quotation-form">
-        <CardHeader>
-          <CardTitle>Create New Quotation</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Auto-generated quotation number • Date: {new Date().toLocaleDateString()}
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-6">
+    <div className="w-full p-4 md:p-6">
+      {/* Header Section with Title and Actions */}
+      <div className="mb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Create New Quotation</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Auto-generated quotation number • Date: {new Date().toLocaleDateString()}
+            </p>
+          </div>
+          <div className="flex flex-col md:flex-row gap-3 mt-4 md:mt-0">
+            <Button type="button" variant="outline" className="h-12 text-base md:text-sm">
+              Save as Draft
+            </Button>
+            <Button type="button" variant="outline" className="h-12 text-base md:text-sm">
+              Export PDF
+            </Button>
+            <Button type="button" variant="outline" className="h-12 text-base md:text-sm">
+              Duplicate
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Form Card - Full Width */}
+      <Card data-testid="quotation-form" className="w-full">
+        <CardContent className="space-y-6 p-6">
           {/* Price Tier Selection - Must come first */}
           <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
             <h3 className="font-semibold text-purple-800 mb-3">Step 1: Select Price Tier</h3>
@@ -355,14 +373,20 @@ export function QuotationForm() {
               <Label>Customer *</Label>
               <Select value={formData.customerId} onValueChange={handleCustomerChange}>
                 <SelectTrigger data-testid="select-customer" className="h-12 text-base md:text-sm">
-                  <SelectValue placeholder="Select a customer" />
+                  <SelectValue placeholder={customers.length > 0 ? "Select a customer" : "Loading customers..."} />
                 </SelectTrigger>
                 <SelectContent>
-                  {customers.map((customer) => (
-                    <SelectItem key={customer.id} value={customer.id}>
-                      {customer.name} ({customer.customerCode}) - {customer.country}
+                  {customers.length > 0 ? (
+                    customers.map((customer) => (
+                      <SelectItem key={customer.id} value={customer.id}>
+                        {customer.name} ({customer.customerCode}) - {customer.country}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="" disabled>
+                      No customers available
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -401,9 +425,16 @@ export function QuotationForm() {
 
           {/* Items Section */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label>Order Items (Max 300)</Label>
-              <Button type="button" onClick={addItem} size="sm" data-testid="button-add-item">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <Label className="text-lg font-semibold">Order Items (Max 300)</Label>
+              <Button 
+                type="button" 
+                onClick={addItem} 
+                size="sm" 
+                data-testid="button-add-item"
+                className="h-12 md:h-10 text-base md:text-sm bg-purple-600 hover:bg-purple-700"
+                disabled={!formData.priceListId}
+              >
                 <PlusCircle className="w-4 h-4 mr-2" />
                 Add Item
               </Button>
@@ -620,21 +651,15 @@ export function QuotationForm() {
             />
           </div>
 
-          {/* Actions */}
-          <div className="flex flex-col md:flex-row gap-4 pt-6">
+          {/* Submit Action */}
+          <div className="flex justify-center md:justify-end pt-6">
             <Button 
               onClick={submitQuotation} 
               disabled={isLoading || !formData.priceListId} 
-              className="flex-1 h-12 text-base md:text-sm"
+              className="w-full md:w-auto min-w-[200px] h-12 text-base md:text-sm bg-purple-600 hover:bg-purple-700"
               data-testid="button-create-quotation"
             >
               {isLoading ? 'Creating...' : !formData.priceListId ? 'Select Price Tier First' : 'Create Quotation'}
-            </Button>
-            <Button type="button" variant="outline" className="flex-1 h-12 text-base md:text-sm">
-              Save as Draft
-            </Button>
-            <Button type="button" variant="outline" className="flex-1 h-12 text-base md:text-sm">
-              Duplicate Quotation
             </Button>
           </div>
 
