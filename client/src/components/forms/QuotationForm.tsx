@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, Search, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface Customer {
   id: string;
@@ -45,6 +47,10 @@ export function QuotationForm() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [priceLists, setPriceLists] = useState<PriceList[]>([]);
+  
+  // Product search states
+  const [productSearchTerms, setProductSearchTerms] = useState<string[]>([]);
+  const [productOpenStates, setProductOpenStates] = useState<boolean[]>([]);
   
   const [formData, setFormData] = useState({
     customerId: '',
@@ -162,6 +168,10 @@ export function QuotationForm() {
         lineTotal: 0 
       }]
     }));
+
+    // Initialize search states for the new item
+    setProductSearchTerms(prev => [...prev, '']);
+    setProductOpenStates(prev => [...prev, false]);
   };
 
   const removeItem = (index: number) => {
@@ -169,6 +179,10 @@ export function QuotationForm() {
       ...prev,
       items: prev.items.filter((_, i) => i !== index)
     }));
+
+    // Remove corresponding search states
+    setProductSearchTerms(prev => prev.filter((_, i) => i !== index));
+    setProductOpenStates(prev => prev.filter((_, i) => i !== index));
   };
 
   const updateItem = (index: number, field: keyof QuotationItem, value: string | number) => {
@@ -440,27 +454,104 @@ export function QuotationForm() {
               </Button>
             </div>
 
-            {formData.items.map((item, index) => (
+            {formData.items.map((item, index) => {
+              // Ensure arrays are properly initialized
+              while (productSearchTerms.length <= index) {
+                productSearchTerms.push('');
+              }
+              while (productOpenStates.length <= index) {
+                productOpenStates.push(false);
+              }
+
+              // Filter products based on search term
+              const filteredProducts = useMemo(() => {
+                const searchTerm = productSearchTerms[index] || '';
+                if (!searchTerm) return products.slice(0, 10); // Show first 10 products by default
+                
+                return products.filter(product => 
+                  product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  product.category.toLowerCase().includes(searchTerm.toLowerCase())
+                ).slice(0, 20); // Lazy loading - show max 20 matches
+              }, [productSearchTerms[index], products]);
+
+              const selectedProduct = products.find(p => p.id === item.productId);
+
+              return (
               <Card key={index} className="p-4">
                 <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-6 md:gap-4">
                   <div className="space-y-2 md:col-span-2">
                     <Label>Product * {!formData.priceListId && <span className="text-red-500">(Select price tier first)</span>}</Label>
-                    <Select 
-                      value={item.productId} 
-                      onValueChange={(value) => updateItem(index, 'productId', value)}
-                      disabled={!formData.priceListId}
+                    <Popover 
+                      open={productOpenStates[index]} 
+                      onOpenChange={(open) => {
+                        const newStates = [...productOpenStates];
+                        newStates[index] = open;
+                        setProductOpenStates(newStates);
+                      }}
                     >
-                      <SelectTrigger data-testid={`select-product-${index}`} className="h-12 text-base md:text-sm">
-                        <SelectValue placeholder={formData.priceListId ? "Select product" : "Choose price tier first"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {products.map((product) => (
-                          <SelectItem key={product.id} value={product.id}>
-                            {product.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={productOpenStates[index]}
+                          className="h-12 w-full justify-between text-base md:text-sm"
+                          disabled={!formData.priceListId}
+                          data-testid={`select-product-${index}`}
+                        >
+                          {selectedProduct ? (
+                            <span className="truncate">{selectedProduct.name}</span>
+                          ) : (
+                            <span className="text-muted-foreground">
+                              {formData.priceListId ? "Search products..." : "Choose price tier first"}
+                            </span>
+                          )}
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[300px] md:w-[400px] p-0" align="start">
+                        <Command>
+                          <CommandInput 
+                            placeholder="Search products..." 
+                            value={productSearchTerms[index] || ''}
+                            onValueChange={(value) => {
+                              const newTerms = [...productSearchTerms];
+                              newTerms[index] = value;
+                              setProductSearchTerms(newTerms);
+                            }}
+                            className="h-12 text-base md:text-sm"
+                          />
+                          <CommandEmpty>No products found.</CommandEmpty>
+                          <CommandGroup className="max-h-64 overflow-y-auto">
+                            {filteredProducts.map((product) => (
+                              <CommandItem
+                                key={product.id}
+                                value={product.name}
+                                onSelect={() => {
+                                  updateItem(index, 'productId', product.id);
+                                  updateItem(index, 'productName', product.name);
+                                  const newStates = [...productOpenStates];
+                                  newStates[index] = false;
+                                  setProductOpenStates(newStates);
+                                }}
+                                className="cursor-pointer py-3"
+                              >
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{product.name}</span>
+                                  <span className="text-sm text-muted-foreground">
+                                    {product.category} • {product.unit}
+                                  </span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                          {filteredProducts.length === 20 && (
+                            <div className="p-2 text-center text-sm text-muted-foreground border-t">
+                              Showing first 20 results. Refine search for more.
+                            </div>
+                          )}
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
 
                   <div className="space-y-2">
@@ -517,7 +608,7 @@ export function QuotationForm() {
                   </div>
                 </div>
               </Card>
-            ))}
+            )})}
           </div>
 
           <Separator />
