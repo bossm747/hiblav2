@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-import { OrderAutomationVisualization } from '@/components/OrderAutomationVisualization';
+
 import { dashboardApi, type DashboardAnalytics } from '@/api/dashboard';
 import {
   Factory,
@@ -286,15 +286,28 @@ export function Dashboard() {
         </Card>
       </div>
 
-      {/* Order Automation Visualization */}
-      <OrderAutomationVisualization
-        quotationsCount={parseInt(overview.activeQuotations?.toString() || '0')}
-        salesOrdersCount={parseInt(overview.activeSalesOrders?.toString() || '0')}
-        jobOrdersCount={parseInt(overview.activeJobOrders?.toString() || '0')}
-        invoicesCount={0}
-        paymentsCount={0}
-        className="mb-6"
-      />
+      {/* Automation Status Summary */}
+      <Card className="mb-6 container-shadow">
+        <CardHeader>
+          <CardTitle className="text-base sm:text-lg">System Automation Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-primary">{overview.activeQuotations || 0}</div>
+              <div className="text-sm text-muted-foreground">Active Quotations</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{overview.activeSalesOrders || 0}</div>
+              <div className="text-sm text-muted-foreground">Sales Orders</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">{overview.activeJobOrders || 0}</div>
+              <div className="text-sm text-muted-foreground">Job Orders</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Quick Actions */}
       <Card className="container-shadow">
