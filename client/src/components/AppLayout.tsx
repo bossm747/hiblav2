@@ -61,7 +61,7 @@ const navigationModules = [
     icon: Home
   },
   { 
-    path: '/sales-operations-dashboard', 
+    path: '/sales', 
     label: 'Sales Operations', 
     icon: FileText
   },
