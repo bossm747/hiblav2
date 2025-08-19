@@ -33,20 +33,20 @@ export async function apiRequest<T = any>(
 
   // Get token from localStorage or window
   const token = localStorage.getItem('auth_token') || (window as any).authToken;
-  
+
   console.log('🔗 API Request:', fullUrl);
   console.log('🔑 Token exists:', !!token);
   console.log('🔑 Token preview:', token ? `${token.substring(0, 20)}...` : 'None');
-  
+
   // Build headers with Authorization if token exists
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
-  
+
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  
+
   // Merge with existing headers from options
   if (options.headers) {
     Object.assign(headers, options.headers);
@@ -54,31 +54,34 @@ export async function apiRequest<T = any>(
 
   console.log('📤 Request headers:', Object.keys(headers));
 
-  const response = await fetch(fullUrl, {
-    headers,
-    credentials: 'include', // Include cookies for session management
-    ...options,
-  });
+  try {
+    const response = await fetch(fullUrl, {
+      headers,
+      credentials: 'include', // Include cookies for session management
+      ...options,
+    });
 
-  console.log('📥 Response status:', response.status);
+    console.log('📥 Response status:', response.status);
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error(`❌ API Error: ${response.status} - ${errorText}`);
-    
-    // If 401 unauthorized, clear auth and redirect to login
     if (response.status === 401) {
       console.log('🚪 Unauthorized - clearing auth data');
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
-      // Don't redirect automatically to avoid infinite loops
-      // window.location.href = '/login';
+      // Don't redirect automatically, let the component handle it
+      throw new Error('Unauthorized');
     }
-    
-    throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-  }
 
-  const data = await response.json();
-  console.log('✅ API Response received:', typeof data);
-  return data;
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ API Error: ${response.status} - ${errorText}`);
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ API Response received:', typeof data);
+    return data;
+  } catch (error) {
+    console.log('❌ API Request failed:', error);
+    throw error;
+  }
 }

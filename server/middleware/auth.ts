@@ -14,22 +14,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
   console.log('🔐 Auth middleware check - Bearer token exists:', !!bearerToken);
   
-  // Priority: session-based auth first (for web users), then Bearer token (for API clients)
-  if (sessionUser && sessionToken) {
-    // Session-based authentication (user logged in via web interface)
-    try {
-      const isValid = await authService.validateToken(sessionToken);
-      console.log('🔐 Session token validation result:', isValid);
-      if (isValid) {
-        console.log('🔐 Authentication successful via session');
-        return next();
-      }
-    } catch (error) {
-      console.log('🔐 Session token validation failed:', error);
-    }
-  }
-  
-  // Fall back to Bearer token authentication
+  // Try Bearer token first (for API clients), then session
   if (bearerToken) {
     try {
       const isValid = await authService.validateToken(bearerToken);
@@ -43,11 +28,22 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     }
   }
   
-  // If we get here, authentication failed
-  console.log('🔐 Authentication failed - destroying session');
-  if (req.session) {
-    req.session.destroy(() => {});
+  // Fall back to session-based authentication
+  if (sessionUser && sessionToken) {
+    try {
+      const isValid = await authService.validateToken(sessionToken);
+      console.log('🔐 Session token validation result:', isValid);
+      if (isValid) {
+        console.log('🔐 Authentication successful via session');
+        return next();
+      }
+    } catch (error) {
+      console.log('🔐 Session token validation failed:', error);
+    }
   }
+  
+  // If we get here, authentication failed
+  console.log('🔐 Authentication failed - no valid tokens found');
   
   return res.status(401).json({ error: 'Authentication required' });
 }

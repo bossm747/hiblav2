@@ -81,6 +81,18 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
     },
   ]);
 
+  // Check if user is authenticated
+  const token = localStorage.getItem('auth_token');
+  if (!token) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <p className="text-muted-foreground">Please log in to create quotations.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   // Customer search state
   const [customerSearch, setCustomerSearch] = useState('');
   const [showCustomerModal, setShowCustomerModal] = useState(false);
@@ -126,57 +138,105 @@ export function QuotationForm({ onSuccess }: QuotationFormProps) {
     },
   });
 
-  // Fetch all dropdown data from database with proper error handling
+  // Fetch all dropdown data from database with proper error handling and auth
   const { data: products = [], isLoading: productsLoading, error: productsError } = useQuery({
     queryKey: ['/api/products'],
     queryFn: async () => {
-      const response = await fetch('/api/products');
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/products', {
+        headers,
+        credentials: 'include',
+      });
       if (!response.ok) {
         throw new Error(`Failed to fetch products: ${response.statusText}`);
       }
       return response.json();
     },
     staleTime: 5 * 60 * 1000,
-    retry: 2,
+    retry: 3,
+    enabled: !!localStorage.getItem('auth_token'),
   });
 
   const { data: customers = [], isLoading: customersLoading, error: customersError } = useQuery({
     queryKey: ['/api/customers'],
     queryFn: async () => {
-      const response = await fetch('/api/customers');
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/customers', {
+        headers,
+        credentials: 'include',
+      });
       if (!response.ok) {
         throw new Error(`Failed to fetch customers: ${response.statusText}`);
       }
       return response.json();
     },
     staleTime: 5 * 60 * 1000,
-    retry: 2,
+    retry: 3,
+    enabled: !!localStorage.getItem('auth_token'),
   });
 
   const { data: priceLists = [], isLoading: priceListsLoading, error: priceListsError } = useQuery({
     queryKey: ['/api/price-lists'],
     queryFn: async () => {
-      const response = await fetch('/api/price-lists');
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/price-lists', {
+        headers,
+        credentials: 'include',
+      });
       if (!response.ok) {
         throw new Error(`Failed to fetch price lists: ${response.statusText}`);
       }
       return response.json();
     },
     staleTime: 5 * 60 * 1000,
-    retry: 2,
+    retry: 3,
+    enabled: !!localStorage.getItem('auth_token'),
   });
 
   const { data: staff = [], isLoading: staffLoading, error: staffError } = useQuery({
     queryKey: ['/api/staff'],
     queryFn: async () => {
-      const response = await fetch('/api/staff');
+      const token = localStorage.getItem('auth_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch('/api/staff', {
+        headers,
+        credentials: 'include',
+      });
       if (!response.ok) {
         throw new Error(`Failed to fetch staff: ${response.statusText}`);
       }
       return response.json();
     },
     staleTime: 5 * 60 * 1000,
-    retry: 2,
+    retry: 3,
+    enabled: !!localStorage.getItem('auth_token'),
   });
 
   // Check if any dropdown data is loading
