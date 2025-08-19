@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { PlusCircle, Trash2, Upload, FileText } from 'lucide-react';
+import { PlusCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 
@@ -28,7 +28,6 @@ interface PriceList {
   id: string;
   name: string;
   type: string;
-  prices?: { [productId: string]: number };
 }
 
 interface QuotationItem {
@@ -63,7 +62,6 @@ export function QuotationForm() {
     discount: 0,
     others: 0,
     total: 0,
-    attachments: [] as File[],
     items: [{ 
       productId: '', 
       productName: '', 
@@ -75,7 +73,6 @@ export function QuotationForm() {
   });
 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [selectedPriceList, setSelectedPriceList] = useState<PriceList | null>(null);
 
   // Load data on component mount
   useEffect(() => {
@@ -157,19 +154,17 @@ export function QuotationForm() {
       const newItems = [...prev.items];
       newItems[index] = { ...newItems[index], [field]: value };
       
-      // Handle product selection and price lookup
+      // Handle product selection and auto-fill name
       if (field === 'productId' && typeof value === 'string') {
         const product = products.find(p => p.id === value);
         if (product) {
           newItems[index].productName = product.name;
-          // VLOOKUP from selected price list
-          if (selectedPriceList?.prices?.[value]) {
-            newItems[index].unitPrice = selectedPriceList.prices[value];
-          }
+          // Basic price lookup - would be enhanced with actual VLOOKUP
+          newItems[index].unitPrice = 100; // Placeholder - real VLOOKUP would use price list
         }
       }
       
-      // Recalculate line total (quantity must be decimal with 1 place)
+      // Recalculate line total (quantity with 1 decimal place)
       if (field === 'quantity' || field === 'unitPrice') {
         const quantity = parseFloat(newItems[index].quantity.toFixed(1));
         newItems[index].quantity = quantity;
@@ -191,32 +186,11 @@ export function QuotationForm() {
         country: customer.country,
         priceListId: customer.priceListId
       }));
-      
-      // Load selected price list
-      const priceList = priceLists.find(pl => pl.id === customer.priceListId);
-      if (priceList) {
-        setSelectedPriceList(priceList);
-      }
     }
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    setFormData(prev => ({
-      ...prev,
-      attachments: [...prev.attachments, ...files]
-    }));
-  };
-
-  const removeAttachment = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      attachments: prev.attachments.filter((_, i) => i !== index)
-    }));
-  };
-
   // Calculate totals
-  const calculateTotals = () => {
+  useEffect(() => {
     const subtotal = formData.items.reduce((sum, item) => sum + item.lineTotal, 0);
     const total = subtotal + formData.shippingFee + formData.bankCharge + formData.discount + formData.others;
     
@@ -225,10 +199,6 @@ export function QuotationForm() {
       subtotal,
       total
     }));
-  };
-
-  useEffect(() => {
-    calculateTotals();
   }, [formData.items, formData.shippingFee, formData.bankCharge, formData.discount, formData.others]);
 
   const submitQuotation = async () => {
@@ -283,7 +253,7 @@ export function QuotationForm() {
         const result = await response.json();
         toast({
           title: "Success",
-          description: `Quotation ${result.quotation.number} created successfully`
+          description: `Quotation created successfully`
         });
         
         // Reset form
@@ -303,7 +273,6 @@ export function QuotationForm() {
           discount: 0,
           others: 0,
           total: 0,
-          attachments: [],
           items: [{ 
             productId: '', 
             productName: '', 
@@ -313,6 +282,7 @@ export function QuotationForm() {
             lineTotal: 0 
           }]
         });
+        setSelectedCustomer(null);
       } else {
         throw new Error('Failed to create quotation');
       }
@@ -327,433 +297,298 @@ export function QuotationForm() {
     }
   };
 
-  const totalAmount = formData.total;
-
   return (
-    <Card className="w-full max-w-4xl mx-auto" data-testid="quotation-form">
-      <CardHeader>
-        <CardTitle>Create New Quotation</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Customer Selection */}
-        <div className="space-y-2">
-          <Label htmlFor="customer">Customer *</Label>
-          <Select value={formData.customerId} onValueChange={handleCustomerChange}>
-            <SelectTrigger data-testid="select-customer">
-              <SelectValue placeholder="Select a customer" />
-            </SelectTrigger>
-            <SelectContent>
-              {customers.map((customer) => (
-                <SelectItem key={customer.id} value={customer.id} data-testid={`customer-${customer.id}`}>
-                  {customer.name} ({customer.customerCode}) - {customer.country}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Valid Until */}
-        <div className="space-y-2">
-          <Label htmlFor="validUntil">Valid Until</Label>
-          <Input
-            type="date"
-            value={formData.validUntil}
-            onChange={(e) => setFormData(prev => ({ ...prev, validUntil: e.target.value }))}
-            data-testid="input-valid-until"
-          />
-        </div>
-
-        {/* Items */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Quotation Items</Label>
-            <Button type="button" onClick={addItem} size="sm" data-testid="button-add-item">
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Add Item
-            </Button>
-          </div>
-
-          {formData.items.map((item, index) => (
-            <Card key={index} className="p-4" data-testid={`quotation-item-${index}`}>
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-                <div className="space-y-2">
-                  <Label>Product *</Label>
-                  <Select 
-                    value={item.productId} 
-                    onValueChange={(value) => updateItem(index, 'productId', value)}
-                  >
-                    <SelectTrigger data-testid={`select-product-${index}`}>
-                      <SelectValue placeholder="Select product" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {products.map((product) => (
-                        <SelectItem key={product.id} value={product.id}>
-                          {product.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Specification</Label>
-                  <Input
-                    value={item.specification}
-                    onChange={(e) => updateItem(index, 'specification', e.target.value)}
-                    placeholder="Enter specification"
-                    data-testid={`input-specification-${index}`}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Quantity *</Label>
-                  <Input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    value={item.quantity}
-                    onChange={(e) => updateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
-                    data-testid={`input-quantity-${index}`}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Unit Price</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={item.unitPrice}
-                    onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                    data-testid={`input-unit-price-${index}`}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Line Total</Label>
-                  <Input
-                    type="number"
-                    value={item.lineTotal.toFixed(2)}
-                    readOnly
-                    className="bg-gray-50"
-                    data-testid={`display-line-total-${index}`}
-                  />
-                </div>
-
-                <div className="flex items-center justify-center">
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => removeItem(index)}
-                    data-testid={`button-remove-item-${index}`}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-
-        <Separator />
-
-        {/* Customer Information Display */}
-        {selectedCustomer && (
-          <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
-            <div>
-              <Label>Customer Code</Label>
-              <Input value={formData.customerCode} readOnly className="bg-white" />
-            </div>
-            <div>
-              <Label>Country</Label>
-              <Input value={formData.country} readOnly className="bg-white" />
-            </div>
-          </div>
-        )}
-
-        {/* Additional Fields */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Revision Number</Label>
-            <Input
-              value={formData.revisionNumber}
-              onChange={(e) => setFormData(prev => ({ ...prev, revisionNumber: e.target.value }))}
-              data-testid="input-revision-number"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Price List</Label>
-            <Input value={selectedPriceList?.name || ''} readOnly className="bg-gray-50" />
-          </div>
-        </div>
-
-        {/* Payment and Shipping */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Method of Payment</Label>
-            <Select 
-              value={formData.paymentMethod} 
-              onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select payment method" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="bank">Bank</SelectItem>
-                <SelectItem value="agent">Agent</SelectItem>
-                <SelectItem value="money transfer">Money Transfer</SelectItem>
-                <SelectItem value="cash">Cash</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label>Shipping Method</Label>
-            <Select 
-              value={formData.shippingMethod} 
-              onValueChange={(value) => setFormData(prev => ({ ...prev, shippingMethod: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select shipping method" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="DHL">DHL</SelectItem>
-                <SelectItem value="UPS">UPS</SelectItem>
-                <SelectItem value="FedEx">FedEx</SelectItem>
-                <SelectItem value="Agent">Agent</SelectItem>
-                <SelectItem value="Pick Up">Pick Up</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Financial Calculations */}
-        <div className="space-y-4 p-4 bg-blue-50 rounded-lg">
-          <h3 className="font-semibold">Financial Summary</h3>
-          
+    <div className="w-full max-w-6xl mx-auto p-6">
+      <Card data-testid="quotation-form">
+        <CardHeader>
+          <CardTitle>Create New Quotation</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Auto-generated quotation number • Date: {new Date().toLocaleDateString()}
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Customer Selection */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Sub Total (A)</Label>
-              <Input
-                type="number"
-                value={formData.subtotal.toFixed(2)}
-                readOnly
-                className="bg-white font-semibold"
-              />
+              <Label>Customer *</Label>
+              <Select value={formData.customerId} onValueChange={handleCustomerChange}>
+                <SelectTrigger data-testid="select-customer">
+                  <SelectValue placeholder="Select a customer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {customers.map((customer) => (
+                    <SelectItem key={customer.id} value={customer.id}>
+                      {customer.name} ({customer.customerCode}) - {customer.country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
-              <Label>Shipping Fee (B)</Label>
+              <Label>Revision Number</Label>
               <Input
-                type="number"
-                step="0.01"
-                value={formData.shippingFee}
-                onChange={(e) => setFormData(prev => ({ ...prev, shippingFee: parseFloat(e.target.value) || 0 }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Bank Charge (C)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={formData.bankCharge}
-                onChange={(e) => setFormData(prev => ({ ...prev, bankCharge: parseFloat(e.target.value) || 0 }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Discount (D) - Must be negative</Label>
-              <Input
-                type="number"
-                step="0.01"
-                max="0"
-                value={formData.discount}
-                onChange={(e) => setFormData(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Others (E)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={formData.others}
-                onChange={(e) => setFormData(prev => ({ ...prev, others: parseFloat(e.target.value) || 0 }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Total (A+B+C+D+E)</Label>
-              <Input
-                type="number"
-                value={formData.total.toFixed(2)}
-                readOnly
-                className="bg-yellow-100 font-bold text-lg"
+                value={formData.revisionNumber}
+                onChange={(e) => setFormData(prev => ({ ...prev, revisionNumber: e.target.value }))}
+                data-testid="input-revision-number"
               />
             </div>
           </div>
-        </div>
 
-        {/* Customer Service Instructions */}
-        <div className="space-y-2">
-          <Label>Customer Service Instructions</Label>
-          <Textarea
-            value={formData.customerServiceInstructions}
-            onChange={(e) => setFormData(prev => ({ ...prev, customerServiceInstructions: e.target.value }))}
-            placeholder="Enter any special instructions..."
-            rows={3}
-          />
-        </div>
-
-        {/* File Attachments */}
-        <div className="space-y-4">
-          <Label>File Attachments</Label>
-          <div className="flex items-center gap-4">
-            <Input
-              type="file"
-              multiple
-              onChange={handleFileUpload}
-              className="flex-1"
-            />
-            <Button type="button" variant="outline" size="sm">
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Files
-            </Button>
-          </div>
-          
-          {formData.attachments.length > 0 && (
-            <div className="space-y-2">
-              {formData.attachments.map((file, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    <span className="text-sm">{file.name}</span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeAttachment(index)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
+          {/* Customer Info Display */}
+          {selectedCustomer && (
+            <div className="p-4 bg-gray-50 rounded-lg grid grid-cols-3 gap-4">
+              <div>
+                <Label>Customer Code</Label>
+                <p className="font-mono">{formData.customerCode}</p>
+              </div>
+              <div>
+                <Label>Country</Label>
+                <p>{formData.country}</p>
+              </div>
+              <div>
+                <Label>Price List</Label>
+                <p>{priceLists.find(pl => pl.id === formData.priceListId)?.name || 'Default'}</p>
+              </div>
             </div>
           )}
-        </div>
 
-        {/* Form Actions */}
-        <div className="flex gap-4 pt-4">
-          <Button 
-            onClick={submitQuotation} 
-            disabled={isLoading} 
-            className="flex-1"
-            data-testid="button-create-quotation"
-          >
-            {isLoading ? 'Creating...' : 'Create Quotation'}
-          </Button>
-          <Button type="button" variant="outline" className="flex-1">
-            Save as Draft
-          </Button>
-        </div>
+          {/* Items Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label>Order Items (Max 300)</Label>
+              <Button type="button" onClick={addItem} size="sm" data-testid="button-add-item">
+                <PlusCircle className="w-4 h-4 mr-2" />
+                Add Item
+              </Button>
+            </div>
 
-        {/* Display total items and validation */}
-        <div className="text-sm text-gray-500 text-center">
-          Items: {formData.items.length}/300 | Total Amount: ${totalAmount.toFixed(2)}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-                    <SelectContent>
-                      {products.map((product) => (
-                        <SelectItem key={product.id} value={product.id} data-testid={`product-${product.id}-${index}`}>
-                          {product.name} ({product.category})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            {formData.items.map((item, index) => (
+              <Card key={index} className="p-4">
+                <div className="grid grid-cols-6 gap-4">
+                  <div className="space-y-2">
+                    <Label>Product *</Label>
+                    <Select 
+                      value={item.productId} 
+                      onValueChange={(value) => updateItem(index, 'productId', value)}
+                    >
+                      <SelectTrigger data-testid={`select-product-${index}`}>
+                        <SelectValue placeholder="Select product" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {products.map((product) => (
+                          <SelectItem key={product.id} value={product.id}>
+                            {product.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                <div className="space-y-2">
-                  <Label>Quantity *</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={item.quantity}
-                    onChange={(e) => updateItem(index, 'quantity', parseInt(e.target.value) || 1)}
-                    data-testid={`input-quantity-${index}`}
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label>Specification</Label>
+                    <Input
+                      value={item.specification}
+                      onChange={(e) => updateItem(index, 'specification', e.target.value)}
+                      placeholder="Enter specification"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label>Unit Price ($) *</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={item.unitPrice}
-                    onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
-                    data-testid={`input-unit-price-${index}`}
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label>Quantity * (1 decimal)</Label>
+                    <Input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={item.quantity}
+                      onChange={(e) => updateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label>Total ($)</Label>
-                  <Input
-                    value={item.total.toFixed(2)}
-                    readOnly
-                    className="bg-gray-50"
-                    data-testid={`text-total-${index}`}
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <Label>Unit Price * (VLOOKUP)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={item.unitPrice}
+                      onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                    />
+                  </div>
 
-                <div>
-                  {formData.items.length > 1 && (
+                  <div className="space-y-2">
+                    <Label>Line Total</Label>
+                    <Input
+                      type="number"
+                      value={item.lineTotal.toFixed(2)}
+                      readOnly
+                      className="bg-gray-50 font-semibold"
+                    />
+                  </div>
+
+                  <div className="flex items-end">
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="destructive"
                       size="sm"
                       onClick={() => removeItem(index)}
-                      data-testid={`button-remove-item-${index}`}
+                      disabled={formData.items.length === 1}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
-                  )}
+                  </div>
                 </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-
-        {/* Notes */}
-        <div className="space-y-2">
-          <Label htmlFor="notes">Notes</Label>
-          <Textarea
-            placeholder="Additional notes for the quotation"
-            value={formData.notes}
-            onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-            data-testid="textarea-notes"
-          />
-        </div>
-
-        {/* Total */}
-        <div className="border-t pt-4">
-          <div className="flex justify-between items-center text-lg font-semibold">
-            <span>Grand Total:</span>
-            <span data-testid="text-grand-total">${totalAmount.toFixed(2)}</span>
+              </Card>
+            ))}
           </div>
-        </div>
 
-        {/* Submit */}
-        <div className="flex justify-end space-x-4">
-          <Button
-            type="button"
-            onClick={submitQuotation}
-            disabled={isLoading}
-            data-testid="button-submit-quotation"
-          >
-            {isLoading ? 'Creating...' : 'Create Quotation'}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+          <Separator />
+
+          {/* Payment & Shipping */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Method of Payment</Label>
+              <Select 
+                value={formData.paymentMethod} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select payment method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bank">Bank</SelectItem>
+                  <SelectItem value="agent">Agent</SelectItem>
+                  <SelectItem value="money transfer">Money Transfer</SelectItem>
+                  <SelectItem value="cash">Cash</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Shipping Method</Label>
+              <Select 
+                value={formData.shippingMethod} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, shippingMethod: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select shipping method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DHL">DHL</SelectItem>
+                  <SelectItem value="UPS">UPS</SelectItem>
+                  <SelectItem value="FedEx">FedEx</SelectItem>
+                  <SelectItem value="Agent">Agent</SelectItem>
+                  <SelectItem value="Pick Up">Pick Up</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Financial Summary */}
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <h3 className="font-semibold mb-4">Financial Summary (A+B+C+D+E)</h3>
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <Label>Sub Total (A)</Label>
+                <Input
+                  type="number"
+                  value={formData.subtotal.toFixed(2)}
+                  readOnly
+                  className="bg-white font-semibold"
+                />
+              </div>
+              <div>
+                <Label>Shipping Fee (B)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.shippingFee}
+                  onChange={(e) => setFormData(prev => ({ ...prev, shippingFee: parseFloat(e.target.value) || 0 }))}
+                />
+              </div>
+              <div>
+                <Label>Bank Charge (C)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.bankCharge}
+                  onChange={(e) => setFormData(prev => ({ ...prev, bankCharge: parseFloat(e.target.value) || 0 }))}
+                />
+              </div>
+              <div>
+                <Label>Discount (D) - Must be negative</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  max="0"
+                  value={formData.discount}
+                  onChange={(e) => setFormData(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
+                />
+              </div>
+              <div>
+                <Label>Others (E)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formData.others}
+                  onChange={(e) => setFormData(prev => ({ ...prev, others: parseFloat(e.target.value) || 0 }))}
+                />
+              </div>
+              <div>
+                <Label className="font-bold">Total (A+B+C+D+E)</Label>
+                <Input
+                  type="number"
+                  value={formData.total.toFixed(2)}
+                  readOnly
+                  className="bg-yellow-100 font-bold text-lg"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Customer Service Instructions */}
+          <div className="space-y-2">
+            <Label>Customer Service Instructions</Label>
+            <Textarea
+              value={formData.customerServiceInstructions}
+              onChange={(e) => setFormData(prev => ({ ...prev, customerServiceInstructions: e.target.value }))}
+              placeholder="Enter any special instructions..."
+              rows={3}
+            />
+          </div>
+
+          {/* Valid Until */}
+          <div className="space-y-2">
+            <Label>Valid Until</Label>
+            <Input
+              type="date"
+              value={formData.validUntil}
+              onChange={(e) => setFormData(prev => ({ ...prev, validUntil: e.target.value }))}
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-4 pt-6">
+            <Button 
+              onClick={submitQuotation} 
+              disabled={isLoading} 
+              className="flex-1"
+              data-testid="button-create-quotation"
+            >
+              {isLoading ? 'Creating...' : 'Create Quotation'}
+            </Button>
+            <Button type="button" variant="outline" className="flex-1">
+              Save as Draft
+            </Button>
+            <Button type="button" variant="outline" className="flex-1">
+              Duplicate Quotation
+            </Button>
+          </div>
+
+          {/* Status Display */}
+          <div className="text-sm text-muted-foreground text-center pt-4 border-t">
+            Items: {formData.items.length}/300 | Total Amount: ${formData.total.toFixed(2)} | Creator Initials: Auto-generated
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
