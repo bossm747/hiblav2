@@ -154,25 +154,28 @@ export function EnhancedQuotationForm({
   // Fetch customers for dropdown - only when user is authenticated
   const { data: customers = [], isLoading: customersLoading, error: customersError } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
-    enabled: !!user && !!localStorage.getItem('auth_token'), // Only fetch when authenticated
-    retry: 1,
-    retryDelay: 2000,
+    enabled: !!user, // Simplified authentication check - the queryClient handles token automatically
+    retry: 2,
+    retryDelay: 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Fetch products for line items - only when user is authenticated
   const { data: products = [], isLoading: productsLoading, error: productsError } = useQuery<Product[]>({
     queryKey: ['/api/products'],
-    enabled: !!user && !!localStorage.getItem('auth_token'), // Only fetch when authenticated
-    retry: 1,
-    retryDelay: 2000,
+    enabled: !!user, // Simplified authentication check - the queryClient handles token automatically
+    retry: 2,
+    retryDelay: 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Fetch price lists for VLOOKUP pricing - only when user is authenticated
   const { data: priceLists = [], isLoading: priceListsLoading, error: priceListsError } = useQuery<PriceList[]>({
     queryKey: ['/api/price-lists'],
-    enabled: !!user && !!localStorage.getItem('auth_token'), // Only fetch when authenticated
-    retry: 1,
-    retryDelay: 2000,
+    enabled: !!user, // Simplified authentication check - the queryClient handles token automatically
+    retry: 2,
+    retryDelay: 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Debug logging
@@ -196,7 +199,7 @@ export function EnhancedQuotationForm({
   }, [user, customers, products, priceLists, customersLoading, productsLoading, priceListsLoading, customersError, productsError, priceListsError, toast]);
 
   // Fetch existing quotation if editing
-  const { data: existingQuotation } = useQuery({
+  const { data: existingQuotation } = useQuery<any>({
     queryKey: ['/api/quotations', quotationId],
     enabled: !!quotationId,
   });
@@ -1005,7 +1008,7 @@ export function EnhancedQuotationForm({
               </Button>
               <Button
                 type="submit"
-                disabled={createQuotationMutation.isPending || (!canRevise() && quotationId)}
+                disabled={createQuotationMutation.isPending || (!canRevise() && !!quotationId)}
                 data-testid="button-save"
               >
                 {createQuotationMutation.isPending ? (
