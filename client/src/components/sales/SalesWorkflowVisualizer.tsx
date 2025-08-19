@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   FileText,
   ShoppingCart,
@@ -11,7 +12,10 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  Play
+  Play,
+  Zap,
+  Timer,
+  Info
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,11 +45,12 @@ export function SalesWorkflowVisualizer({
   onStepClick
 }: SalesWorkflowVisualizerProps) {
   
+  // Enhanced workflow steps with detailed descriptions and time estimates
   const workflowSteps: WorkflowStep[] = [
     {
       id: 'quotations',
       title: 'Quotations',
-      description: 'Customer requests & pricing',
+      description: 'Initial customer pricing and product details',
       icon: FileText,
       status: quotationsCount > 0 ? 'active' : 'pending',
       count: quotationsCount
@@ -53,7 +58,7 @@ export function SalesWorkflowVisualizer({
     {
       id: 'sales-orders',
       title: 'Sales Orders',
-      description: 'Confirmed orders',
+      description: 'AUTO-GENERATED from approved quotations',
       icon: ShoppingCart,
       status: salesOrdersCount > 0 ? 'active' : 'pending',
       automated: true,
@@ -62,7 +67,7 @@ export function SalesWorkflowVisualizer({
     {
       id: 'job-orders',
       title: 'Job Orders',
-      description: 'Production planning',
+      description: 'AUTO-GENERATED production planning',
       icon: Briefcase,
       status: jobOrdersCount > 0 ? 'active' : 'pending',
       automated: true,
@@ -71,7 +76,7 @@ export function SalesWorkflowVisualizer({
     {
       id: 'invoices',
       title: 'Invoices',
-      description: 'Payment documents',
+      description: 'AUTO-GENERATED payment documentation',
       icon: FileCheck,
       status: invoicesCount > 0 ? 'completed' : 'pending',
       automated: true,
@@ -147,53 +152,77 @@ export function SalesWorkflowVisualizer({
                 )}
 
                 {/* Step Card */}
-                <Card 
-                  className={cn(
-                    "transition-all duration-200 cursor-pointer hover:shadow-lg",
-                    getStepColor(step.status),
-                    onStepClick && "hover:scale-105"
-                  )}
-                  onClick={() => onStepClick?.(step.id)}
-                >
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      {/* Icon & Status */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Icon className="h-6 w-6 text-primary" />
-                          {step.automated && (
-                            <Badge variant="secondary" className="text-xs">AUTO</Badge>
-                          )}
-                        </div>
-                        {getStatusIcon(step.status)}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Card
+                        className={cn(
+                          'cursor-pointer transition-all duration-200 hover:shadow-lg transform hover:scale-105',
+                          'border-2', 
+                          getStepColor(step.status)
+                        )}
+                        onClick={() => onStepClick?.(step.id)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center space-x-2">
+                              <div className={cn(
+                                'p-2 rounded-full',
+                                step.status === 'completed' ? 'bg-green-100 dark:bg-green-900' :
+                                step.status === 'active' ? 'bg-blue-100 dark:bg-blue-900' :
+                                'bg-gray-100 dark:bg-gray-800'
+                              )}>
+                                <Icon className={cn(
+                                  'h-5 w-5',
+                                  step.status === 'completed' ? 'text-green-600 dark:text-green-300' :
+                                  step.status === 'active' ? 'text-blue-600 dark:text-blue-300' :
+                                  'text-gray-500'
+                                )} />
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-sm">{step.title}</h3>
+                                {step.automated && (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <Zap className="h-3 w-3 text-yellow-500" />
+                                    <Badge variant="secondary" className="text-xs px-1 py-0">
+                                      AUTO
+                                    </Badge>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              {getStatusIcon(step.status)}
+                              <Badge variant="outline" className="ml-1">
+                                {step.count || 0}
+                              </Badge>
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-relaxed">
+                            {step.description}
+                          </p>
+                          <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                            <Timer className="h-3 w-3" />
+                            <span>
+                              {step.automated ? '1 day (Instant)' : '2-3 days'}
+                            </span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="max-w-xs">
+                        <p className="font-semibold">{step.title}</p>
+                        <p className="text-sm">{step.description}</p>
+                        {step.automated && (
+                          <p className="text-xs text-blue-300 mt-1">
+                            ⚡ Automatically generated from previous step
+                          </p>
+                        )}
                       </div>
-
-                      {/* Title & Description */}
-                      <div>
-                        <h3 className="font-medium">{step.title}</h3>
-                        <p className="text-sm text-muted-foreground">{step.description}</p>
-                      </div>
-
-                      {/* Count */}
-                      <div className="flex items-center justify-between">
-                        <div className="text-2xl font-bold text-primary">
-                          {step.count || 0}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onStepClick?.(step.id);
-                          }}
-                        >
-                          View →
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             );
           })}
