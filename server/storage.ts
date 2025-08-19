@@ -111,6 +111,10 @@ export interface IStorage {
   createSalesOrder(salesOrder: InsertSalesOrder): Promise<SalesOrder>;
   updateSalesOrder(id: string, salesOrder: Partial<InsertSalesOrder>): Promise<SalesOrder>;
   getSalesOrderItems(salesOrderId: string): Promise<SalesOrderItem[]>;
+  getSalesOrderCountForMonth(year: number, month: number): Promise<number>;
+  updateInventoryReservations(salesOrderId: string): Promise<void>;
+  cancelRelatedJobOrders(salesOrderId: string): Promise<void>;
+  releaseReservedStock(salesOrderId: string): Promise<void>;
   
   // Manufacturing Workflow - Job Orders
   getJobOrders(): Promise<JobOrder[]>;
@@ -310,6 +314,35 @@ export class Storage implements IStorage {
   // Sales Orders
   async getSalesOrders(): Promise<SalesOrder[]> {
     return await db.select().from(salesOrders).orderBy(desc(salesOrders.createdAt));
+  }
+
+  async getSalesOrderCountForMonth(year: number, month: number): Promise<number> {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+    
+    const result = await db.select({ count: sql<number>`count(*)` })
+      .from(salesOrders)
+      .where(and(
+        gte(salesOrders.createdAt, startDate),
+        lte(salesOrders.createdAt, endDate)
+      ));
+    
+    return result[0]?.count || 0;
+  }
+
+  async updateInventoryReservations(salesOrderId: string): Promise<void> {
+    // This would update inventory reservations based on sales order items
+    console.log(`Updating inventory reservations for sales order: ${salesOrderId}`);
+  }
+
+  async cancelRelatedJobOrders(salesOrderId: string): Promise<void> {
+    // This would cancel all job orders related to the sales order
+    console.log(`Cancelling job orders for sales order: ${salesOrderId}`);
+  }
+
+  async releaseReservedStock(salesOrderId: string): Promise<void> {
+    // This would release reserved stock back to available inventory
+    console.log(`Releasing reserved stock for sales order: ${salesOrderId}`);
   }
   
   async getSalesOrderById(id: string): Promise<SalesOrder | null> {

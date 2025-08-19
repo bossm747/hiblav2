@@ -314,7 +314,27 @@ export function registerRoutes(app: Express): void {
   app.get("/api/sales-orders", requireAuth, async (req, res) => {
     try {
       const salesOrders = await storage.getSalesOrders();
-      res.json(salesOrders);
+      
+      // Transform for table view
+      const tableData = salesOrders.map(so => ({
+        id: so.id,
+        salesOrderNumber: so.salesOrderNumber || so.id,
+        quotationId: so.quotationId,
+        customerCode: so.customerCode || 'N/A',
+        customerName: so.customerName || 'Unknown Customer',
+        country: so.country || 'N/A',
+        revisionNumber: so.revisionNumber || 'R1',
+        status: so.status || 'draft',
+        dueDate: so.dueDate || new Date().toISOString(),
+        dateOfRevision: so.dateOfRevision,
+        total: parseFloat(so.pleasePayThisAmountUsd || '0'),
+        createdAt: so.createdAt || new Date().toISOString(),
+        createdByInitials: so.createdByInitials || 'N/A',
+        itemCount: 1, // Would count actual items
+        isConfirmed: so.isConfirmed || false
+      }));
+      
+      res.json(tableData);
     } catch (error) {
       console.error("Error fetching sales orders:", error);
       res.status(500).json({ error: "Failed to fetch sales orders" });
@@ -604,11 +624,20 @@ export function registerRoutes(app: Express): void {
         return res.status(404).json({ error: "Quotation not found" });
       }
       
+      // Generate sales order number in YYYY.MM.### format
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const orderCount = await storage.getSalesOrderCountForMonth(year, parseInt(month));
+      const salesOrderNumber = `${year}.${month}.${String(orderCount + 1).padStart(3, '0')}`;
+      
       const salesOrder = await storage.createSalesOrder({
+        salesOrderNumber,
         quotationId: quotation.id,
         customerId: quotation.customerId,
         customerCode: quotation.customerCode,
         country: quotation.country,
+        revisionNumber: 'R1', // Start with R1
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         subtotal: quotation.subtotal?.toString() || '0',
         shippingChargeUsd: quotation.shippingFee?.toString() || '0',
@@ -617,13 +646,129 @@ export function registerRoutes(app: Express): void {
         others: quotation.others?.toString() || '0',
         pleasePayThisAmountUsd: quotation.total?.toString() || '0',
         paymentMethod: quotation.paymentMethod || 'bank',
-        shippingMethod: quotation.shippingMethod || 'DHL'
+        shippingMethod: quotation.shippingMethod || 'DHL',
+        isConfirmed: false, // Starts as draft
+        status: 'draft'
       });
       
       res.json({ salesOrder });
     } catch (error) {
       console.error("Error converting to sales order:", error);
       res.status(500).json({ error: "Failed to convert to sales order" });
+    }
+  });
+
+  // Confirm Sales Order
+  app.post("/api/sales-orders/:id/confirm", requireAuth, async (req, res) => {
+    try {
+      const salesOrder = await storage.updateSalesOrder(req.params.id, {
+        isConfirmed: true,
+        status: 'confirmed',
+        dateConfirmed: new Date()
+      });
+      
+      // Update inventory reservations
+      await storage.updateInventoryReservations(req.params.id);
+      
+      res.json(salesOrder);
+    } catch (error) {
+      console.error("Error confirming sales order:", error);
+      res.status(500).json({ error: "Failed to confirm sales order" });
+    }
+  });
+
+  // Cancel Sales Order
+  app.post("/api/sales-orders/:id/cancel", requireAuth, async (req, res) => {
+    try {
+      const salesOrder = await storage.updateSalesOrder(req.params.id, {
+        status: 'cancelled',
+        dateCancelled: new Date()
+      });
+      
+      // Cancel related job orders and release reserved stock
+      await storage.cancelRelatedJobOrders(req.params.id);
+      await storage.releaseReservedStock(req.params.id);
+      
+      res.json(salesOrder);
+    } catch (error) {
+      console.error("Error cancelling sales order:", error);
+      res.status(500).json({ error: "Failed to cancel sales order" });
+    }
+  });
+
+  // Duplicate Sales Order
+  app.post("/api/sales-orders/:id/duplicate", requireAuth, async (req, res) => {
+    try {
+      const original = await storage.getSalesOrderById(req.params.id);
+      if (!original) {
+        return res.status(404).json({ error: "Sales order not found" });
+      }
+      
+      // Generate new sales order number
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const orderCount = await storage.getSalesOrderCountForMonth(year, parseInt(month));
+      const salesOrderNumber = `${year}.${month}.${String(orderCount + 1).padStart(3, '0')}`;
+      
+      const duplicate = await storage.createSalesOrder({
+        salesOrderNumber,
+        quotationId: original.quotationId,
+        customerId: original.customerId,
+        customerCode: original.customerCode,
+        country: original.country,
+        revisionNumber: 'R1',
+        dueDate: original.dueDate,
+        subtotal: original.subtotal,
+        shippingChargeUsd: original.shippingChargeUsd,
+        bankChargeUsd: original.bankChargeUsd,
+        discountUsd: original.discountUsd,
+        others: original.others,
+        pleasePayThisAmountUsd: original.pleasePayThisAmountUsd,
+        paymentMethod: original.paymentMethod,
+        shippingMethod: original.shippingMethod,
+        isConfirmed: false,
+        status: 'draft'
+      });
+      
+      res.json({ salesOrder: duplicate });
+    } catch (error) {
+      console.error("Error duplicating sales order:", error);
+      res.status(500).json({ error: "Failed to duplicate sales order" });
+    }
+  });
+
+  // Generate Job Order from Sales Order
+  app.post("/api/sales-orders/:id/generate-job-order", requireAuth, async (req, res) => {
+    try {
+      const salesOrder = await storage.getSalesOrderById(req.params.id);
+      if (!salesOrder) {
+        return res.status(404).json({ error: "Sales order not found" });
+      }
+      
+      if (!salesOrder.isConfirmed) {
+        return res.status(400).json({ error: "Sales order must be confirmed before generating job order" });
+      }
+      
+      const jobOrder = await storage.createJobOrder({
+        jobOrderNumber: salesOrder.salesOrderNumber, // Same series number
+        salesOrderId: salesOrder.id,
+        customerCode: salesOrder.customerCode,
+        customerId: salesOrder.customerId,
+        revisionNumber: salesOrder.revisionNumber,
+        dueDate: salesOrder.dueDate,
+        date: salesOrder.createdAt,
+        received: 'pending',
+        createdBy: 'system',
+        productionDate: null,
+        nameSignature: '',
+        orderInstructions: salesOrder.customerServiceInstructions || ''
+      });
+      
+      res.json({ jobOrder });
+    } catch (error) {
+      console.error("Error generating job order:", error);
+      res.status(500).json({ error: "Failed to generate job order" });
     }
   });
 
@@ -721,16 +866,6 @@ export function registerRoutes(app: Express): void {
   // ==============================================
   // MANUFACTURING WORKFLOW - SALES ORDERS
   // ==============================================
-  
-  app.get("/api/sales-orders", requireAuth, async (req, res) => {
-    try {
-      const salesOrders = await storage.getSalesOrders();
-      res.json(salesOrders);
-    } catch (error) {
-      console.error("Error fetching sales orders:", error);
-      res.status(500).json({ error: "Failed to fetch sales orders" });
-    }
-  });
 
   app.post("/api/sales-orders", requireAuth, async (req, res) => {
     try {
