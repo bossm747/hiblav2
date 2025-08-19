@@ -82,10 +82,17 @@ export function QuotationForm() {
   const loadFormData = async () => {
     try {
       const token = localStorage.getItem('auth_token');
+      if (!token) {
+        console.error('No auth token found');
+        return;
+      }
+
       const headers = {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       };
+
+      console.log('🔄 Loading quotation form data...');
 
       // Load all data in parallel
       const [customersRes, productsRes, priceListsRes] = await Promise.all([
@@ -94,26 +101,41 @@ export function QuotationForm() {
         fetch('/api/price-lists', { headers })
       ]);
 
+      console.log('📊 API Response Status:', {
+        customers: customersRes.status,
+        products: productsRes.status,
+        priceLists: priceListsRes.status
+      });
+
       if (customersRes.ok) {
         const customersData = await customersRes.json();
+        console.log('✅ Customers loaded:', customersData?.length || 0);
         setCustomers(customersData || []);
+      } else {
+        console.error('❌ Failed to load customers:', customersRes.statusText);
       }
 
       if (productsRes.ok) {
         const productsData = await productsRes.json();
+        console.log('✅ Products loaded:', productsData?.length || 0);
         setProducts(productsData || []);
+      } else {
+        console.error('❌ Failed to load products:', productsRes.statusText);
       }
 
       if (priceListsRes.ok) {
         const priceListsData = await priceListsRes.json();
+        console.log('✅ Price lists loaded:', priceListsData?.length || 0);
         setPriceLists(priceListsData || []);
+      } else {
+        console.error('❌ Failed to load price lists:', priceListsRes.statusText);
       }
 
     } catch (error) {
       console.error('Error loading form data:', error);
       toast({
         title: "Error",
-        description: "Failed to load form data",
+        description: "Failed to load dropdown data. Please check your connection.",
         variant: "destructive"
       });
     }

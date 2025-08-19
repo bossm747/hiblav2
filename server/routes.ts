@@ -224,6 +224,20 @@ export function registerRoutes(app: Express): void {
   });
 
   // ==============================================
+  // PRICE LIST MANAGEMENT
+  // ==============================================
+  
+  app.get("/api/price-lists", requireAuth, async (req, res) => {
+    try {
+      const priceLists = await storage.getPriceLists();
+      res.json(priceLists);
+    } catch (error) {
+      console.error("Error fetching price lists:", error);
+      res.status(500).json({ error: "Failed to fetch price lists" });
+    }
+  });
+
+  // ==============================================
   // PRODUCT MANAGEMENT
   // ==============================================
   
@@ -321,15 +335,15 @@ export function registerRoutes(app: Express): void {
         salesOrderNumber: so.salesOrderNumber || so.id,
         quotationId: so.quotationId,
         customerCode: so.customerCode || 'N/A',
-        customerName: so.customerName || 'Unknown Customer',
+        customerName: 'Unknown Customer', // This would need a join to customers table
         country: so.country || 'N/A',
         revisionNumber: so.revisionNumber || 'R1',
         status: so.status || 'draft',
         dueDate: so.dueDate || new Date().toISOString(),
-        dateOfRevision: so.dateOfRevision,
+        dateOfRevision: so.createdAt || new Date().toISOString(), // Use createdAt as revision date
         total: parseFloat(so.pleasePayThisAmountUsd || '0'),
         createdAt: so.createdAt || new Date().toISOString(),
-        createdByInitials: so.createdByInitials || 'N/A',
+        createdByInitials: so.createdBy || 'N/A', // Use createdBy field
         itemCount: 1, // Would count actual items
         isConfirmed: so.isConfirmed || false
       }));
@@ -581,12 +595,12 @@ export function registerRoutes(app: Express): void {
         paymentMethod: original.paymentMethod || '',
         shippingMethod: original.shippingMethod || '',
         customerServiceInstructions: original.customerServiceInstructions || '',
-        subtotal: original.subtotal || 0,
-        shippingFee: original.shippingFee || 0,
-        bankCharge: original.bankCharge || 0,
-        discount: original.discount || 0,
-        others: original.others || 0,
-        total: original.total || 0
+        subtotal: String(original.subtotal || 0),
+        shippingFee: String(original.shippingFee || 0),
+        bankCharge: String(original.bankCharge || 0),
+        discount: String(original.discount || 0),
+        others: String(original.others || 0),
+        total: String(original.total || 0)
       });
       
       res.json({ quotation: duplicate });
@@ -663,8 +677,7 @@ export function registerRoutes(app: Express): void {
     try {
       const salesOrder = await storage.updateSalesOrder(req.params.id, {
         isConfirmed: true,
-        status: 'confirmed',
-        dateConfirmed: new Date()
+        status: 'confirmed'
       });
       
       // Update inventory reservations
@@ -681,8 +694,7 @@ export function registerRoutes(app: Express): void {
   app.post("/api/sales-orders/:id/cancel", requireAuth, async (req, res) => {
     try {
       const salesOrder = await storage.updateSalesOrder(req.params.id, {
-        status: 'cancelled',
-        dateCancelled: new Date()
+        status: 'cancelled'
       });
       
       // Cancel related job orders and release reserved stock
@@ -728,7 +740,8 @@ export function registerRoutes(app: Express): void {
         paymentMethod: original.paymentMethod,
         shippingMethod: original.shippingMethod,
         isConfirmed: false,
-        status: 'draft'
+        status: 'draft',
+        createdBy: (req as AuthenticatedRequest).user.email.split('@')[0]
       });
       
       res.json({ salesOrder: duplicate });
