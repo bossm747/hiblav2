@@ -52,6 +52,10 @@ export function QuotationForm() {
   const [productSearchTerms, setProductSearchTerms] = useState<string[]>([]);
   const [productOpenStates, setProductOpenStates] = useState<boolean[]>([]);
   
+  // Customer search states
+  const [customerSearchTerm, setCustomerSearchTerm] = useState('');
+  const [customerOpen, setCustomerOpen] = useState(false);
+  
   const [formData, setFormData] = useState({
     customerId: '',
     customerCode: '',
@@ -385,24 +389,102 @@ export function QuotationForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Customer *</Label>
-              <Select value={formData.customerId} onValueChange={handleCustomerChange}>
-                <SelectTrigger data-testid="select-customer" className="h-12 text-base md:text-sm">
-                  <SelectValue placeholder={customers.length > 0 ? "Select a customer" : "Loading customers..."} />
-                </SelectTrigger>
-                <SelectContent>
-                  {customers.length > 0 ? (
-                    customers.map((customer) => (
-                      <SelectItem key={customer.id} value={customer.id}>
-                        {customer.name} ({customer.customerCode}) - {customer.country}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="" disabled>
-                      No customers available
-                    </SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+              <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={customerOpen}
+                    className="h-12 w-full justify-between text-base md:text-sm"
+                    data-testid="select-customer"
+                  >
+                    {selectedCustomer ? (
+                      <span className="truncate">{selectedCustomer.name} ({selectedCustomer.customerCode})</span>
+                    ) : (
+                      <span className="text-muted-foreground">
+                        {customers.length > 0 ? "Search customers..." : "Loading customers..."}
+                      </span>
+                    )}
+                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] md:w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput 
+                      placeholder="Search customers..." 
+                      value={customerSearchTerm}
+                      onValueChange={setCustomerSearchTerm}
+                      className="h-12 text-base md:text-sm"
+                    />
+                    <CommandEmpty>
+                      <div className="p-4 text-center space-y-3">
+                        <p className="text-sm text-muted-foreground">No customers found.</p>
+                        <Button
+                          variant="outline"
+                          className="w-full h-10"
+                          onClick={() => {
+                            // Navigate to create customer page
+                            window.location.href = '/customers/create';
+                          }}
+                        >
+                          <PlusCircle className="w-4 h-4 mr-2" />
+                          Create New Customer
+                        </Button>
+                      </div>
+                    </CommandEmpty>
+                    <CommandGroup className="max-h-64 overflow-y-auto">
+                      {customers
+                        .filter(customer => 
+                          customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+                          customer.customerCode.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+                          customer.country.toLowerCase().includes(customerSearchTerm.toLowerCase())
+                        )
+                        .slice(0, 20)
+                        .map((customer) => (
+                          <CommandItem
+                            key={customer.id}
+                            value={customer.name}
+                            onSelect={() => {
+                              handleCustomerChange(customer.id);
+                              setCustomerOpen(false);
+                            }}
+                            className="cursor-pointer py-3"
+                          >
+                            <div className="flex flex-col">
+                              <span className="font-medium">{customer.name}</span>
+                              <span className="text-sm text-muted-foreground">
+                                {customer.customerCode} • {customer.country}
+                              </span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                    {customers.filter(customer => 
+                      customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+                      customer.customerCode.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
+                      customer.country.toLowerCase().includes(customerSearchTerm.toLowerCase())
+                    ).length > 20 && (
+                      <div className="p-2 text-center text-sm text-muted-foreground border-t">
+                        Showing first 20 results. Refine search for more.
+                      </div>
+                    )}
+                    {customers.length > 0 && (
+                      <div className="border-t p-2">
+                        <Button
+                          variant="ghost"
+                          className="w-full h-10 justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                          onClick={() => {
+                            window.location.href = '/customers/create';
+                          }}
+                        >
+                          <PlusCircle className="w-4 h-4 mr-2" />
+                          Create New Customer
+                        </Button>
+                      </div>
+                    )}
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-2">
               <Label>Revision Number</Label>
