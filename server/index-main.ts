@@ -75,27 +75,52 @@ const app = express();
 // Trust proxy for rate limiting to work properly with X-Forwarded-For headers
 app.set('trust proxy', true);
 
-// Production security headers
+// Production security headers - Permissive for cloaked domains and iframe embedding
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'", "https:"],
-    },
-  },
+  contentSecurityPolicy: false, // Disable CSP for iframe embedding
   crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: false, // Allow cross-origin resource sharing
+  crossOriginOpenerPolicy: false,
+  referrerPolicy: { policy: "no-referrer-when-downgrade" },
+  // Explicitly allow iframe embedding from any domain
+  frameguard: false, // This disables X-Frame-Options
 }));
 
-// CORS configuration for production
+// CORS configuration for production - Allow cloaked domains
 app.use(cors({
-  origin: productionConfig.cors.origins,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Always allow Replit domains
+    if (origin.includes('.replit.dev') || origin.includes('.replit.co') || origin.includes('.replit.app')) {
+      return callback(null, true);
+    }
+    
+    // Allow the cloaked domain
+    if (origin.includes('innovatehub.ph') || origin.includes('link.innovatehub.ph')) {
+      return callback(null, true);
+    }
+    
+    // Allow localhost for development
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+    
+    // Allow production domains from config
+    const allowedOrigins = productionConfig.cors.origins;
+    if (Array.isArray(allowedOrigins)) {
+      return callback(null, allowedOrigins.includes(origin));
+    } else if (allowedOrigins === true) {
+      return callback(null, true);
+    }
+    
+    // Default allow for now to fix white screen issue
+    return callback(null, true);
+  },
   credentials: productionConfig.cors.credentials,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
 }));
 
 // Rate limiting for API endpoints with secure trust proxy configuration
@@ -161,6 +186,41 @@ app.use(session({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Custom middleware for cloaked domain support and iframe embedding - MUST BE LAST
+app.use((req: Request, res: Response, next: NextFunction) => {
+  // Override any previous headers for iframe embedding
+  res.removeHeader('X-Frame-Options');
+  res.removeHeader('Cross-Origin-Resource-Policy');
+  res.removeHeader('Cross-Origin-Embedder-Policy');
+  
+  // Set permissive headers for cloaked domains
+  res.setHeader('X-Frame-Options', 'ALLOWALL');
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+  res.setHeader('Cross-Origin-Opener-Policy', 'unsafe-none');
+  res.setHeader('Vary', 'Origin');
+  
+  // CORS headers for cloaked domains
+  const origin = req.headers.origin;
+  if (origin && (origin.includes('innovatehub.ph') || origin.includes('replit.') || origin.includes('localhost'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight OPTIONS requests for all routes
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();
