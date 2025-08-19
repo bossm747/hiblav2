@@ -39,7 +39,7 @@ export const customers = pgTable("customers", {
 export const categories = pgTable("categories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(), // e.g., "Hair Products", "Office Equipment", "Manufacturing Tools", "IT Assets"
-  slug: text("slug").notNull().unique(),
+  slug: text("slug").unique(),
   type: text("type").notNull().default("product"), // product, equipment, asset, tool, supply
   description: text("description"),
   parentId: varchar("parent_id"), // for subcategories
