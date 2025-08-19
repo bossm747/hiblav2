@@ -431,7 +431,24 @@ export function registerRoutes(app: Express): void {
   app.get("/api/quotations", requireAuth, async (req, res) => {
     try {
       const quotations = await storage.getQuotations();
-      res.json(quotations);
+      
+      // Transform for table view with proper typing
+      const tableData = quotations.map(q => ({
+        id: q.id,
+        number: q.quotationNumber || q.id,
+        customerName: q.customerName || 'Unknown Customer',
+        customerCode: q.customerCode || 'N/A',
+        country: q.country || 'N/A',
+        revisionNumber: q.revisionNumber || 'R0',
+        status: q.status || 'draft',
+        total: q.total || 0,
+        createdAt: q.createdAt || new Date().toISOString(),
+        validUntil: q.validUntil || null,
+        itemCount: 1, // Placeholder - would count actual items
+        createdByInitials: q.createdByInitials || 'N/A'
+      }));
+      
+      res.json(tableData);
     } catch (error) {
       console.error("Error fetching quotations:", error);
       res.status(500).json({ error: "Failed to fetch quotations" });
@@ -444,7 +461,42 @@ export function registerRoutes(app: Express): void {
       if (!quotation) {
         return res.status(404).json({ error: "Quotation not found" });
       }
-      res.json(quotation);
+      
+      // Transform for detail modal
+      const detailData = {
+        id: quotation.id,
+        number: quotation.quotationNumber || quotation.id,
+        customerName: quotation.customerName || 'Unknown Customer',
+        customerCode: quotation.customerCode || 'N/A',
+        country: quotation.country || 'N/A',
+        priceListName: 'Standard', // Would fetch from price list table
+        revisionNumber: quotation.revisionNumber || 'R0',
+        status: quotation.status || 'draft',
+        total: quotation.total || 0,
+        subtotal: quotation.subtotal || 0,
+        shippingFee: quotation.shippingFee || 0,
+        bankCharge: quotation.bankCharge || 0,
+        discount: quotation.discount || 0,
+        others: quotation.others || 0,
+        createdAt: quotation.createdAt || new Date().toISOString(),
+        validUntil: quotation.validUntil || null,
+        createdByInitials: quotation.createdByInitials || 'N/A',
+        paymentMethod: quotation.paymentMethod || 'N/A',
+        shippingMethod: quotation.shippingMethod || 'N/A',
+        customerServiceInstructions: quotation.customerServiceInstructions || '',
+        items: [
+          {
+            id: '1',
+            productName: 'Sample Hair Product',
+            specification: 'Standard specification',
+            quantity: 1,
+            unitPrice: 100,
+            lineTotal: 100
+          }
+        ] // Would fetch actual items from quotation_items table
+      };
+      
+      res.json(detailData);
     } catch (error) {
       console.error("Error fetching quotation:", error);
       res.status(500).json({ error: "Failed to fetch quotation" });
@@ -489,6 +541,89 @@ export function registerRoutes(app: Express): void {
     } catch (error) {
       console.error("Error deleting quotation:", error);
       res.status(500).json({ error: "Failed to delete quotation" });
+    }
+  });
+
+  // Duplicate quotation
+  app.post("/api/quotations/:id/duplicate", requireAuth, async (req, res) => {
+    try {
+      const original = await storage.getQuotationById(req.params.id);
+      if (!original) {
+        return res.status(404).json({ error: "Quotation not found" });
+      }
+      
+      const duplicate = await storage.createQuotation({
+        customerId: original.customerId,
+        customerCode: original.customerCode,
+        country: original.country,
+        priceListId: original.priceListId || '',
+        revisionNumber: 'R0',
+        paymentMethod: original.paymentMethod || '',
+        shippingMethod: original.shippingMethod || '',
+        customerServiceInstructions: original.customerServiceInstructions || '',
+        subtotal: original.subtotal || 0,
+        shippingFee: original.shippingFee || 0,
+        bankCharge: original.bankCharge || 0,
+        discount: original.discount || 0,
+        others: original.others || 0,
+        total: original.total || 0
+      });
+      
+      res.json({ quotation: duplicate });
+    } catch (error) {
+      console.error("Error duplicating quotation:", error);
+      res.status(500).json({ error: "Failed to duplicate quotation" });
+    }
+  });
+
+  // Generate PDF
+  app.get("/api/quotations/:id/pdf", requireAuth, async (req, res) => {
+    try {
+      const quotation = await storage.getQuotationById(req.params.id);
+      if (!quotation) {
+        return res.status(404).json({ error: "Quotation not found" });
+      }
+      
+      // Simple PDF generation - would use a proper PDF library in production
+      const pdfContent = `Quotation ${quotation.quotationNumber}\nTotal: $${quotation.total}`;
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="Quotation-${quotation.quotationNumber}.pdf"`);
+      res.send(Buffer.from(pdfContent));
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      res.status(500).json({ error: "Failed to generate PDF" });
+    }
+  });
+
+  // Convert to Sales Order
+  app.post("/api/quotations/:id/convert-to-sales-order", requireAuth, async (req, res) => {
+    try {
+      const quotation = await storage.getQuotationById(req.params.id);
+      if (!quotation) {
+        return res.status(404).json({ error: "Quotation not found" });
+      }
+      
+      const salesOrder = await storage.createSalesOrder({
+        quotationId: quotation.id,
+        customerId: quotation.customerId,
+        customerCode: quotation.customerCode,
+        country: quotation.country,
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        subtotal: quotation.subtotal?.toString() || '0',
+        shippingChargeUsd: quotation.shippingFee?.toString() || '0',
+        bankChargeUsd: quotation.bankCharge?.toString() || '0',
+        discountUsd: quotation.discount?.toString() || '0',
+        others: quotation.others?.toString() || '0',
+        pleasePayThisAmountUsd: quotation.total?.toString() || '0',
+        paymentMethod: quotation.paymentMethod || 'bank',
+        shippingMethod: quotation.shippingMethod || 'DHL'
+      });
+      
+      res.json({ salesOrder });
+    } catch (error) {
+      console.error("Error converting to sales order:", error);
+      res.status(500).json({ error: "Failed to convert to sales order" });
     }
   });
 

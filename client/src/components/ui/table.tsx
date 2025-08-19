@@ -1,44 +1,18 @@
 import * as React from "react"
-
 import { cn } from "@/lib/utils"
 
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => {
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const [hasScrolled, setHasScrolled] = React.useState(false);
-  
-  React.useEffect(() => {
-    const container = containerRef.current?.querySelector('.table-scroll-container');
-    if (!container) return;
-    
-    const handleScroll = () => {
-      if (container.scrollLeft > 0 && !hasScrolled) {
-        setHasScrolled(true);
-      }
-    };
-    
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [hasScrolled]);
-  
-  return (
-    <div ref={containerRef} className={cn("mobile-table-container relative w-full", hasScrolled && "scrolled")}>
-      <div className="table-scroll-container w-full overflow-x-auto overflow-y-hidden touch-pan-x scroll-smooth md:overflow-visible">
-        <table
-          ref={ref}
-          className={cn(
-            "w-full caption-bottom text-sm",
-            "min-w-[600px] md:min-w-0", // Minimum width for mobile, full width on desktop
-            className
-          )}
-          {...props}
-        />
-      </div>
-    </div>
-  );
-})
+>(({ className, ...props }, ref) => (
+  <div className="relative w-full overflow-auto">
+    <table
+      ref={ref}
+      className={cn("w-full caption-bottom text-sm", className)}
+      {...props}
+    />
+  </div>
+))
 Table.displayName = "Table"
 
 const TableHeader = React.forwardRef<
@@ -98,7 +72,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-10 sm:h-12 px-2 sm:px-4 text-left align-middle font-medium text-muted-foreground text-xs sm:text-sm [&:has([role=checkbox])]:pr-0",
+      "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
       className
     )}
     {...props}
@@ -112,7 +86,7 @@ const TableCell = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn("p-2 sm:p-4 align-middle text-xs sm:text-sm [&:has([role=checkbox])]:pr-0", className)}
+    className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
     {...props}
   />
 ))

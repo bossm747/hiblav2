@@ -40,6 +40,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { QuotationForm } from '@/components/forms/QuotationForm';
+import { QuotationListView } from '@/components/quotations/QuotationListView';
 import { SalesWorkflowVisualizer } from '@/components/sales/SalesWorkflowVisualizer';
 import { quotationsApi } from '@/api/quotations';
 import { salesOrdersApi } from '@/api/sales-orders';
@@ -296,7 +297,7 @@ export function SalesOperationsDashboard() {
         </TabsContent>
 
         <TabsContent value="quotations" className="space-y-4">
-          <QuotationsTable onRefresh={() => queryClient.invalidateQueries({ queryKey: ['/api/dashboard/analytics'] })} />
+          <QuotationListView />
         </TabsContent>
 
         <TabsContent value="sales-orders" className="space-y-4">
