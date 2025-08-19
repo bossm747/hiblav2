@@ -46,7 +46,7 @@ export const salesOrdersApi = {
       body: JSON.stringify(data),
     }),
     
-  update: (id: string, data: Partial<CreateSalesOrderData>): Promise<SalesOrder> => 
+  update: (id: string, data: Partial<SalesOrder>): Promise<SalesOrder> => 
     apiRequest(`/api/sales-orders/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),

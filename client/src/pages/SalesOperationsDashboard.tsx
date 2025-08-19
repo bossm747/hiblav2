@@ -658,7 +658,7 @@ function SalesOrdersTable({ onRefresh }: { onRefresh: () => void }) {
   const handleConfirmSalesOrder = async (salesOrder: any) => {
     try {
       await salesOrdersApi.update(salesOrder.id, { 
-        status: 'confirmed'
+        isConfirmed: true
       });
       queryClient.invalidateQueries({ queryKey: ['/api/sales-orders'] });
       onRefresh();
