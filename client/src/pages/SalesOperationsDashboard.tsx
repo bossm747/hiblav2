@@ -39,7 +39,7 @@ import {
   ArrowRight,
   CheckCircle,
 } from 'lucide-react';
-import { EnhancedQuotationForm } from '@/components/forms/EnhancedQuotationForm';
+import { QuotationForm } from '@/components/forms/QuotationForm';
 import { SalesWorkflowVisualizer } from '@/components/sales/SalesWorkflowVisualizer';
 import { quotationsApi } from '@/api/quotations';
 import { salesOrdersApi } from '@/api/sales-orders';
@@ -164,14 +164,7 @@ export function SalesOperationsDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
-          <EnhancedQuotationForm 
-            trigger={
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                <Plus className="h-4 w-4 mr-2" />
-                New Quotation
-              </Button>
-            }
-          />
+          <QuotationForm />
           <div className="flex gap-2">
             <Button variant="outline">
               <Download className="h-4 w-4 mr-2" />
@@ -512,7 +505,7 @@ function QuotationsTable({ onRefresh }: { onRefresh: () => void }) {
       label: 'Edit Quotation',
       icon: Edit,
       onClick: (quotation: any) => {
-        // This will be handled by opening the EnhancedQuotationForm with the quotation ID
+        // This will be handled by opening the QuotationForm with the quotation ID
         toast({
           title: "Edit Quotation",
           description: `Opening edit form for ${quotation.quotationNumber}`,
@@ -569,11 +562,11 @@ function QuotationsTable({ onRefresh }: { onRefresh: () => void }) {
       label: 'New Quotation',
       icon: Plus,
       onClick: () => {
-        // This will trigger the EnhancedQuotationForm
-        const newQuotationButton = document.querySelector('[data-testid="new-quotation-trigger"]') as HTMLButtonElement;
-        if (newQuotationButton) {
-          newQuotationButton.click();
-        }
+        // This will trigger the QuotationForm - for now just show a toast
+        toast({
+          title: "New Quotation",
+          description: "Please use the 'New Quotation' button in the header",
+        });
       },
     },
     {
@@ -591,16 +584,7 @@ function QuotationsTable({ onRefresh }: { onRefresh: () => void }) {
 
   return (
     <>
-      {/* Hidden trigger for the New Quotation form */}
-      <div style={{ display: 'none' }}>
-        <EnhancedQuotationForm 
-          trigger={
-            <Button data-testid="new-quotation-trigger">
-              Hidden Trigger
-            </Button>
-          }
-        />
-      </div>
+
       
       <DataTable
         title="Quotation Management"
