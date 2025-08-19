@@ -51,7 +51,10 @@ export function PaymentVerificationQueue() {
       action: 'approve' | 'reject';
       notes?: string;
       rejectionReason?: string;
-    }) => apiRequest(`/api/payments/${data.paymentId}/verify`, 'POST', data),
+    }) => apiRequest(`/api/payments/${data.paymentId}/verify`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
     onSuccess: (_, variables) => {
       const actionText = variables.action === 'approve' ? 'approved' : 'rejected';
       toast({
@@ -161,7 +164,7 @@ export function PaymentVerificationQueue() {
               <Clock className="h-4 w-4 text-yellow-500" />
               <span className="text-sm font-medium">Pending Review</span>
             </div>
-            <p className="text-2xl font-bold mt-1">{pendingPayments.length}</p>
+            <p className="text-2xl font-bold mt-1">{(pendingPayments as any[]).length}</p>
           </CardContent>
         </Card>
         <Card>
@@ -195,10 +198,10 @@ export function PaymentVerificationQueue() {
               <span className="text-sm font-medium">Avg. Wait Time</span>
             </div>
             <p className="text-2xl font-bold mt-1">
-              {pendingPayments.length > 0 ? 
+              {(pendingPayments as any[]).length > 0 ? 
                 Math.round((pendingPayments as any[]).reduce((sum, p) => 
                   sum + Math.floor((new Date().getTime() - new Date(p.createdAt).getTime()) / (1000 * 60 * 60 * 24)), 0
-                ) / pendingPayments.length) : 0
+                ) / (pendingPayments as any[]).length) : 0
               } days
             </p>
           </CardContent>

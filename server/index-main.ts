@@ -137,42 +137,24 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
 }));
 
-// Rate limiting for API endpoints with secure trust proxy configuration
+// Rate limiting for API endpoints
 const apiLimiter = rateLimit({
   windowMs: productionConfig.rateLimiting.api.windowMs,
   max: productionConfig.rateLimiting.api.max,
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  // Secure trust proxy configuration
-  trustProxy: (ip: string) => {
-    // Only trust specific proxy sources in production
-    const trustedProxies = ['127.0.0.1', '::1', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'];
-    return trustedProxies.some(range => ip.startsWith(range.split('/')[0]));
-  },
-  // Use X-Forwarded-For header when behind trusted proxy
-  keyGenerator: (req) => {
-    return req.ip || req.socket.remoteAddress || 'unknown';
-  }
 });
 
 // Apply rate limiting to API routes
 app.use('/api/', apiLimiter);
 
-// Stricter rate limiting for auth endpoints with secure trust proxy
+// Stricter rate limiting for auth endpoints
 const authLimiter = rateLimit({
   windowMs: productionConfig.rateLimiting.auth.windowMs,
   max: productionConfig.rateLimiting.auth.max,
   message: 'Too many authentication attempts, please try again later.',
   skipSuccessfulRequests: true,
-  // Secure trust proxy configuration for auth endpoints
-  trustProxy: (ip: string) => {
-    const trustedProxies = ['127.0.0.1', '::1', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16'];
-    return trustedProxies.some(range => ip.startsWith(range.split('/')[0]));
-  },
-  keyGenerator: (req) => {
-    return req.ip || req.socket.remoteAddress || 'unknown';
-  }
 });
 
 app.use('/api/auth/login', authLimiter);

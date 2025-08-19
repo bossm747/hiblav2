@@ -3,10 +3,10 @@ import { warehouses, staff, inventoryTransactions, products } from "@shared/sche
 
 export async function seedWarehouses() {
   try {
-    // Quick check if warehouses already exist (reduced logging for faster startup)
-    const existingWarehouses = await db.select().from(warehouses).limit(1);
+    // More thorough check for existing warehouses to prevent duplicates
+    const existingWarehouses = await db.select().from(warehouses);
     if (existingWarehouses.length > 0) {
-      return; // Silent skip for performance
+      return; // Silent skip for performance - warehouses already exist
     }
 
     // Get or create a default staff member for manager reference
@@ -71,8 +71,11 @@ export async function seedWarehouses() {
       }
     ];
 
-    // Insert warehouse records
-    const createdWarehouses = await db.insert(warehouses).values(warehouseData).returning();
+    // Insert warehouse records with conflict resolution
+    const createdWarehouses = await db.insert(warehouses)
+      .values(warehouseData)
+      .onConflictDoNothing() // Ignore conflicts on unique constraints
+      .returning();
     
     console.log(`✅ Created ${createdWarehouses.length} warehouses:`);
     createdWarehouses.forEach(warehouse => {

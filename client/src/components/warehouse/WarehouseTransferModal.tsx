@@ -233,14 +233,14 @@ export function WarehouseTransferModal({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {warehouses.map((warehouse: any) => (
+                            {(warehouses as any[])?.map((warehouse: any) => (
                               <SelectItem key={warehouse.id} value={warehouse.id}>
                                 <div className="flex items-center gap-2">
                                   <div className={`w-2 h-2 rounded-full ${getWarehouseBadgeColor(warehouse.code)}`} />
                                   {warehouse.name}
                                 </div>
                               </SelectItem>
-                            ))}
+                            )) || []}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -261,7 +261,7 @@ export function WarehouseTransferModal({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {warehouses.map((warehouse: any) => (
+                            {(warehouses as any[])?.map((warehouse: any) => (
                               <SelectItem 
                                 key={warehouse.id} 
                                 value={warehouse.id}
@@ -272,7 +272,7 @@ export function WarehouseTransferModal({
                                   {warehouse.name}
                                 </div>
                               </SelectItem>
-                            ))}
+                            )) || []}
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -300,7 +300,7 @@ export function WarehouseTransferModal({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {products.map((product: any) => (
+                          {(products as any[])?.map((product: any) => (
                             <SelectItem key={product.id} value={product.id}>
                               <div className="flex items-center gap-2">
                                 <Package className="h-4 w-4" />

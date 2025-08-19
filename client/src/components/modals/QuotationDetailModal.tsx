@@ -14,10 +14,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { StatusBadge } from '@/components/ui/status-badge';
-import { HeaderInfoCard } from '@/components/ui/header-info-card';
-import { ActionDropdown, ActionItem } from '@/components/ui/action-dropdown';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Table,
   TableBody,
@@ -139,7 +143,7 @@ export function QuotationDetailModal({
   if (!quotationId) return null;
 
   // Build action items for dropdown
-  const actionItems: ActionItem[] = [
+  const actionItems = [
     {
       label: 'Edit',
       icon: Edit,
@@ -400,7 +404,11 @@ export function QuotationDetailModal({
                 <UserCheck className="h-4 w-4 mr-1" />
                 Status
               </div>
-              <div>{getStatusBadge(safeQuotation.status || 'draft')}</div>
+              <div>
+                <Badge variant={safeQuotation.status === 'approved' ? 'default' : safeQuotation.status === 'draft' ? 'secondary' : 'outline'}>
+                  {safeQuotation.status || 'draft'}
+                </Badge>
+              </div>
             </div>
           </div>
         </div>
@@ -430,7 +438,7 @@ export function QuotationDetailModal({
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">Price List</div>
-                  <div className="font-semibold">{safeQuotation.priceListId ? 'Applied' : 'Standard'}</div>
+                  <div className="font-semibold">Standard</div>
                 </div>
               </CardContent>
             </Card>
@@ -668,11 +676,7 @@ export function QuotationDetailModal({
                   )}
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">Valid Until</div>
-                    <div className="font-semibold">
-                      {safeQuotation.expiresAt ? 
-                        new Date(safeQuotation.expiresAt).toLocaleDateString() : 
-                        '30 days from creation'}
-                    </div>
+                    <div className="font-semibold">30 days from creation</div>
                   </div>
                 </div>
               </CardContent>
