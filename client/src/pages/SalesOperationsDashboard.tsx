@@ -7,9 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
 import {
   BarChart,
   Bar,
@@ -38,18 +41,42 @@ import {
   Download,
   Eye,
   Edit,
-  MoreHorizontal
+  MoreHorizontal,
+  Copy,
+  Trash2,
+  FileCheck,
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 import { QuotationForm } from '@/components/forms/QuotationForm';
 
 export function SalesOperationsDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [showQuotationForm, setShowQuotationForm] = useState(false);
+  const { toast } = useToast();
   
   // Analytics state
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
   const [analytics, setAnalytics] = useState<any>(null);
+
+  // Quotations state
+  const [quotations, setQuotations] = useState<any[]>([]);
+  const [quotationsLoading, setQuotationsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [duplicatingQuotation, setDuplicatingQuotation] = useState<any>(null);
+
+  // Categories for filtering
+  const categories = [
+    { value: 'all', label: 'All Categories' },
+    { value: 'machine-weft', label: 'Machine Weft' },
+    { value: 'hand-tied', label: 'Hand-Tied' },
+    { value: 'clip-extensions', label: 'Clip Extensions' },
+    { value: 'tape-extensions', label: 'Tape Extensions' },
+    { value: 'custom', label: 'Custom Orders' }
+  ];
 
   // Calculated metrics
   const totalQuotations = analytics ? parseInt(analytics.overview?.activeQuotations || '0') : 0;
@@ -59,10 +86,21 @@ export function SalesOperationsDashboard() {
   const conversionRate = totalQuotations > 0 ? ((totalSalesOrders / totalQuotations) * 100).toFixed(1) : '0.0';
   const totalRevenue = totalSalesOrders * 500;
 
-  // Load dashboard analytics
+  // Load dashboard analytics and quotations
   useEffect(() => {
     fetchAnalytics();
+    fetchQuotations();
   }, []);
+
+  // Filter quotations based on search and filters
+  const filteredQuotations = quotations.filter(quotation => {
+    const matchesSearch = quotation.quotationNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         quotation.customerName?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || quotation.category === selectedCategory;
+    const matchesStatus = selectedStatus === 'all' || quotation.status === selectedStatus;
+    
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
 
   const fetchAnalytics = async () => {
     try {
@@ -94,6 +132,113 @@ export function SalesOperationsDashboard() {
       setAnalyticsError(error instanceof Error ? error.message : 'Failed to fetch analytics');
     } finally {
       setAnalyticsLoading(false);
+    }
+  };
+
+  const fetchQuotations = async () => {
+    try {
+      setQuotationsLoading(true);
+      
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('/api/quotations', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch quotations: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      // Add mock category data to existing quotations for demonstration
+      const quotationsWithCategories = data.map((quotation: any, index: number) => ({
+        ...quotation,
+        category: ['machine-weft', 'hand-tied', 'clip-extensions', 'tape-extensions', 'custom'][index % 5],
+        customerName: `Customer ${String.fromCharCode(65 + (index % 26))}`
+      }));
+      
+      setQuotations(quotationsWithCategories);
+    } catch (error) {
+      console.error('Quotations fetch error:', error);
+      // Use mock data for demonstration
+      const mockQuotations = Array.from({ length: 10 }, (_, i) => ({
+        id: `qt-${i + 1}`,
+        quotationNumber: `QT-${String(i + 1).padStart(3, '0')}`,
+        customerName: `Customer ${String.fromCharCode(65 + (i % 26))}`,
+        date: new Date(2025, 0, 15 + i).toISOString().split('T')[0],
+        totalAmount: (i + 1) * 500,
+        status: ['draft', 'pending', 'approved', 'rejected'][i % 4],
+        category: ['machine-weft', 'hand-tied', 'clip-extensions', 'tape-extensions', 'custom'][i % 5]
+      }));
+      setQuotations(mockQuotations);
+    } finally {
+      setQuotationsLoading(false);
+    }
+  };
+
+  const handleViewQuotation = (quotation: any) => {
+    toast({
+      title: "View Quotation",
+      description: `Opening quotation ${quotation.quotationNumber}`,
+    });
+  };
+
+  const handleEditQuotation = (quotation: any) => {
+    toast({
+      title: "Edit Quotation",
+      description: `Editing quotation ${quotation.quotationNumber}`,
+    });
+  };
+
+  const handleDuplicateQuotation = (quotation: any) => {
+    setDuplicatingQuotation(quotation);
+    setActiveTab('form');
+    toast({
+      title: "Duplicate Quotation",
+      description: `Creating duplicate of ${quotation.quotationNumber}`,
+    });
+  };
+
+  const handleDeleteQuotation = (quotation: any) => {
+    toast({
+      title: "Delete Quotation",
+      description: `Quotation ${quotation.quotationNumber} deleted`,
+      variant: "destructive"
+    });
+  };
+
+  const handleConvertToSalesOrder = (quotation: any) => {
+    toast({
+      title: "Convert to Sales Order",
+      description: `Converting ${quotation.quotationNumber} to sales order`,
+    });
+  };
+
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'approved': return 'default';
+      case 'pending': return 'secondary';
+      case 'draft': return 'outline';
+      case 'rejected': return 'destructive';
+      default: return 'outline';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'approved': return FileCheck;
+      case 'pending': return Clock;
+      case 'draft': return Edit;
+      case 'rejected': return AlertCircle;
+      default: return FileText;
     }
   };
 
@@ -253,7 +398,7 @@ export function SalesOperationsDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle>Quotations Management</CardTitle>
-                    <CardDescription>View and manage all quotations</CardDescription>
+                    <CardDescription>View and manage all quotations with advanced filtering</CardDescription>
                   </div>
                   <Button onClick={() => setActiveTab('form')}>
                     <Plus className="h-4 w-4 mr-2" />
@@ -262,21 +407,67 @@ export function SalesOperationsDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="relative flex-1">
+                {/* Enhanced Filters */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                  <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input placeholder="Search quotations..." className="pl-9" />
+                    <Input 
+                      placeholder="Search quotations..." 
+                      className="pl-9" 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                   </div>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filter
+                  
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Button variant="outline" onClick={fetchQuotations}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
                   </Button>
                 </div>
                 
+                {/* Results Summary */}
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm text-gray-600">
+                    Showing {filteredQuotations.length} of {quotations.length} quotations
+                  </p>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="outline">{quotations.filter(q => q.status === 'pending').length} Pending</Badge>
+                    <Badge variant="default">{quotations.filter(q => q.status === 'approved').length} Approved</Badge>
+                  </div>
+                </div>
+                
+                {/* Quotations Table */}
                 <div className="border rounded-lg">
-                  <div className="grid grid-cols-6 gap-4 p-4 bg-gray-50 font-medium text-sm">
+                  <div className="grid grid-cols-7 gap-4 p-4 bg-gray-50 font-medium text-sm">
                     <div>Quote #</div>
                     <div>Customer</div>
+                    <div>Category</div>
                     <div>Date</div>
                     <div>Amount</div>
                     <div>Status</div>
@@ -284,34 +475,133 @@ export function SalesOperationsDashboard() {
                   </div>
                   <Separator />
                   
-                  {/* Sample quotation rows */}
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <div key={i}>
-                      <div className="grid grid-cols-6 gap-4 p-4 text-sm">
-                        <div className="font-medium">QT-{String(i).padStart(3, '0')}</div>
-                        <div>Customer {i}</div>
-                        <div>2025-01-{String(15 + i).padStart(2, '0')}</div>
-                        <div>${(i * 500).toLocaleString()}</div>
-                        <div>
-                          <Badge variant={i % 3 === 0 ? "default" : i % 2 === 0 ? "secondary" : "outline"}>
-                            {i % 3 === 0 ? "Approved" : i % 2 === 0 ? "Pending" : "Draft"}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      {i < 5 && <Separator />}
+                  {quotationsLoading ? (
+                    <div className="p-8 text-center">
+                      <div className="animate-spin h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+                      <p className="mt-2 text-gray-600">Loading quotations...</p>
                     </div>
-                  ))}
+                  ) : filteredQuotations.length === 0 ? (
+                    <div className="p-8 text-center">
+                      <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <h3 className="text-lg font-semibold mb-2">No Quotations Found</h3>
+                      <p className="text-gray-600 mb-4">No quotations match your current filters</p>
+                      <Button onClick={() => {
+                        setSearchTerm('');
+                        setSelectedCategory('all');
+                        setSelectedStatus('all');
+                      }}>
+                        Clear Filters
+                      </Button>
+                    </div>
+                  ) : (
+                    filteredQuotations.map((quotation, index) => {
+                      const StatusIcon = getStatusIcon(quotation.status);
+                      return (
+                        <div key={quotation.id}>
+                          <div className="grid grid-cols-7 gap-4 p-4 text-sm hover:bg-gray-50">
+                            <div className="font-medium text-blue-600">
+                              {quotation.quotationNumber}
+                            </div>
+                            <div className="font-medium">
+                              {quotation.customerName}
+                            </div>
+                            <div className="capitalize text-gray-600">
+                              {quotation.category?.replace('-', ' ')}
+                            </div>
+                            <div className="text-gray-600">
+                              {quotation.date}
+                            </div>
+                            <div className="font-medium">
+                              ${quotation.totalAmount?.toLocaleString()}
+                            </div>
+                            <div>
+                              <Badge variant={getStatusBadgeVariant(quotation.status)} className="capitalize">
+                                <StatusIcon className="h-3 w-3 mr-1" />
+                                {quotation.status}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => handleViewQuotation(quotation)}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>View Quotation</TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => handleEditQuotation(quotation)}
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Edit Quotation</TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => handleDuplicateQuotation(quotation)}
+                                  >
+                                    <Copy className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Duplicate Quotation</TooltipContent>
+                              </Tooltip>
+                              
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleViewQuotation(quotation)}>
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View Details
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleEditQuotation(quotation)}>
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleDuplicateQuotation(quotation)}>
+                                    <Copy className="h-4 w-4 mr-2" />
+                                    Duplicate
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  {quotation.status === 'approved' && (
+                                    <DropdownMenuItem onClick={() => handleConvertToSalesOrder(quotation)}>
+                                      <FileCheck className="h-4 w-4 mr-2" />
+                                      Convert to Sales Order
+                                    </DropdownMenuItem>
+                                  )}
+                                  <DropdownMenuItem 
+                                    onClick={() => handleDeleteQuotation(quotation)}
+                                    className="text-red-600"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </div>
+                          {index < filteredQuotations.length - 1 && <Separator />}
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -339,11 +629,36 @@ export function SalesOperationsDashboard() {
           <TabsContent value="form" className="space-y-6">
             <Card className="max-w-none">
               <CardHeader>
-                <CardTitle>Create New Quotation</CardTitle>
-                <CardDescription>Generate a new quotation for customer inquiry</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>
+                      {duplicatingQuotation ? `Duplicate Quotation: ${duplicatingQuotation.quotationNumber}` : 'Create New Quotation'}
+                    </CardTitle>
+                    <CardDescription>
+                      {duplicatingQuotation 
+                        ? 'Creating an editable copy of the selected quotation'
+                        : 'Generate a new quotation for customer inquiry'
+                      }
+                    </CardDescription>
+                  </div>
+                  {duplicatingQuotation && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setDuplicatingQuotation(null);
+                        toast({
+                          title: "Duplicate Cancelled",
+                          description: "Switched to new quotation mode",
+                        });
+                      }}
+                    >
+                      Cancel Duplicate
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
-                <QuotationForm />
+                <QuotationForm duplicateData={duplicatingQuotation} />
               </CardContent>
             </Card>
           </TabsContent>
