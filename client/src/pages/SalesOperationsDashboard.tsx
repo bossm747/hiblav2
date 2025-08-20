@@ -64,19 +64,12 @@ export function SalesOperationsDashboard() {
   const [quotations, setQuotations] = useState<any[]>([]);
   const [quotationsLoading, setQuotationsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [duplicatingQuotation, setDuplicatingQuotation] = useState<any>(null);
-
-  // Categories for filtering
-  const categories = [
-    { value: 'all', label: 'All Categories' },
-    { value: 'machine-weft', label: 'Machine Weft' },
-    { value: 'hand-tied', label: 'Hand-Tied' },
-    { value: 'clip-extensions', label: 'Clip Extensions' },
-    { value: 'tape-extensions', label: 'Tape Extensions' },
-    { value: 'custom', label: 'Custom Orders' }
-  ];
+  const [selectedQuotation, setSelectedQuotation] = useState<any>(null);
+  const [showQuotationDetails, setShowQuotationDetails] = useState(false);
 
   // Calculated metrics
   const totalQuotations = analytics ? parseInt(analytics.overview?.activeQuotations || '0') : 0;
@@ -94,12 +87,14 @@ export function SalesOperationsDashboard() {
 
   // Filter quotations based on search and filters
   const filteredQuotations = quotations.filter(quotation => {
-    const matchesSearch = quotation.quotationNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = quotation.number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          quotation.customerName?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || quotation.category === selectedCategory;
+    
+    const matchesDateFrom = !dateFrom || new Date(quotation.createdAt) >= new Date(dateFrom);
+    const matchesDateTo = !dateTo || new Date(quotation.createdAt) <= new Date(dateTo + 'T23:59:59');
     const matchesStatus = selectedStatus === 'all' || quotation.status === selectedStatus;
     
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch && matchesDateFrom && matchesDateTo && matchesStatus;
   });
 
   const fetchAnalytics = async () => {
@@ -157,44 +152,32 @@ export function SalesOperationsDashboard() {
       }
 
       const data = await response.json();
-      
-      // Add mock category data to existing quotations for demonstration
-      const quotationsWithCategories = data.map((quotation: any, index: number) => ({
-        ...quotation,
-        category: ['machine-weft', 'hand-tied', 'clip-extensions', 'tape-extensions', 'custom'][index % 5],
-        customerName: `Customer ${String.fromCharCode(65 + (index % 26))}`
-      }));
-      
-      setQuotations(quotationsWithCategories);
+      console.log('✅ Quotations loaded:', data?.length || 0);
+      setQuotations(data || []);
     } catch (error) {
-      console.error('Quotations fetch error:', error);
-      // Use mock data for demonstration
-      const mockQuotations = Array.from({ length: 10 }, (_, i) => ({
-        id: `qt-${i + 1}`,
-        quotationNumber: `QT-${String(i + 1).padStart(3, '0')}`,
-        customerName: `Customer ${String.fromCharCode(65 + (i % 26))}`,
-        date: new Date(2025, 0, 15 + i).toISOString().split('T')[0],
-        totalAmount: (i + 1) * 500,
-        status: ['draft', 'pending', 'approved', 'rejected'][i % 4],
-        category: ['machine-weft', 'hand-tied', 'clip-extensions', 'tape-extensions', 'custom'][i % 5]
-      }));
-      setQuotations(mockQuotations);
+      console.error('❌ Error fetching quotations:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load quotations. Please try again.",
+        variant: "destructive"
+      });
+      setQuotations([]);
     } finally {
       setQuotationsLoading(false);
     }
   };
 
   const handleViewQuotation = (quotation: any) => {
-    toast({
-      title: "View Quotation",
-      description: `Opening quotation ${quotation.quotationNumber}`,
-    });
+    setSelectedQuotation(quotation);
+    setShowQuotationDetails(true);
   };
 
   const handleEditQuotation = (quotation: any) => {
+    setDuplicatingQuotation(quotation);
+    setActiveTab('form');
     toast({
-      title: "Edit Quotation",
-      description: `Editing quotation ${quotation.quotationNumber}`,
+      title: "Edit Mode",
+      description: `Editing quotation ${quotation.number}`,
     });
   };
 
@@ -202,24 +185,70 @@ export function SalesOperationsDashboard() {
     setDuplicatingQuotation(quotation);
     setActiveTab('form');
     toast({
-      title: "Duplicate Quotation",
-      description: `Creating duplicate of ${quotation.quotationNumber}`,
+      title: "Duplicate Mode",
+      description: `Creating duplicate of ${quotation.number}`,
     });
   };
 
-  const handleDeleteQuotation = (quotation: any) => {
-    toast({
-      title: "Delete Quotation",
-      description: `Quotation ${quotation.quotationNumber} deleted`,
-      variant: "destructive"
-    });
+  const handleDeleteQuotation = async (quotation: any) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(`/api/quotations/${quotation.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: `Quotation ${quotation.number} deleted successfully`,
+        });
+        fetchQuotations(); // Refresh the list
+      } else {
+        throw new Error('Failed to delete quotation');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete quotation",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleConvertToSalesOrder = (quotation: any) => {
-    toast({
-      title: "Convert to Sales Order",
-      description: `Converting ${quotation.quotationNumber} to sales order`,
-    });
+  const handleConvertToSalesOrder = async (quotation: any) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/sales-orders', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          quotationId: quotation.id
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: `Quotation converted to sales order successfully`,
+        });
+        fetchQuotations(); // Refresh to show updated status
+      } else {
+        throw new Error('Failed to convert quotation');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to convert quotation to sales order",
+        variant: "destructive"
+      });
+    }
   };
 
   const getStatusBadgeVariant = (status: string) => {
@@ -408,7 +437,7 @@ export function SalesOperationsDashboard() {
               </CardHeader>
               <CardContent>
                 {/* Enhanced Filters */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input 
@@ -419,18 +448,27 @@ export function SalesOperationsDashboard() {
                     />
                   </div>
                   
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.value} value={category.value}>
-                          {category.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div>
+                    <Label htmlFor="date-from" className="text-sm font-medium">From Date</Label>
+                    <Input 
+                      id="date-from"
+                      type="date" 
+                      value={dateFrom}
+                      onChange={(e) => setDateFrom(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="date-to" className="text-sm font-medium">To Date</Label>
+                    <Input 
+                      id="date-to"
+                      type="date" 
+                      value={dateTo}
+                      onChange={(e) => setDateTo(e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
                   
                   <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                     <SelectTrigger>
@@ -464,10 +502,9 @@ export function SalesOperationsDashboard() {
                 
                 {/* Quotations Table */}
                 <div className="border rounded-lg">
-                  <div className="grid grid-cols-7 gap-4 p-4 bg-gray-50 font-medium text-sm">
+                  <div className="grid grid-cols-6 gap-4 p-4 bg-gray-50 font-medium text-sm">
                     <div>Quote #</div>
                     <div>Customer</div>
-                    <div>Category</div>
                     <div>Date</div>
                     <div>Amount</div>
                     <div>Status</div>
@@ -487,7 +524,8 @@ export function SalesOperationsDashboard() {
                       <p className="text-gray-600 mb-4">No quotations match your current filters</p>
                       <Button onClick={() => {
                         setSearchTerm('');
-                        setSelectedCategory('all');
+                        setDateFrom('');
+                        setDateTo('');
                         setSelectedStatus('all');
                       }}>
                         Clear Filters
@@ -498,21 +536,18 @@ export function SalesOperationsDashboard() {
                       const StatusIcon = getStatusIcon(quotation.status);
                       return (
                         <div key={quotation.id}>
-                          <div className="grid grid-cols-7 gap-4 p-4 text-sm hover:bg-gray-50">
+                          <div className="grid grid-cols-6 gap-4 p-4 text-sm hover:bg-gray-50">
                             <div className="font-medium text-blue-600">
-                              {quotation.quotationNumber}
+                              {quotation.number}
                             </div>
                             <div className="font-medium">
-                              {quotation.customerName}
-                            </div>
-                            <div className="capitalize text-gray-600">
-                              {quotation.category?.replace('-', ' ')}
+                              {quotation.customerName || quotation.customerCode}
                             </div>
                             <div className="text-gray-600">
-                              {quotation.date}
+                              {new Date(quotation.createdAt).toLocaleDateString()}
                             </div>
                             <div className="font-medium">
-                              ${quotation.totalAmount?.toLocaleString()}
+                              ${quotation.total?.toLocaleString() || '0.00'}
                             </div>
                             <div>
                               <Badge variant={getStatusBadgeVariant(quotation.status)} className="capitalize">
@@ -658,11 +693,145 @@ export function SalesOperationsDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <QuotationForm />
+                <QuotationForm duplicateData={duplicatingQuotation} />
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Quotation Details Dialog */}
+        <Dialog open={showQuotationDetails} onOpenChange={setShowQuotationDetails}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Quotation Details - {selectedQuotation?.number}</DialogTitle>
+              <DialogDescription>
+                Complete details and items for this quotation
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedQuotation && (
+              <div className="space-y-6">
+                {/* Header Information */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Quotation Number</Label>
+                    <p className="text-lg font-mono">{selectedQuotation.number}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Customer</Label>
+                    <p className="text-lg">{selectedQuotation.customerName || selectedQuotation.customerCode}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Status</Label>
+                    <Badge variant={getStatusBadgeVariant(selectedQuotation.status)} className="mt-1">
+                      {selectedQuotation.status}
+                    </Badge>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Created Date</Label>
+                    <p className="text-lg">{new Date(selectedQuotation.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Valid Until</Label>
+                    <p className="text-lg">{selectedQuotation.validUntil ? new Date(selectedQuotation.validUntil).toLocaleDateString() : 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Total Amount</Label>
+                    <p className="text-xl font-bold text-green-600">${selectedQuotation.total?.toLocaleString() || '0.00'}</p>
+                  </div>
+                </div>
+
+                {/* Items Table */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Quotation Items</h3>
+                  <div className="border rounded-lg overflow-hidden">
+                    <div className="grid grid-cols-5 gap-4 p-3 bg-gray-50 font-medium text-sm">
+                      <div>Product</div>
+                      <div>Specification</div>
+                      <div>Quantity</div>
+                      <div>Unit Price</div>
+                      <div>Line Total</div>
+                    </div>
+                    {selectedQuotation.items?.map((item: any, index: number) => (
+                      <div key={index} className="grid grid-cols-5 gap-4 p-3 border-t">
+                        <div className="font-medium">{item.productName}</div>
+                        <div className="text-gray-600">{item.specification || '-'}</div>
+                        <div>{item.quantity}</div>
+                        <div>${item.unitPrice?.toFixed(2)}</div>
+                        <div className="font-medium">${item.lineTotal?.toFixed(2)}</div>
+                      </div>
+                    )) || (
+                      <div className="p-4 text-center text-gray-500">No items found</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Financial Summary */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg">
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Subtotal</Label>
+                    <p className="text-lg">${selectedQuotation.subtotal?.toFixed(2) || '0.00'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Shipping Fee</Label>
+                    <p className="text-lg">${selectedQuotation.shippingFee?.toFixed(2) || '0.00'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Bank Charge</Label>
+                    <p className="text-lg">${selectedQuotation.bankCharge?.toFixed(2) || '0.00'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Discount</Label>
+                    <p className="text-lg text-red-600">${selectedQuotation.discount?.toFixed(2) || '0.00'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Other Charges</Label>
+                    <p className="text-lg">${selectedQuotation.others?.toFixed(2) || '0.00'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Total Amount</Label>
+                    <p className="text-xl font-bold text-green-600">${selectedQuotation.total?.toFixed(2) || '0.00'}</p>
+                  </div>
+                </div>
+
+                {/* Additional Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Payment Method</Label>
+                    <p className="text-lg">{selectedQuotation.paymentMethod || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Shipping Method</Label>
+                    <p className="text-lg">{selectedQuotation.shippingMethod || 'Not specified'}</p>
+                  </div>
+                </div>
+
+                {selectedQuotation.customerServiceInstructions && (
+                  <div>
+                    <Label className="text-sm font-semibold text-gray-600">Customer Service Instructions</Label>
+                    <p className="text-lg p-3 bg-gray-50 rounded-lg mt-2">{selectedQuotation.customerServiceInstructions}</p>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-2 pt-4 border-t">
+                  <Button variant="outline" onClick={() => handleEditQuotation(selectedQuotation)}>
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit
+                  </Button>
+                  <Button variant="outline" onClick={() => handleDuplicateQuotation(selectedQuotation)}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Duplicate
+                  </Button>
+                  <Button onClick={() => handleConvertToSalesOrder(selectedQuotation)}>
+                    <FileCheck className="w-4 h-4 mr-2" />
+                    Convert to Sales Order
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );

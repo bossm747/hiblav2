@@ -41,7 +41,11 @@ interface QuotationItem {
   lineTotal: number;
 }
 
-export function QuotationForm() {
+interface QuotationFormProps {
+  duplicateData?: any;
+}
+
+export function QuotationForm({ duplicateData }: QuotationFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -84,10 +88,49 @@ export function QuotationForm() {
 
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
-  // Load data on component mount
+  // Load data on component mount and when duplicate data changes
   useEffect(() => {
     loadFormData();
   }, []);
+
+  // Populate form with duplicate data
+  useEffect(() => {
+    if (duplicateData) {
+      setFormData({
+        customerId: duplicateData.customerId || '',
+        customerCode: duplicateData.customerCode || '',
+        country: duplicateData.country || '',
+        priceListId: duplicateData.priceListId || '',
+        revisionNumber: duplicateData.revisionNumber || 'R0',
+        paymentMethod: duplicateData.paymentMethod || '',
+        shippingMethod: duplicateData.shippingMethod || '',
+        customerServiceInstructions: duplicateData.customerServiceInstructions || '',
+        validUntil: duplicateData.validUntil || '',
+        subtotal: duplicateData.subtotal || 0,
+        shippingFee: duplicateData.shippingFee || 0,
+        bankCharge: duplicateData.bankCharge || 0,
+        discount: duplicateData.discount || 0,
+        others: duplicateData.others || 0,
+        total: duplicateData.total || 0,
+        items: duplicateData.items || [{ 
+          productId: '', 
+          productName: '', 
+          specification: '', 
+          quantity: 0.0, 
+          unitPrice: 0, 
+          lineTotal: 0 
+        }]
+      });
+      
+      // Set selected customer if available
+      if (duplicateData.customerId) {
+        const customer = customers.find(c => c.id === duplicateData.customerId);
+        if (customer) {
+          setSelectedCustomer(customer);
+        }
+      }
+    }
+  }, [duplicateData, customers]);
 
   const loadFormData = async () => {
     try {
