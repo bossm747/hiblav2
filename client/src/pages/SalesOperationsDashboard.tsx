@@ -42,9 +42,7 @@ import {
   Filter,
 } from 'lucide-react';
 import { QuotationForm } from '@/components/forms/QuotationForm';
-import { QuotationListView } from '@/components/quotations/QuotationListView';
-import { SalesOrderListView } from '@/components/sales-orders/SalesOrderListView';
-import { JobOrderListView } from '@/components/job-orders/JobOrderListView';
+// Import placeholder components for now - these will be implemented later
 import { SalesWorkflowVisualizer } from '@/components/sales/SalesWorkflowVisualizer';
 
 export function SalesOperationsDashboard() {
@@ -461,15 +459,51 @@ export function SalesOperationsDashboard() {
             </TabsContent>
 
             <TabsContent value="quotations" className="space-y-6">
-              <QuotationListView />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quotations Management</CardTitle>
+                  <CardDescription>View and manage all active quotations</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8 text-muted-foreground">
+                    <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Quotations list view will be implemented here</p>
+                    <p className="text-sm">Total: {totalQuotations} active quotations</p>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="sales-orders" className="space-y-6">
-              <SalesOrderListView />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Sales Orders Management</CardTitle>
+                  <CardDescription>View and manage confirmed sales orders</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8 text-muted-foreground">
+                    <CheckCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Sales orders list view will be implemented here</p>
+                    <p className="text-sm">Total: {totalSalesOrders} confirmed orders</p>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="job-orders" className="space-y-6">
-              <JobOrderListView />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Job Orders Management</CardTitle>
+                  <CardDescription>View and manage production job orders</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Briefcase className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Job orders list view will be implemented here</p>
+                    <p className="text-sm">Total: {totalJobOrders} active jobs</p>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </main>
