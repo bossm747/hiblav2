@@ -658,7 +658,7 @@ export function SalesOperationsDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <QuotationForm duplicateData={duplicatingQuotation} />
+                <QuotationForm />
               </CardContent>
             </Card>
           </TabsContent>

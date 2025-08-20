@@ -338,62 +338,65 @@ export function QuotationForm() {
   };
 
   return (
-    <div className="w-full p-4 md:p-6">
-      {/* Header Section with Title and Actions */}
-      <div className="mb-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Create New Quotation</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Auto-generated quotation number • Date: {new Date().toLocaleDateString()}
-            </p>
-          </div>
-          <div className="flex flex-col md:flex-row gap-3 mt-4 md:mt-0">
-            <Button type="button" variant="outline" className="h-12 text-base md:text-sm">
-              Save as Draft
-            </Button>
-            <Button type="button" variant="outline" className="h-12 text-base md:text-sm">
-              Export PDF
-            </Button>
-            <Button type="button" variant="outline" className="h-12 text-base md:text-sm">
-              Duplicate
-            </Button>
+    <div className="max-w-7xl mx-auto space-y-8">
+      {/* Canva-Style Header */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-8 rounded-3xl shadow-2xl">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative text-center text-white">
+          <h1 className="text-4xl font-bold mb-3 tracking-tight">Create New Quotation</h1>
+          <p className="text-xl text-indigo-100 opacity-90 font-medium">Generate professional quotations with confidence</p>
+          <div className="mt-4 flex items-center justify-center space-x-2 text-sm">
+            <div className="px-3 py-1 bg-white/20 rounded-full">Auto-generated number</div>
+            <div className="w-1 h-1 bg-white/60 rounded-full"></div>
+            <div className="px-3 py-1 bg-white/20 rounded-full">{new Date().toLocaleDateString()}</div>
           </div>
         </div>
+        <div className="absolute -top-4 -right-4 w-32 h-32 bg-white/10 rounded-full"></div>
+        <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-white/10 rounded-full"></div>
       </div>
 
-      {/* Main Form Card - Full Width */}
-      <Card data-testid="quotation-form" className="w-full">
-        <CardContent className="space-y-6 p-6">
-          {/* Single Row Form - Price Tier and Customer Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Price Tier Selection - Must come first */}
-            <div className="space-y-2">
-              <Label className="text-purple-700">Price Tier * (Required before product selection)</Label>
-              <Select value={formData.priceListId} onValueChange={(value) => setFormData(prev => ({ ...prev, priceListId: value }))}>
-                <SelectTrigger data-testid="select-price-tier" className="h-12 text-base md:text-sm">
-                  <SelectValue placeholder="Choose price tier to unlock product pricing" />
-                </SelectTrigger>
-                <SelectContent>
-                  {priceLists.map((priceList) => (
-                    <SelectItem key={priceList.id} value={priceList.id}>
-                      {priceList.name} - {priceList.type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      {/* Main Form Container with Canva-Style Design */}
+      <Card className="border-0 shadow-2xl rounded-3xl overflow-hidden bg-gradient-to-br from-white via-gray-50 to-blue-50/30">
+        <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+        <CardContent className="space-y-10 p-10">
+          {/* Essential Information Section */}
+          <div className="bg-white p-8 rounded-2xl shadow-lg border-2 border-gray-100">
+            <div className="flex items-center mb-6">
+              <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full mr-4"></div>
+              <h3 className="text-2xl font-bold text-gray-800">Essential Information</h3>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="space-y-3">
+                <Label className="text-lg font-semibold text-gray-700 flex items-center">
+                  <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                  Price Tier *
+                </Label>
+                <Select value={formData.priceListId} onValueChange={(value) => setFormData(prev => ({ ...prev, priceListId: value }))}>
+                  <SelectTrigger className="h-14 text-lg border-2 border-gray-200 rounded-xl hover:border-purple-400 transition-all duration-200 shadow-sm">
+                    <SelectValue placeholder="Choose price tier to unlock pricing" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {priceLists.map((priceList) => (
+                      <SelectItem key={priceList.id} value={priceList.id}>
+                        {priceList.name} - {priceList.type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* Customer Selection */}
-            <div className="space-y-2">
-              <Label>Customer *</Label>
+            <div className="space-y-3">
+              <Label className="text-lg font-semibold text-gray-700 flex items-center">
+                <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                Customer *
+              </Label>
               <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     role="combobox"
                     aria-expanded={customerOpen}
-                    className="h-12 w-full justify-between text-base md:text-sm"
+                    className="h-14 w-full justify-between text-lg border-2 border-gray-200 rounded-xl hover:border-purple-400 transition-all duration-200 shadow-sm"
                     data-testid="select-customer"
                   >
                     {selectedCustomer ? (
@@ -485,33 +488,37 @@ export function QuotationForm() {
               </Popover>
             </div>
 
-            {/* Revision Number */}
-            <div className="space-y-2">
-              <Label>Revision Number</Label>
+            <div className="space-y-3">
+              <Label className="text-lg font-semibold text-gray-700">Revision Number</Label>
               <Input
                 value={formData.revisionNumber}
                 onChange={(e) => setFormData(prev => ({ ...prev, revisionNumber: e.target.value }))}
                 data-testid="input-revision-number"
-                className="h-12 text-base md:text-sm"
+                className="h-14 text-lg border-2 border-gray-200 rounded-xl hover:border-purple-400 transition-all duration-200 shadow-sm"
               />
+            </div>
             </div>
           </div>
 
           {/* Customer Info Display */}
           {selectedCustomer && (
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Customer Code</Label>
-                  <p className="font-mono text-base mt-1">{formData.customerCode}</p>
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-2xl border-2 border-blue-200 shadow-lg">
+              <h4 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                <div className="w-3 h-3 bg-green-500 rounded-full mr-3 animate-pulse"></div>
+                Customer Selected
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-4 rounded-xl shadow-sm">
+                  <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Customer Code</Label>
+                  <p className="font-mono text-xl mt-2 text-gray-800">{formData.customerCode}</p>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Country</Label>
-                  <p className="text-base mt-1">{formData.country}</p>
+                <div className="bg-white p-4 rounded-xl shadow-sm">
+                  <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Country</Label>
+                  <p className="text-xl mt-2 text-gray-800">{formData.country}</p>
                 </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-600">Price List</Label>
-                  <p className="text-base mt-1 font-semibold text-purple-700">
+                <div className="bg-white p-4 rounded-xl shadow-sm">
+                  <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Price List</Label>
+                  <p className="text-xl mt-2 font-bold text-purple-700">
                     {priceLists.find(pl => pl.id === formData.priceListId)?.name || 'Default'}
                   </p>
                 </div>
@@ -520,9 +527,15 @@ export function QuotationForm() {
           )}
 
           {/* Items Section */}
-          <div className="space-y-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <Label className="text-lg font-semibold">Order Items (Max 300)</Label>
+          <div className="bg-white p-8 rounded-2xl shadow-lg border-2 border-gray-100">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center">
+                <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-blue-600 rounded-full mr-4"></div>
+                <h3 className="text-2xl font-bold text-gray-800">Order Items</h3>
+                <span className="ml-3 px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+                  Max 300 items
+                </span>
+              </div>
               <Button 
                 type="button" 
                 onClick={addItem} 
@@ -695,106 +708,122 @@ export function QuotationForm() {
 
           <Separator />
 
-          {/* Payment & Shipping */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Method of Payment</Label>
-              <Select 
-                value={formData.paymentMethod} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value }))}
-              >
-                <SelectTrigger className="h-12 text-base md:text-sm">
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="bank">Bank</SelectItem>
-                  <SelectItem value="agent">Agent</SelectItem>
-                  <SelectItem value="money transfer">Money Transfer</SelectItem>
-                  <SelectItem value="cash">Cash</SelectItem>
-                </SelectContent>
-              </Select>
+          {/* Payment & Shipping Section */}
+          <div className="bg-white p-8 rounded-2xl shadow-lg border-2 border-gray-100">
+            <div className="flex items-center mb-6">
+              <div className="w-1 h-8 bg-gradient-to-b from-orange-500 to-red-600 rounded-full mr-4"></div>
+              <h3 className="text-2xl font-bold text-gray-800">Payment & Shipping</h3>
             </div>
-            <div className="space-y-2">
-              <Label>Shipping Method</Label>
-              <Select 
-                value={formData.shippingMethod} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, shippingMethod: value }))}
-              >
-                <SelectTrigger className="h-12 text-base md:text-sm">
-                  <SelectValue placeholder="Select shipping method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="DHL">DHL</SelectItem>
-                  <SelectItem value="UPS">UPS</SelectItem>
-                  <SelectItem value="FedEx">FedEx</SelectItem>
-                  <SelectItem value="Agent">Agent</SelectItem>
-                  <SelectItem value="Pick Up">Pick Up</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-3">
+                <Label className="text-lg font-semibold text-gray-700">Method of Payment</Label>
+                <Select 
+                  value={formData.paymentMethod} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value }))}
+                >
+                  <SelectTrigger className="h-14 text-lg border-2 border-gray-200 rounded-xl hover:border-orange-400 transition-all duration-200 shadow-sm">
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bank">Bank Transfer</SelectItem>
+                    <SelectItem value="agent">Agent Payment</SelectItem>
+                    <SelectItem value="money transfer">Money Transfer</SelectItem>
+                    <SelectItem value="cash">Cash Payment</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-3">
+                <Label className="text-lg font-semibold text-gray-700">Shipping Method</Label>
+                <Select 
+                  value={formData.shippingMethod} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, shippingMethod: value }))}
+                >
+                  <SelectTrigger className="h-14 text-lg border-2 border-gray-200 rounded-xl hover:border-orange-400 transition-all duration-200 shadow-sm">
+                    <SelectValue placeholder="Select shipping method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DHL">DHL Express</SelectItem>
+                    <SelectItem value="UPS">UPS International</SelectItem>
+                    <SelectItem value="FedEx">FedEx Global</SelectItem>
+                    <SelectItem value="Agent">Agent Pickup</SelectItem>
+                    <SelectItem value="Pick Up">Customer Pickup</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
-          {/* Financial Summary */}
-          <div className="p-4 bg-blue-50 rounded-lg">
-            <h3 className="font-semibold mb-4">Financial Summary (A+B+C+D+E)</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div>
-                <Label>Sub Total (A)</Label>
+          {/* Financial Summary - Professional Canva Style */}
+          <div className="bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
+            <div className="flex items-center mb-8">
+              <div className="w-1 h-8 bg-gradient-to-b from-emerald-500 to-blue-600 rounded-full mr-4"></div>
+              <h3 className="text-2xl font-bold text-gray-800">Financial Summary</h3>
+              <div className="ml-4 px-4 py-2 bg-emerald-100 text-emerald-800 text-sm font-semibold rounded-full">
+                Professional Calculation
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3 block">Sub Total</Label>
                 <Input
                   type="number"
                   value={formData.subtotal.toFixed(2)}
                   readOnly
-                  className="bg-white font-semibold h-12 text-base md:text-sm"
+                  className="bg-gray-50 font-bold text-xl h-14 border-2 border-gray-200 rounded-xl"
                 />
               </div>
-              <div>
-                <Label>Shipping Fee (B)</Label>
+              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3 block">Shipping Fee</Label>
                 <Input
                   type="number"
                   step="0.01"
                   value={formData.shippingFee}
                   onChange={(e) => setFormData(prev => ({ ...prev, shippingFee: parseFloat(e.target.value) || 0 }))}
-                  className="h-12 text-base md:text-sm"
+                  className="h-14 text-xl border-2 border-gray-200 rounded-xl hover:border-blue-400 transition-all duration-200"
                 />
               </div>
-              <div>
-                <Label>Bank Charge (C)</Label>
+              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3 block">Bank Charge</Label>
                 <Input
                   type="number"
                   step="0.01"
                   value={formData.bankCharge}
                   onChange={(e) => setFormData(prev => ({ ...prev, bankCharge: parseFloat(e.target.value) || 0 }))}
-                  className="h-12 text-base md:text-sm"
+                  className="h-14 text-xl border-2 border-gray-200 rounded-xl hover:border-blue-400 transition-all duration-200"
                 />
               </div>
-              <div>
-                <Label>Discount (D) - Must be negative</Label>
+              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3 block">Discount</Label>
                 <Input
                   type="number"
                   step="0.01"
                   max="0"
                   value={formData.discount}
                   onChange={(e) => setFormData(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
-                  className="h-12 text-base md:text-sm"
+                  className="h-14 text-xl border-2 border-gray-200 rounded-xl hover:border-red-400 transition-all duration-200"
+                  placeholder="Enter negative value"
                 />
               </div>
-              <div>
-                <Label>Others (E)</Label>
+              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3 block">Other Charges</Label>
                 <Input
                   type="number"
                   step="0.01"
                   value={formData.others}
                   onChange={(e) => setFormData(prev => ({ ...prev, others: parseFloat(e.target.value) || 0 }))}
-                  className="h-12 text-base md:text-sm"
+                  className="h-14 text-xl border-2 border-gray-200 rounded-xl hover:border-blue-400 transition-all duration-200"
                 />
               </div>
-              <div>
-                <Label className="font-bold">Total (A+B+C+D+E)</Label>
+              <div className="bg-gradient-to-r from-yellow-100 to-orange-100 p-6 rounded-xl shadow-lg border-2 border-yellow-300">
+                <Label className="text-sm font-bold text-orange-800 uppercase tracking-wide mb-3 block flex items-center">
+                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
+                  Total Amount
+                </Label>
                 <Input
                   type="number"
                   value={formData.total.toFixed(2)}
                   readOnly
-                  className="bg-yellow-100 font-bold text-lg h-12 md:text-base"
+                  className="bg-gradient-to-r from-yellow-50 to-orange-50 font-bold text-2xl h-16 border-2 border-yellow-400 rounded-xl"
                 />
               </div>
             </div>
@@ -824,26 +853,39 @@ export function QuotationForm() {
             />
           </div>
 
-          {/* Submit Action */}
-          <div className="flex justify-center md:justify-end pt-6">
-            <Button 
-              onClick={submitQuotation} 
-              disabled={isLoading || !formData.priceListId} 
-              className="w-full md:w-auto min-w-[200px] h-12 text-base md:text-sm bg-purple-600 hover:bg-purple-700"
-              data-testid="button-create-quotation"
-            >
-              {isLoading ? 'Creating...' : !formData.priceListId ? 'Select Price Tier First' : 'Create Quotation'}
-            </Button>
+          {/* Action Buttons Section */}
+          <div className="bg-gradient-to-r from-gray-50 to-white p-8 rounded-2xl shadow-lg border-2 border-gray-200">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+              <div className="text-center lg:text-left">
+                <h4 className="text-xl font-bold text-gray-800 mb-2">Ready to Submit?</h4>
+                <p className="text-gray-600">Review all details before creating your quotation</p>
+              </div>
+              <Button 
+                onClick={submitQuotation} 
+                disabled={isLoading || !formData.priceListId} 
+                className="w-full lg:w-auto min-w-[250px] h-16 text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl shadow-xl transition-all duration-200 transform hover:scale-105"
+                data-testid="button-create-quotation"
+              >
+                {isLoading ? 'Creating...' : !formData.priceListId ? 'Select Price Tier First' : 'Create Professional Quotation'}
+              </Button>
+            </div>
           </div>
 
-          {/* Status Display */}
-          <div className="text-sm text-muted-foreground text-center pt-4 border-t">
-            <div className="flex flex-col md:flex-row justify-center items-center gap-2 md:gap-4">
-              <span>Items: {formData.items.length}/300</span>
-              <span className="hidden md:inline">|</span>
-              <span>Total: ${formData.total.toFixed(2)}</span>
-              <span className="hidden md:inline">|</span>
-              <span>Creator: Auto-generated</span>
+          {/* Professional Status Display */}
+          <div className="bg-gradient-to-r from-slate-100 to-gray-100 p-6 rounded-2xl border border-slate-200">
+            <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-8">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span className="font-medium text-gray-700">Items: {formData.items.length}/300</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="font-medium text-gray-700">Total: ${formData.total.toFixed(2)}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                <span className="font-medium text-gray-700">Creator: Auto-generated</span>
+              </div>
             </div>
           </div>
         </CardContent>
