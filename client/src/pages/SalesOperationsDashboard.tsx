@@ -815,15 +815,24 @@ export function SalesOperationsDashboard() {
 
                 {/* Action Buttons */}
                 <div className="flex justify-end space-x-2 pt-4 border-t">
-                  <Button variant="outline" onClick={() => handleEditQuotation(selectedQuotation)}>
+                  <Button variant="outline" onClick={() => {
+                    handleEditQuotation(selectedQuotation);
+                    setShowQuotationDetails(false);
+                  }}>
                     <Edit className="w-4 h-4 mr-2" />
                     Edit
                   </Button>
-                  <Button variant="outline" onClick={() => handleDuplicateQuotation(selectedQuotation)}>
+                  <Button variant="outline" onClick={() => {
+                    handleDuplicateQuotation(selectedQuotation);
+                    setShowQuotationDetails(false);
+                  }}>
                     <Copy className="w-4 h-4 mr-2" />
                     Duplicate
                   </Button>
-                  <Button onClick={() => handleConvertToSalesOrder(selectedQuotation)}>
+                  <Button onClick={() => {
+                    handleConvertToSalesOrder(selectedQuotation);
+                    setShowQuotationDetails(false);
+                  }}>
                     <FileCheck className="w-4 h-4 mr-2" />
                     Convert to Sales Order
                   </Button>

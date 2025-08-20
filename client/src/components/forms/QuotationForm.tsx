@@ -322,12 +322,12 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
           shippingMethod: formData.shippingMethod,
           customerServiceInstructions: formData.customerServiceInstructions,
           validUntil: formData.validUntil || undefined,
-          subtotal: formData.subtotal,
-          shippingFee: formData.shippingFee,
-          bankCharge: formData.bankCharge,
-          discount: formData.discount,
-          others: formData.others,
-          total: formData.total,
+          subtotal: String(formData.subtotal),
+          shippingFee: String(formData.shippingFee),
+          bankCharge: String(formData.bankCharge),
+          discount: String(formData.discount),
+          others: String(formData.others),
+          total: String(formData.total),
           items: formData.items.filter(item => item.productId)
         })
       });

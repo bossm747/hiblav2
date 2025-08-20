@@ -104,6 +104,7 @@ export interface IStorage {
   updateQuotation(id: string, quotation: Partial<InsertQuotation>): Promise<Quotation>;
   deleteQuotation(id: string): Promise<void>;
   getQuotationItems(quotationId: string): Promise<QuotationItem[]>;
+  getQuotationCountForMonth(year: number, month: number): Promise<number>;
   
   // Manufacturing Workflow - Sales Orders
   getSalesOrders(): Promise<SalesOrder[]>;
@@ -309,6 +310,20 @@ export class Storage implements IStorage {
   
   async getQuotationItems(quotationId: string): Promise<QuotationItem[]> {
     return await db.select().from(quotationItems).where(eq(quotationItems.quotationId, quotationId));
+  }
+
+  async getQuotationCountForMonth(year: number, month: number): Promise<number> {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+    
+    const [result] = await db.select({ count: sql<number>`count(*)` })
+      .from(quotations)
+      .where(and(
+        gte(quotations.createdAt, startDate),
+        lte(quotations.createdAt, endDate)
+      ));
+    
+    return result?.count || 0;
   }
   
   // Sales Orders

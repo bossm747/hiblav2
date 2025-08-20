@@ -470,7 +470,7 @@ export function registerRoutes(app: Express): void {
       const tableData = quotations.map(q => ({
         id: q.id,
         number: q.quotationNumber || q.id,
-        customerName: q.customerName || 'Unknown Customer',
+        customerName: q.customerCode || 'Unknown Customer',
         customerCode: q.customerCode || 'N/A',
         country: q.country || 'N/A',
         revisionNumber: q.revisionNumber || 'R0',
@@ -500,7 +500,7 @@ export function registerRoutes(app: Express): void {
       const detailData = {
         id: quotation.id,
         number: quotation.quotationNumber || quotation.id,
-        customerName: quotation.customerName || 'Unknown Customer',
+        customerName: quotation.customerCode || 'Unknown Customer',
         customerCode: quotation.customerCode || 'N/A',
         country: quotation.country || 'N/A',
         priceListName: 'Standard', // Would fetch from price list table
@@ -586,7 +586,15 @@ export function registerRoutes(app: Express): void {
         return res.status(404).json({ error: "Quotation not found" });
       }
       
+      // Generate new quotation number
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const quotationCount = await storage.getQuotationCountForMonth(year, parseInt(month));
+      const quotationNumber = `${year}.${month}.${String(quotationCount + 1).padStart(3, '0')}`;
+
       const duplicate = await storage.createQuotation({
+        quotationNumber,
         customerId: original.customerId,
         customerCode: original.customerCode,
         country: original.country,
@@ -600,7 +608,8 @@ export function registerRoutes(app: Express): void {
         bankCharge: String(original.bankCharge || 0),
         discount: String(original.discount || 0),
         others: String(original.others || 0),
-        total: String(original.total || 0)
+        total: String(original.total || 0),
+        createdBy: (req as any).user?.email?.split('@')[0] || 'system'
       });
       
       res.json({ quotation: duplicate });
@@ -662,7 +671,8 @@ export function registerRoutes(app: Express): void {
         paymentMethod: quotation.paymentMethod || 'bank',
         shippingMethod: quotation.shippingMethod || 'DHL',
         isConfirmed: false, // Starts as draft
-        status: 'draft'
+        status: 'draft',
+        createdBy: (req as any).user?.email?.split('@')[0] || 'system'
       });
       
       res.json({ salesOrder });
@@ -741,7 +751,7 @@ export function registerRoutes(app: Express): void {
         shippingMethod: original.shippingMethod,
         isConfirmed: false,
         status: 'draft',
-        createdBy: (req as AuthenticatedRequest).user.email.split('@')[0]
+        createdBy: (req as any).user?.email?.split('@')[0] || 'system'
       });
       
       res.json({ salesOrder: duplicate });
