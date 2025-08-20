@@ -1,77 +1,7 @@
-# Hibla Manufacturing & Supply System (Internal Operations Platform)
+# Hibla Manufacturing & Supply System
 
 ## Overview
-Hibla Manufacturing & Supply System is an **internal-only operations platform** for managing the manufacturing workflow of Hibla, a premium real Filipino hair manufacturer and supplier. This system is exclusively for internal staff use - sales teams, production teams, inventory managers, and company management. It covers the entire process from customer quotations and production job orders to multi-location inventory management, providing real-time manufacturing dashboards and detailed reports to streamline production and global distribution.
-
-## Important: System Architecture Change (January 2025)
-**This system has been transformed from a customer-facing platform to a purely internal operations system.** All customer-facing components have been removed:
-- No customer portal or customer login functionality
-- No customer self-service features
-- No payment proof uploads from customers
-- All operations are handled internally by Hibla staff
-- Customer interactions managed through internal processes
-- Payment documentation handled by customer support staff
-- Finance team handles payment verification and confirmation process
-- **Key Focus**: Comprehensive job order monitoring to solve bottlenecks and delays from manual system
-
-## Production Authentication System (August 2025)
-**The system now uses production-ready authentication credentials:**
-- All demo credential messaging has been removed from the system
-- Current staff accounts are production-ready and secure
-- Authentication system configured for live operational use
-- Staff credentials: admin@hibla.com, manager@hibla.com, staff@hibla.com (passwords managed by system administrator)
-- Multi-role access control system with department-based permissions
-- Session-based authentication with JWT tokens for API security
-
-## Document Automation System (January 2025)
-**Complete automation of document generation eliminates manual document creation:**
-- **Automated Sales Order Generation**: One-click creation from quotations with YYYY.MM.### numbering
-- **Automated Job Order Creation**: Auto-generated from confirmed Sales Orders with same series number
-- **Automated Invoice Creation**: Auto-generated from confirmed Sales Orders with same series number
-- **Professional PDF Templates**: Print-ready documents with Hibla branding for all document types
-- **Inventory Integration**: Automatic updates to Reserved Warehouse when orders are confirmed
-- **Creator Initials Automation**: Automatically extracts creator initials from logged-in user authentication
-- **Customer Details Auto-Population**: Automatically pre-populates customer details (country, price list) from selected customer records with flexibility to modify
-- **95% reduction in manual document preparation time**
-- **100% elimination of data transcription errors**
-- **Complete workflow automation from quotation to invoice**
-
-## Comprehensive Payment Processing System (January 2025)
-**Complete end-to-end payment processing workflow with dual-staff verification system:**
-- **Payment Proof Upload Module**: Customer support staff upload payment screenshots received via WhatsApp with comprehensive form validation
-- **Payment Verification Queue**: Finance team review interface with image preview, approval/rejection workflow, and detailed verification notes
-- **Real-time Statistics Dashboard**: Live metrics showing submission counts, verification status, pending amounts, and processing times
-- **Automated Invoice Generation**: One-click invoice creation from confirmed sales orders with consistent YYYY.MM.### series numbering
-- **Bulk Processing Capabilities**: Batch invoice generation and payment verification for efficiency
-- **WhatsApp Integration Workflow**: Structured process for customer payment submission → staff upload → finance verification → payment confirmation
-- **Complete Audit Trail**: Full tracking of payment submissions, verifications, rejections with staff attribution and timestamps
-- **Priority-based Processing**: High-priority alerts for payments pending over 3 days
-- **Multi-format Support**: Image upload with preview, multiple payment methods (bank transfer, agent, mobile payment, cash)
-- **100% elimination of payment processing delays and manual errors**
-
-## Internal Staff Roles & Workflow
-
-### Staff Roles
-- **Sales Team**: Creates quotations, manages customer relationships via WhatsApp, converts quotes to sales orders
-- **Customer Support**: Receives payment screenshots via WhatsApp, uploads payment proof images to system
-- **Finance Team**: Verifies payment proof images, confirms payment receipt, updates payment status
-- **Production Team**: Manages job orders, tracks production progress, updates manufacturing status
-- **Inventory Team**: Manages stock levels, handles warehouse transfers, monitors inventory
-- **Shipping Records**: Manual order fulfillment, document generation, internal tracking updates
-- **Management**: Views reports, monitors analytics, makes strategic decisions
-- **Admin**: System configuration, user management, pricing management
-
-### Internal Workflow Process
-1. **Sales Process**: Staff receive customer inquiries → Create quotations → Send PDFs to customers → Convert approved quotes to sales orders
-2. **Job Order Monitoring**: Sales orders generate job orders → Comprehensive tracking system → Real-time bottleneck identification → Delay alerts and issue resolution
-3. **Payment Workflow**: 
-   - Customers send payment screenshots via WhatsApp
-   - Customer support staff upload payment proof images with detailed form data
-   - Finance team reviews submissions in verification queue with image preview
-   - Finance staff approve/reject with verification notes and reasons
-   - Payment status automatically updated across system with full audit trail
-   - Automated invoice generation triggers for confirmed sales orders
-4. **Fulfillment**: Staff record shipping details → Generate shipping documents → Maintain internal delivery records
+The Hibla Manufacturing & Supply System is an **internal-only operations platform** designed to manage the manufacturing workflow for Hibla, a premium real Filipino hair manufacturer and supplier. Its primary purpose is to streamline production and global distribution by covering the entire process from customer quotations and production job orders to multi-location inventory management, providing real-time manufacturing dashboards and detailed reports. The system aims to eliminate bottlenecks and delays from manual systems, focusing on comprehensive job order monitoring. All customer-facing components have been removed; operations are handled internally by Hibla staff.
 
 ## User Preferences
 - Preferred communication style: Simple, everyday language
@@ -82,98 +12,29 @@ Hibla Manufacturing & Supply System is an **internal-only operations platform** 
 - Brand Assets: Hibla logo provided (circular design with elegant typography)
 - Current Focus: Internal manufacturing workflow management
 
-## Deployment Infrastructure (January 2025)
-**Production-ready deployment architecture:**
-- **Health Check Endpoints**: Simple endpoints at `/health` and `/api/health` (returns 'OK')
-- **Non-blocking Server Startup**: Background data seeding runs separately from server startup
-- **Production Stability**: Event loop keepalive mechanisms prevent premature process termination
-- **Zero-downtime Deployments**: Server starts immediately while initialization processes run asynchronously
-- **Comprehensive Error Handling**: Production-safe error handling prevents crashes during deployment
-
-## CRITICAL DEPLOYMENT RULES (DO NOT VIOLATE):
-1. **NEVER add handlers to root path "/"** - This blocks the React app from rendering
-2. **NEVER use complex JSON responses in health checks** - Use simple 'OK' response
-3. **NEVER use `npm run dev` in deployment** - Always use `npm start` or production commands
-4. **NEVER wait for database seeding before starting server** - Run seeding asynchronously
-5. **Health checks must be at `/health` and `/api/health` ONLY** - Not at root "/"
-6. **NEVER duplicate imports** - Check for duplicate import statements
-7. **NEVER add "Server is ready" handlers** - These block the React app
-8. **DEPLOYMENT WRAPPER IN PLACE** - server/index.ts detects deployment and forces production mode
-9. **BUILD OUTPUTS TO dist/index.js** - Compatible with npm start command
-
-## Deployment Solution (PERMANENT FIX):
-The `server/index.ts` file now contains a smart wrapper that:
-- Detects when running in Replit deployment (checks REPL_OWNER)
-- Automatically switches to production mode when deployed
-- Builds using `./build.sh` to avoid ESBuild conflicts
-- Serves from `dist/index.js` to match npm start command requirements
-- This bypasses the .replit file limitation that we cannot edit
-
-### Build Scripts:
-- `./build.sh` - Builds frontend and backend separately, outputs to dist/index.js
-- `./start.sh` - Starts production server from dist/index.js
-
 ## System Architecture
 
-### Frontend
-- **Framework**: React 18 with TypeScript, Vite
-- **Routing**: Wouter
-- **State Management**: TanStack Query (React Query)
-- **UI Framework**: ShadCN UI (built on Radix UI)
-- **Styling**: Tailwind CSS with CSS custom properties
-- **Form Handling**: React Hook Form with Zod validation
-- **UI/UX Decisions**: Clean manufacturing-focused interface, real-time production metrics, order status tracking, mobile-responsive design, universal theme toggle (light/dark mode). Primary color scheme uses purple, cyan, and pink gradients.
+### UI/UX Decisions
+The system features a clean, manufacturing-focused interface with real-time production metrics, order status tracking, and a mobile-responsive design. It includes a universal theme toggle (light/dark mode) and a primary color scheme utilizing purple, cyan, and pink gradients. Premium UI elements such as gradient backgrounds, advanced shadows, and professional styling are used, particularly in dashboards. Navigation is consolidated and simplified for ease of use across mobile and desktop.
 
-### Backend
-- **Runtime**: Node.js with Express.js
-- **Language**: TypeScript with ES modules
-- **Database**: PostgreSQL with Drizzle ORM
-- **Validation**: Zod schemas (shared with frontend)
-- **Core Workflow APIs**: Quotations, Sales Orders, Job Orders, Reports, Dashboard
-- **Supporting APIs**: Warehouses, Shipments, Customers, Products
+### Technical Implementations
+- **Frontend**: React 18 with TypeScript and Vite, Wouter for routing, TanStack Query for state management, ShadCN UI (built on Radix UI) for UI components, Tailwind CSS for styling, and React Hook Form with Zod for form handling and validation.
+- **Backend**: Node.js with Express.js, TypeScript with ES modules.
+- **Database**: PostgreSQL with Drizzle ORM. Zod schemas are shared between frontend and backend for validation.
+- **Core Workflow APIs**: Quotations, Sales Orders, Job Orders, Reports, Dashboard.
+- **Supporting APIs**: Warehouses, Shipments, Customers, Products.
+- **Authentication**: Production-ready, multi-role access control system with department-based permissions and JWT tokens.
+- **Document Automation**: Automated generation of Sales Orders, Job Orders, and Invoices from quotations with consistent numbering and professional PDF templates.
+- **Payment Processing**: End-to-end workflow with dual-staff verification, payment proof upload, verification queue, real-time statistics, and automated invoice generation.
+- **Project Structure**: Organized into `client/` (React frontend), `server/` (Express.js backend), and `shared/` (shared TypeScript types and Zod schemas).
 
-### Project Structure
-- `client/`: React frontend application
-- `server/`: Express.js backend API
-- `shared/`: Shared TypeScript types and Zod schemas
-
-### Key Features
-- **Database Schema**: Designed around manufacturing entities: Quotations, Sales Orders, Job Orders, Warehouses, Inventory, Shipments, Customers, Products.
-- **Quotation Management**: Automatic numbering, multi-item, status tracking, conversion to sales orders.
-- **Job Order Monitoring**: Comprehensive tracking system solving manual bottlenecks, real-time status updates, delay alerts.
-- **Warehouse Transfer Tracking** (In Development): Real-time movement tracking between warehouses with timestamps, audit trail, PDF integration.
-- **Multi-Warehouse Inventory**: Stock level tracking, low stock alerts, transfers across 6 locations (NG, PH, Reserved, Red, Admin, WIP).
-- **Manufacturing Dashboard**: Real-time production metrics, active order counts, item status, performance tracking.
-- **Advanced Reporting**: Summary reports with filtering and export capabilities.
-- **Comprehensive Payment Processing System**: Complete dual-staff workflow system integrated into Financial Operations dashboard with real-time verification queue, automated invoice generation, and WhatsApp-based payment proof management.
-- **Consolidated Navigation Structure**: Simplified from 18 sub-menu items to 6 main management dashboards: Sales Operations Management, Production Management, Inventory & Warehouse Management, Financial Operations Management, Reports & Analytics, and Administration. Each dashboard provides comprehensive functionality for its operational area.
-- **Pricing System**: Tiered pricing (New Customer, Regular, Premier, Custom), VLOOKUP functionality, and an administrative Price Management back-office with CRUD operations.
+### Feature Specifications
+- **Database Schema**: Designed for manufacturing entities: Quotations, Sales Orders, Job Orders, Warehouses, Inventory, Shipments, Customers, Products.
+- **Key Features**: Quotation management (auto-numbering, status tracking, conversion), comprehensive Job Order monitoring (real-time status, delay alerts), Multi-Warehouse Inventory (stock levels, transfers across 6 locations), Manufacturing Dashboard (real-time metrics, performance tracking), Advanced Reporting (filtering, export).
+- **Consolidated Navigation**: Simplified into 6 main management dashboards: Sales Operations Management, Production Management, Inventory & Warehouse Management, Financial Operations Management, Reports & Analytics, and Administration.
+- **Pricing System**: Tiered pricing (New Customer, Regular, Premier, Custom) with VLOOKUP functionality and an administrative Price Management back-office.
 - **AI Integration**: OpenAI-powered predictive inventory insights for demand forecasting.
-- **Mobile Experience**: Official Hibla logo integration, enhanced touch targets, responsive design, optimized forms, consolidated mobile navigation with clean menu design (removed description text, standardized on AppLayout navigation, eliminated duplicate components).
-- **Branding**: Integrated official Hibla branding and updated system-wide identity to "Hibla Filipino Hair".
-- **Visual Design**: Comprehensive shadow effects system for a polished appearance.
-
-## Latest Updates (August 19, 2025)
-**MOBILE-FIRST UI REVAMP COMPLETED**
-- Complete Sales Operations Dashboard redesign: Mobile-first responsive layout with sticky header
-- Enhanced mobile usability: Consistent button sizing, optimized touch targets, collapsible filters
-- Progressive responsive design: Mobile-first approach with desktop enhancements
-- Improved information hierarchy: Clear visual structure with proper spacing and typography
-- Advanced analytics implementation: Sales funnel visualization, pipeline metrics, conversion tracking
-- Mobile-optimized QuotationForm: Streamlined workflow capturing all client requirements
-
-**Enhanced Dashboard Features**
-- Data diversification: Pipeline velocity, customer segmentation, team performance metrics  
-- Interactive visualizations: Conversion funnel, progress indicators, real-time KPIs
-- Mobile-responsive controls: Collapsible filters, touch-friendly navigation, consistent sizing
-- Professional design system: Proper shadows, borders, consistent color scheme
-- Comprehensive client requirement capture: Enhanced form validation and user experience
-
-**Production-Ready Status Confirmed**
-- Live manufacturing data verified: 16 customers, 21 products, 22 quotations, 10 sales orders, 5 job orders
-- Multi-role authentication tested: Admin, Manager, Staff accounts fully functional
-- Mobile responsive design optimized: Touch targets, navigation, and form interactions
-- **STATUS: 100% READY FOR DEPLOYMENT WITH MOBILE-OPTIMIZED UI**
+- **Deployment**: Production-ready architecture with health check endpoints (`/health`, `/api/health`), non-blocking server startup, zero-downtime deployments, and comprehensive error handling. A smart wrapper in `server/index.ts` detects Replit deployment and forces production mode, building via `./build.sh` and serving from `dist/index.js`.
 
 ## External Dependencies
 
@@ -191,7 +52,5 @@ The `server/index.ts` file now contains a smart wrapper that:
 - **Validation**: Zod
 - **Session Management**: Express sessions (with PostgreSQL store)
 
-### Development Tools
-- **Build System**: Vite (with React plugin)
-- **TypeScript**: Strict configuration
-- **Code Quality**: ESLint, Prettier
+### AI
+- **Predictive Insights**: OpenAI
