@@ -757,8 +757,8 @@ export function SalesOperationsDashboard() {
                         <div className="font-medium">{item.productName}</div>
                         <div className="text-gray-600">{item.specification || '-'}</div>
                         <div>{item.quantity}</div>
-                        <div>${item.unitPrice?.toFixed(2)}</div>
-                        <div className="font-medium">${item.lineTotal?.toFixed(2)}</div>
+                        <div>${Number(item.unitPrice || 0).toFixed(2)}</div>
+                        <div className="font-medium">${Number(item.lineTotal || 0).toFixed(2)}</div>
                       </div>
                     )) || (
                       <div className="p-4 text-center text-gray-500">No items found</div>
@@ -770,27 +770,27 @@ export function SalesOperationsDashboard() {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg">
                   <div>
                     <Label className="text-sm font-semibold text-gray-600">Subtotal</Label>
-                    <p className="text-lg">${selectedQuotation.subtotal?.toFixed(2) || '0.00'}</p>
+                    <p className="text-lg">${Number(selectedQuotation.subtotal || 0).toFixed(2)}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-semibold text-gray-600">Shipping Fee</Label>
-                    <p className="text-lg">${selectedQuotation.shippingFee?.toFixed(2) || '0.00'}</p>
+                    <p className="text-lg">${Number(selectedQuotation.shippingFee || 0).toFixed(2)}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-semibold text-gray-600">Bank Charge</Label>
-                    <p className="text-lg">${selectedQuotation.bankCharge?.toFixed(2) || '0.00'}</p>
+                    <p className="text-lg">${Number(selectedQuotation.bankCharge || 0).toFixed(2)}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-semibold text-gray-600">Discount</Label>
-                    <p className="text-lg text-red-600">${selectedQuotation.discount?.toFixed(2) || '0.00'}</p>
+                    <p className="text-lg text-red-600">${Number(selectedQuotation.discount || 0).toFixed(2)}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-semibold text-gray-600">Other Charges</Label>
-                    <p className="text-lg">${selectedQuotation.others?.toFixed(2) || '0.00'}</p>
+                    <p className="text-lg">${Number(selectedQuotation.others || 0).toFixed(2)}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-semibold text-gray-600">Total Amount</Label>
-                    <p className="text-xl font-bold text-green-600">${selectedQuotation.total?.toFixed(2) || '0.00'}</p>
+                    <p className="text-xl font-bold text-green-600">${Number(selectedQuotation.total || 0).toFixed(2)}</p>
                   </div>
                 </div>
 

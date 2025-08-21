@@ -7,6 +7,7 @@ import { AppLayout } from "@/components/AppLayout";
 import Login from "@/pages/Login";
 import { Dashboard } from "@/pages/Dashboard";
 import { SalesOperationsDashboard } from "@/pages/SalesOperationsDashboard";
+import { SalesPage } from "@/pages/SalesPage";
 import { ProductionManagementDashboard } from "@/pages/ProductionManagementDashboard";
 import { InventoryWarehouseDashboard } from "@/pages/InventoryWarehouseDashboard";
 import { FinancialOperationsDashboard } from "@/pages/FinancialOperationsDashboard";
@@ -62,6 +63,8 @@ function AppRoutes() {
       content = <Dashboard />;
       break;
     case '/sales':
+      content = <SalesPage />;
+      break;
     case '/sales-operations-dashboard':
       content = <SalesOperationsDashboard />;
       break;
