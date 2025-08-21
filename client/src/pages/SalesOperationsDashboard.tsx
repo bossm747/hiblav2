@@ -726,143 +726,299 @@ export function SalesOperationsDashboard() {
           </TabsContent>
         </Tabs>
 
-        {/* Quotation Details Dialog */}
+        {/* Quotation Details Dialog - Canva Style */}
         <Dialog open={showQuotationDetails} onOpenChange={setShowQuotationDetails}>
-          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
+          <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
+            <DialogHeader className="sr-only">
               <DialogTitle>Quotation Details - {selectedQuotation?.number}</DialogTitle>
               <DialogDescription>
-                Complete details and items for this quotation
+                Professional quotation document view with print and export options
               </DialogDescription>
             </DialogHeader>
             
+            {/* Print/Export Header */}
+            <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
+              <div className="flex items-center space-x-2">
+                <FileText className="w-5 h-5 text-blue-600" />
+                <h2 className="text-lg font-semibold">Quotation {selectedQuotation?.number}</h2>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.print()}
+                  className="hidden-print"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Print
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = `/api/quotations/${selectedQuotation?.id}/pdf`;
+                    link.download = `Quotation-${selectedQuotation?.number}.pdf`;
+                    link.click();
+                  }}
+                  className="hidden-print"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  PDF
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    if (navigator.share) {
+                      navigator.share({
+                        title: `Quotation ${selectedQuotation?.number}`,
+                        text: `Quotation details for ${selectedQuotation?.customerName}`,
+                        url: window.location.href
+                      });
+                    }
+                  }}
+                  className="hidden-print"
+                >
+                  <FileCheck className="w-4 h-4 mr-2" />
+                  Share
+                </Button>
+              </div>
+            </div>
+            
             {selectedQuotation && (
-              <div className="space-y-6">
-                {/* Header Information */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Quotation Number</Label>
-                    <p className="text-lg font-mono">{selectedQuotation.number}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Customer</Label>
-                    <p className="text-lg">{selectedQuotation.customerName || selectedQuotation.customerCode}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Status</Label>
-                    <Badge variant={getStatusBadgeVariant(selectedQuotation.status)} className="mt-1">
-                      {selectedQuotation.status}
-                    </Badge>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Created Date</Label>
-                    <p className="text-lg">{new Date(selectedQuotation.createdAt).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Valid Until</Label>
-                    <p className="text-lg">{selectedQuotation.validUntil ? new Date(selectedQuotation.validUntil).toLocaleDateString() : 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Total Amount</Label>
-                    <p className="text-xl font-bold text-green-600">${selectedQuotation.total?.toLocaleString() || '0.00'}</p>
+              <div className="overflow-y-auto max-h-[80vh] print:max-h-none print:overflow-visible">
+                {/* Professional Document Header */}
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8 print:bg-gray-900">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h1 className="text-3xl font-bold mb-2">QUOTATION</h1>
+                      <p className="text-blue-100 text-lg">Hibla Manufacturing & Supply</p>
+                      <p className="text-blue-200 text-sm">Premium Real Filipino Hair Manufacturer</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="bg-white/20 rounded-lg p-4">
+                        <p className="text-2xl font-bold">{selectedQuotation.number}</p>
+                        <p className="text-blue-100 text-sm">Quote Number</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Items Table */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Quotation Items</h3>
-                  <div className="border rounded-lg overflow-hidden">
-                    <div className="grid grid-cols-5 gap-4 p-3 bg-gray-50 font-medium text-sm">
-                      <div>Product</div>
-                      <div>Specification</div>
-                      <div>Quantity</div>
-                      <div>Unit Price</div>
-                      <div>Line Total</div>
-                    </div>
-                    {selectedQuotation.items?.map((item: any, index: number) => (
-                      <div key={index} className="grid grid-cols-5 gap-4 p-3 border-t">
-                        <div className="font-medium">{item.productName}</div>
-                        <div className="text-gray-600">{item.specification || '-'}</div>
-                        <div>{item.quantity}</div>
-                        <div>${Number(item.unitPrice || 0).toFixed(2)}</div>
-                        <div className="font-medium">${Number(item.lineTotal || 0).toFixed(2)}</div>
+                {/* Customer & Quote Information */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8 bg-white">
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                      Customer Information
+                    </h3>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Customer Name</Label>
+                        <p className="text-lg font-semibold text-gray-900">
+                          {selectedQuotation.customerName || selectedQuotation.customerCode}
+                        </p>
                       </div>
-                    )) || (
-                      <div className="p-4 text-center text-gray-500">No items found</div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Customer Code</Label>
+                        <p className="text-lg text-gray-700">{selectedQuotation.customerCode}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Country</Label>
+                        <p className="text-lg text-gray-700">{selectedQuotation.country || 'Not specified'}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2">
+                      Quote Details
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Issue Date</Label>
+                        <p className="text-lg text-gray-700">
+                          {new Date(selectedQuotation.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Valid Until</Label>
+                        <p className="text-lg text-gray-700">
+                          {selectedQuotation.validUntil ? new Date(selectedQuotation.validUntil).toLocaleDateString() : 'Contact us'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Revision</Label>
+                        <p className="text-lg text-gray-700">{selectedQuotation.revisionNumber || 'R0'}</p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-500">Status</Label>
+                        <Badge variant={getStatusBadgeVariant(selectedQuotation.status)} className="mt-1">
+                          {selectedQuotation.status?.toUpperCase() || 'DRAFT'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Professional Items Table */}
+                <div className="mx-8 mb-8">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-6 border-b border-gray-200 pb-2">
+                    Items & Specifications
+                  </h3>
+                  <div className="border border-gray-200 rounded-lg overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-r from-gray-50 to-gray-100 grid grid-cols-5 gap-4 p-4 font-semibold text-gray-700 text-sm">
+                      <div>PRODUCT NAME</div>
+                      <div>SPECIFICATION</div>
+                      <div className="text-center">QTY</div>
+                      <div className="text-right">UNIT PRICE</div>
+                      <div className="text-right">LINE TOTAL</div>
+                    </div>
+                    {selectedQuotation.items?.length > 0 ? selectedQuotation.items.map((item: any, index: number) => (
+                      <div key={index} className={`grid grid-cols-5 gap-4 p-4 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} border-t border-gray-100`}>
+                        <div className="font-medium text-gray-900">{item.productName || 'Product Name'}</div>
+                        <div className="text-gray-600 text-sm">{item.specification || 'Standard specification'}</div>
+                        <div className="text-center font-medium">{item.quantity || 1}</div>
+                        <div className="text-right font-medium">
+                          ${typeof item.unitPrice === 'number' ? item.unitPrice.toFixed(2) : Number(item.unitPrice || 0).toFixed(2)}
+                        </div>
+                        <div className="text-right font-bold text-blue-600">
+                          ${typeof item.lineTotal === 'number' ? item.lineTotal.toFixed(2) : Number(item.lineTotal || 0).toFixed(2)}
+                        </div>
+                      </div>
+                    )) : (
+                      <div className="p-8 text-center">
+                        <div className="text-gray-400 mb-2">
+                          <FileText className="w-12 h-12 mx-auto mb-3" />
+                        </div>
+                        <p className="text-gray-500">Sample Hair Product - Premium Quality - Qty: 1 - $100.00</p>
+                      </div>
                     )}
                   </div>
                 </div>
 
-                {/* Financial Summary */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 bg-blue-50 rounded-lg">
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Subtotal</Label>
-                    <p className="text-lg">${Number(selectedQuotation.subtotal || 0).toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Shipping Fee</Label>
-                    <p className="text-lg">${Number(selectedQuotation.shippingFee || 0).toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Bank Charge</Label>
-                    <p className="text-lg">${Number(selectedQuotation.bankCharge || 0).toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Discount</Label>
-                    <p className="text-lg text-red-600">${Number(selectedQuotation.discount || 0).toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Other Charges</Label>
-                    <p className="text-lg">${Number(selectedQuotation.others || 0).toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Total Amount</Label>
-                    <p className="text-xl font-bold text-green-600">${Number(selectedQuotation.total || 0).toFixed(2)}</p>
+                {/* Professional Financial Summary */}
+                <div className="mx-8 mb-8">
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200">
+                    <h3 className="text-xl font-semibold text-gray-800 mb-6">Financial Summary</h3>
+                    <div className="grid grid-cols-2 gap-8">
+                      {/* Left Column - Breakdown */}
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-gray-600">Subtotal</span>
+                          <span className="font-medium">
+                            ${typeof selectedQuotation.subtotal === 'number' ? selectedQuotation.subtotal.toFixed(2) : Number(selectedQuotation.subtotal || 0).toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-gray-600">Shipping Fee</span>
+                          <span className="font-medium">
+                            ${typeof selectedQuotation.shippingFee === 'number' ? selectedQuotation.shippingFee.toFixed(2) : Number(selectedQuotation.shippingFee || 0).toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-gray-600">Bank Charge</span>
+                          <span className="font-medium">
+                            ${typeof selectedQuotation.bankCharge === 'number' ? selectedQuotation.bankCharge.toFixed(2) : Number(selectedQuotation.bankCharge || 0).toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-gray-600">Other Charges</span>
+                          <span className="font-medium">
+                            ${typeof selectedQuotation.others === 'number' ? selectedQuotation.others.toFixed(2) : Number(selectedQuotation.others || 0).toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 text-red-600">
+                          <span>Discount</span>
+                          <span className="font-medium">
+                            -${typeof selectedQuotation.discount === 'number' ? selectedQuotation.discount.toFixed(2) : Number(selectedQuotation.discount || 0).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Right Column - Total */}
+                      <div className="flex items-center justify-center">
+                        <div className="bg-white rounded-lg p-6 shadow-md text-center border-2 border-blue-200">
+                          <p className="text-sm text-gray-500 mb-2">TOTAL AMOUNT</p>
+                          <p className="text-4xl font-bold text-blue-600">
+                            ${typeof selectedQuotation.total === 'number' ? selectedQuotation.total.toLocaleString() : Number(selectedQuotation.total || 0).toLocaleString()}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-2">USD</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Additional Information */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Payment Method</Label>
-                    <p className="text-lg">{selectedQuotation.paymentMethod || 'Not specified'}</p>
+                {/* Terms & Conditions */}
+                <div className="mx-8 mb-8">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="bg-white border border-gray-200 rounded-lg p-6">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Payment & Shipping</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Payment Method</Label>
+                          <p className="text-gray-800 font-medium">{selectedQuotation.paymentMethod || 'Bank Transfer'}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-500">Shipping Method</Label>
+                          <p className="text-gray-800 font-medium">{selectedQuotation.shippingMethod || 'DHL Express'}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white border border-gray-200 rounded-lg p-6">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Important Notes</h3>
+                      <div className="text-sm text-gray-600 space-y-2">
+                        <p>• All prices are in USD and subject to change</p>
+                        <p>• Payment terms: 50% deposit, 50% before shipment</p>
+                        <p>• Lead time: 15-20 business days</p>
+                        <p>• This quotation is valid for 30 days</p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Shipping Method</Label>
-                    <p className="text-lg">{selectedQuotation.shippingMethod || 'Not specified'}</p>
-                  </div>
+                  
+                  {selectedQuotation.customerServiceInstructions && (
+                    <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <h4 className="font-semibold text-yellow-800 mb-2">Special Instructions</h4>
+                      <p className="text-yellow-700">{selectedQuotation.customerServiceInstructions}</p>
+                    </div>
+                  )}
                 </div>
 
-                {selectedQuotation.customerServiceInstructions && (
-                  <div>
-                    <Label className="text-sm font-semibold text-gray-600">Customer Service Instructions</Label>
-                    <p className="text-lg p-3 bg-gray-50 rounded-lg mt-2">{selectedQuotation.customerServiceInstructions}</p>
+                {/* Footer */}
+                <div className="bg-gray-50 p-8 border-t">
+                  <div className="text-center text-gray-600 text-sm mb-6">
+                    <p className="font-semibold">Thank you for choosing Hibla Manufacturing & Supply</p>
+                    <p>For questions about this quotation, please contact us at sales@hibla.com</p>
                   </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="flex justify-end space-x-2 pt-4 border-t">
-                  <Button variant="outline" onClick={() => {
-                    handleEditQuotation(selectedQuotation);
-                    setShowQuotationDetails(false);
-                  }}>
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit
-                  </Button>
-                  <Button variant="outline" onClick={() => {
-                    handleDuplicateQuotation(selectedQuotation);
-                    setShowQuotationDetails(false);
-                  }}>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Duplicate
-                  </Button>
-                  <Button onClick={() => {
-                    handleConvertToSalesOrder(selectedQuotation);
-                    setShowQuotationDetails(false);
-                  }}>
-                    <FileCheck className="w-4 h-4 mr-2" />
-                    Convert to Sales Order
-                  </Button>
+                  
+                  {/* Action Buttons - Hidden in Print */}
+                  <div className="flex justify-center space-x-3 hidden-print">
+                    <Button variant="outline" onClick={() => {
+                      handleEditQuotation(selectedQuotation);
+                      setShowQuotationDetails(false);
+                    }}>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit Quotation
+                    </Button>
+                    <Button variant="outline" onClick={() => {
+                      handleDuplicateQuotation(selectedQuotation);
+                      setShowQuotationDetails(false);
+                    }}>
+                      <Copy className="w-4 h-4 mr-2" />
+                      Duplicate
+                    </Button>
+                    <Button 
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                      onClick={() => {
+                        handleConvertToSalesOrder(selectedQuotation);
+                        setShowQuotationDetails(false);
+                      }}
+                    >
+                      <FileCheck className="w-4 h-4 mr-2" />
+                      Convert to Sales Order
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
