@@ -83,16 +83,32 @@ export function SalesOperationsDashboard() {
   useEffect(() => {
     fetchAnalytics();
     fetchQuotations();
+    
+    // Listen for quotation created events to refresh list
+    const handleQuotationCreated = () => {
+      fetchQuotations();
+      fetchAnalytics();
+    };
+    
+    window.addEventListener('quotationCreated', handleQuotationCreated);
+    return () => window.removeEventListener('quotationCreated', handleQuotationCreated);
   }, []);
 
   // Filter quotations based on search and filters
   const filteredQuotations = quotations.filter(quotation => {
-    const matchesSearch = quotation.number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         quotation.customerName?.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!quotation) return false;
     
-    const matchesDateFrom = !dateFrom || new Date(quotation.createdAt) >= new Date(dateFrom);
-    const matchesDateTo = !dateTo || new Date(quotation.createdAt) <= new Date(dateTo + 'T23:59:59');
-    const matchesStatus = selectedStatus === 'all' || quotation.status === selectedStatus;
+    const number = quotation.number || quotation.quotationNumber || '';
+    const customerName = quotation.customerName || quotation.customerCode || '';
+    const status = quotation.status || 'draft';
+    const createdAt = quotation.createdAt || new Date().toISOString();
+    
+    const matchesSearch = number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         customerName.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesDateFrom = !dateFrom || new Date(createdAt) >= new Date(dateFrom);
+    const matchesDateTo = !dateTo || new Date(createdAt) <= new Date(dateTo + 'T23:59:59');
+    const matchesStatus = selectedStatus === 'all' || status === selectedStatus;
     
     return matchesSearch && matchesDateFrom && matchesDateTo && matchesStatus;
   });
@@ -153,7 +169,18 @@ export function SalesOperationsDashboard() {
 
       const data = await response.json();
       console.log('✅ Quotations loaded:', data?.length || 0);
-      setQuotations(data || []);
+      
+      // Ensure all quotations have required properties to prevent undefined errors
+      const quotationsWithDefaults = (data || []).map((q: any) => ({
+        ...q,
+        number: q.number || q.quotationNumber || q.id || 'N/A',
+        customerName: q.customerName || q.customerCode || 'Unknown Customer',
+        status: q.status || 'draft',
+        total: Number(q.total || 0),
+        createdAt: q.createdAt || new Date().toISOString()
+      }));
+      
+      setQuotations(quotationsWithDefaults);
     } catch (error) {
       console.error('❌ Error fetching quotations:', error);
       toast({

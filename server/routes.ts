@@ -539,9 +539,37 @@ export function registerRoutes(app: Express): void {
 
   app.post("/api/quotations", requireAuth, async (req, res) => {
     try {
-      const quotationData = insertQuotationSchema.parse(req.body);
+      // Generate new quotation number
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const quotationCount = await storage.getQuotationCountForMonth(year, parseInt(month));
+      const quotationNumber = `QT-${year}${month}-${String(quotationCount + 1).padStart(3, '0')}`;
+
+      const quotationData = {
+        ...req.body,
+        quotationNumber,
+        createdBy: (req as any).user?.email?.split('@')[0] || 'system'
+      };
+
       const quotation = await storage.createQuotation(quotationData);
-      res.status(201).json(quotation);
+      
+      // Also create quotation items if provided
+      if (req.body.items && req.body.items.length > 0) {
+        for (const item of req.body.items) {
+          await storage.createQuotationItem({
+            quotationId: quotation.id,
+            productId: item.productId,
+            productName: item.productName,
+            specification: item.specification || '',
+            quantity: item.quantity,
+            unitPrice: String(item.unitPrice),
+            lineTotal: String(item.lineTotal)
+          });
+        }
+      }
+      
+      res.status(201).json({ quotation, message: "Quotation created successfully" });
     } catch (error) {
       console.error("Error creating quotation:", error);
       res.status(500).json({ error: "Failed to create quotation" });

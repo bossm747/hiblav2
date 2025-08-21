@@ -104,6 +104,7 @@ export interface IStorage {
   updateQuotation(id: string, quotation: Partial<InsertQuotation>): Promise<Quotation>;
   deleteQuotation(id: string): Promise<void>;
   getQuotationItems(quotationId: string): Promise<QuotationItem[]>;
+  createQuotationItem(item: InsertQuotationItem): Promise<QuotationItem>;
   getQuotationCountForMonth(year: number, month: number): Promise<number>;
   
   // Manufacturing Workflow - Sales Orders
@@ -324,6 +325,11 @@ export class Storage implements IStorage {
       ));
     
     return result?.count || 0;
+  }
+
+  async createQuotationItem(item: InsertQuotationItem): Promise<QuotationItem> {
+    const [newItem] = await db.insert(quotationItems).values(item).returning();
+    return newItem;
   }
   
   // Sales Orders

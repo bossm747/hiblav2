@@ -339,7 +339,7 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
           description: `Quotation created successfully`
         });
         
-        // Reset form
+        // Reset form and refresh quotations list
         setFormData({
           customerId: '',
           customerCode: '',
@@ -366,6 +366,9 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
           }]
         });
         setSelectedCustomer(null);
+        
+        // Trigger parent component to refresh quotations list
+        window.dispatchEvent(new CustomEvent('quotationCreated'));
       } else {
         throw new Error('Failed to create quotation');
       }
