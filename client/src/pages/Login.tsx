@@ -10,7 +10,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Lock, User, LogIn, Shield } from 'lucide-react';
 import { HiblaLogo } from '@/components/HiblaLogo';
 
-export default function Login() {
+interface LoginProps {
+  onLoginSuccess?: () => void;
+  onBack?: () => void;
+}
+
+export default function Login({ onLoginSuccess, onBack }: LoginProps = {}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -71,7 +76,12 @@ export default function Login() {
           title: `Welcome ${role}!`,
           description: 'Logged in with demo credentials',
         });
-        setLocation('/');
+        
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        } else {
+          setLocation('/');
+        }
       } else {
         setError('Demo login failed. Please ensure demo users are seeded.');
       }

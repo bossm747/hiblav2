@@ -4,6 +4,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/AppLayout";
+import { useState, useEffect } from 'react';
+
+// Import components
+import { Preloader } from "@/components/Preloader";
+import { LandingPage } from "@/components/LandingPage";
+
 import Login from "@/pages/Login";
 import { Dashboard } from "@/pages/Dashboard";
 import { SalesOperationsDashboard } from "@/pages/SalesOperationsDashboard";
@@ -34,25 +40,68 @@ const queryClient = new QueryClient({
   },
 });
 
+type AppState = 'preloader' | 'landing' | 'login' | 'authenticated';
+
 // Main app routes component
 function AppRoutes() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
+  const [appState, setAppState] = useState<AppState>('preloader');
 
-  // If not logged in and not on login page, redirect to login
-  if (!user && location !== '/login') {
-    setLocation('/login');
-    return null;
+  // Reset application state on mount/reload
+  useEffect(() => {
+    // Clear any existing auth tokens on fresh load
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_data');
+    
+    // Start from preloader
+    setAppState('preloader');
+  }, []);
+
+  // Handle state changes based on authentication
+  useEffect(() => {
+    if (user && appState !== 'authenticated') {
+      setAppState('authenticated');
+    }
+  }, [user, appState]);
+
+  const handlePreloaderComplete = () => {
+    setAppState('landing');
+  };
+
+  const handleLoginClick = () => {
+    setAppState('login');
+  };
+
+  const handleLoginSuccess = () => {
+    setAppState('authenticated');
+  };
+
+  const handleLogout = () => {
+    logout();
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_data');
+    setAppState('landing');
+  };
+
+  // Show preloader first
+  if (appState === 'preloader') {
+    return <Preloader onComplete={handlePreloaderComplete} />;
   }
 
-  // Public route - Login page
-  if (location === '/login') {
-    return <Login />;
+  // Show landing page
+  if (appState === 'landing') {
+    return <LandingPage onLogin={handleLoginClick} />;
+  }
+
+  // Show login page
+  if (appState === 'login' || (!user && location === '/login')) {
+    return <Login onLoginSuccess={handleLoginSuccess} onBack={() => setAppState('landing')} />;
   }
 
   // Protected routes - need authentication
-  if (!user) {
-    return null;
+  if (!user || appState !== 'authenticated') {
+    return <LandingPage onLogin={handleLoginClick} />;
   }
 
   // All protected routes are wrapped in AppLayout
@@ -115,7 +164,7 @@ function AppRoutes() {
   }
 
   return (
-    <AppLayout>
+    <AppLayout onLogout={handleLogout}>
       {content}
     </AppLayout>
   );

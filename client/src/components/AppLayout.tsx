@@ -51,6 +51,7 @@ import {
 
 interface AppLayoutProps {
   children: React.ReactNode;
+  onLogout?: () => void;
 }
 
 // Consolidated navigation structure - clean mobile design without descriptions
@@ -98,7 +99,7 @@ const standalonePages = [
   { path: '/enhanced-system', label: 'Enhanced System', icon: Settings },
 ];
 
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout({ children, onLogout }: AppLayoutProps) {
   const [location, setLocation] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuth();
