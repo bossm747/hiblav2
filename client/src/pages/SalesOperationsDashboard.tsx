@@ -589,6 +589,7 @@ export function SalesOperationsDashboard() {
                                     variant="ghost" 
                                     size="sm" 
                                     onClick={() => handleViewQuotation(quotation)}
+                                    data-testid={`button-view-quotation-${quotation.id}`}
                                   >
                                     <Eye className="h-4 w-4" />
                                   </Button>
@@ -629,7 +630,10 @@ export function SalesOperationsDashboard() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleViewQuotation(quotation)}>
+                                  <DropdownMenuItem 
+                                    onClick={() => handleViewQuotation(quotation)}
+                                    data-testid={`dropdown-view-quotation-${quotation.id}`}
+                                  >
                                     <Eye className="h-4 w-4 mr-2" />
                                     View Details
                                   </DropdownMenuItem>
@@ -728,8 +732,8 @@ export function SalesOperationsDashboard() {
 
         {/* Quotation Details Dialog - Canva Style */}
         <Dialog open={showQuotationDetails} onOpenChange={setShowQuotationDetails}>
-          <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden">
-            <DialogHeader className="sr-only">
+          <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden p-0">
+            <DialogHeader className="p-4 border-b">
               <DialogTitle>Quotation Details - {selectedQuotation?.number}</DialogTitle>
               <DialogDescription>
                 Professional quotation document view with print and export options
@@ -737,7 +741,7 @@ export function SalesOperationsDashboard() {
             </DialogHeader>
             
             {/* Print/Export Header */}
-            <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
+            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b">
               <div className="flex items-center space-x-2">
                 <FileText className="w-5 h-5 text-blue-600" />
                 <h2 className="text-lg font-semibold">Quotation {selectedQuotation?.number}</h2>
@@ -747,7 +751,8 @@ export function SalesOperationsDashboard() {
                   variant="outline" 
                   size="sm"
                   onClick={() => window.print()}
-                  className="hidden-print"
+                  className="print:hidden"
+                  data-testid="print-quotation"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Print
@@ -761,7 +766,8 @@ export function SalesOperationsDashboard() {
                     link.download = `Quotation-${selectedQuotation?.number}.pdf`;
                     link.click();
                   }}
-                  className="hidden-print"
+                  className="print:hidden"
+                  data-testid="download-pdf"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   PDF
@@ -776,9 +782,17 @@ export function SalesOperationsDashboard() {
                         text: `Quotation details for ${selectedQuotation?.customerName}`,
                         url: window.location.href
                       });
+                    } else {
+                      // Fallback for browsers that don't support Web Share API
+                      navigator.clipboard.writeText(window.location.href);
+                      toast({
+                        title: "Link Copied",
+                        description: "Quotation link copied to clipboard",
+                      });
                     }
                   }}
-                  className="hidden-print"
+                  className="print:hidden"
+                  data-testid="share-quotation"
                 >
                   <FileCheck className="w-4 h-4 mr-2" />
                   Share
@@ -787,7 +801,7 @@ export function SalesOperationsDashboard() {
             </div>
             
             {selectedQuotation && (
-              <div className="overflow-y-auto max-h-[80vh] print:max-h-none print:overflow-visible">
+              <div className="overflow-y-auto max-h-[75vh] print:max-h-none print:overflow-visible">
                 {/* Professional Document Header */}
                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8 print:bg-gray-900">
                   <div className="flex justify-between items-start">
