@@ -41,7 +41,7 @@ export function LandingPage({ onLogin }: LandingPageProps) {
             transition={{ duration: 0.8 }}
             className="max-w-5xl mx-auto text-center"
           >
-            <Badge className="mb-6 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900 dark:to-blue-900 text-purple-700 dark:text-purple-300 border-0">
+            <Badge className="mb-6" variant="outline">
               <Sparkles className="w-3 h-3 mr-1" />
               Internal Manufacturing Operations
             </Badge>
@@ -66,7 +66,7 @@ export function LandingPage({ onLogin }: LandingPageProps) {
             >
               <Button 
                 size="lg" 
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 text-lg px-10 py-7 rounded-xl"
+                className="text-lg px-10 py-7"
                 onClick={onLogin}
               >
                 Access System
@@ -81,21 +81,21 @@ export function LandingPage({ onLogin }: LandingPageProps) {
               transition={{ delay: 0.5, duration: 0.8 }}
               className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
             >
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-                <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">22</div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">Active Quotations</div>
+              <div className="bg-card rounded-xl p-6 shadow-sm border">
+                <div className="text-3xl font-bold">22</div>
+                <div className="text-sm text-muted-foreground mt-1">Active Quotations</div>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-                <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">10</div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">Sales Orders</div>
+              <div className="bg-card rounded-xl p-6 shadow-sm border">
+                <div className="text-3xl font-bold">10</div>
+                <div className="text-sm text-muted-foreground mt-1">Sales Orders</div>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-                <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">5</div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">Job Orders</div>
+              <div className="bg-card rounded-xl p-6 shadow-sm border">
+                <div className="text-3xl font-bold">5</div>
+                <div className="text-sm text-muted-foreground mt-1">Job Orders</div>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
-                <div className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">16</div>
-                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">Customers</div>
+              <div className="bg-card rounded-xl p-6 shadow-sm border">
+                <div className="text-3xl font-bold">16</div>
+                <div className="text-sm text-muted-foreground mt-1">Customers</div>
               </div>
             </motion.div>
           </motion.div>
