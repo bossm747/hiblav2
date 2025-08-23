@@ -193,10 +193,10 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
                   <span className="font-semibold">Menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[90vw] p-0 h-full max-w-sm bg-gradient-to-b from-background via-background to-muted/20 overflow-hidden">
+              <SheetContent side="left" className="w-[90vw] p-0 h-full max-w-sm bg-background overflow-hidden">
                 <div className="flex flex-col h-full">
                   {/* Enhanced Mobile Header */}
-                  <div className="flex items-center justify-between h-18 px-6 border-b bg-gradient-to-r from-primary/10 via-cyan-500/10 to-purple-500/10 backdrop-blur-sm flex-shrink-0">
+                  <div className="flex items-center justify-between h-18 px-6 border-b bg-card flex-shrink-0">
                     <Link href="/" onClick={() => setSidebarOpen(false)} className="hover:opacity-90 transition-opacity">
                       <HiblaLogo size="md" showText />
                     </Link>
@@ -204,7 +204,7 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
                       variant="ghost" 
                       size="icon" 
                       onClick={() => setSidebarOpen(false)}
-                      className="h-10 w-10 hover:bg-primary/10 transition-colors rounded-full min-h-[44px]"
+                      className="h-10 w-10 hover:bg-muted transition-colors rounded-full min-h-[44px]"
                     >
                       <X className="h-5 w-5" />
                     </Button>
@@ -251,7 +251,7 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
                   </div>
                   
                   {/* Enhanced Mobile Footer with User Profile */}
-                  <div className="border-t bg-gradient-to-r from-muted/30 to-muted/20 backdrop-blur-sm flex-shrink-0">
+                  <div className="border-t bg-muted flex-shrink-0">
                     <div className="p-6 space-y-4">
                       {/* User Profile Section */}
                       <div className="flex items-center space-x-4">

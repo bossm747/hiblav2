@@ -387,22 +387,22 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
     <div className="max-w-7xl mx-auto space-y-8">
       {/* Canva-Style Header */}
       <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-8 rounded-3xl shadow-2xl">
-        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="absolute inset-0 bg-indigo-900"></div>
         <div className="relative text-center text-white">
           <h1 className="text-4xl font-bold mb-3 tracking-tight">Create New Quotation</h1>
           <p className="text-xl text-indigo-100 opacity-90 font-medium">Generate professional quotations with confidence</p>
           <div className="mt-4 flex items-center justify-center space-x-2 text-sm">
-            <div className="px-3 py-1 bg-white/20 rounded-full">Auto-generated number</div>
-            <div className="w-1 h-1 bg-white/60 rounded-full"></div>
-            <div className="px-3 py-1 bg-white/20 rounded-full">{new Date().toLocaleDateString()}</div>
+            <div className="px-3 py-1 bg-indigo-800 rounded-full">Auto-generated number</div>
+            <div className="w-1 h-1 bg-indigo-300 rounded-full"></div>
+            <div className="px-3 py-1 bg-indigo-800 rounded-full">{new Date().toLocaleDateString()}</div>
           </div>
         </div>
-        <div className="absolute -top-4 -right-4 w-32 h-32 bg-white/10 rounded-full"></div>
-        <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-white/10 rounded-full"></div>
+        <div className="absolute -top-4 -right-4 w-32 h-32 bg-indigo-800 rounded-full"></div>
+        <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-purple-800 rounded-full"></div>
       </div>
 
       {/* Main Form Container with Canva-Style Design */}
-      <Card className="border-0 shadow-2xl rounded-3xl overflow-hidden bg-gradient-to-br from-white via-gray-50 to-blue-50/30">
+      <Card className="border-0 shadow-2xl rounded-3xl overflow-hidden bg-white">
         <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
         <CardContent className="space-y-10 p-10">
           {/* Essential Information Section */}

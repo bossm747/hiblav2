@@ -811,7 +811,7 @@ export function SalesOperationsDashboard() {
                       <p className="text-blue-200 text-sm">Premium Real Filipino Hair Manufacturer</p>
                     </div>
                     <div className="text-right">
-                      <div className="bg-white/20 rounded-lg p-4">
+                      <div className="bg-blue-800 rounded-lg p-4">
                         <p className="text-2xl font-bold">{selectedQuotation.number}</p>
                         <p className="text-blue-100 text-sm">Quote Number</p>
                       </div>

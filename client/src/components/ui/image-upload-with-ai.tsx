@@ -213,7 +213,7 @@ export function ImageUploadWithAI({
           {value.map((imageSrc, index) => (
             <Card key={index} className="relative group border-white/20 glass">
               <CardContent className="p-2">
-                <div className="aspect-square relative bg-white/5 rounded overflow-hidden">
+                <div className="aspect-square relative bg-gray-100 rounded overflow-hidden">
                   <img
                     src={imageSrc}
                     alt={`Product image ${index + 1}`}
