@@ -147,7 +147,7 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
               </div>
               {isModuleActive && mobile && (
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                  <div className="w-3 h-3 bg-white rounded-full opacity-90 shadow-sm"></div>
+                  <div className="w-3 h-3 bg-white rounded-full shadow-sm"></div>
                 </div>
               )}
             </Button>
@@ -164,7 +164,7 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
         <div className="flex flex-col flex-1">
           {/* Logo */}
           <div className="flex items-center h-16 px-4 border-b bg-gradient-to-r from-primary/5 to-cyan-500/5">
-            <Link href="/" className="hover:opacity-90 transition-opacity">
+            <Link href="/" className="hover:opacity-100 transition-opacity">
               <HiblaLogo size="md" showText />
             </Link>
           </div>
@@ -187,7 +187,7 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
                 <Button 
                   variant="outline" 
                   size="lg" 
-                  className="md:hidden bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg border-primary min-h-[44px] px-4 rounded-xl"
+                  className="md:hidden bg-primary text-primary-foreground hover:bg-primary shadow-lg border-primary min-h-[44px] px-4 rounded-xl"
                 >
                   <Menu className="h-6 w-6 mr-2" />
                   <span className="font-semibold">Menu</span>
@@ -197,7 +197,7 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
                 <div className="flex flex-col h-full">
                   {/* Enhanced Mobile Header */}
                   <div className="flex items-center justify-between h-18 px-6 border-b bg-card flex-shrink-0">
-                    <Link href="/" onClick={() => setSidebarOpen(false)} className="hover:opacity-90 transition-opacity">
+                    <Link href="/" onClick={() => setSidebarOpen(false)} className="hover:opacity-100 transition-opacity">
                       <HiblaLogo size="md" showText />
                     </Link>
                     <Button 
@@ -299,7 +299,7 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
                         </div>
                       </div>
                       
-                      <div className="text-sm text-muted-foreground/70 text-center pt-2">
+                      <div className="text-sm text-muted-foreground text-center pt-2">
                         Hibla Filipino Hair Manufacturing
                       </div>
                     </div>
