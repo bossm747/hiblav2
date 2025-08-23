@@ -32,7 +32,7 @@ export function HiblaLogo({ className, showText = false, size = 'md' }: HiblaLog
           alt="Hibla Manufacturing"
           className={cn(
             sizeClasses[size],
-            'object-contain rounded-full bg-white shadow-sm border border-primary/10'
+            'object-contain rounded-full bg-white shadow-sm border border-border'
           )}
         />
       </div>
