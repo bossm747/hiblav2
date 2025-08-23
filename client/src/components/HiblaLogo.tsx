@@ -20,7 +20,8 @@ const textSizeClasses = {
   sm: 'text-sm',
   md: 'text-base',
   lg: 'text-lg',
-  xl: 'text-xl'
+  xl: 'text-xl',
+  '2xl': 'text-2xl'
 };
 
 export function HiblaLogo({ className, showText = false, size = 'md' }: HiblaLogoProps) {

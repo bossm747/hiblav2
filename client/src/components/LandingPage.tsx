@@ -1,7 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Shield, Zap, Users, BarChart3, Globe, CheckCircle } from 'lucide-react';
+import { ArrowRight, Shield, Zap, Users, BarChart3, Globe, CheckCircle, Sparkles } from 'lucide-react';
+import { HiblaLogo } from '@/components/HiblaLogo';
+import { motion } from 'framer-motion';
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -9,72 +11,94 @@ interface LandingPageProps {
 
 export function LandingPage({ onLogin }: LandingPageProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-40">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      {/* Modern Header */}
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">H</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-gray-900">Hibla Manufacturing</h1>
-              <p className="text-xs text-gray-500">Internal Operations Platform</p>
-            </div>
+          <div className="flex items-center">
+            <HiblaLogo size="md" showText />
           </div>
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            System Online
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-2" />
+              System Online
+            </Badge>
+          </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-6 py-16 text-center">
-        <div className="max-w-4xl mx-auto">
-          <Badge className="mb-6 bg-blue-100 text-blue-700 hover:bg-blue-200">
-            Internal Manufacturing Operations
-          </Badge>
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Manufacturing & Supply
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              Management System
-            </span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Streamline your manufacturing workflow from quotations to production. 
-            Manage global distribution, track orders, and optimize operations with our comprehensive platform.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-6"
-              onClick={onLogin}
+      {/* Modern Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-400 rounded-full filter blur-3xl opacity-10 dark:opacity-5" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-400 rounded-full filter blur-3xl opacity-10 dark:opacity-5" />
+        </div>
+        
+        <div className="container mx-auto px-6 py-20 relative">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-5xl mx-auto text-center"
+          >
+            <Badge className="mb-6 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900 dark:to-blue-900 text-purple-700 dark:text-purple-300 border-0">
+              <Sparkles className="w-3 h-3 mr-1" />
+              Internal Manufacturing Operations
+            </Badge>
+            
+            <h1 className="text-6xl md:text-7xl font-bold mb-6 tracking-tight">
+              <span className="text-slate-900 dark:text-white">Manufacturing</span>
+              <span className="block mt-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400">
+                Excellence Redefined
+              </span>
+            </h1>
+            
+            <p className="text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-3xl mx-auto leading-relaxed">
+              Streamline your entire manufacturing workflow with our comprehensive platform. 
+              From quotations to global distribution, experience unparalleled operational efficiency.
+            </p>
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
             >
-              Access System
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </div>
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-xl hover:shadow-2xl transition-all duration-300 text-lg px-10 py-7 rounded-xl"
+                onClick={onLogin}
+              >
+                Access System
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </motion.div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">22</div>
-              <div className="text-sm text-gray-500">Active Quotations</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">10</div>
-              <div className="text-sm text-gray-500">Sales Orders</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">5</div>
-              <div className="text-sm text-gray-500">Job Orders</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">16</div>
-              <div className="text-sm text-gray-500">Customers</div>
-            </div>
-          </div>
+            {/* Modern Stats Grid */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
+            >
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+                <div className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">22</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">Active Quotations</div>
+              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+                <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">10</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">Sales Orders</div>
+              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+                <div className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">5</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">Job Orders</div>
+              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border border-slate-200 dark:border-slate-700">
+                <div className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">16</div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">Customers</div>
+              </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
