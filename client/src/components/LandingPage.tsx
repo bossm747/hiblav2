@@ -37,12 +37,12 @@ export function LandingPage({ onLogin }: LandingPageProps) {
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
             Manufacturing & Supply
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              Management System
+              Internal Operations Platform
             </span>
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Streamline your manufacturing workflow from quotations to production. 
-            Manage global distribution, track orders, and optimize operations with our comprehensive platform.
+            Internal staff portal for managing manufacturing operations from quotations to production. 
+            Handle sales orders, track job orders, and manage inventory across multiple warehouses.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
@@ -51,7 +51,7 @@ export function LandingPage({ onLogin }: LandingPageProps) {
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-6"
               onClick={onLogin}
             >
-              Access System
+              Staff Login
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
@@ -110,7 +110,7 @@ export function LandingPage({ onLogin }: LandingPageProps) {
                 </li>
                 <li className="flex items-center">
                   <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
-                  Customer management
+                  Internal sales tracking
                 </li>
               </ul>
             </CardContent>
@@ -271,7 +271,7 @@ export function LandingPage({ onLogin }: LandingPageProps) {
             className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-6"
             onClick={onLogin}
           >
-            Login to Dashboard
+            Staff Dashboard
             <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
