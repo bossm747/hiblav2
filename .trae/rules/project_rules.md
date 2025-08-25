@@ -1,0 +1,185 @@
+Hibla Filipino Hair Business Management System Requirements
+QUOTATION MODULE
+Required Fields
+
+Date – Automatic
+Quotation Number – Auto-generated (changed from manual data entry)
+Revision No. – Data Entry
+Customer Code – Data Entry
+Country – Drop Down List (changed from data entry)
+PriceList – Drop Down List to select which pricelist to use
+Order Item – Drop Down List (Information from Products Database), up to 300 entries
+Specification – Data Entry
+Quantity – Data Entry (must be decimal with one decimal place)
+Unit Price – VLookup from selected price list
+Line Total – Qty × Unit Price
+Sub Total (A) – Sum of Line Total
+Shipping Fee (B) – Data Entry
+Bank Charge (C) – Data Entry
+Discount (D) – Data Entry (must be negative)
+Others (E) – Data Entry
+Total – Sum of A+B+C+D+E
+Method of Payment – Drop down: bank, agent, money transfer, cash
+Shipping Method – Drop down: DHL, UPS, FedEx, Agent, Pick Up
+Customer Service Instructions – Data Entry
+
+Additional Requirements
+
+Creator's initials must be shown on document
+Sales Order can be generated from quotation
+Quotation cannot be revised the next day
+Quotation can be duplicated
+System must allow file upload
+Print out/screen display must show item description, specification, quantity, and price
+
+Reports
+
+Summary of Quotation (filterable by date, customer code, country, order item)
+All reports downloadable/printable in Excel and PDF
+
+
+SALES ORDER MODULE
+Creation
+
+Generate from quotation (see Sales Order Format)
+
+Required Fields
+
+Customer Code – Drop down list (from Customer Database, changed from data entry)
+Sales Order No. – System Generated (Format: YYYY.MM.###)
+Revision No. – Drop down: R1, R2, R3, R4, R5
+Due Date – Calendar selection
+Date of Revision – Automatic
+
+Requirements
+
+Order Confirmation button required (unconfirmed SO stays in drafts)
+From CONFIRMED Sales Order: Invoice and Job Order can be generated
+Sales Order and Invoice have same format and series number (only document name changes)
+INVENTORY UPDATES: Order quantity adds to order requirement per product
+Creator's initials must be shown on document
+All revisions affect Job Order too
+Sales Order can be duplicated
+Cancelled Sales Order automatically cancels Job Order and releases reserved stocks
+Payment on cancelled Sales Order can be manually adjusted by encoding new Sales Order No.
+Printable/downloadable files in Excel and PDF
+
+Reports
+
+Summary of Sales Order (filterable by date, customer code, country, order item)
+Valuation of shipped items and order balance per Sales Order
+All reports downloadable/printable in Excel and PDF
+
+
+JOB ORDER MODULE
+Purpose
+Form created for production reference
+Creation
+Generate from confirmed Sales Order
+Required Fields
+
+Date Created – Automatic
+Date Revised – Data from Sales Order
+Due Date – Data from Sales Order
+Series No. – Same as Sales Order No.
+Revision No. – Data from Sales Order
+Customer Code – Data from Sales Order
+Order Item – Data from Sales Order
+Specification – Data from Sales Order
+Quantity – Data from Sales Order
+Customer Instruction – Data Entry
+Batch Shipments – Sum from inventory entries (Movement: Withdrawal, Warehouse: Reserved Stocks, Lookup: Date and Sales Order No.)
+Order Balance – Order less shipped
+Production Receipts – For signature (attach Job Order format)
+
+Real-Time Job Order Monitoring
+
+Shipped Quantity – Total of batch shipments
+Reserved Quantity – Sum from inventory entries (Warehouse: Reserved Stocks, Movement: Deposit, Lookup: Sales Order No.)
+Ready Quantity – Reserved Quantity less Shipped
+To Produce – Order Quantity less Reserved Quantity
+
+Additional Requirements
+
+Valuation of shipped items per batch and total
+Valuation of order balance per Job Order
+Create delivery receipt from ready quantity (editable)
+No revision/cancellation option (changes must be done in Sales Order Module)
+
+Reports
+
+Production Summary Report – Summary of ready items and to-produce items (filterable by date, customer code, order item) [New requirement from client question]
+
+
+INVENTORY MODULE
+Required Fields on Movement
+
+Date Created – Automatic
+Encoded By – Auto
+Warehouse – Drop down list
+Movement – IN, OUT, Internal Transfer
+
+For Internal Transfer: add Destination Warehouse
+
+
+Job Order No.
+Product/Item – Drop down list
+
+If Warehouse = ASSET: change list (products excluded)
+
+
+Quantity – Decimal number (one decimal place)
+UOM – Auto based on product selected
+Purpose – Data Entry
+Remarks – Data Entry
+
+Warehouse Locations
+
+NG Warehouse – Manager: Custodian, Viewer: Customer and Customer Service
+PH Warehouse – Manager: Custodian, Viewer: Customer and Customer Service
+Reserved Warehouse – Manager: Custodian
+Red Warehouse – Manager: Custodian
+Admin – Manager: Custodian
+WIP Warehouse – Manager: Custodian
+
+Reports
+
+Inventory Valuation per Warehouse
+Movement of Goods (filterable by date, reference numbers, product)
+
+
+PAYMENT RECORDING MODULE
+Required Fields
+
+Date of Payment
+Sales Order No.
+Customer Code
+Method of Payment
+Status
+Receiving Account
+Payment Uploaded By
+Remarks
+
+Reports
+
+Payment Reports per Sales Order
+Customer Account Summary
+
+
+GLOBAL REQUIREMENTS
+Technical Requirements
+
+All reports must be downloadable/printable in Excel and PDF formats
+System must support file uploads
+Decimal quantities with one decimal place precision
+Auto-generation of document numbers where specified
+Real-time inventory updates
+User access controls per warehouse
+
+Business Rules
+
+Documents cannot be revised after next day (quotations)
+Confirmation required before Sales Orders become active
+Cascade effects: Sales Order changes affect Job Orders
+Inventory reservations automatically managed
+Creator identification on all documents

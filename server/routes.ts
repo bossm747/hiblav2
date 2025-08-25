@@ -1582,4 +1582,106 @@ export function registerRoutes(app: Express): void {
       res.status(500).json({ error: "Failed to bulk generate invoices" });
     }
   });
+
+  // ==============================================
+  // BLOG POSTS ROUTES
+  // ==============================================
+  
+  // Get all blog posts (public)
+  app.get("/api/blog-posts", async (req, res) => {
+    try {
+      const { blogPostsPublicApi } = await import("./supabase");
+      const { category, featured } = req.query;
+      
+      let posts;
+      if (category) {
+        posts = await blogPostsPublicApi.getByCategory(category as string);
+      } else if (featured === 'true') {
+        posts = await blogPostsPublicApi.getFeatured();
+      } else {
+        posts = await blogPostsPublicApi.getAll();
+      }
+      
+      if (posts.error) {
+        return res.status(500).json({ error: posts.error.message });
+      }
+      
+      res.json(posts.data || []);
+    } catch (error) {
+      console.error("Error fetching blog posts:", error);
+      res.status(500).json({ error: "Failed to fetch blog posts" });
+    }
+  });
+
+  // Get blog post by ID (public)
+  app.get("/api/blog-posts/:id", async (req, res) => {
+    try {
+      const { blogPostsPublicApi } = await import("./supabase");
+      const post = await blogPostsPublicApi.getById(parseInt(req.params.id));
+      
+      if (post.error) {
+        return res.status(500).json({ error: post.error.message });
+      }
+      
+      if (!post.data) {
+        return res.status(404).json({ error: "Blog post not found" });
+      }
+      
+      res.json(post.data);
+    } catch (error) {
+      console.error("Error fetching blog post:", error);
+      res.status(500).json({ error: "Failed to fetch blog post" });
+    }
+  });
+
+  // Create blog post (admin only)
+  app.post("/api/blog-posts", requireAuth, async (req, res) => {
+    try {
+      const { blogPostsAdminApi } = await import("./supabase");
+      const post = await blogPostsAdminApi.create(req.body);
+      
+      if (post.error) {
+        return res.status(500).json({ error: post.error.message });
+      }
+      
+      res.status(201).json(post.data);
+    } catch (error) {
+      console.error("Error creating blog post:", error);
+      res.status(500).json({ error: "Failed to create blog post" });
+    }
+  });
+
+  // Update blog post (admin only)
+  app.put("/api/blog-posts/:id", requireAuth, async (req, res) => {
+    try {
+      const { blogPostsAdminApi } = await import("./supabase");
+      const post = await blogPostsAdminApi.update(parseInt(req.params.id), req.body);
+      
+      if (post.error) {
+        return res.status(500).json({ error: post.error.message });
+      }
+      
+      res.json(post.data);
+    } catch (error) {
+      console.error("Error updating blog post:", error);
+      res.status(500).json({ error: "Failed to update blog post" });
+    }
+  });
+
+  // Delete blog post (admin only)
+  app.delete("/api/blog-posts/:id", requireAuth, async (req, res) => {
+    try {
+      const { blogPostsAdminApi } = await import("./supabase");
+      const result = await blogPostsAdminApi.delete(parseInt(req.params.id));
+      
+      if (result.error) {
+        return res.status(500).json({ error: result.error.message });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting blog post:", error);
+      res.status(500).json({ error: "Failed to delete blog post" });
+    }
+  });
 }
