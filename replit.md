@@ -11,6 +11,8 @@ The Hibla Manufacturing & Supply System is an **internal-only operations platfor
 - Currency: USD ($) for international business operations
 - Brand Assets: Hibla logo provided (circular design with elegant typography)
 - Current Focus: Internal manufacturing workflow management
+- UI Requirements: ABSOLUTELY NO transparent elements, glass morphism, or opacity effects - pure solid shadcn components only
+- Design Mandate: Clean, professional design with solid backgrounds throughout entire application
 
 ## System Architecture
 
