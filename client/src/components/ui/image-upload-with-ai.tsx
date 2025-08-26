@@ -161,7 +161,7 @@ export function ImageUploadWithAI({
     <div className="space-y-4">
       {/* Upload Area */}
       <div 
-        className="border-2 border-dashed border-white/20 rounded-lg p-6 text-center cursor-pointer hover:border-purple-400/50 transition-colors glass"
+        className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors bg-card"
         onClick={() => fileInputRef.current?.click()}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -175,9 +175,9 @@ export function ImageUploadWithAI({
           onChange={(e) => handleFileUpload(e.target.files)}
         />
         
-        <ImageIcon className="mx-auto h-12 w-12 text-white/60 mb-3" />
-        <p className="text-white/80 font-medium">Drop images here or click to upload</p>
-        <p className="text-white/60 text-sm mt-1">PNG, JPG, WebP up to 5MB each</p>
+        <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+        <p className="text-foreground font-medium">Drop images here or click to upload</p>
+        <p className="text-muted-foreground text-sm mt-1">PNG, JPG, WebP up to 5MB each</p>
         
         <div className="flex gap-2 justify-center mt-4">
           <Button
@@ -185,7 +185,7 @@ export function ImageUploadWithAI({
             variant="outline"
             size="sm"
             disabled={isUploading || value.length >= maxImages}
-            className="border-white/20 hover:border-purple-400/50"
+            className="border-border hover:border-primary"
           >
             <Upload className="h-4 w-4 mr-2" />
             {isUploading ? "Uploading..." : "Upload Images"}
@@ -198,7 +198,7 @@ export function ImageUploadWithAI({
               size="sm"
               onClick={handleAIGeneration}
               disabled={isGenerating || value.length >= maxImages}
-              className="border-purple-400/50 text-purple-300 hover:bg-purple-500/20"
+              className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
             >
               <Sparkles className={`h-4 w-4 mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
               {isGenerating ? "Generating..." : "Generate AI Image"}
@@ -211,9 +211,9 @@ export function ImageUploadWithAI({
       {value.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {value.map((imageSrc, index) => (
-            <Card key={index} className="relative group border-white/20 glass">
+            <Card key={index} className="relative group border-border bg-card">
               <CardContent className="p-2">
-                <div className="aspect-square relative bg-white/5 rounded overflow-hidden">
+                <div className="aspect-square relative bg-gray-100 rounded overflow-hidden">
                   <img
                     src={imageSrc}
                     alt={`Product image ${index + 1}`}
@@ -238,7 +238,7 @@ export function ImageUploadWithAI({
                     type="button"
                     variant="destructive"
                     size="sm"
-                    className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-destructive hover:bg-destructive"
                     onClick={() => removeImage(index)}
                   >
                     <X className="h-3 w-3" />
@@ -251,7 +251,7 @@ export function ImageUploadWithAI({
       )}
 
       {/* Image Count */}
-      <div className="text-center text-white/60 text-sm">
+      <div className="text-center text-muted-foreground text-sm">
         {value.length} / {maxImages} images
       </div>
     </div>

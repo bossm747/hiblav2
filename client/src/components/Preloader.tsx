@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { HiblaLogo } from '@/components/HiblaLogo';
 
+
 interface PreloaderProps {
   onComplete: () => void;
 }
@@ -42,8 +43,6 @@ export function Preloader({ onComplete }: PreloaderProps) {
           <div className="w-24 h-24 mx-auto mb-6 bg-white/30 rounded-2xl flex items-center justify-center border border-white/40">
             <HiblaLogo size="xl" className="drop-shadow-lg" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Hibla Manufacturing</h1>
-          <p className="text-blue-200">Premium Real Filipino Hair Manufacturer</p>
         </div>
 
         {/* Loading Progress */}

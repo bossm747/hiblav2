@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { HiblaLogo } from '@/components/HiblaLogo';
 import { ArrowRight, Shield, Zap, Users, BarChart3, Globe, CheckCircle } from 'lucide-react';
+import { HiblaLogo } from '@/components/HiblaLogo';
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -10,16 +10,16 @@ interface LandingPageProps {
 
 export function LandingPage({ onLogin }: LandingPageProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900 overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center">
             <HiblaLogo size="md" showText />
           </div>
           <div className="flex items-center gap-3">
-            <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-700 px-3 py-1">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></div>
+            <Badge variant="outline" className="bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse mr-2" />
               System Online
             </Badge>
           </div>
@@ -28,59 +28,57 @@ export function LandingPage({ onLogin }: LandingPageProps) {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-50 via-transparent to-purple-50 dark:from-blue-900 dark:to-purple-900"></div>
-        <div className="container mx-auto px-6 py-24 text-center relative">
-          <div className="max-w-5xl mx-auto">
-            <div className="mb-8 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
-              <Badge className="mb-6 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 text-blue-700 dark:text-blue-300 hover:from-blue-200 hover:to-purple-200 dark:hover:from-blue-800 dark:hover:to-purple-800 border-0 px-4 py-2 text-sm font-medium animate-pulse-subtle">
-                ✨ Internal Manufacturing Operations Platform
-              </Badge>
-            </div>
-            <h1 className="text-6xl md:text-7xl font-bold text-slate-900 dark:text-white mb-8 leading-tight animate-fade-in-up" style={{animationDelay: '0.4s'}}>
-              Manufacturing
-              <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-300 bg-clip-text text-transparent animate-gradient">
-                Excellence
+        <div className="absolute inset-0">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-400 rounded-full filter blur-3xl opacity-10 dark:opacity-5" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-400 rounded-full filter blur-3xl opacity-10 dark:opacity-5" />
+        </div>
+        
+        <div className="container mx-auto px-6 py-20 relative">
+          <div className="max-w-5xl mx-auto text-center">
+            <Badge className="mb-6" variant="outline">
+              Internal Manufacturing Operations
+            </Badge>
+            
+            <h1 className="text-6xl md:text-7xl font-bold mb-6 tracking-tight">
+              <span className="text-slate-900 dark:text-white">Manufacturing</span>
+              <span className="block mt-2 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400">
+                Excellence Redefined
               </span>
-              <span className="text-4xl md:text-5xl text-slate-600 dark:text-slate-300 font-medium">Redefined</span>
             </h1>
-            <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 mb-12 leading-relaxed max-w-4xl mx-auto animate-fade-in-up" style={{animationDelay: '0.6s'}}>
-              Transform your manufacturing operations with our comprehensive platform.
-              <span className="block mt-2 text-lg text-slate-500 dark:text-slate-400">
-                From quotations to production, inventory to financials — all in one seamless experience.
-              </span>
+            
+            <p className="text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-3xl mx-auto leading-relaxed">
+              Streamline your entire manufacturing workflow with our comprehensive platform. 
+              From quotations to global distribution, experience unparalleled operational efficiency.
             </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16 animate-fade-in-up" style={{animationDelay: '0.8s'}}>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
               <Button 
                 size="lg" 
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg px-10 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover-glow"
+                className="text-lg px-10 py-7"
                 onClick={onLogin}
               >
-                Access Staff Portal
-                <ArrowRight className="ml-3 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="text-white text-lg px-10 py-6 border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-400 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900 transition-all duration-300 hover-lift"
-              >
-                System Overview
-                <BarChart3 className="ml-3 h-5 w-5 transition-transform duration-300 group-hover:rotate-12" />
+                Access System
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
-            
-            {/* Stats Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto animate-fade-in-up" style={{animationDelay: '1.0s'}}>
-              <div className="text-center hover-lift p-6 rounded-xl transition-all duration-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2 animate-float" style={{animationDelay: '1.2s'}}>99.9%</div>
-                <div className="text-slate-600 dark:text-slate-400">System Uptime</div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+              <div className="bg-card rounded-xl p-6 shadow-sm border">
+                <div className="text-3xl font-bold">22</div>
+                <div className="text-sm text-muted-foreground mt-1">Active Quotations</div>
               </div>
-              <div className="text-center hover-lift p-6 rounded-xl transition-all duration-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2 animate-float" style={{animationDelay: '1.4s'}}>24/7</div>
-                <div className="text-slate-600 dark:text-slate-400">Operations Support</div>
+              <div className="bg-card rounded-xl p-6 shadow-sm border">
+                <div className="text-3xl font-bold">10</div>
+                <div className="text-sm text-muted-foreground mt-1">Sales Orders</div>
               </div>
-              <div className="text-center hover-lift p-6 rounded-xl transition-all duration-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-2 animate-float" style={{animationDelay: '1.6s'}}>100%</div>
-                <div className="text-slate-600 dark:text-slate-400">Data Security</div>
+              <div className="bg-card rounded-xl p-6 shadow-sm border">
+                <div className="text-3xl font-bold">5</div>
+                <div className="text-sm text-muted-foreground mt-1">Job Orders</div>
+              </div>
+              <div className="bg-card rounded-xl p-6 shadow-sm border">
+                <div className="text-3xl font-bold">16</div>
+                <div className="text-sm text-muted-foreground mt-1">Customers</div>
               </div>
             </div>
           </div>

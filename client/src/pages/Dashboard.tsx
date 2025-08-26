@@ -61,45 +61,25 @@ export function Dashboard() {
       title: 'Active Quotations',
       value: parseInt(overview.activeQuotations?.toString() || '0'),
       icon: FileText,
-      description: 'Current quotations',
-      trend: 'up',
-      change: '+12%',
-      color: 'blue',
-      iconBg: 'bg-blue-50 dark:bg-blue-950',
-      iconColor: 'text-blue-600 dark:text-blue-400'
+      description: 'Current quotations'
     },
     {
       title: 'Sales Orders',
       value: parseInt(overview.activeSalesOrders?.toString() || '0'),
       icon: ShoppingCart,
-      description: 'Processing orders',
-      trend: 'up',
-      change: '+8%',
-      color: 'emerald',
-      iconBg: 'bg-emerald-50 dark:bg-emerald-950',
-      iconColor: 'text-emerald-600 dark:text-emerald-400'
+      description: 'Processing orders'
     },
     {
       title: 'Job Orders',
       value: parseInt(overview.activeJobOrders?.toString() || '0'),
       icon: Factory,
-      description: 'In production',
-      trend: 'up',
-      change: '+15%',
-      color: 'orange',
-      iconBg: 'bg-orange-50 dark:bg-orange-950',
-      iconColor: 'text-orange-600 dark:text-orange-400'
+      description: 'In production'
     },
     {
       title: 'Total Products',
       value: parseInt(overview.totalProducts?.toString() || '0'),
       icon: Package,
-      description: 'Active catalog items',
-      trend: 'stable',
-      change: '0%',
-      color: 'violet',
-      iconBg: 'bg-violet-50 dark:bg-violet-950',
-      iconColor: 'text-violet-600 dark:text-violet-400'
+      description: 'Active catalog items'
     }
   ];
 
@@ -114,22 +94,22 @@ export function Dashboard() {
     <div className="space-y-8 p-6">
       {/* Debug Info - Only show when there are issues */}
       {(error || (!analytics && !isLoading)) && (
-        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900 border-0 shadow-lg">
+        <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-blue-800 dark:text-blue-200 text-sm flex items-center">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+            <CardTitle className="text-sm flex items-center">
+              <div className="w-2 h-2 bg-primary rounded-full mr-2"></div>
               System Status
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-1">
-            <p className="text-blue-700 dark:text-blue-300">
+            <p className="text-muted-foreground">
               Loading: {isLoading ? 'Yes' : 'No'} | 
               Error: {error ? 'Yes' : 'No'} | 
               Data: {analytics ? 'Loaded' : 'None'} | 
               Token: {localStorage.getItem('auth_token') ? 'Present' : 'Missing'}
             </p>
             {error && (
-              <p className="text-red-600 dark:text-red-400 font-mono text-xs">
+              <p className="text-destructive font-mono text-xs">
                 Error: {error.message}
               </p>
             )}
@@ -160,39 +140,20 @@ export function Dashboard() {
         {metrics.map((metric) => {
           const Icon = metric.icon;
           return (
-            <Card key={metric.title} className="group relative overflow-hidden border-0 bg-card shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-3 flex-1">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                        {metric.title}
-                      </p>
-                      <div className={`p-2.5 rounded-xl ${metric.iconBg} group-hover:scale-110 transition-transform duration-300`}>
-                        <Icon className={`h-5 w-5 ${metric.iconColor}`} />
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-3xl font-bold tracking-tight">
-                        {metric.value.toLocaleString()}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {metric.description}
-                      </p>
-                    </div>
-                  </div>
+            <Card key={metric.title} className="hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  {metric.title}
+                </CardTitle>
+                <Icon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {metric.value}
                 </div>
-                <div className="mt-4 flex items-center justify-between">
-                  <Badge 
-                    variant={metric.trend === 'up' ? 'default' : 'secondary'} 
-                    className="text-xs font-medium px-2.5 py-1"
-                  >
-                    {metric.trend === 'up' ? '↗' : '→'} {metric.change}
-                  </Badge>
-                  <div className="text-xs text-muted-foreground">
-                    vs last month
-                  </div>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  {metric.description}
+                </p>
               </CardContent>
             </Card>
           );
@@ -200,24 +161,24 @@ export function Dashboard() {
       </div>
 
       {/* Charts Row */}
-      <div className="grid gap-6 lg:grid-cols-7">
-        <Card className="lg:col-span-4 border-0 bg-card shadow-sm hover:shadow-md transition-shadow duration-300">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center text-xl font-semibold">
-              <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-950 mr-4">
-                <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <span className="text-foreground">
-                Production Overview
-              </span>
+      <div className="grid gap-3 sm:gap-4 lg:grid-cols-7">
+        <Card className="lg:col-span-4">
+          <CardHeader>
+            <CardTitle className="flex items-center text-base sm:text-lg">
+              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              Production Overview
             </CardTitle>
           </CardHeader>
-          <CardContent className="px-6">
+          <CardContent className="pl-2">
             {isLoading ? (
               <div className="space-y-6">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="animate-pulse">
+<<<<<<< HEAD
                     <div className="h-4 bg-muted rounded mb-3"></div>
+=======
+                    <div className="h-4 bg-muted rounded mb-2"></div>
+>>>>>>> 100c3e4b4c704f425bbf4870b479d96d3f65ae0e
                     <div className="h-2 bg-muted rounded"></div>
                   </div>
                 ))}
@@ -225,23 +186,23 @@ export function Dashboard() {
             ) : (
               <div className="space-y-6">
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-foreground">Active Job Orders</span>
-                    <span className="text-sm font-semibold text-orange-600 dark:text-orange-400">{overview.activeJobOrders || 0}</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Active Job Orders</span>
+                    <span className="text-sm font-bold">{overview.activeJobOrders || 0}</span>
                   </div>
                   <Progress value={Math.min(parseInt(overview.activeJobOrders?.toString() || '0') * 10, 100)} className="h-2" />
                 </div>
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-foreground">Sales Orders Processing</span>
-                    <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{overview.activeSalesOrders || 0}</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Sales Orders Processing</span>
+                    <span className="text-sm font-bold">{overview.activeSalesOrders || 0}</span>
                   </div>
                   <Progress value={Math.min(parseInt(overview.activeSalesOrders?.toString() || '0') * 10, 100)} className="h-2" />
                 </div>
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-foreground">Pending Quotations</span>
-                    <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">{overview.activeQuotations || 0}</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Pending Quotations</span>
+                    <span className="text-sm font-bold">{overview.activeQuotations || 0}</span>
                   </div>
                   <Progress value={Math.min(parseInt(overview.activeQuotations?.toString() || '0') * 5, 100)} className="h-2" />
                 </div>
@@ -250,15 +211,11 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-3 border-0 bg-card shadow-sm hover:shadow-md transition-shadow duration-300">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center text-xl font-semibold">
-              <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950 mr-4">
-                <Clock className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <span className="text-foreground">
-                Recent Activity
-              </span>
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle className="flex items-center text-base sm:text-lg">
+              <Clock className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              Recent Activity
             </CardTitle>
           </CardHeader>
           <CardContent className="px-6">
@@ -305,33 +262,33 @@ export function Dashboard() {
 
       {/* System Status Summary */}
       <Card className="border-0 bg-card shadow-sm">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-foreground">System Status Overview</CardTitle>
+        <CardHeader>
+          <CardTitle>System Status Overview</CardTitle>
         </CardHeader>
-        <CardContent className="px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-primary">{overview.activeQuotations || 0}</div>
-              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Active Quotations</div>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold">{overview.activeQuotations || 0}</div>
+              <div className="text-sm text-muted-foreground">Active Quotations</div>
             </div>
-            <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{overview.activeSalesOrders || 0}</div>
-              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Sales Orders</div>
+            <div className="text-center">
+              <div className="text-2xl font-bold">{overview.activeSalesOrders || 0}</div>
+              <div className="text-sm text-muted-foreground">Sales Orders</div>
             </div>
-            <div className="text-center space-y-2">
-              <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{overview.activeJobOrders || 0}</div>
-              <div className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Job Orders</div>
+            <div className="text-center">
+              <div className="text-2xl font-bold">{overview.activeJobOrders || 0}</div>
+              <div className="text-sm text-muted-foreground">Job Orders</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Quick Actions */}
-      <Card className="border-0 bg-card shadow-sm">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-foreground">Quick Actions</CardTitle>
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
-        <CardContent className="px-6">
+        <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {quickActions.map((action) => {
               const Icon = action.icon;

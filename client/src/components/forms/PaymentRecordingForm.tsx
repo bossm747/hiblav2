@@ -527,13 +527,13 @@ export function PaymentRecordingForm({
                           alt={`Payment proof ${index + 1}`}
                           className="w-full h-24 object-cover rounded border shadow-sm"
                         />
-                        <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center gap-2">
+                        <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center gap-2">
                           <Button
                             type="button"
                             variant="ghost"
                             size="sm"
                             onClick={() => window.open(url, '_blank')}
-                            className="text-white hover:bg-white hover:bg-opacity-20"
+                            className="text-white hover:bg-muted"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -542,12 +542,12 @@ export function PaymentRecordingForm({
                             variant="ghost"
                             size="sm"
                             onClick={() => removeFile(index)}
-                            className="text-white hover:bg-red-500 hover:bg-opacity-20"
+                            className="text-white hover:bg-destructive"
                           >
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
-                        <div className="absolute bottom-1 left-1 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                        <div className="absolute bottom-1 left-1 bg-black text-white text-xs px-2 py-1 rounded">
                           {uploadedFiles[index]?.name?.substring(0, 20)}...
                         </div>
                       </div>

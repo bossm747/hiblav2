@@ -145,7 +145,7 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
               )}>{module.label}</span>
               {isModuleActive && mobile && (
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                  <div className="w-2 h-2 bg-white rounded-full opacity-90"></div>
+                  <div className="w-2 h-2 bg-primary rounded-full"></div>
                 </div>
               )}
             </Button>
@@ -161,25 +161,15 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
       <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:bg-card md:border-r md:border-border/40">
         <div className="flex flex-col flex-1">
           {/* Logo */}
-          <div className="flex items-center h-16 px-6 border-b border-border/40">
-            <Link href="/" className="hover:opacity-90 transition-opacity">
+          <div className="flex items-center h-16 px-4 border-b bg-card">
+            <Link href="/">
               <HiblaLogo size="md" showText />
             </Link>
           </div>
           
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6">
-            <div className="space-y-6">
-              <div>
-                <div className="flex items-center gap-2 px-3 mb-4">
-                  <Factory className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Manufacturing System
-                  </span>
-                </div>
-                <NavItems />
-              </div>
-            </div>
+          <nav className="flex-1 px-4 py-6 bg-card">
+            <NavItems />
           </nav>
         </div>
       </div>
@@ -187,128 +177,84 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
       {/* Main Content */}
       <div className="flex-1 md:ml-64">
         {/* Header */}
-        <header className="h-16 border-b border-border/40 bg-card px-6 flex items-center justify-between sticky top-0 z-40">
+        <header className="h-16 border-b bg-background px-4 flex items-center justify-between sticky top-0 z-40">
           <div className="flex items-center">
             {/* Mobile Menu Button */}
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <SheetTrigger asChild>
                 <Button 
-                  variant="outline" 
+                  variant="default" 
                   size="default" 
-                  className="md:hidden bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm border-primary h-10 px-4 rounded-lg font-medium"
+                  className="md:hidden"
                 >
-                  <Menu className="h-4 w-4 mr-2" />
-                  <span>Menu</span>
+                  <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[90vw] p-0 h-full max-w-sm bg-background border-r overflow-hidden">
+              <SheetContent side="left" className="w-80 p-0 bg-background">
                 <div className="flex flex-col h-full">
-                  {/* Enhanced Mobile Header */}
-                  <div className="flex items-center justify-between h-18 px-6 border-b bg-card flex-shrink-0">
-                    <Link href="/" onClick={() => setSidebarOpen(false)} className="hover:opacity-90 transition-opacity">
+                  {/* Mobile Header */}
+                  <div className="flex items-center justify-between px-6 py-4 border-b bg-card">
+                    <Link href="/" onClick={() => setSidebarOpen(false)}>
                       <HiblaLogo size="md" showText />
                     </Link>
                     <Button 
                       variant="ghost" 
                       size="icon" 
                       onClick={() => setSidebarOpen(false)}
-                      className="h-10 w-10 hover:bg-muted transition-colors rounded-lg min-h-[44px]"
+
                     >
-                      <X className="h-5 w-5" />
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
                   
-                  {/* Enhanced Scrollable Navigation Content */}
-                  <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
-                    <nav className="p-6">
-                      <div className="space-y-6">
-                        <div className="flex items-center gap-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider px-3">
-                          <Factory className="h-4 w-4" />
-                          Manufacturing System
+                  {/* Navigation Content */}
+                  <div className="flex-1 overflow-y-auto">
+                    <nav className="p-4">
+                      <div className="space-y-2">
+                        <div className="px-3 py-2">
+                          <h2 className="mb-2 text-lg font-semibold">Navigation</h2>
                         </div>
                         <NavItems mobile />
-                        
-                        {/* Quick Actions Section */}
-                        <div className="pt-6 border-t border-border/50">
-                          <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-3">
-                            Quick Actions
-                          </div>
-                          <div className="space-y-3">
-                            <Button 
-                              variant="outline" 
-                              size="lg" 
-                              className="w-full justify-start h-12 rounded-lg text-base border-0 bg-muted hover:bg-muted/80"
-                              onClick={() => setSidebarOpen(false)}
-                            >
-                              <Plus className="h-5 w-5 mr-3" />
-                              New Quotation
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="lg" 
-                              className="w-full justify-start h-12 rounded-lg text-base border-0 bg-muted hover:bg-muted/80"
-                              onClick={() => setSidebarOpen(false)}
-                            >
-                              <FileText className="h-5 w-5 mr-3" />
-                              View Reports
-                            </Button>
-                          </div>
-                        </div>
                       </div>
                     </nav>
                   </div>
                   
-                  {/* Enhanced Mobile Footer with User Profile */}
-                  <div className="border-t bg-card flex-shrink-0">
-                    <div className="p-6 space-y-4">
-                      {/* User Profile Section */}
-                      <div className="flex items-center space-x-4">
-                        <div className="h-12 w-12 bg-primary rounded-lg flex items-center justify-center shadow-sm">
-                          <User className="h-6 w-6 text-primary-foreground" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-base font-semibold truncate">
-                            {user?.name}
-                          </p>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {user?.role || 'Manufacturing Staff'}
-                          </p>
+                  {/* Mobile Footer */}
+                  <div className="border-t bg-card p-4">
+                    <div className="space-y-4">
+                      {/* User Info */}
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            {user?.name?.charAt(0).toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{user?.name}</p>
+                          <p className="text-xs text-muted-foreground">{user?.role || 'Staff'}</p>
                         </div>
                       </div>
                       
-                      {/* Action Buttons */}
-                      <div className="flex flex-col gap-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-muted-foreground">Theme</span>
-                          <ThemeToggle />
-                        </div>
-                        <div className="flex gap-3">
-                          <Button
-                            variant="outline"
-                            size="lg"
-                            className="flex-1 h-11 rounded-lg border-0 bg-muted hover:bg-muted/80"
-                            onClick={() => {
-                              setSidebarOpen(false);
-                              // Add settings action
-                            }}
-                          >
-                            <Settings className="h-4 w-4 mr-2" />
-                            Settings
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="lg"
-                            className="flex-1 h-11 rounded-lg"
-                            onClick={handleLogout}
-                          >
-                            <LogOut className="h-4 w-4 mr-2" />
-                            Logout
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div className="text-sm text-muted-foreground/70 text-center pt-2">
-                        Hibla Filipino Hair Manufacturing
+                      {/* Actions */}
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          <Settings className="h-4 w-4 mr-1" />
+                          Settings
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="flex-1"
+                          onClick={handleLogout}
+                        >
+                          <LogOut className="h-4 w-4 mr-1" />
+                          Logout
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -316,12 +262,9 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
               </SheetContent>
             </Sheet>
 
-            <div className="ml-4 md:ml-0 flex items-center">
-              <div className="md:hidden">
-                <HiblaLogo size="sm" showText={false} />
-              </div>
-              <h1 className="hidden md:block text-lg font-semibold">
-                Hibla Filipino Hair
+            <div className="ml-3 md:ml-0">
+              <h1 className="text-lg font-semibold">
+                Hibla Manufacturing
               </h1>
             </div>
           </div>
