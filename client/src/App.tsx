@@ -48,14 +48,19 @@ function AppRoutes() {
   const [location, setLocation] = useLocation();
   const [appState, setAppState] = useState<AppState>('preloader');
 
-  // Reset application state on mount/reload
+  // Initialize application state on mount/reload
   useEffect(() => {
-    // Clear any existing auth tokens on fresh load
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_data');
+    // Check if user is already authenticated
+    const token = localStorage.getItem('auth_token');
+    const userData = localStorage.getItem('user_data');
     
-    // Start from preloader
-    setAppState('preloader');
+    if (token && userData) {
+      // User is already logged in, skip preloader
+      setAppState('authenticated');
+    } else {
+      // No authentication, start from preloader
+      setAppState('preloader');
+    }
   }, []);
 
   // Handle state changes based on authentication
