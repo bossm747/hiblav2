@@ -59,12 +59,12 @@ import {
 
 // Enhanced quotation schema with client requirements
 const quotationFormSchema = z.object({
-  customerCode: z.string().min(1, 'Customer code is required'),
+  clientCode: z.string().min(1, 'Client code is required'),
   country: z.string().min(1, 'Country is required'),
   priceListId: z.string().optional(),
   paymentMethod: z.enum(['bank', 'agent', 'money transfer', 'cash']),
-  shippingMethod: z.enum(['DHL', 'UPS', 'Fed Ex', 'Agent', 'Pick Up']),
-  customerServiceInstructions: z.string().optional(),
+  shippingMethod: z.enum(['DHL', 'UPS', 'Fed Ex', 'Agent', 'Client Pickup']),
+  clientServiceInstructions: z.string().optional(),
   revisionNumber: z.enum(['R0', 'R1', 'R2', 'R3', 'R4', 'R5']).default('R0'),
   validUntil: z.string().optional(), // Date string
   attachments: z.array(z.string()).default([]),
@@ -94,9 +94,9 @@ interface EnhancedQuotationFormProps {
 }
 
 // Types for API responses
-interface Customer {
+interface Client {
   id: string;
-  customerCode: string;
+  clientCode: string;
   name: string;
   country: string;
   priceListId: string;
@@ -151,9 +151,9 @@ export function EnhancedQuotationForm({
     setStaffInitials(getCreatorInitials());
   }, [user]);
 
-  // Fetch customers for dropdown - only when user is authenticated
-  const { data: customers = [], isLoading: customersLoading, error: customersError } = useQuery<Customer[]>({
-    queryKey: ['/api/customers'],
+  // Fetch clients for dropdown - only when user is authenticated
+  const { data: clients = [], isLoading: clientsLoading, error: clientsError } = useQuery<Client[]>({
+    queryKey: ['/api/clients'],
     enabled: !!user, // Simplified authentication check - the queryClient handles token automatically
     retry: 2,
     retryDelay: 1000,
@@ -183,20 +183,20 @@ export function EnhancedQuotationForm({
     console.log('🔍 EnhancedQuotationForm Data Status:', {
       user: { authenticated: !!user, name: user?.name, email: user?.email },
       authToken: !!localStorage.getItem('auth_token'),
-      customers: { count: customers.length, loading: customersLoading, error: customersError?.message },
+      clients: { count: clients.length, loading: clientsLoading, error: clientsError?.message },
       products: { count: products.length, loading: productsLoading, error: productsError?.message },
       priceLists: { count: priceLists.length, loading: priceListsLoading, error: priceListsError?.message }
     });
     
     // Show auth error if user is not authenticated and APIs are failing
-    if (!user && !customersLoading && customersError) {
+    if (!user && !clientsLoading && clientsError) {
       toast({
         title: "Authentication Required", 
         description: "Please refresh the page or login again to access data",
         variant: "destructive",
       });
     }
-  }, [user, customers, products, priceLists, customersLoading, productsLoading, priceListsLoading, customersError, productsError, priceListsError, toast]);
+  }, [user, clients, products, priceLists, clientsLoading, productsLoading, priceListsLoading, clientsError, productsError, priceListsError, toast]);
 
   // Fetch existing quotation if editing
   const { data: existingQuotation } = useQuery<any>({
@@ -207,12 +207,12 @@ export function EnhancedQuotationForm({
   const form = useForm<QuotationFormData>({
     resolver: zodResolver(quotationFormSchema),
     defaultValues: {
-      customerCode: '',
+      clientCode: '',
       country: '',
       paymentMethod: 'bank',
       shippingMethod: 'DHL',
       revisionNumber: 'R0',
-      customerServiceInstructions: '',
+      clientServiceInstructions: '',
       attachments: [],
       items: [{ productId: '', productName: '', specification: '', quantity: 1.0, unitPrice: 0, lineTotal: 0 }],
       subtotal: 0,
@@ -334,10 +334,10 @@ export function EnhancedQuotationForm({
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Calculator className="h-5 w-5 text-blue-600" />
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto bg-background border-border">
+        <DialogHeader className="space-y-3 pb-6 border-b border-border">
+          <DialogTitle className="text-2xl font-semibold flex items-center gap-2 text-foreground">
+            <Calculator className="h-5 w-5 text-primary" />
             {quotationId ? 'Edit Quotation' : 'Create New Quotation'}
             {staffInitials && (
               <Badge variant="outline" className="ml-2">
@@ -345,7 +345,7 @@ export function EnhancedQuotationForm({
               </Badge>
             )}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-muted-foreground text-base">
             {quotationId 
               ? `Update quotation details. ${!canRevise() ? 'Revision locked after next day.' : ''}`
               : 'Create a new quotation with line items and pricing details.'
@@ -354,36 +354,36 @@ export function EnhancedQuotationForm({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8 pt-6">
             {/* Header Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Quotation Details</CardTitle>
+            <Card className="border-border shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold text-foreground">Quotation Details</CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
-                  name="customerCode"
+                  name="clientCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Customer Code * (Auto-populates details)</FormLabel>
+                      <FormLabel className="text-muted-foreground">Client Code * (Auto-populates details)</FormLabel>
                       <Select 
                         onValueChange={(value) => {
                           field.onChange(value);
-                          // Auto-populate customer details with flexibility to modify
-                          const customer = customers.find((c: any) => c.customerCode === value || c.id === value);
-                          if (customer) {
-                            form.setValue('country', customer.country || '');
-                            form.setValue('priceListId', customer.priceListId || '');
+                          // Auto-populate client details with flexibility to modify
+                          const client = clients.find((c: any) => c.clientCode === value || c.id === value);
+                          if (client) {
+                            form.setValue('country', client.country || '');
+                            form.setValue('priceListId', client.priceListId || '');
                             
-                            // Recalculate all item prices when customer (and their price list) changes
+                            // Recalculate all item prices when client (and their price list) changes
                             const items = form.getValues('items');
                             items.forEach((item, index) => {
                               if (item.productId) {
                                 const product = products.find((p: any) => p.id === item.productId);
                                 if (product) {
                                   const basePrice = parseFloat(product.basePrice || '0');
-                                  const calculatedPrice = calculatePriceWithVLOOKUP(basePrice, customer.priceListId);
+                                  const calculatedPrice = calculatePriceWithVLOOKUP(basePrice, client.priceListId);
                                   form.setValue(`items.${index}.unitPrice`, calculatedPrice);
                                   updateLineTotal(index);
                                 }
@@ -391,8 +391,8 @@ export function EnhancedQuotationForm({
                             });
                             
                             toast({
-                              title: "Customer Details Auto-Populated",
-                              description: `Details for ${customer.name} loaded. You can modify them if needed.`,
+                              title: "Client Details Auto-Populated",
+                              description: `Details for ${client.name} loaded. You can modify them if needed.`,
                               duration: 3000,
                             });
                           }
@@ -400,31 +400,31 @@ export function EnhancedQuotationForm({
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger data-testid="select-customer-code">
-                            <SelectValue placeholder="Select customer (details will auto-populate)" />
+                          <SelectTrigger data-testid="select-client-code" className="bg-background border-input text-foreground">
+                            <SelectValue placeholder="Select client (details will auto-populate)" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {!user ? (
                             <SelectItem value="auth" disabled>
-                              Please login to load customers
+                              Please login to load clients
                             </SelectItem>
-                          ) : customersLoading ? (
+                          ) : clientsLoading ? (
                             <SelectItem value="loading" disabled>
-                              Loading customers...
+                              Loading clients...
                             </SelectItem>
-                          ) : customersError ? (
+                          ) : clientsError ? (
                             <SelectItem value="error" disabled>
                               Authentication error - please refresh page
                             </SelectItem>
-                          ) : customers.length === 0 ? (
+                          ) : clients.length === 0 ? (
                             <SelectItem value="empty" disabled>
-                              No customers available
+                              No clients available
                             </SelectItem>
                           ) : (
-                            customers.map((customer: any) => (
-                              <SelectItem key={customer.id} value={customer.customerCode || customer.id}>
-                                {customer.customerCode || customer.name} - {customer.country}
+                            clients.map((client: any) => (
+                              <SelectItem key={client.id} value={client.clientCode || client.id}>
+                                {client.clientCode || client.name} - {client.country}
                               </SelectItem>
                             ))
                           )}
@@ -440,18 +440,18 @@ export function EnhancedQuotationForm({
                   name="country"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Country * (Auto-populated, editable)</FormLabel>
+                      <FormLabel className="text-muted-foreground">Country * (Auto-populated, editable)</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
-                          placeholder="Auto-populated from customer record" 
+                          placeholder="Auto-populated from client record" 
                           data-testid="input-country"
-                          className="bg-blue-50 dark:bg-blue-950/20"
+                          className="bg-background border-input text-foreground"
                         />
                       </FormControl>
                       <FormMessage />
                       <p className="text-xs text-muted-foreground">
-                        Auto-filled from customer record but can be modified
+                        Auto-filled from client record but can be modified
                       </p>
                     </FormItem>
                   )}
@@ -462,7 +462,7 @@ export function EnhancedQuotationForm({
                   name="priceListId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Price Tier (VLOOKUP for pricing)</FormLabel>
+                      <FormLabel className="text-muted-foreground">Price Tier (VLOOKUP for pricing)</FormLabel>
                       <Select 
                         onValueChange={(value) => {
                           field.onChange(value);
@@ -494,7 +494,7 @@ export function EnhancedQuotationForm({
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger data-testid="select-price-tier" className="bg-amber-50 dark:bg-amber-950/20">
+                          <SelectTrigger data-testid="select-price-tier" className="bg-background border-input text-foreground">
                             <SelectValue placeholder="Select price tier for VLOOKUP" />
                           </SelectTrigger>
                         </FormControl>
@@ -541,10 +541,10 @@ export function EnhancedQuotationForm({
                   name="revisionNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Revision *</FormLabel>
+                      <FormLabel className="text-muted-foreground">Revision *</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-revision">
+                          <SelectTrigger data-testid="select-revision" className="bg-background border-input text-foreground">
                             <SelectValue placeholder="Select revision" />
                           </SelectTrigger>
                         </FormControl>
@@ -567,10 +567,10 @@ export function EnhancedQuotationForm({
                   name="paymentMethod"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Payment Method</FormLabel>
+                      <FormLabel className="text-muted-foreground">Payment Method</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-payment-method">
+                          <SelectTrigger data-testid="select-payment-method" className="bg-background border-input text-foreground">
                             <SelectValue placeholder="Select payment method" />
                           </SelectTrigger>
                         </FormControl>
@@ -591,10 +591,10 @@ export function EnhancedQuotationForm({
                   name="shippingMethod"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Shipping Method</FormLabel>
+                      <FormLabel className="text-muted-foreground">Shipping Method</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-shipping-method">
+                          <SelectTrigger data-testid="select-shipping-method" className="bg-background border-input text-foreground">
                             <SelectValue placeholder="Select shipping method" />
                           </SelectTrigger>
                         </FormControl>
@@ -603,7 +603,7 @@ export function EnhancedQuotationForm({
                           <SelectItem value="UPS">UPS</SelectItem>
                           <SelectItem value="Fed Ex">FedEx</SelectItem>
                           <SelectItem value="Agent">Agent</SelectItem>
-                          <SelectItem value="Pick Up">Pick Up</SelectItem>
+                          <SelectItem value="Client Pickup">Client Pickup</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -616,12 +616,13 @@ export function EnhancedQuotationForm({
                   name="validUntil"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Valid Until</FormLabel>
+                      <FormLabel className="text-muted-foreground">Valid Until</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
                           type="date" 
                           data-testid="input-valid-until"
+                          className="bg-background border-input text-foreground"
                         />
                       </FormControl>
                       <FormMessage />
@@ -632,10 +633,10 @@ export function EnhancedQuotationForm({
             </Card>
 
             {/* File Upload Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <FileUp className="h-5 w-5" />
+            <Card className="border-border shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2 text-foreground">
+                  <FileUp className="h-5 w-5 text-primary" />
                   File Attachments
                 </CardTitle>
               </CardHeader>
@@ -645,7 +646,7 @@ export function EnhancedQuotationForm({
                     type="file"
                     multiple
                     onChange={handleFileUpload}
-                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="bg-background border-input text-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-colors"
                     data-testid="input-file-upload"
                   />
                   {uploadedFiles.length > 0 && (
@@ -672,22 +673,23 @@ export function EnhancedQuotationForm({
             </Card>
 
             {/* Line Items */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Line Items</CardTitle>
+            <Card className="border-border shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold text-foreground">Line Items</CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product</TableHead>
-                      <TableHead>Specification</TableHead>
-                      <TableHead>Qty (1 decimal)</TableHead>
-                      <TableHead>Unit Price</TableHead>
-                      <TableHead>Line Total</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                <div className="border border-border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="font-semibold text-foreground">Product</TableHead>
+                        <TableHead className="font-semibold text-foreground">Specification</TableHead>
+                        <TableHead className="font-semibold text-foreground">Qty (1 decimal)</TableHead>
+                        <TableHead className="font-semibold text-foreground">Unit Price</TableHead>
+                        <TableHead className="font-semibold text-foreground">Line Total</TableHead>
+                        <TableHead className="font-semibold text-foreground w-20">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
                   <TableBody>
                     {fields.map((field, index) => (
                       <TableRow key={field.id}>
@@ -732,7 +734,7 @@ export function EnhancedQuotationForm({
                                 }}
                                 defaultValue={field.value}
                               >
-                                <SelectTrigger data-testid={`select-product-${index}`}>
+                                <SelectTrigger data-testid={`select-product-${index}`} className="bg-background border-input text-foreground">
                                   <SelectValue placeholder="Select product" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -761,6 +763,7 @@ export function EnhancedQuotationForm({
                               <Input 
                                 {...field} 
                                 placeholder="Enter specification" 
+                                className="bg-background border-input text-foreground"
                                 data-testid={`input-specification-${index}`}
                               />
                             )}
@@ -779,6 +782,7 @@ export function EnhancedQuotationForm({
                                 min="0.1"
                                 max="9999.9"
                                 placeholder="1.0"
+                                className="bg-background border-input text-foreground"
                                 onChange={(e) => {
                                   field.onChange(parseFloat(e.target.value) || 0);
                                   updateLineTotal(index);
@@ -800,6 +804,7 @@ export function EnhancedQuotationForm({
                                 step="0.01"
                                 min="0"
                                 placeholder="0.00"
+                                className="bg-background border-input text-foreground"
                                 onChange={(e) => {
                                   field.onChange(parseFloat(e.target.value) || 0);
                                   updateLineTotal(index);
@@ -820,7 +825,7 @@ export function EnhancedQuotationForm({
                                 type="number"
                                 step="0.01"
                                 readOnly
-                                className="bg-gray-50"
+                                className="bg-muted/50 font-semibold text-foreground text-right"
                                 data-testid={`text-line-total-${index}`}
                               />
                             )}
@@ -830,8 +835,9 @@ export function EnhancedQuotationForm({
                         <TableCell>
                           <Button
                             type="button"
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
+                            className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive transition-colors"
                             onClick={() => remove(index)}
                             disabled={fields.length === 1}
                             data-testid={`button-remove-item-${index}`}
@@ -842,12 +848,13 @@ export function EnhancedQuotationForm({
                       </TableRow>
                     ))}
                   </TableBody>
-                </Table>
+                  </Table>
+                </div>
                 
                 <Button
                   type="button"
                   variant="outline"
-                  className="mt-4"
+                  className="mt-6 h-10 px-4 font-medium border-dashed border-2 hover:bg-muted/50 transition-colors"
                   onClick={() => append({ 
                     productId: '', 
                     productName: '', 
@@ -865,23 +872,24 @@ export function EnhancedQuotationForm({
             </Card>
 
             {/* Pricing Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Pricing Summary</CardTitle>
+            <Card className="border-border shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold text-foreground">Pricing Summary</CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <FormField
                   control={form.control}
                   name="shippingFee"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Shipping Fee</FormLabel>
+                      <FormLabel className="text-muted-foreground">Shipping Fee</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
                           type="number" 
                           step="0.01" 
                           min="0"
+                          className="bg-background border-input text-foreground"
                           onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                           data-testid="input-shipping-fee"
                         />
@@ -896,13 +904,14 @@ export function EnhancedQuotationForm({
                   name="bankCharge"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Bank Charge</FormLabel>
+                      <FormLabel className="text-muted-foreground">Bank Charge</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
                           type="number" 
                           step="0.01" 
                           min="0"
+                          className="bg-background border-input text-foreground"
                           onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                           data-testid="input-bank-charge"
                         />
@@ -917,13 +926,14 @@ export function EnhancedQuotationForm({
                   name="discount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Discount</FormLabel>
+                      <FormLabel className="text-muted-foreground">Discount</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
                           type="number" 
                           step="0.01" 
                           min="0"
+                          className="bg-background border-input text-foreground"
                           onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                           data-testid="input-discount"
                         />
@@ -938,13 +948,14 @@ export function EnhancedQuotationForm({
                   name="others"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Others</FormLabel>
+                      <FormLabel className="text-muted-foreground">Others</FormLabel>
                       <FormControl>
                         <Input 
                           {...field} 
                           type="number" 
                           step="0.01" 
                           min="0"
+                          className="bg-background border-input text-foreground"
                           onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                           data-testid="input-others"
                         />
@@ -955,36 +966,40 @@ export function EnhancedQuotationForm({
                 />
 
                 <div className="col-span-2 md:col-span-4">
-                  <Separator />
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="text-lg font-semibold">Subtotal:</span>
-                    <span className="text-lg" data-testid="text-subtotal">${form.watch('subtotal').toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-xl font-bold">Total:</span>
-                    <span className="text-xl font-bold text-green-600" data-testid="text-total">
-                      ${form.watch('total').toFixed(2)}
-                    </span>
+                  <Separator className="my-6" />
+                  <div className="space-y-3 bg-muted/30 p-4 rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <span className="text-base font-medium text-muted-foreground">Subtotal:</span>
+                      <span className="text-base font-semibold" data-testid="text-subtotal">${form.watch('subtotal').toFixed(2)}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-semibold text-foreground">Total:</span>
+                      <span className="text-lg font-bold text-primary" data-testid="text-total">
+                        ${form.watch('total').toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Customer Instructions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Customer Service Instructions</CardTitle>
+            {/* Client Instructions */}
+            <Card className="border-border shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg font-semibold text-foreground">Client Service Instructions</CardTitle>
               </CardHeader>
               <CardContent>
                 <FormField
                   control={form.control}
-                  name="customerServiceInstructions"
+                  name="clientServiceInstructions"
                   render={({ field }) => (
                     <FormItem>
                       <FormControl>
                         <Textarea 
                           {...field} 
                           placeholder="Enter any special instructions or notes..."
+                          className="bg-background border-input text-foreground"
                           rows={3}
                           data-testid="textarea-instructions"
                         />
@@ -997,10 +1012,11 @@ export function EnhancedQuotationForm({
             </Card>
 
             {/* Action Buttons */}
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-end space-x-3 pt-6 border-t border-border">
               <Button
                 type="button"
                 variant="outline"
+                className="h-10 px-6 font-medium"
                 onClick={() => setDialogOpen(false)}
                 data-testid="button-cancel"
               >
@@ -1008,6 +1024,7 @@ export function EnhancedQuotationForm({
               </Button>
               <Button
                 type="submit"
+                className="h-10 px-6 font-medium"
                 disabled={createQuotationMutation.isPending || (!canRevise() && !!quotationId)}
                 data-testid="button-save"
               >
@@ -1027,9 +1044,9 @@ export function EnhancedQuotationForm({
 
             {/* Revision Lock Warning */}
             {quotationId && !canRevise() && (
-              <div className="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-yellow-600" />
-                <span className="text-yellow-800">
+              <div className="flex items-center gap-3 p-4 bg-warning/10 border border-warning/20 rounded-lg">
+                <AlertCircle className="h-5 w-5 text-warning flex-shrink-0" />
+                <span className="text-warning-foreground font-medium">
                   This quotation cannot be revised after the next day from creation.
                 </span>
               </div>

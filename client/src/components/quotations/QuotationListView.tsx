@@ -15,8 +15,8 @@ import { QuotationForm } from '@/components/forms/QuotationForm';
 interface Quotation {
   id: string;
   number: string;
-  customerName: string;
-  customerCode: string;
+  clientName: string;
+  clientCode: string;
   country: string;
   revisionNumber: string;
   status: string;
@@ -56,7 +56,7 @@ export function QuotationListView() {
   });
 
   const [countries, setCountries] = useState<string[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
 
   useEffect(() => {
     loadQuotations();
@@ -99,14 +99,14 @@ export function QuotationListView() {
         'Content-Type': 'application/json'
       };
 
-      const [customersRes] = await Promise.all([
-        fetch('/api/customers', { headers })
+      const [clientsRes] = await Promise.all([
+      fetch('/api/clients', { headers })
       ]);
 
-      if (customersRes.ok) {
-        const customersData = await customersRes.json();
-        setCustomers(customersData || []);
-        const uniqueCountries = Array.from(new Set(customersData.map((c: any) => c.country)));
+      if (clientsRes.ok) {
+      const clientsData = await clientsRes.json();
+      setClients(clientsData || []);
+      const uniqueCountries = Array.from(new Set(clientsData.map((c: any) => c.country)));
         setCountries(uniqueCountries);
       }
     } catch (error) {
@@ -243,8 +243,8 @@ export function QuotationListView() {
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
       if (!quotation.number.toLowerCase().includes(searchTerm) &&
-          !quotation.customerName.toLowerCase().includes(searchTerm) &&
-          !quotation.customerCode.toLowerCase().includes(searchTerm)) {
+          !quotation.clientName.toLowerCase().includes(searchTerm) &&
+        !quotation.clientCode.toLowerCase().includes(searchTerm)) {
         return false;
       }
     }
@@ -283,7 +283,7 @@ export function QuotationListView() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Search quotations, customers, or numbers..."
+                placeholder="Search quotations, clients, or numbers..."
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                 className="pl-10"
@@ -410,7 +410,7 @@ export function QuotationListView() {
             <TableHeader>
               <TableRow>
                 <TableHead>Quotation #</TableHead>
-                <TableHead>Customer</TableHead>
+                <TableHead>Client</TableHead>
                 <TableHead>Country</TableHead>
                 <TableHead>Revision</TableHead>
                 <TableHead>Items</TableHead>
@@ -443,9 +443,9 @@ export function QuotationListView() {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{quotation.customerName}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {quotation.customerCode}
+                        <div className="font-medium">{quotation.clientName}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {quotation.clientCode}
                         </div>
                       </div>
                     </TableCell>

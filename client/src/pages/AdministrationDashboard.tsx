@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { DataTable } from '@/components/ui/data-table';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import {
@@ -56,7 +57,7 @@ export function AdministrationDashboard() {
   });
 
   // Extract admin metrics from analytics
-  const totalCustomers = parseInt(analytics?.overview?.totalCustomers || '0');
+  const totalClients = parseInt(analytics?.overview?.totalClients || '0');
   const totalProducts = parseInt(analytics?.overview?.totalProducts || '0');
   const totalQuotations = parseInt(analytics?.overview?.activeQuotations || '0');
   const totalSalesOrders = parseInt(analytics?.overview?.activeSalesOrders || '0');
@@ -68,7 +69,7 @@ export function AdministrationDashboard() {
   const securityScore = 95;
 
   console.log('🔍 Administration Dashboard - Calculated Metrics:', {
-    totalCustomers,
+    totalClients,
     totalProducts,
     totalUsers,
     systemUptime,
@@ -163,7 +164,7 @@ export function AdministrationDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(totalCustomers + totalProducts + totalQuotations + totalSalesOrders).toLocaleString()}
+              {(totalClients + totalProducts + totalQuotations + totalSalesOrders).toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground">
               Total database records
@@ -318,102 +319,123 @@ function UsersTable({ onRefresh }: { onRefresh: () => void }) {
     }
   };
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Loading Users...</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const columns = [
+    {
+      key: 'name',
+      label: 'Name',
+      sortable: true,
+      render: (value: any, row: any) => (
+        <span className="font-medium">{row.name || row.firstName || 'N/A'}</span>
+      )
+    },
+    {
+      key: 'email',
+      label: 'Email',
+      sortable: true,
+    },
+    {
+      key: 'role',
+      label: 'Role',
+      filterable: true,
+      filterType: 'select' as const,
+      filterOptions: [
+        { value: 'admin', label: 'Admin' },
+        { value: 'manager', label: 'Manager' },
+        { value: 'staff', label: 'Staff' },
+      ],
+      render: (value: any) => (
+        <Badge 
+          variant={
+            value === 'admin' ? 'default' : 
+            value === 'manager' ? 'secondary' : 
+            'outline'
+          }
+        >
+          {value || 'user'}
+        </Badge>
+      )
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      filterable: true,
+      filterType: 'select' as const,
+      filterOptions: [
+        { value: 'active', label: 'Active' },
+        { value: 'inactive', label: 'Inactive' },
+      ],
+      render: (value: any) => (
+        <Badge variant={value === 'active' ? 'default' : 'destructive'}>
+          {value || 'active'}
+        </Badge>
+      )
+    },
+    {
+      key: 'lastLogin',
+      label: 'Last Login',
+      sortable: true,
+      render: (value: any) => (
+        <span className="text-sm text-muted-foreground">
+          {value ? new Date(value).toLocaleDateString() : 'Never'}
+        </span>
+      )
+    },
+  ];
+
+  const actions = [
+    {
+      label: 'View',
+      icon: Eye,
+      onClick: (user: any) => {
+        toast({ title: 'View User', description: `Viewing ${user.email}` });
+      },
+      variant: 'outline' as const,
+    },
+    {
+      label: 'Edit',
+      icon: Edit,
+      onClick: (user: any) => {
+        toast({ title: 'Edit User', description: `Editing ${user.email}` });
+      },
+      variant: 'outline' as const,
+    },
+    {
+      label: 'Lock/Unlock',
+      icon: Lock,
+      onClick: (user: any) => {
+        toast({ title: 'Toggle Lock', description: `Toggling lock for ${user.email}` });
+      },
+      variant: 'outline' as const,
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      onClick: handleDeleteUser,
+      variant: 'outline' as const,
+    },
+  ];
+
+  const globalActions = [
+    {
+      label: 'Refresh',
+      icon: Users,
+      onClick: () => queryClient.invalidateQueries({ queryKey: ['/api/users'] }),
+      variant: 'outline' as const,
+    },
+  ];
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>User Management</CardTitle>
-            <CardDescription>System users and access control ({displayUsers.length} total)</CardDescription>
-          </div>
-          <Button
-            onClick={() => queryClient.invalidateQueries({ queryKey: ['/api/users'] })}
-            variant="outline"
-            size="sm"
-          >
-            Refresh
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left py-2 px-4 font-semibold">Name</th>
-                <th className="text-left py-2 px-4 font-semibold">Email</th>
-                <th className="text-left py-2 px-4 font-semibold">Role</th>
-                <th className="text-left py-2 px-4 font-semibold">Status</th>
-                <th className="text-left py-2 px-4 font-semibold">Last Login</th>
-                <th className="text-left py-2 px-4 font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {displayUsers.map((user: any) => (
-                <tr key={user.id} className="border-b hover:bg-muted/50">
-                  <td className="py-3 px-4 font-medium">{user.name || user.firstName || 'N/A'}</td>
-                  <td className="py-3 px-4">{user.email}</td>
-                  <td className="py-3 px-4">
-                    <Badge 
-                      variant={
-                        user.role === 'admin' ? 'default' : 
-                        user.role === 'manager' ? 'secondary' : 
-                        'outline'
-                      }
-                    >
-                      {user.role || 'user'}
-                    </Badge>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Badge variant={user.status === 'active' ? 'default' : 'destructive'}>
-                      {user.status || 'active'}
-                    </Badge>
-                  </td>
-                  <td className="py-3 px-4 text-sm text-muted-foreground">
-                    {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex gap-1">
-                      <Button size="sm" variant="outline">
-                        <Eye className="h-3 w-3" />
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Lock className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDeleteUser(user)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </CardContent>
-    </Card>
+    <DataTable
+      data={displayUsers}
+      columns={columns}
+      actions={actions}
+      globalActions={globalActions}
+      title="User Management"
+      searchPlaceholder="Search users by name or email..."
+      isLoading={isLoading}
+      onRefresh={() => queryClient.invalidateQueries({ queryKey: ['/api/users'] })}
+      emptyMessage="No users found. Add users to get started."
+    />
   );
 }
 

@@ -51,22 +51,20 @@ export function ReportsAnalyticsDashboard() {
   });
 
   // Extract reporting metrics from analytics
-  const totalQuotations = parseInt(analytics?.overview?.activeQuotations || '0');
-  const totalSalesOrders = parseInt(analytics?.overview?.activeSalesOrders || '0');
-  const totalCustomers = parseInt(analytics?.overview?.totalCustomers || '0');
+  const totalQuotations = parseInt(analytics?.overview?.totalQuotations || '0');
+  const totalSalesOrders = parseInt(analytics?.overview?.totalSalesOrders || '0');
+  const totalClients = parseInt(analytics?.overview?.totalClients || '0');
   const totalProducts = parseInt(analytics?.overview?.totalProducts || '0');
-  const totalJobOrders = parseInt(analytics?.overview?.activeJobOrders || '0');
-
-  // Calculate derived metrics for reporting
-  const conversionRate = totalQuotations > 0 ? (totalSalesOrders / totalQuotations * 100) : 0;
-  const averageOrderValue = totalSalesOrders > 0 ? (totalSalesOrders * 850) / totalSalesOrders : 0;
-  const totalRevenue = totalSalesOrders * 850; // Estimated revenue
-  const customerGrowth = 12.5; // Estimated growth percentage
+  const totalJobOrders = parseInt(analytics?.overview?.totalJobOrders || '0');
+  const totalRevenue = parseFloat(analytics?.overview?.totalRevenue || '0');
+  const averageOrderValue = parseFloat(analytics?.overview?.averageOrderValue || '0');
+  const conversionRate = parseFloat(analytics?.overview?.conversionRate || '0');
+  const clientGrowth = 12.5; // Estimated growth percentage
 
   console.log('🔍 Reports & Analytics Dashboard - Calculated Metrics:', {
     totalQuotations,
     totalSalesOrders,
-    totalCustomers,
+    totalClients,
     totalProducts,
     conversionRate: conversionRate.toFixed(1) + '%',
     totalRevenue,
@@ -148,13 +146,13 @@ export function ReportsAnalyticsDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Customer Growth</CardTitle>
+            <CardTitle className="text-sm font-medium">Client Growth</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{customerGrowth}%</div>
+            <div className="text-2xl font-bold">+{clientGrowth}%</div>
             <p className="text-xs text-muted-foreground">
-              {totalCustomers} total customers
+              {totalClients} total clients
             </p>
           </CardContent>
         </Card>
@@ -207,7 +205,7 @@ export function ReportsAnalyticsDashboard() {
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Customer Satisfaction</span>
+                    <span className="text-sm font-medium">Client Satisfaction</span>
                     <div className="flex items-center space-x-2">
                       <Progress value={92} className="w-20" />
                       <span className="text-sm font-semibold">92%</span>
@@ -281,7 +279,7 @@ export function ReportsAnalyticsDashboard() {
           <SalesAnalyticsReports 
             quotations={totalQuotations} 
             salesOrders={totalSalesOrders} 
-            customers={totalCustomers}
+            clients={totalClients}
             conversionRate={conversionRate}
           />
         </TabsContent>
@@ -306,10 +304,10 @@ export function ReportsAnalyticsDashboard() {
 }
 
 // Sales Analytics Reports Component
-function SalesAnalyticsReports({ quotations, salesOrders, customers, conversionRate }: {
+function SalesAnalyticsReports({ quotations, salesOrders, clients, conversionRate }: {
   quotations: number;
   salesOrders: number;
-  customers: number;
+  clients: number;
   conversionRate: number;
 }) {
   return (
@@ -339,23 +337,23 @@ function SalesAnalyticsReports({ quotations, salesOrders, customers, conversionR
 
       <Card>
         <CardHeader>
-          <CardTitle>Customer Analytics</CardTitle>
-          <CardDescription>Customer base insights</CardDescription>
+          <CardTitle>Client Analytics</CardTitle>
+          <CardDescription>Client base insights</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="text-center">
-              <div className="text-4xl font-bold text-blue-600">{customers}</div>
-              <p className="text-sm text-muted-foreground">Total Active Customers</p>
+              <div className="text-4xl font-bold text-blue-600">{clients}</div>
+              <p className="text-sm text-muted-foreground">Total Active Clients</p>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>New Customers</span>
-                <span>{Math.floor(customers * 0.2)}</span>
+                <span>New Clients</span>
+                <span>{Math.floor(clients * 0.2)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Returning Customers</span>
-                <span>{Math.floor(customers * 0.8)}</span>
+                <span>Returning Clients</span>
+                <span>{Math.floor(clients * 0.8)}</span>
               </div>
             </div>
           </div>

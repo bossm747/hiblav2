@@ -23,8 +23,8 @@ interface SalesOrder {
   id: string;
   number: string;
   quotationNumber?: string;
-  customerName: string;
-  customerCode: string;
+  clientName: string;
+  clientCode: string;
   status: string;
   total: number;
   dueDate: string;
@@ -67,8 +67,8 @@ export function SalesPage() {
 
   const filteredSalesOrders = salesOrders.filter(order => {
     const matchesSearch = order.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customerCode.toLowerCase().includes(searchTerm.toLowerCase());
+                         order.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.clientCode.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     
@@ -174,7 +174,7 @@ export function SalesPage() {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="search"
-                  placeholder="Search by order number, customer..."
+                  placeholder="Search by order number, client..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8"
@@ -202,7 +202,7 @@ export function SalesPage() {
           <div className="border rounded-lg">
             <div className="grid grid-cols-7 gap-4 p-4 bg-gray-50 font-medium text-sm">
               <div>Order #</div>
-              <div>Customer</div>
+              <div>Client</div>
               <div>Quotation #</div>
               <div>Due Date</div>
               <div>Amount</div>
@@ -228,7 +228,7 @@ export function SalesPage() {
                     {order.number}
                   </div>
                   <div className="font-medium">
-                    {order.customerName || order.customerCode}
+                    {order.clientName || order.clientCode}
                   </div>
                   <div className="text-gray-600">
                     {order.quotationNumber || '-'}

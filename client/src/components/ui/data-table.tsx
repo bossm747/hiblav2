@@ -274,7 +274,7 @@ export function DataTable({
                 {columns.map(column => (
                   <TableHead 
                     key={column.key}
-                    className={column.sortable ? "cursor-pointer hover:bg-muted/50" : ""}
+                    className={column.sortable ? "cursor-pointer hover:bg-muted" : ""}
                     onClick={() => handleSort(column.key)}
                   >
                     <div className="flex items-center space-x-2">

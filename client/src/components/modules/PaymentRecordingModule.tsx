@@ -70,7 +70,7 @@ import {
 const paymentRecordSchema = z.object({
   dateOfPayment: z.string().min(1, 'Payment date is required'),
   salesOrderNumber: z.string().min(1, 'Sales order number is required'),
-  customerCode: z.string().min(1, 'Customer code is required'),
+  clientCode: z.string().min(1, 'Client code is required'),
   methodOfPayment: z.enum(['bank', 'agent', 'money transfer', 'cash']),
   receivingAccount: z.string().optional(),
   paymentAmount: z.number().min(0.01, 'Payment amount must be greater than 0'),
@@ -107,7 +107,7 @@ export function PaymentRecordingModule({ className }: PaymentRecordingModuleProp
     defaultValues: {
       dateOfPayment: new Date().toISOString().split('T')[0],
       salesOrderNumber: '',
-      customerCode: '',
+      clientCode: '',
       methodOfPayment: 'bank',
       receivingAccount: '',
       paymentAmount: 0,
@@ -267,7 +267,14 @@ export function PaymentRecordingModule({ className }: PaymentRecordingModuleProp
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Sales Order Number *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={(value) => {
+                            field.onChange(value);
+                            // Auto-fill client code when sales order is selected
+                            const selectedOrder = salesOrders?.find(order => order.salesOrderNumber === value);
+                            if (selectedOrder) {
+                              form.setValue('clientCode', selectedOrder.clientCode);
+                            }
+                          }}>
                             <FormControl>
                               <SelectTrigger data-testid="select-sales-order">
                                 <SelectValue placeholder="Select sales order" />
@@ -276,7 +283,7 @@ export function PaymentRecordingModule({ className }: PaymentRecordingModuleProp
                             <SelectContent>
                               {salesOrders.map((order: any) => (
                                 <SelectItem key={order.id} value={order.salesOrderNumber}>
-                                  {order.salesOrderNumber} - {order.customerCode}
+                                  {order.salesOrderNumber} - {order.clientCode}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -288,12 +295,12 @@ export function PaymentRecordingModule({ className }: PaymentRecordingModuleProp
 
                     <FormField
                       control={form.control}
-                      name="customerCode"
+                      name="clientCode"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Customer Code *</FormLabel>
+                          <FormLabel>Client Code *</FormLabel>
                           <FormControl>
-                            <Input {...field} placeholder="Enter customer code" data-testid="input-customer-code" />
+                            <Input {...field} placeholder="Enter client code" data-testid="input-client-code" />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -490,7 +497,7 @@ export function PaymentRecordingModule({ className }: PaymentRecordingModuleProp
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="upload" data-testid="tab-upload">
-              Customer Support Upload
+              Internal Staff Upload
             </TabsTrigger>
             <TabsTrigger value="finance" data-testid="tab-finance">
               Finance Verification
@@ -508,7 +515,7 @@ export function PaymentRecordingModule({ className }: PaymentRecordingModuleProp
               <CardHeader>
                 <CardTitle>Pending Upload Verification</CardTitle>
                 <CardDescription>
-                  Payment screenshots uploaded by customer support team awaiting finance verification
+                  Payment screenshots uploaded by internal staff team awaiting finance verification
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -517,7 +524,7 @@ export function PaymentRecordingModule({ className }: PaymentRecordingModuleProp
                     <TableRow>
                       <TableHead>Date</TableHead>
                       <TableHead>Sales Order</TableHead>
-                      <TableHead>Customer</TableHead>
+                      <TableHead>Client</TableHead>
                       <TableHead>Method</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
@@ -529,7 +536,7 @@ export function PaymentRecordingModule({ className }: PaymentRecordingModuleProp
                       <TableRow key={record.id}>
                         <TableCell>{new Date(record.dateOfPayment).toLocaleDateString()}</TableCell>
                         <TableCell>{record.salesOrderNumber}</TableCell>
-                        <TableCell>{record.customerCode}</TableCell>
+                        <TableCell>{record.clientCode}</TableCell>
                         <TableCell>{record.methodOfPayment}</TableCell>
                         <TableCell>${record.paymentAmount}</TableCell>
                         <TableCell>{getStatusBadge(record.status)}</TableCell>
@@ -575,7 +582,7 @@ export function PaymentRecordingModule({ className }: PaymentRecordingModuleProp
                     <TableRow>
                       <TableHead>Date</TableHead>
                       <TableHead>Sales Order</TableHead>
-                      <TableHead>Customer</TableHead>
+                      <TableHead>Client</TableHead>
                       <TableHead>Method</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Verified By</TableHead>
@@ -588,7 +595,7 @@ export function PaymentRecordingModule({ className }: PaymentRecordingModuleProp
                       <TableRow key={record.id}>
                         <TableCell>{new Date(record.dateOfPayment).toLocaleDateString()}</TableCell>
                         <TableCell>{record.salesOrderNumber}</TableCell>
-                        <TableCell>{record.customerCode}</TableCell>
+                        <TableCell>{record.clientCode}</TableCell>
                         <TableCell>{record.methodOfPayment}</TableCell>
                         <TableCell>${record.paymentAmount}</TableCell>
                         <TableCell>{record.paymentVerifiedBy || 'System'}</TableCell>
@@ -625,7 +632,7 @@ export function PaymentRecordingModule({ className }: PaymentRecordingModuleProp
                     <TableRow>
                       <TableHead>Date</TableHead>
                       <TableHead>Sales Order</TableHead>
-                      <TableHead>Customer</TableHead>
+                      <TableHead>Client</TableHead>
                       <TableHead>Method</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Confirmed At</TableHead>
@@ -637,7 +644,7 @@ export function PaymentRecordingModule({ className }: PaymentRecordingModuleProp
                       <TableRow key={record.id}>
                         <TableCell>{new Date(record.dateOfPayment).toLocaleDateString()}</TableCell>
                         <TableCell>{record.salesOrderNumber}</TableCell>
-                        <TableCell>{record.customerCode}</TableCell>
+                        <TableCell>{record.clientCode}</TableCell>
                         <TableCell>{record.methodOfPayment}</TableCell>
                         <TableCell>${record.paymentAmount}</TableCell>
                         <TableCell>
@@ -666,7 +673,7 @@ export function PaymentRecordingModule({ className }: PaymentRecordingModuleProp
                     <TableRow>
                       <TableHead>Date</TableHead>
                       <TableHead>Sales Order</TableHead>
-                      <TableHead>Customer</TableHead>
+                      <TableHead>Client</TableHead>
                       <TableHead>Method</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
@@ -678,7 +685,7 @@ export function PaymentRecordingModule({ className }: PaymentRecordingModuleProp
                       <TableRow key={record.id}>
                         <TableCell>{new Date(record.dateOfPayment).toLocaleDateString()}</TableCell>
                         <TableCell>{record.salesOrderNumber}</TableCell>
-                        <TableCell>{record.customerCode}</TableCell>
+                        <TableCell>{record.clientCode}</TableCell>
                         <TableCell>{record.methodOfPayment}</TableCell>
                         <TableCell>${record.paymentAmount}</TableCell>
                         <TableCell>{getStatusBadge(record.status)}</TableCell>

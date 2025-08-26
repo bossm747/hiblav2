@@ -25,9 +25,9 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { Users } from 'lucide-react';
 
-const customerFormSchema = z.object({
-  customerCode: z.string().min(1, 'Customer code is required'),
-  name: z.string().min(1, 'Customer name is required'),
+const clientFormSchema = z.object({
+  clientCode: z.string().min(1, 'Client code is required'),
+  name: z.string().min(1, 'Client name is required'),
   email: z.string().email('Valid email is required'),
   phone: z.string().optional(),
   address: z.string().optional(),
@@ -35,7 +35,7 @@ const customerFormSchema = z.object({
   state: z.string().optional(),
   country: z.string().min(1, 'Country is required'),
   postalCode: z.string().optional(),
-  customerType: z.enum(['premium', 'standard', 'bulk', 'wholesale']),
+  clientType: z.enum(['premium', 'standard', 'bulk', 'wholesale']),
   creditLimit: z.string().default('0.00'),
   paymentTerms: z.enum(['net15', 'net30', 'net45', 'net60', 'cod', 'prepaid']),
   taxId: z.string().optional(),
@@ -44,23 +44,23 @@ const customerFormSchema = z.object({
   isActive: z.boolean().default(true),
 });
 
-type CustomerFormData = z.infer<typeof customerFormSchema>;
+type ClientFormData = z.infer<typeof clientFormSchema>;
 
-interface CustomerFormProps {
-  customerId?: string;
-  defaultCustomerCode?: string;
+interface ClientFormProps {
+  clientId?: string;
+  defaultClientCode?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export function CustomerForm({ customerId, defaultCustomerCode, onSuccess, onCancel }: CustomerFormProps) {
+export function ClientForm({ clientId, defaultClientCode, onSuccess, onCancel }: ClientFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const form = useForm<CustomerFormData>({
-    resolver: zodResolver(customerFormSchema),
+  const form = useForm<ClientFormData>({
+    resolver: zodResolver(clientFormSchema),
     defaultValues: {
-      customerCode: defaultCustomerCode || '',
+      clientCode: defaultClientCode || '',
       name: '',
       email: '',
       phone: '',
@@ -69,7 +69,7 @@ export function CustomerForm({ customerId, defaultCustomerCode, onSuccess, onCan
       state: '',
       country: 'Philippines',
       postalCode: '',
-      customerType: 'standard',
+      clientType: 'standard',
       creditLimit: '0.00',
       paymentTerms: 'net30',
       taxId: '',
@@ -79,10 +79,10 @@ export function CustomerForm({ customerId, defaultCustomerCode, onSuccess, onCan
     },
   });
 
-  const createOrUpdateCustomerMutation = useMutation({
-    mutationFn: async (data: CustomerFormData) => {
-      const url = customerId ? `/api/customers/${customerId}` : '/api/customers';
-      const method = customerId ? 'PUT' : 'POST';
+  const createOrUpdateClientMutation = useMutation({
+    mutationFn: async (data: ClientFormData) => {
+      const url = clientId ? `/api/clients/${clientId}` : '/api/clients';
+      const method = clientId ? 'PUT' : 'POST';
       
       const response = await fetch(url, {
         method,
@@ -92,7 +92,7 @@ export function CustomerForm({ customerId, defaultCustomerCode, onSuccess, onCan
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || `Failed to ${customerId ? 'update' : 'create'} customer`);
+        throw new Error(error.message || `Failed to ${clientId ? 'update' : 'create'} client`);
       }
 
       return response.json();
@@ -100,10 +100,10 @@ export function CustomerForm({ customerId, defaultCustomerCode, onSuccess, onCan
     onSuccess: () => {
       toast({
         title: 'Success',
-        description: `Customer ${customerId ? 'updated' : 'created'} successfully`,
+        description: `Client ${clientId ? 'updated' : 'created'} successfully`,
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
-      if (!customerId) {
+      queryClient.invalidateQueries({ queryKey: ['/api/clients'] });
+      if (!clientId) {
         form.reset();
       }
       onSuccess?.();
@@ -122,22 +122,22 @@ export function CustomerForm({ customerId, defaultCustomerCode, onSuccess, onCan
       <CardHeader className="px-2 sm:px-6">
         <CardTitle className="flex items-center text-lg sm:text-xl">
           <Users className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-          {customerId ? 'Update Customer' : 'Add New Customer'}
+          {clientId ? 'Update Client' : 'Add New Client'}
         </CardTitle>
       </CardHeader>
       <CardContent className="px-2 sm:px-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((data) => createOrUpdateCustomerMutation.mutate(data))} className="space-y-6">
+          <form onSubmit={form.handleSubmit((data) => createOrUpdateClientMutation.mutate(data))} className="space-y-6">
             {/* Basic Information */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="customerCode"
+                  name="clientCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Customer Code *</FormLabel>
+                      <FormLabel>Client Code *</FormLabel>
                       <FormControl>
                         <Input placeholder="e.g., ABA-001" {...field} />
                       </FormControl>
@@ -294,10 +294,10 @@ export function CustomerForm({ customerId, defaultCustomerCode, onSuccess, onCan
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="customerType"
+                  name="clientType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Customer Type</FormLabel>
+                      <FormLabel>Client Type</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -306,7 +306,7 @@ export function CustomerForm({ customerId, defaultCustomerCode, onSuccess, onCan
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="premium">Premium - High-value accounts</SelectItem>
-                          <SelectItem value="standard">Standard - Regular customers</SelectItem>
+                          <SelectItem value="standard">Standard - Regular clients</SelectItem>
                           <SelectItem value="bulk">Bulk - Large quantity orders</SelectItem>
                           <SelectItem value="wholesale">Wholesale - Resellers</SelectItem>
                         </SelectContent>
@@ -400,7 +400,7 @@ export function CustomerForm({ customerId, defaultCustomerCode, onSuccess, onCan
                     <FormLabel>Additional Notes</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="Special instructions, preferences, or important notes about this customer..."
+                        placeholder="Special instructions, preferences, or important notes about this client..."
                         className="min-h-[80px]"
                         {...field} 
                       />
@@ -414,12 +414,12 @@ export function CustomerForm({ customerId, defaultCustomerCode, onSuccess, onCan
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
               <Button 
                 type="submit" 
-                disabled={createOrUpdateCustomerMutation.isPending}
+                disabled={createOrUpdateClientMutation.isPending}
                 className="min-h-[44px] sm:min-h-[36px] w-full sm:w-auto"
               >
-                {createOrUpdateCustomerMutation.isPending 
-                  ? (customerId ? 'Updating...' : 'Creating...') 
-                  : (customerId ? 'Update Customer' : 'Create Customer')
+                {createOrUpdateClientMutation.isPending 
+                  ? (clientId ? 'Updating...' : 'Creating...') 
+                  : (clientId ? 'Update Client' : 'Create Client')
                 }
               </Button>
               {onCancel && (

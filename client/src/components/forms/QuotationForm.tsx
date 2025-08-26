@@ -11,10 +11,10 @@ import { Separator } from '@/components/ui/separator';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
-interface Customer {
+interface Client {
   id: string;
   name: string;
-  customerCode: string;
+  clientCode: string;
   country: string;
   priceListId: string;
 }
@@ -48,7 +48,7 @@ interface QuotationFormProps {
 export function QuotationForm({ duplicateData }: QuotationFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [priceLists, setPriceLists] = useState<PriceList[]>([]);
   
@@ -56,19 +56,19 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
   const [productSearchTerms, setProductSearchTerms] = useState<string[]>([]);
   const [productOpenStates, setProductOpenStates] = useState<boolean[]>([]);
   
-  // Customer search states
-  const [customerSearchTerm, setCustomerSearchTerm] = useState('');
-  const [customerOpen, setCustomerOpen] = useState(false);
+  // Client search states
+  const [clientSearchTerm, setClientSearchTerm] = useState('');
+  const [clientOpen, setClientOpen] = useState(false);
   
   const [formData, setFormData] = useState({
-    customerId: '',
-    customerCode: '',
+    clientId: '',
+    clientCode: '',
     country: '',
     priceListId: '',
     revisionNumber: 'R0',
     paymentMethod: '',
     shippingMethod: '',
-    customerServiceInstructions: '',
+    clientServiceInstructions: '',
     validUntil: '',
     subtotal: 0,
     shippingFee: 0,
@@ -86,7 +86,7 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
     }] as QuotationItem[]
   });
 
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   // Load data on component mount and when duplicate data changes
   useEffect(() => {
@@ -97,14 +97,14 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
   useEffect(() => {
     if (duplicateData) {
       setFormData({
-        customerId: duplicateData.customerId || '',
-        customerCode: duplicateData.customerCode || '',
+        clientId: duplicateData.clientId || '',
+        clientCode: duplicateData.clientCode || '',
         country: duplicateData.country || '',
         priceListId: duplicateData.priceListId || '',
         revisionNumber: duplicateData.revisionNumber || 'R0',
         paymentMethod: duplicateData.paymentMethod || '',
         shippingMethod: duplicateData.shippingMethod || '',
-        customerServiceInstructions: duplicateData.customerServiceInstructions || '',
+        clientServiceInstructions: duplicateData.clientServiceInstructions || '',
         validUntil: duplicateData.validUntil || '',
         subtotal: duplicateData.subtotal || 0,
         shippingFee: duplicateData.shippingFee || 0,
@@ -122,15 +122,15 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
         }]
       });
       
-      // Set selected customer if available
-      if (duplicateData.customerId) {
-        const customer = customers.find(c => c.id === duplicateData.customerId);
-        if (customer) {
-          setSelectedCustomer(customer);
+      // Set selected client if available
+      if (duplicateData.clientId) {
+        const client = clients.find(c => c.id === duplicateData.clientId);
+        if (client) {
+          setSelectedClient(client);
         }
       }
     }
-  }, [duplicateData, customers]);
+  }, [duplicateData, clients]);
 
   const loadFormData = async () => {
     try {
@@ -148,24 +148,24 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
       console.log('🔄 Loading quotation form data...');
 
       // Load all data in parallel
-      const [customersRes, productsRes, priceListsRes] = await Promise.all([
-        fetch('/api/customers', { headers }),
+      const [clientsRes, productsRes, priceListsRes] = await Promise.all([
+        fetch('/api/clients', { headers }),
         fetch('/api/products', { headers }),
         fetch('/api/price-lists', { headers })
       ]);
 
       console.log('📊 API Response Status:', {
-        customers: customersRes.status,
+        clients: clientsRes.status,
         products: productsRes.status,
         priceLists: priceListsRes.status
       });
 
-      if (customersRes.ok) {
-        const customersData = await customersRes.json();
-        console.log('✅ Customers loaded:', customersData?.length || 0);
-        setCustomers(customersData || []);
+      if (clientsRes.ok) {
+        const clientsData = await clientsRes.json();
+        console.log('✅ Clients loaded:', clientsData?.length || 0);
+        setClients(clientsData || []);
       } else {
-        console.error('❌ Failed to load customers:', customersRes.statusText);
+        console.error('❌ Failed to load clients:', clientsRes.statusText);
       }
 
       if (productsRes.ok) {
@@ -258,16 +258,16 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
     });
   };
 
-  const handleCustomerChange = (customerId: string) => {
-    const customer = customers.find(c => c.id === customerId);
-    if (customer) {
-      setSelectedCustomer(customer);
+  const handleClientChange = (clientId: string) => {
+    const client = clients.find(c => c.id === clientId);
+    if (client) {
+      setSelectedClient(client);
       setFormData(prev => ({
         ...prev,
-        customerId,
-        customerCode: customer.customerCode,
-        country: customer.country,
-        priceListId: customer.priceListId
+        clientId,
+        clientCode: client.clientCode,
+        country: client.country,
+        priceListId: client.priceListId
       }));
     }
   };
@@ -285,10 +285,10 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
   }, [formData.items, formData.shippingFee, formData.bankCharge, formData.discount, formData.others]);
 
   const submitQuotation = async () => {
-    if (!formData.customerId) {
+    if (!formData.clientId) {
       toast({
         title: "Error",
-        description: "Please select a customer",
+        description: "Please select a client",
         variant: "destructive"
       });
       return;
@@ -313,14 +313,14 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          customerId: formData.customerId,
-          customerCode: formData.customerCode,
+          clientId: formData.clientId,
+          clientCode: formData.clientCode,
           country: formData.country,
           priceListId: formData.priceListId,
           revisionNumber: formData.revisionNumber,
           paymentMethod: formData.paymentMethod,
           shippingMethod: formData.shippingMethod,
-          customerServiceInstructions: formData.customerServiceInstructions,
+          clientServiceInstructions: formData.clientServiceInstructions,
           validUntil: formData.validUntil || undefined,
           subtotal: String(formData.subtotal),
           shippingFee: String(formData.shippingFee),
@@ -341,14 +341,14 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
         
         // Reset form and refresh quotations list
         setFormData({
-          customerId: '',
-          customerCode: '',
+          clientId: '',
+          clientCode: '',
           country: '',
           priceListId: '',
           revisionNumber: 'R0',
           paymentMethod: '',
           shippingMethod: '',
-          customerServiceInstructions: '',
+          clientServiceInstructions: '',
           validUntil: '',
           subtotal: 0,
           shippingFee: 0,
@@ -365,7 +365,7 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
             lineTotal: 0 
           }]
         });
-        setSelectedCustomer(null);
+        setSelectedClient(null);
         
         // Trigger parent component to refresh quotations list
         window.dispatchEvent(new CustomEvent('quotationCreated'));
@@ -384,41 +384,34 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      {/* Canva-Style Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-8 rounded-3xl shadow-2xl">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative text-center text-white">
-          <h1 className="text-4xl font-bold mb-3 tracking-tight">Create New Quotation</h1>
-          <p className="text-xl text-indigo-100 opacity-90 font-medium">Generate professional quotations with confidence</p>
-          <div className="mt-4 flex items-center justify-center space-x-2 text-sm">
-            <div className="px-3 py-1 bg-white/20 rounded-full">Auto-generated number</div>
-            <div className="w-1 h-1 bg-white/60 rounded-full"></div>
-            <div className="px-3 py-1 bg-white/20 rounded-full">{new Date().toLocaleDateString()}</div>
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Modern Header */}
+      <Card className="border-border shadow-sm">
+        <CardHeader className="bg-muted/30 border-b">
+          <CardTitle className="text-2xl font-semibold text-foreground">Create New Quotation</CardTitle>
+          <p className="text-muted-foreground">Generate professional quotations with confidence</p>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+            <span className="px-2 py-1 bg-background border border-input rounded">Auto-generated number</span>
+            <span className="px-2 py-1 bg-background border border-input rounded">{new Date().toLocaleDateString()}</span>
           </div>
-        </div>
-        <div className="absolute -top-4 -right-4 w-32 h-32 bg-white/10 rounded-full"></div>
-        <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-white/10 rounded-full"></div>
-      </div>
+        </CardHeader>
+      </Card>
 
-      {/* Main Form Container with Canva-Style Design */}
-      <Card className="border-0 shadow-2xl rounded-3xl overflow-hidden bg-gradient-to-br from-white via-gray-50 to-blue-50/30">
-        <div className="h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
-        <CardContent className="space-y-10 p-10">
+      {/* Main Form Container */}
+      <Card className="border-border shadow-sm">
+        <CardContent className="space-y-8 p-6">
           {/* Essential Information Section */}
-          <div className="bg-white p-8 rounded-2xl shadow-lg border-2 border-gray-100">
-            <div className="flex items-center mb-6">
-              <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full mr-4"></div>
-              <h3 className="text-2xl font-bold text-gray-800">Essential Information</h3>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">Essential Information</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="space-y-3">
-                <Label className="text-lg font-semibold text-gray-700 flex items-center">
-                  <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">
                   Price Tier *
                 </Label>
                 <Select value={formData.priceListId} onValueChange={(value) => setFormData(prev => ({ ...prev, priceListId: value }))}>
-                  <SelectTrigger className="h-14 text-lg border-2 border-gray-200 rounded-xl hover:border-purple-400 transition-all duration-200 shadow-sm">
+                  <SelectTrigger className="bg-background border-input text-foreground">
                     <SelectValue placeholder="Choose price tier to unlock pricing" />
                   </SelectTrigger>
                   <SelectContent>
@@ -431,25 +424,24 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
                 </Select>
               </div>
 
-            <div className="space-y-3">
-              <Label className="text-lg font-semibold text-gray-700 flex items-center">
-                <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-                Customer *
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">
+                Client *
               </Label>
-              <Popover open={customerOpen} onOpenChange={setCustomerOpen}>
+              <Popover open={clientOpen} onOpenChange={setClientOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     role="combobox"
-                    aria-expanded={customerOpen}
-                    className="h-14 w-full justify-between text-lg border-2 border-gray-200 rounded-xl hover:border-purple-400 transition-all duration-200 shadow-sm"
-                    data-testid="select-customer"
+                    aria-expanded={clientOpen}
+                    className="w-full justify-between bg-background border-input text-foreground"
+                    data-testid="select-client"
                   >
-                    {selectedCustomer ? (
-                      <span className="truncate">{selectedCustomer.name} ({selectedCustomer.customerCode})</span>
+                    {selectedClient ? (
+                      <span className="truncate">{selectedClient.name} ({selectedClient.clientCode})</span>
                     ) : (
                       <span className="text-muted-foreground">
-                        {customers.length > 0 ? "Search customers..." : "Loading customers..."}
+                        {clients.length > 0 ? "Search clients..." : "Loading clients..."}
                       </span>
                     )}
                     <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -458,74 +450,74 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
                 <PopoverContent className="w-[300px] md:w-[400px] p-0" align="start">
                   <Command>
                     <CommandInput 
-                      placeholder="Search customers..." 
-                      value={customerSearchTerm}
-                      onValueChange={setCustomerSearchTerm}
+                      placeholder="Search clients..." 
+                      value={clientSearchTerm}
+                      onValueChange={setClientSearchTerm}
                       className="h-12 text-base md:text-sm"
                     />
                     <CommandEmpty>
                       <div className="p-4 text-center space-y-3">
-                        <p className="text-sm text-muted-foreground">No customers found.</p>
+                        <p className="text-sm text-muted-foreground">No clients found.</p>
                         <Button
                           variant="outline"
                           className="w-full h-10"
                           onClick={() => {
-                            // Navigate to create customer page
-                            window.location.href = '/customers/create';
+                            // Navigate to create client page
+                            window.location.href = '/clients/create';
                           }}
                         >
                           <PlusCircle className="w-4 h-4 mr-2" />
-                          Create New Customer
+                          Create New Client
                         </Button>
                       </div>
                     </CommandEmpty>
                     <CommandGroup className="max-h-64 overflow-y-auto">
-                      {customers
-                        .filter(customer => 
-                          customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
-                          customer.customerCode.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
-                          customer.country.toLowerCase().includes(customerSearchTerm.toLowerCase())
+                      {clients
+                        .filter(client => 
+                          client.name.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+                          client.clientCode.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+                          client.country.toLowerCase().includes(clientSearchTerm.toLowerCase())
                         )
                         .slice(0, 20)
-                        .map((customer) => (
+                        .map((client) => (
                           <CommandItem
-                            key={customer.id}
-                            value={customer.name}
+                            key={client.id}
+                            value={client.name}
                             onSelect={() => {
-                              handleCustomerChange(customer.id);
-                              setCustomerOpen(false);
+                              handleClientChange(client.id);
+                              setClientOpen(false);
                             }}
                             className="cursor-pointer py-3"
                           >
                             <div className="flex flex-col">
-                              <span className="font-medium">{customer.name}</span>
+                              <span className="font-medium">{client.name}</span>
                               <span className="text-sm text-muted-foreground">
-                                {customer.customerCode} • {customer.country}
+                                {client.clientCode} • {client.country}
                               </span>
                             </div>
                           </CommandItem>
                         ))}
                     </CommandGroup>
-                    {customers.filter(customer => 
-                      customer.name.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
-                      customer.customerCode.toLowerCase().includes(customerSearchTerm.toLowerCase()) ||
-                      customer.country.toLowerCase().includes(customerSearchTerm.toLowerCase())
+                    {clients.filter(client => 
+                      client.name.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+                      client.clientCode.toLowerCase().includes(clientSearchTerm.toLowerCase()) ||
+                      client.country.toLowerCase().includes(clientSearchTerm.toLowerCase())
                     ).length > 20 && (
                       <div className="p-2 text-center text-sm text-muted-foreground border-t">
                         Showing first 20 results. Refine search for more.
                       </div>
                     )}
-                    {customers.length > 0 && (
+                    {clients.length > 0 && (
                       <div className="border-t p-2">
                         <Button
                           variant="ghost"
-                          className="w-full h-10 justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                          className="w-full h-10 justify-start text-foreground hover:bg-muted"
                           onClick={() => {
-                            window.location.href = '/customers/create';
+                            window.location.href = '/clients/create';
                           }}
                         >
                           <PlusCircle className="w-4 h-4 mr-2" />
-                          Create New Customer
+                          Create New Client
                         </Button>
                       </div>
                     )}
@@ -534,37 +526,37 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
               </Popover>
             </div>
 
-            <div className="space-y-3">
-              <Label className="text-lg font-semibold text-gray-700">Revision Number</Label>
+            <div className="space-y-2">
+              <Label className="text-muted-foreground">Revision Number</Label>
               <Input
                 value={formData.revisionNumber}
                 onChange={(e) => setFormData(prev => ({ ...prev, revisionNumber: e.target.value }))}
                 data-testid="input-revision-number"
-                className="h-14 text-lg border-2 border-gray-200 rounded-xl hover:border-purple-400 transition-all duration-200 shadow-sm"
+                className="bg-background border-input text-foreground"
               />
             </div>
             </div>
           </div>
 
-          {/* Customer Info Display */}
-          {selectedCustomer && (
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-2xl border-2 border-blue-200 shadow-lg">
-              <h4 className="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                <div className="w-3 h-3 bg-green-500 rounded-full mr-3 animate-pulse"></div>
-                Customer Selected
+          {/* Client Info Display */}
+          {selectedClient && (
+            <div className="bg-muted/30 p-6 rounded-lg border border-border">
+              <h4 className="text-lg font-semibold text-foreground mb-4 flex items-center">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                Client Selected
               </h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white p-4 rounded-xl shadow-sm">
-                  <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Customer Code</Label>
-                  <p className="font-mono text-xl mt-2 text-gray-800">{formData.customerCode}</p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-background p-4 rounded border border-input">
+                  <Label className="text-sm text-muted-foreground">Client Code</Label>
+                  <p className="font-mono text-lg mt-1 text-foreground">{formData.clientCode}</p>
                 </div>
-                <div className="bg-white p-4 rounded-xl shadow-sm">
-                  <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Country</Label>
-                  <p className="text-xl mt-2 text-gray-800">{formData.country}</p>
+                <div className="bg-background p-4 rounded border border-input">
+                  <Label className="text-sm text-muted-foreground">Country</Label>
+                  <p className="text-lg mt-1 text-foreground">{formData.country}</p>
                 </div>
-                <div className="bg-white p-4 rounded-xl shadow-sm">
-                  <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Price List</Label>
-                  <p className="text-xl mt-2 font-bold text-purple-700">
+                <div className="bg-background p-4 rounded border border-input">
+                  <Label className="text-sm text-muted-foreground">Price List</Label>
+                  <p className="text-lg mt-1 font-semibold text-foreground">
                     {priceLists.find(pl => pl.id === formData.priceListId)?.name || 'Default'}
                   </p>
                 </div>
@@ -573,12 +565,11 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
           )}
 
           {/* Items Section */}
-          <div className="bg-white p-8 rounded-2xl shadow-lg border-2 border-gray-100">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center">
-                <div className="w-1 h-8 bg-gradient-to-b from-green-500 to-blue-600 rounded-full mr-4"></div>
-                <h3 className="text-2xl font-bold text-gray-800">Order Items</h3>
-                <span className="ml-3 px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">Order Items</h3>
+                <span className="text-sm text-muted-foreground">
                   Max 300 items
                 </span>
               </div>
@@ -587,7 +578,7 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
                 onClick={addItem} 
                 size="sm" 
                 data-testid="button-add-item"
-                className="h-12 md:h-10 text-base md:text-sm bg-purple-600 hover:bg-purple-700"
+                className="h-9 px-4"
                 disabled={!formData.priceListId}
               >
                 <PlusCircle className="w-4 h-4 mr-2" />
@@ -618,10 +609,10 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
               const selectedProduct = products.find(p => p.id === item.productId);
 
               return (
-              <Card key={index} className="p-4">
+              <Card key={index} className="p-4 border-border shadow-sm">
                 <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-6 md:gap-4">
                   <div className="space-y-2 md:col-span-2">
-                    <Label>Product * {!formData.priceListId && <span className="text-red-500">(Select price tier first)</span>}</Label>
+                    <Label className="text-muted-foreground">Product * {!formData.priceListId && <span className="text-destructive">(Select price tier first)</span>}</Label>
                     <Popover 
                       open={productOpenStates[index]} 
                       onOpenChange={(open) => {
@@ -635,7 +626,7 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
                           variant="outline"
                           role="combobox"
                           aria-expanded={productOpenStates[index]}
-                          className="h-12 w-full justify-between text-base md:text-sm"
+                          className="w-full justify-between bg-background border-input text-foreground"
                           disabled={!formData.priceListId}
                           data-testid={`select-product-${index}`}
                         >
@@ -696,43 +687,46 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Specification</Label>
+                    <Label className="text-muted-foreground">Specification</Label>
                     <Input
                       value={item.specification}
                       onChange={(e) => updateItem(index, 'specification', e.target.value)}
                       placeholder="Enter specification"
+                      className="bg-background border-input text-foreground"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Quantity * (1 decimal)</Label>
+                    <Label className="text-muted-foreground">Quantity * (1 decimal)</Label>
                     <Input
                       type="number"
                       step="0.1"
                       min="0"
                       value={item.quantity}
                       onChange={(e) => updateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+                      className="bg-background border-input text-foreground"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Unit Price * (VLOOKUP)</Label>
+                    <Label className="text-muted-foreground">Unit Price * (VLOOKUP)</Label>
                     <Input
                       type="number"
                       step="0.01"
                       min="0"
                       value={item.unitPrice}
                       onChange={(e) => updateItem(index, 'unitPrice', parseFloat(e.target.value) || 0)}
+                      className="bg-background border-input text-foreground"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Line Total</Label>
+                    <Label className="text-muted-foreground">Line Total</Label>
                     <Input
                       type="number"
                       value={item.lineTotal.toFixed(2)}
                       readOnly
-                      className="bg-gray-50 font-semibold"
+                      className="bg-muted/50 font-semibold text-foreground"
                     />
                   </div>
 
@@ -755,19 +749,18 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
           <Separator />
 
           {/* Payment & Shipping Section */}
-          <div className="bg-white p-8 rounded-2xl shadow-lg border-2 border-gray-100">
-            <div className="flex items-center mb-6">
-              <div className="w-1 h-8 bg-gradient-to-b from-orange-500 to-red-600 rounded-full mr-4"></div>
-              <h3 className="text-2xl font-bold text-gray-800">Payment & Shipping</h3>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">Payment & Shipping</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-3">
-                <Label className="text-lg font-semibold text-gray-700">Method of Payment</Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Method of Payment</Label>
                 <Select 
                   value={formData.paymentMethod} 
                   onValueChange={(value) => setFormData(prev => ({ ...prev, paymentMethod: value }))}
                 >
-                  <SelectTrigger className="h-14 text-lg border-2 border-gray-200 rounded-xl hover:border-orange-400 transition-all duration-200 shadow-sm">
+                  <SelectTrigger className="bg-background border-input text-foreground">
                     <SelectValue placeholder="Select payment method" />
                   </SelectTrigger>
                   <SelectContent>
@@ -778,13 +771,13 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-3">
-                <Label className="text-lg font-semibold text-gray-700">Shipping Method</Label>
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Shipping Method</Label>
                 <Select 
                   value={formData.shippingMethod} 
                   onValueChange={(value) => setFormData(prev => ({ ...prev, shippingMethod: value }))}
                 >
-                  <SelectTrigger className="h-14 text-lg border-2 border-gray-200 rounded-xl hover:border-orange-400 transition-all duration-200 shadow-sm">
+                  <SelectTrigger className="bg-background border-input text-foreground">
                     <SelectValue placeholder="Select shipping method" />
                   </SelectTrigger>
                   <SelectContent>
@@ -792,145 +785,132 @@ export function QuotationForm({ duplicateData }: QuotationFormProps) {
                     <SelectItem value="UPS">UPS International</SelectItem>
                     <SelectItem value="FedEx">FedEx Global</SelectItem>
                     <SelectItem value="Agent">Agent Pickup</SelectItem>
-                    <SelectItem value="Pick Up">Customer Pickup</SelectItem>
+                    <SelectItem value="Pick Up">Client Pickup</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
           </div>
 
-          {/* Financial Summary - Professional Canva Style */}
-          <div className="bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 p-8 rounded-2xl shadow-lg border-2 border-emerald-200">
-            <div className="flex items-center mb-8">
-              <div className="w-1 h-8 bg-gradient-to-b from-emerald-500 to-blue-600 rounded-full mr-4"></div>
-              <h3 className="text-2xl font-bold text-gray-800">Financial Summary</h3>
-              <div className="ml-4 px-4 py-2 bg-emerald-100 text-emerald-800 text-sm font-semibold rounded-full">
-                Professional Calculation
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3 block">Sub Total</Label>
-                <Input
-                  type="number"
-                  value={formData.subtotal.toFixed(2)}
-                  readOnly
-                  className="bg-gray-50 font-bold text-xl h-14 border-2 border-gray-200 rounded-xl"
-                />
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3 block">Shipping Fee</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={formData.shippingFee}
-                  onChange={(e) => setFormData(prev => ({ ...prev, shippingFee: parseFloat(e.target.value) || 0 }))}
-                  className="h-14 text-xl border-2 border-gray-200 rounded-xl hover:border-blue-400 transition-all duration-200"
-                />
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3 block">Bank Charge</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={formData.bankCharge}
-                  onChange={(e) => setFormData(prev => ({ ...prev, bankCharge: parseFloat(e.target.value) || 0 }))}
-                  className="h-14 text-xl border-2 border-gray-200 rounded-xl hover:border-blue-400 transition-all duration-200"
-                />
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3 block">Discount</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  max="0"
-                  value={formData.discount}
-                  onChange={(e) => setFormData(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
-                  className="h-14 text-xl border-2 border-gray-200 rounded-xl hover:border-red-400 transition-all duration-200"
-                  placeholder="Enter negative value"
-                />
-              </div>
-              <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
-                <Label className="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3 block">Other Charges</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={formData.others}
-                  onChange={(e) => setFormData(prev => ({ ...prev, others: parseFloat(e.target.value) || 0 }))}
-                  className="h-14 text-xl border-2 border-gray-200 rounded-xl hover:border-blue-400 transition-all duration-200"
-                />
-              </div>
-              <div className="bg-gradient-to-r from-yellow-100 to-orange-100 p-6 rounded-xl shadow-lg border-2 border-yellow-300">
-                <Label className="text-sm font-bold text-orange-800 uppercase tracking-wide mb-3 block flex items-center">
-                  <span className="w-2 h-2 bg-orange-500 rounded-full mr-2"></span>
-                  Total Amount
-                </Label>
-                <Input
-                  type="number"
-                  value={formData.total.toFixed(2)}
-                  readOnly
-                  className="bg-gradient-to-r from-yellow-50 to-orange-50 font-bold text-2xl h-16 border-2 border-yellow-400 rounded-xl"
-                />
+          {/* Financial Summary */}
+          <div className="bg-gradient-to-b from-muted/30 to-background border border-border rounded-lg shadow-sm p-6">
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">Financial Summary</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Sub Total</Label>
+                  <Input
+                    type="number"
+                    value={formData.subtotal.toFixed(2)}
+                    readOnly
+                    className="bg-muted/50 font-semibold text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Shipping Fee</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.shippingFee}
+                    onChange={(e) => setFormData(prev => ({ ...prev, shippingFee: parseFloat(e.target.value) || 0 }))}
+                    className="bg-background border-input text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Bank Charge</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.bankCharge}
+                    onChange={(e) => setFormData(prev => ({ ...prev, bankCharge: parseFloat(e.target.value) || 0 }))}
+                    className="bg-background border-input text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Discount</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    max="0"
+                    value={formData.discount}
+                    onChange={(e) => setFormData(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
+                    className="bg-background border-input text-foreground"
+                    placeholder="Enter negative value"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-muted-foreground">Other Charges</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.others}
+                    onChange={(e) => setFormData(prev => ({ ...prev, others: parseFloat(e.target.value) || 0 }))}
+                    className="bg-background border-input text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-foreground">Total Amount</Label>
+                  <Input
+                    type="number"
+                    value={formData.total.toFixed(2)}
+                    readOnly
+                    className="bg-primary/10 font-bold text-lg text-foreground border-primary/20"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Customer Service Instructions */}
+          {/* Client Service Instructions */}
           <div className="space-y-2">
-            <Label>Customer Service Instructions</Label>
+            <Label className="text-muted-foreground">Client Service Instructions</Label>
             <Textarea
-              value={formData.customerServiceInstructions}
-              onChange={(e) => setFormData(prev => ({ ...prev, customerServiceInstructions: e.target.value }))}
+              value={formData.clientServiceInstructions}
+              onChange={(e) => setFormData(prev => ({ ...prev, clientServiceInstructions: e.target.value }))}
               placeholder="Enter any special instructions..."
               rows={3}
-              className="text-base md:text-sm"
+              className="bg-background border-input text-foreground"
             />
           </div>
 
           {/* Valid Until */}
           <div className="space-y-2">
-            <Label>Valid Until (Optional)</Label>
+            <Label className="text-muted-foreground">Valid Until (Optional)</Label>
             <Input
               type="date"
               value={formData.validUntil}
               onChange={(e) => setFormData(prev => ({ ...prev, validUntil: e.target.value }))}
-              className="h-12 text-base md:text-sm"
+              className="bg-background border-input text-foreground"
               data-testid="input-valid-until"
             />
           </div>
 
           {/* Action Buttons Section */}
-          <div className="bg-gradient-to-r from-gray-50 to-white p-8 rounded-2xl shadow-lg border-2 border-gray-200">
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-              <div className="text-center lg:text-left">
-                <h4 className="text-xl font-bold text-gray-800 mb-2">Ready to Submit?</h4>
-                <p className="text-gray-600">Review all details before creating your quotation</p>
-              </div>
-              <Button 
-                onClick={submitQuotation} 
-                disabled={isLoading || !formData.priceListId} 
-                className="w-full lg:w-auto min-w-[250px] h-16 text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl shadow-xl transition-all duration-200 transform hover:scale-105"
-                data-testid="button-create-quotation"
-              >
-                {isLoading ? 'Creating...' : !formData.priceListId ? 'Select Price Tier First' : 'Create Professional Quotation'}
-              </Button>
-            </div>
+          <div className="flex justify-end pt-6 border-t border-border">
+            <Button 
+              onClick={submitQuotation} 
+              disabled={isLoading || !formData.priceListId} 
+              className="h-10 px-6 font-medium"
+              data-testid="button-create-quotation"
+            >
+              {isLoading ? 'Creating...' : !formData.priceListId ? 'Select Price Tier First' : 'Create Quotation'}
+            </Button>
           </div>
 
-          {/* Professional Status Display */}
-          <div className="bg-gradient-to-r from-slate-100 to-gray-100 p-6 rounded-2xl border border-slate-200">
+          {/* Status Display */}
+          <div className="bg-muted/30 p-4 rounded-lg border border-border">
             <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-8">
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="font-medium text-gray-700">Items: {formData.items.length}/300</span>
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                <span className="text-sm text-muted-foreground">Items: {formData.items.length}/300</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="font-medium text-gray-700">Total: ${formData.total.toFixed(2)}</span>
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                <span className="text-sm text-muted-foreground">Total: ${formData.total.toFixed(2)}</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                <span className="font-medium text-gray-700">Creator: Auto-generated</span>
+                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                <span className="text-sm text-muted-foreground">Creator: Auto-generated</span>
               </div>
             </div>
           </div>

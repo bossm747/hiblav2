@@ -1,6 +1,6 @@
 import { db } from "./db";
 import {
-  customers,
+  clients,
   products,
   quotations,
   quotationItems,
@@ -38,9 +38,30 @@ export async function seedDatabase() {
     // 2. Seed Price Lists
     console.log("Seeding price lists...");
     const priceListsData = [
-      { id: "pl-1", name: "Regular Customer", displayOrder: 1, multiplier: 1.0, isActive: true },
-      { id: "pl-2", name: "Premier Customer", displayOrder: 2, multiplier: 0.9, isActive: true },
-      { id: "pl-3", name: "New Customer", displayOrder: 3, multiplier: 1.1, isActive: true }
+      {
+        id: "pl-1",
+        name: "Regular Client",
+        description: "Standard pricing for regular clients",
+        isActive: true,
+        createdAt: new Date("2024-01-01"),
+        updatedAt: new Date("2024-01-01")
+      },
+      {
+        id: "pl-2",
+        name: "Premier Client",
+        description: "Premium pricing for premier clients",
+        isActive: true,
+        createdAt: new Date("2024-01-01"),
+        updatedAt: new Date("2024-01-01")
+      },
+      {
+        id: "pl-3",
+        name: "New Client",
+        description: "Special pricing for new clients",
+        isActive: true,
+        createdAt: new Date("2024-01-01"),
+        updatedAt: new Date("2024-01-01")
+      }
     ];
     
     for (const pl of priceListsData) {
@@ -68,9 +89,9 @@ export async function seedDatabase() {
       }
     }
 
-    // 4. Seed Customers
-    console.log("Seeding customers...");
-    const customersData = [
+    // 4. Seed Clients
+    console.log("Seeding clients...");
+    const clientsData = [
       {
         id: "cust-1",
         code: "C001",
@@ -128,10 +149,10 @@ export async function seedDatabase() {
       }
     ];
     
-    for (const cust of customersData) {
-      const existing = await db.select().from(customers).where(eq(customers.id, cust.id)).limit(1);
+    for (const client of clientsData) {
+      const existing = await db.select().from(clients).where(eq(clients.id, client.id)).limit(1);
       if (existing.length === 0) {
-        await db.insert(customers).values(cust);
+        await db.insert(clients).values(client);
       }
     }
 
@@ -249,8 +270,8 @@ export async function seedDatabase() {
       {
         id: "quot-1",
         quotationNumber: "2025.01.001",
-        customerCode: "C001",
-        customerId: "cust-1",
+        clientCode: "C001",
+        clientId: "cust-1",
         country: "Nigeria",
         priceListId: "pl-1",
         subtotal: "650",
@@ -267,8 +288,8 @@ export async function seedDatabase() {
       {
         id: "quot-2",
         quotationNumber: "2025.01.002",
-        customerCode: "C002",
-        customerId: "cust-2",
+        clientCode: "C002",
+        clientId: "cust-2",
         country: "USA",
         priceListId: "pl-2",
         subtotal: "1250",
@@ -285,8 +306,8 @@ export async function seedDatabase() {
       {
         id: "quot-3",
         quotationNumber: "2025.01.003",
-        customerCode: "C003",
-        customerId: "cust-3",
+        clientCode: "C003",
+        clientId: "cust-3",
         country: "Philippines",
         priceListId: "pl-1",
         subtotal: "890",
@@ -340,8 +361,8 @@ export async function seedDatabase() {
         id: "so-1",
         salesOrderNumber: "SO-2025.01.001",
         quotationId: "quot-1",
-        customerCode: "C001",
-        customerId: "cust-1",
+        clientCode: "C001",
+        clientId: "cust-1",
         subtotal: "650",
         discount: "0",
         total: "650",
@@ -354,8 +375,8 @@ export async function seedDatabase() {
         id: "so-2",
         salesOrderNumber: "SO-2024.12.045",
         quotationId: null,
-        customerCode: "C004",
-        customerId: "cust-4",
+        clientCode: "C004",
+        clientId: "cust-4",
         subtotal: "480",
         discount: "0",
         total: "480",
@@ -368,8 +389,8 @@ export async function seedDatabase() {
         id: "so-3",
         salesOrderNumber: "SO-2024.12.044",
         quotationId: null,
-        customerCode: "C005",
-        customerId: "cust-5",
+        clientCode: "C005",
+        clientId: "cust-5",
         subtotal: "750",
         discount: "25",
         total: "725",
@@ -418,8 +439,8 @@ export async function seedDatabase() {
         id: "jo-1",
         jobOrderNumber: "JO-2025.01.001",
         salesOrderId: "so-1",
-        customerCode: "C001",
-        customerId: "cust-1",
+        clientCode: "C001",
+        clientId: "cust-1",
         status: "in-progress" as const,
         priority: "high" as const,
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
@@ -429,8 +450,8 @@ export async function seedDatabase() {
         id: "jo-2",
         jobOrderNumber: "JO-2024.12.045",
         salesOrderId: "so-2",
-        customerCode: "C004",
-        customerId: "cust-4",
+        clientCode: "C004",
+        clientId: "cust-4",
         status: "pending" as const,
         priority: "medium" as const,
         dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
@@ -440,8 +461,8 @@ export async function seedDatabase() {
         id: "jo-3",
         jobOrderNumber: "JO-2024.12.044",
         salesOrderId: "so-3",
-        customerCode: "C005",
-        customerId: "cust-5",
+        clientCode: "C005",
+        clientId: "cust-5",
         status: "completed" as const,
         priority: "low" as const,
         dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
@@ -451,8 +472,8 @@ export async function seedDatabase() {
         id: "jo-4",
         jobOrderNumber: "JO-2024.12.043",
         salesOrderId: null,
-        customerCode: "C002",
-        customerId: "cust-2",
+        clientCode: "C002",
+        clientId: "cust-2",
         status: "on-hold" as const,
         priority: "low" as const,
         dueDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000), // 21 days from now
@@ -552,7 +573,7 @@ export async function seedDatabase() {
 
     console.log("✅ Database seeding completed successfully!");
     console.log("📊 Seeded data summary:");
-    console.log("   - 5 Customers");
+    console.log("   - 5 Clients");
     console.log("   - 8 Products");
     console.log("   - 3 Quotations with items");
     console.log("   - 3 Sales Orders with items");

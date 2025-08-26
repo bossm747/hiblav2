@@ -4,8 +4,8 @@ export interface JobOrder {
   id: string;
   jobOrderNumber: string;
   salesOrderId?: string;
-  customerCode?: string;
-  customerId?: string;
+  clientCode?: string;
+  clientId?: string;
   status?: string;
   createdBy?: string;
   date?: string;

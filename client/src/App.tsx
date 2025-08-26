@@ -27,7 +27,7 @@ import { WarehouseTransferPage } from "@/pages/WarehouseTransferPage";
 import { VendorOnboarding } from "@/pages/VendorOnboarding";
 import { EnhancedReporting } from "@/pages/EnhancedReporting";
 import { TestConnection } from "@/pages/TestConnection";
-import { CreateCustomer } from "@/pages/CreateCustomer";
+
 
 
 // Create a query client
@@ -156,9 +156,7 @@ function AppRoutes() {
     case '/test-connection':
       content = <TestConnection />;
       break;
-    case '/customers/create':
-      content = <CreateCustomer />;
-      break;
+
     default:
       content = <Dashboard />; // Default to dashboard if route not found
   }

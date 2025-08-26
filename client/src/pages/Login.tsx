@@ -177,7 +177,7 @@ export default function Login({ onLoginSuccess, onBack }: LoginProps = {}) {
                 size="default"
                 onClick={() => handleDemoLogin('admin')}
                 disabled={isLoading}
-                className="h-10 text-sm font-medium hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+                className="h-10 text-sm font-medium hover:bg-purple-50 dark:hover:bg-purple-900 transition-colors"
               >
                 Admin
               </Button>
@@ -186,7 +186,7 @@ export default function Login({ onLoginSuccess, onBack }: LoginProps = {}) {
                 size="default"
                 onClick={() => handleDemoLogin('manager')}
                 disabled={isLoading}
-                className="h-10 text-sm font-medium hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition-colors"
+                className="h-10 text-sm font-medium hover:bg-cyan-50 dark:hover:bg-cyan-900 transition-colors"
               >
                 Manager
               </Button>
@@ -195,7 +195,7 @@ export default function Login({ onLoginSuccess, onBack }: LoginProps = {}) {
                 size="default"
                 onClick={() => handleDemoLogin('staff')}
                 disabled={isLoading}
-                className="h-10 text-sm font-medium hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-colors"
+                className="h-10 text-sm font-medium hover:bg-pink-50 dark:hover:bg-pink-900 transition-colors"
               >
                 Staff
               </Button>

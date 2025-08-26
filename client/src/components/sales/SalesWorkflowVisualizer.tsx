@@ -50,7 +50,7 @@ export function SalesWorkflowVisualizer({
     {
       id: 'quotations',
       title: 'Quotations',
-      description: 'Initial customer pricing and product details',
+      description: 'Initial client pricing and product details',
       icon: FileText,
       status: quotationsCount > 0 ? 'active' : 'pending',
       count: quotationsCount

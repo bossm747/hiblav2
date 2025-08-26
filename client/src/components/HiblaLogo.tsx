@@ -39,13 +39,13 @@ export function HiblaLogo({ className, showText = false, size = 'md' }: HiblaLog
       {showText && (
         <div className="ml-3 flex flex-col">
           <span className={cn(
-            'font-bold text-foreground leading-tight tracking-tight',
+            'font-bold text-white leading-tight tracking-tight',
             textSizeClasses[size]
           )}>
             HIBLA
           </span>
           <span className={cn(
-            'text-muted-foreground font-medium tracking-wider',
+            'text-white/80 font-medium tracking-wider',
             size === 'sm' ? 'text-xs' : size === 'md' ? 'text-xs' : 'text-sm'
           )}>
             FILIPINO HAIR

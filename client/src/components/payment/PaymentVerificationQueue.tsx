@@ -143,7 +143,7 @@ export function PaymentVerificationQueue() {
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by customer, invoice, or reference..."
+              placeholder="Search by client code, invoice, or amount..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 w-64"
@@ -218,7 +218,7 @@ export function PaymentVerificationQueue() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Customer</TableHead>
+                <TableHead>Client</TableHead>
                 <TableHead>Invoice</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Payment Method</TableHead>
@@ -334,7 +334,7 @@ export function PaymentVerificationQueue() {
               }
             </DialogTitle>
             <DialogDescription>
-              Customer: {selectedPayment?.customerCode} | Invoice: {selectedPayment?.invoiceNumber} | Amount: ${selectedPayment?.amount}
+              Client: {selectedPayment?.customerCode} | Invoice: {selectedPayment?.invoiceNumber} | Amount: ${selectedPayment?.amount}
             </DialogDescription>
           </DialogHeader>
           
@@ -357,7 +357,7 @@ export function PaymentVerificationQueue() {
                   <h4 className="font-semibold mb-2">Submission Details</h4>
                   <div className="space-y-1 text-sm">
                     <p><strong>Submitted:</strong> {format(new Date(selectedPayment.createdAt), 'PPP p')}</p>
-                    <p><strong>Uploaded by:</strong> {selectedPayment.uploadedBy || 'Customer Support'}</p>
+                    <p><strong>Uploaded by:</strong> {selectedPayment.uploadedBy || 'Internal Staff'}</p>
                     <p><strong>Priority:</strong> {getPriorityBadge(selectedPayment)}</p>
                   </div>
                 </div>

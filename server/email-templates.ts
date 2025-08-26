@@ -11,13 +11,13 @@ export interface EmailTemplateData {
 
 export function getBaseEmailTemplate(data: EmailTemplateData = {}): string {
   const {
-    title = "Hibla Filipino Hair",
-    subtitle = "Premium Real Filipino Hair Manufacturer & Supplier",
-    message = "Thank you for choosing Hibla for your hair business needs.",
+    title = "Hibla Manufacturing System",
+    subtitle = "Internal Operations Management Platform",
+    message = "This is an internal notification from the Hibla manufacturing system.",
     actionText,
     actionUrl,
-    companyName = "Hibla Filipino Hair",
-    footerText = "This email was sent from our manufacturing system. Please do not reply directly to this email.",
+    companyName = "Hibla Manufacturing",
+    footerText = "This is an internal system notification. Please do not reply directly to this email.",
     additionalContent = ""
   } = data;
 
@@ -261,7 +261,7 @@ export function getBaseEmailTemplate(data: EmailTemplateData = {}): string {
                         <p class="footer-text">${footerText}</p>
                         <p class="company-info">
                             © ${new Date().getFullYear()} ${companyName}. All rights reserved.<br>
-                            Premium Real Filipino Hair Manufacturer & Global Supplier
+                            Internal Manufacturing Operations Management System
                         </p>
                         <div class="social-links">
                             <a href="#" class="social-link">Website</a>
@@ -288,7 +288,7 @@ export function getQuotationEmailTemplate(quotationData: any): string {
                 <td style="padding: 8px 0; color: #374151; font-weight: 600;">${quotationData.quotationNumber || 'N/A'}</td>
             </tr>
             <tr>
-                <td style="padding: 8px 0; color: #6b7280;">Customer:</td>
+                <td style="padding: 8px 0; color: #6b7280;">Customer Code:</td>
                 <td style="padding: 8px 0; color: #374151; font-weight: 600;">${quotationData.customerCode || 'N/A'}</td>
             </tr>
             <tr>
@@ -299,7 +299,7 @@ export function getQuotationEmailTemplate(quotationData: any): string {
                 <td style="padding: 8px 0; color: #6b7280;">Status:</td>
                 <td style="padding: 8px 0;">
                     <span style="background-color: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;">
-                        ${quotationData.status || 'Pending'}
+                        ${quotationData.status || 'Created'}
                     </span>
                 </td>
             </tr>
@@ -308,10 +308,10 @@ export function getQuotationEmailTemplate(quotationData: any): string {
   `;
 
   return getBaseEmailTemplate({
-    title: "New Quotation Created",
-    subtitle: "Your quotation has been generated successfully",
-    message: `We have prepared a detailed quotation for your hair product requirements. Please review the details below and let us know if you have any questions.`,
-    actionText: "View Quotation",
+    title: "Internal Quotation Created",
+    subtitle: "Quotation generated for internal review",
+    message: `A new quotation has been created in the system for internal staff review and processing.`,
+    actionText: "View in System",
     actionUrl: `${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}/quotations`,
     additionalContent
   });
@@ -343,10 +343,10 @@ export function getOrderConfirmationEmailTemplate(orderData: any): string {
   `;
 
   return getBaseEmailTemplate({
-    title: "Order Confirmed",
-    subtitle: "Thank you for your order",
-    message: `Your order has been confirmed and is now being processed. We will keep you updated on the progress and notify you when your premium Filipino hair products are ready for shipment.`,
-    actionText: "Track Order",
+    title: "Internal Order Notification",
+    subtitle: "Sales order created for processing",
+    message: `A new sales order has been created in the system and is ready for internal processing by the production team.`,
+    actionText: "View Order",
     actionUrl: `${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}/sales-orders`,
     additionalContent
   });
@@ -378,10 +378,10 @@ export function getPaymentReceivedEmailTemplate(paymentData: any): string {
   `;
 
   return getBaseEmailTemplate({
-    title: "Payment Received",
-    subtitle: "Your payment has been processed successfully",
-    message: `We have successfully received your payment. Thank you for your prompt payment. Your order will now proceed to the next stage of processing.`,
-    actionText: "View Payment Details",
+    title: "Internal Payment Notification",
+    subtitle: "Payment recorded in system",
+    message: `A payment has been successfully recorded in the system. The order can now proceed to the next stage of processing.`,
+    actionText: "View Payment Record",
     actionUrl: `${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}/payment-recording`,
     additionalContent
   });
@@ -391,10 +391,10 @@ export function getTestEmailTemplate(): string {
   return getBaseEmailTemplate({
     title: "Email Test Successful",
     subtitle: "Your email configuration is working perfectly",
-    message: `This is a test email to confirm that your Hibla Manufacturing email system is configured correctly and ready to send professional communications to your customers and team members.`,
+    message: `This is a test email to confirm that your Hibla Manufacturing internal system is configured correctly and ready to send notifications to staff members.`,
     actionText: "Access Dashboard",
     actionUrl: `${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}/`,
-    footerText: "This is a test email sent from your Hibla Manufacturing system. Email configuration is working correctly.",
+    footerText: "This is a test email sent from your Hibla Manufacturing internal system. Email configuration is working correctly.",
     additionalContent: `
       <div style="background-color: #f0f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0ea5e9;">
           <h3 style="color: #0c4a6e; font-size: 18px; margin: 0 0 15px 0;">✅ Configuration Status</h3>

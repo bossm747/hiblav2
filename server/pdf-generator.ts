@@ -5,8 +5,8 @@ export interface SalesOrderData {
   orderNumber: string;
   revision: string;
   date: string;
-  customerCode: string;
-  customerName: string;
+  clientCode: string;
+  clientName: string;
   country: string;
   paymentMethod: string;
   shippingMethod: string;
@@ -23,15 +23,15 @@ export interface SalesOrderData {
   discount: string;
   others: string;
   total: string;
-  customerServiceInstructions?: string;
+  clientServiceInstructions?: string;
 }
 
 export interface JobOrderData {
   jobOrderNumber: string;
   revision: string;
   date: string;
-  customerCode: string;
-  customerName: string;
+  clientCode: string;
+  clientName: string;
   salesOrderNumber: string;
   items: Array<{
     productName: string;
@@ -39,7 +39,7 @@ export interface JobOrderData {
     specification?: string;
     status: string;
   }>;
-  customerInstructions?: string;
+  clientInstructions?: string;
   productionStatus: string;
   shipmentStatus: string;
   dueDate: string;
@@ -49,8 +49,8 @@ export interface InvoiceData {
   invoiceNumber: string;
   date: string;
   dueDate: string;
-  customerCode: string;
-  customerName: string;
+  clientCode: string;
+  clientName: string;
   country: string;
   shippingAddress?: string;
   billingAddress?: string;
@@ -187,9 +187,9 @@ export function generateSalesOrderHTML(data: SalesOrderData): string {
     </div>
 
     <div class="customer-info">
-        <strong>Customer Information</strong><br>
-        <strong>Customer Code:</strong> ${data.customerCode}<br>
-        <strong>Customer Name:</strong> ${data.customerName}<br>
+        <strong>Client Information</strong><br>
+        <strong>Client Code:</strong> ${data.clientCode}<br>
+        <strong>Client Name:</strong> ${data.clientName}<br>
         <strong>Country:</strong> ${data.country}
     </div>
 
@@ -247,10 +247,10 @@ export function generateSalesOrderHTML(data: SalesOrderData): string {
         </div>
     </div>
 
-    ${data.customerServiceInstructions ? `
+    ${data.clientServiceInstructions ? `
     <div class="instructions" style="clear: both; margin-top: 80px;">
-        <strong>Customer Service Instructions:</strong><br>
-        ${data.customerServiceInstructions}
+        <strong>Client Service Instructions:</strong><br>
+        ${data.clientServiceInstructions}
     </div>
     ` : ''}
 
@@ -379,8 +379,8 @@ export function generateJobOrderHTML(data: JobOrderData): string {
             <strong>Due Date:</strong> ${data.dueDate}
         </div>
         <div>
-            <strong>Customer Code:</strong> ${data.customerCode}<br>
-            <strong>Customer Name:</strong> ${data.customerName}<br>
+            <strong>Client Code:</strong> ${data.clientCode}<br>
+            <strong>Client Name:</strong> ${data.clientName}<br>
             <strong>Sales Order No.:</strong> ${data.salesOrderNumber}
         </div>
     </div>
@@ -430,10 +430,10 @@ export function generateJobOrderHTML(data: JobOrderData): string {
         </tbody>
     </table>
 
-    ${data.customerInstructions ? `
+    ${data.clientInstructions ? `
     <div class="instructions">
-        <strong>Customer Instructions:</strong><br>
-        ${data.customerInstructions}
+        <strong>Client Instructions:</strong><br>
+        ${data.clientInstructions}
     </div>
     ` : ''}
 

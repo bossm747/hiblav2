@@ -385,7 +385,7 @@ export function WarehouseTransferModal({
                       <FormLabel>Transfer Reason *</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Enter reason for transfer (e.g., Stock rebalancing, Customer order fulfillment)"
+                          placeholder="Enter reason for transfer (e.g., Stock rebalancing, Client order fulfillment)"
                           className="resize-none"
                           {...field}
                           data-testid="textarea-reason"

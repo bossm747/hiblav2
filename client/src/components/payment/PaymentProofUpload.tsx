@@ -180,7 +180,7 @@ export function PaymentProofUpload() {
               Upload Payment Proof
             </CardTitle>
             <CardDescription>
-              Customer support staff: Upload payment screenshots received via WhatsApp
+              Internal staff: Upload payment screenshots received via WhatsApp
             </CardDescription>
           </CardHeader>
           <CardContent>

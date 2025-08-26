@@ -9,7 +9,7 @@ import { aiImageService, type ImageGenerationRequest } from "./ai-image-service"
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
 import {
-  insertCustomerSchema,
+  insertClientSchema,
   insertStaffSchema,
   insertProductSchema,
   insertInventoryTransactionSchema,
@@ -150,51 +150,51 @@ export function registerRoutes(app: Express): void {
   });
 
   // ==============================================
-  // CUSTOMER MANAGEMENT (B2B)
+  // CLIENT MANAGEMENT (B2B)
   // ==============================================
   
-  app.get("/api/customers", requireAuth, async (req, res) => {
+  app.get("/api/clients", requireAuth, async (req, res) => {
     try {
-      const customers = await storage.getCustomers();
-      res.json(customers);
+      const clients = await storage.getClients();
+      res.json(clients);
     } catch (error) {
-      console.error("Error fetching customers:", error);
-      res.status(500).json({ error: "Failed to fetch customers" });
+      console.error("Error fetching clients:", error);
+      res.status(500).json({ error: "Failed to fetch clients" });
     }
   });
 
-  app.get("/api/customers/:id", requireAuth, async (req, res) => {
+  app.get("/api/clients/:id", requireAuth, async (req, res) => {
     try {
-      const customer = await storage.getCustomerById(req.params.id);
-      if (!customer) {
-        return res.status(404).json({ error: "Customer not found" });
+      const client = await storage.getClientById(req.params.id);
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
       }
-      res.json(customer);
+      res.json(client);
     } catch (error) {
-      console.error("Error fetching customer:", error);
-      res.status(500).json({ error: "Failed to fetch customer" });
+      console.error("Error fetching client:", error);
+      res.status(500).json({ error: "Failed to fetch client" });
     }
   });
 
-  app.post("/api/customers", requireAuth, async (req, res) => {
+  app.post("/api/clients", requireAuth, async (req, res) => {
     try {
-      const customerData = insertCustomerSchema.parse(req.body);
-      const customer = await storage.createCustomer(customerData);
-      res.status(201).json(customer);
+      const clientData = insertClientSchema.parse(req.body);
+      const client = await storage.createClient(clientData);
+      res.status(201).json(client);
     } catch (error) {
-      console.error("Error creating customer:", error);
-      res.status(500).json({ error: "Failed to create customer" });
+      console.error("Error creating client:", error);
+      res.status(500).json({ error: "Failed to create client" });
     }
   });
 
-  app.put("/api/customers/:id", requireAuth, async (req, res) => {
+  app.put("/api/clients/:id", requireAuth, async (req, res) => {
     try {
-      const customerData = insertCustomerSchema.partial().parse(req.body);
-      const customer = await storage.updateCustomer(req.params.id, customerData);
-      res.json(customer);
+      const clientData = insertClientSchema.partial().parse(req.body);
+      const client = await storage.updateClient(req.params.id, clientData);
+      res.json(client);
     } catch (error) {
-      console.error("Error updating customer:", error);
-      res.status(500).json({ error: "Failed to update customer" });
+      console.error("Error updating client:", error);
+      res.status(500).json({ error: "Failed to update client" });
     }
   });
 
@@ -334,8 +334,8 @@ export function registerRoutes(app: Express): void {
         id: so.id,
         salesOrderNumber: so.salesOrderNumber || so.id,
         quotationId: so.quotationId,
-        customerCode: so.customerCode || 'N/A',
-        customerName: 'Unknown Customer', // This would need a join to customers table
+        clientCode: so.clientCode || 'N/A',
+        clientName: 'Unknown Client', // This would need a join to clients table
         country: so.country || 'N/A',
         revisionNumber: so.revisionNumber || 'R1',
         status: so.status || 'draft',
@@ -470,8 +470,8 @@ export function registerRoutes(app: Express): void {
       const tableData = quotations.map(q => ({
         id: q.id,
         number: q.quotationNumber || q.id,
-        customerName: q.customerCode || 'Unknown Customer',
-        customerCode: q.customerCode || 'N/A',
+        clientName: q.clientCode || 'Unknown Client',
+        clientCode: q.clientCode || 'N/A',
         country: q.country || 'N/A',
         revisionNumber: q.revisionNumber || 'R0',
         status: q.status || 'draft',
@@ -500,8 +500,8 @@ export function registerRoutes(app: Express): void {
       const detailData = {
         id: quotation.id,
         number: quotation.quotationNumber || quotation.id,
-        customerName: quotation.customerCode || 'Unknown Customer',
-        customerCode: quotation.customerCode || 'N/A',
+        clientName: quotation.clientCode || 'Unknown Client',
+        clientCode: quotation.clientCode || 'N/A',
         country: quotation.country || 'N/A',
         priceListName: 'Standard', // Would fetch from price list table
         revisionNumber: quotation.revisionNumber || 'R0',
@@ -517,7 +517,7 @@ export function registerRoutes(app: Express): void {
         createdByInitials: quotation.createdByInitials || 'N/A',
         paymentMethod: quotation.paymentMethod || 'N/A',
         shippingMethod: quotation.shippingMethod || 'N/A',
-        customerServiceInstructions: quotation.customerServiceInstructions || '',
+        clientServiceInstructions: quotation.clientServiceInstructions || '',
         items: [
           {
             id: '1',
@@ -623,14 +623,14 @@ export function registerRoutes(app: Express): void {
 
       const duplicate = await storage.createQuotation({
         quotationNumber,
-        customerId: original.customerId,
-        customerCode: original.customerCode,
+        clientId: original.clientId,
+        clientCode: original.clientCode,
         country: original.country,
         priceListId: original.priceListId || '',
         revisionNumber: 'R0',
         paymentMethod: original.paymentMethod || '',
         shippingMethod: original.shippingMethod || '',
-        customerServiceInstructions: original.customerServiceInstructions || '',
+        clientServiceInstructions: original.clientServiceInstructions || '',
         subtotal: String(original.subtotal || 0),
         shippingFee: String(original.shippingFee || 0),
         bankCharge: String(original.bankCharge || 0),
@@ -685,8 +685,8 @@ export function registerRoutes(app: Express): void {
       const salesOrder = await storage.createSalesOrder({
         salesOrderNumber,
         quotationId: quotation.id,
-        customerId: quotation.customerId,
-        customerCode: quotation.customerCode,
+        clientId: quotation.clientId,
+        clientCode: quotation.clientCode,
         country: quotation.country,
         revisionNumber: 'R1', // Start with R1
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
@@ -764,8 +764,8 @@ export function registerRoutes(app: Express): void {
       const duplicate = await storage.createSalesOrder({
         salesOrderNumber,
         quotationId: original.quotationId,
-        customerId: original.customerId,
-        customerCode: original.customerCode,
+        clientId: original.clientId,
+        clientCode: original.clientCode,
         country: original.country,
         revisionNumber: 'R1',
         dueDate: original.dueDate,
@@ -804,8 +804,8 @@ export function registerRoutes(app: Express): void {
       const jobOrder = await storage.createJobOrder({
         jobOrderNumber: salesOrder.salesOrderNumber, // Same series number
         salesOrderId: salesOrder.id,
-        customerCode: salesOrder.customerCode,
-        customerId: salesOrder.customerId,
+        clientCode: salesOrder.clientCode,
+        clientId: salesOrder.clientId,
         revisionNumber: salesOrder.revisionNumber,
         dueDate: salesOrder.dueDate,
         date: salesOrder.createdAt,
@@ -813,7 +813,7 @@ export function registerRoutes(app: Express): void {
         createdBy: 'system',
         productionDate: null,
         nameSignature: '',
-        orderInstructions: salesOrder.customerServiceInstructions || ''
+        orderInstructions: salesOrder.clientServiceInstructions || ''
       });
       
       res.json({ jobOrder });
@@ -831,9 +831,9 @@ export function registerRoutes(app: Express): void {
       }
       const duplicate = await storage.createQuotation({
         quotationNumber: `${original.quotationNumber}-COPY`,
-        customerCode: original.customerCode,
+        clientCode: original.clientCode,
         country: original.country,
-        customerId: original.customerId,
+        clientId: original.clientId,
         subtotal: original.subtotal,
         total: original.total,
         createdBy: original.createdBy,
@@ -865,9 +865,9 @@ export function registerRoutes(app: Express): void {
       const salesOrder = await storage.createSalesOrder({
         salesOrderNumber,
         quotationId: quotation.id,
-        customerCode: quotation.customerCode,
+        clientCode: quotation.clientCode,
         country: quotation.country,
-        customerId: quotation.customerId,
+        clientId: quotation.clientId,
         subtotal: quotation.subtotal,
         createdBy: quotation.createdBy,
         dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
@@ -996,8 +996,8 @@ export function registerRoutes(app: Express): void {
       const duplicate = await storage.createJobOrder({
         jobOrderNumber: `${original.jobOrderNumber}-COPY`,
         salesOrderId: original.salesOrderId,
-        customerCode: original.customerCode,
-        customerId: original.customerId,
+        clientCode: original.clientCode,
+        clientId: original.clientId,
         createdBy: original.createdBy,
         dueDate: original.dueDate,
         date: original.date,
@@ -1261,14 +1261,14 @@ export function registerRoutes(app: Express): void {
       console.log("📊 Raw stats from storage:", stats);
       
       const response = {
-        overview: {
-          totalCustomers: stats.customers || 0,
-          totalProducts: stats.products || 0,
-          activeQuotations: stats.quotations || 0,
-          activeSalesOrders: stats.salesOrders || 0,
-          activeJobOrders: stats.jobOrders || 0
-        }
-      };
+          overview: {
+            totalClients: stats.clients || 0,
+            totalProducts: stats.products || 0,
+            activeQuotations: stats.quotations || 0,
+            activeSalesOrders: stats.salesOrders || 0,
+            activeJobOrders: stats.jobOrders || 0
+          }
+        };
       
       console.log("📊 Sending dashboard response:", response);
       res.json(response);

@@ -2669,7 +2669,7 @@ export function registerRoutes(app: Express): void {
       const stats = {
         todayOrders: todayOrders.length,
         dailyRevenue: dailyRevenue.toFixed(2),
-        totalCustomers: customers.length,
+        totalClients: customers.length,
         totalProducts: products.length,
         totalOrders: orders.length,
       };

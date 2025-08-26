@@ -184,7 +184,7 @@ export function PaymentProcessingDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             {[
               { step: '1', title: 'Invoice Generated', description: 'Auto from Sales Order', icon: Receipt, status: 'completed' },
-              { step: '2', title: 'Customer Payment', description: 'External via WhatsApp', icon: Smartphone, status: 'active' },
+              { step: '2', title: 'Client Payment', description: 'External via WhatsApp', icon: Smartphone, status: 'active' },
               { step: '3', title: 'Proof Upload', description: 'Staff upload screenshots', icon: Upload, status: 'active' },
               { step: '4', title: 'Finance Review', description: 'Verify & approve payment', icon: CheckCircle, status: 'pending' },
               { step: '5', title: 'Auto Updates', description: 'Status propagation', icon: TrendingUp, status: 'pending' },
@@ -252,7 +252,7 @@ export function PaymentProcessingDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Pending Payment Invoices</CardTitle>
-                <CardDescription>Invoices awaiting customer payment</CardDescription>
+                <CardDescription>Invoices awaiting client payment</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">

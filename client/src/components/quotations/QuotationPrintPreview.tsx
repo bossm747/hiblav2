@@ -5,8 +5,8 @@ import { X, Printer, Download } from 'lucide-react';
 interface QuotationDetail {
   id: string;
   number: string;
-  customerName: string;
-  customerCode: string;
+  clientName: string;
+  clientCode: string;
   country: string;
   priceListName: string;
   revisionNumber: string;
@@ -22,7 +22,7 @@ interface QuotationDetail {
   createdByInitials: string;
   paymentMethod: string;
   shippingMethod: string;
-  customerServiceInstructions: string;
+  clientServiceInstructions: string;
   items: Array<{
     id: string;
     productName: string;
@@ -106,7 +106,7 @@ export function QuotationPrintPreview({ quotation, onClose }: QuotationPrintPrev
                   <div><strong>NO.</strong></div>
                   <div className="font-mono">{quotation.number}</div>
                   <div><strong>HAIR TAG</strong></div>
-                  <div className="font-mono">{quotation.customerCode}</div>
+                  <div className="font-mono">{quotation.clientCode}</div>
                   <div><strong>ORDER DATE</strong></div>
                   <div>{new Date(quotation.createdAt).toLocaleDateString('en-US', { 
                     year: 'numeric', 
@@ -209,12 +209,12 @@ export function QuotationPrintPreview({ quotation, onClose }: QuotationPrintPrev
               </div>
             </div>
 
-            {/* Customer Service Instructions */}
-            {quotation.customerServiceInstructions && (
+            {/* Client Service Instructions */}
+            {quotation.clientServiceInstructions && (
               <div className="border-t border-black pt-4">
-                <h3 className="text-center font-bold mb-2">customer service instructions</h3>
+                <h3 className="text-center font-bold mb-2">client service instructions</h3>
                 <div className="text-sm">
-                  {quotation.customerServiceInstructions.split('\n').map((line, index) => (
+                  {quotation.clientServiceInstructions.split('\n').map((line, index) => (
                     <div key={index}>{line}</div>
                   ))}
                 </div>

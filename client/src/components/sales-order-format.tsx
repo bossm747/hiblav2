@@ -129,7 +129,7 @@ export function SalesOrderFormat({ salesOrder, items }: SalesOrderFormatProps) {
         {/* Customer Service Instructions */}
         {salesOrder.customerServiceInstructions && (
           <div className="border-t pt-6">
-            <h3 className="text-center font-semibold mb-4">customer service instructions</h3>
+            <h3 className="text-center font-semibold mb-4">client service instructions</h3>
             <div className="whitespace-pre-line text-center">
               {salesOrder.customerServiceInstructions}
             </div>

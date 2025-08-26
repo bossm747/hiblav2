@@ -360,18 +360,18 @@ export function SalesOrderDetailModal({
 
         <div className="space-y-6">
 
-          {/* Customer and Order Information */}
+          {/* Client and Order Information */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="md:col-span-1">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center text-base">
                   <User className="h-4 w-4 mr-2" />
-                  Customer Details
+                  Client Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div>
-                  <div className="text-xs text-muted-foreground">Hair Tag (Customer Code)</div>
+                  <div className="text-xs text-muted-foreground">Hair Tag (Client Code)</div>
                   <div className="font-semibold text-lg">{safeSalesOrder.customerCode || 'N/A'}</div>
                 </div>
                 <div>
@@ -602,7 +602,7 @@ export function SalesOrderDetailModal({
               <CardContent>
                 <div className="space-y-3">
                   <div>
-                    <div className="text-xs text-muted-foreground mb-1">Customer Service Instructions</div>
+                    <div className="text-xs text-muted-foreground mb-1">Client Service Instructions</div>
                     <div className="bg-gray-50 dark:bg-gray-900 p-3 rounded text-sm min-h-[60px]">
                       {safeSalesOrder.customerServiceInstructions || 'No special instructions provided.'}
                     </div>

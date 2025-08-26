@@ -20,8 +20,8 @@ interface JobOrder {
   jobOrderNumber: string;
   salesOrderId: string;
   salesOrderNumber: string;
-  customerCode: string;
-  customerName: string;
+  clientCode: string;
+  clientName: string;
   revisionNumber: string;
   dueDate: string;
   dateCreated: string;
@@ -40,7 +40,7 @@ interface JobOrder {
 interface JobOrderFilters {
   search: string;
   status: string;
-  customerCode: string;
+  clientCode: string;
   dateFrom: string;
   dateTo: string;
   dueDateFrom: string;
@@ -58,14 +58,14 @@ export function JobOrderListView() {
   const [filters, setFilters] = useState<JobOrderFilters>({
     search: '',
     status: '',
-    customerCode: '',
+    clientCode: '',
     dateFrom: '',
     dateTo: '',
     dueDateFrom: '',
     dueDateTo: ''
   });
 
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
 
   useEffect(() => {
     loadJobOrders();
@@ -91,8 +91,8 @@ export function JobOrderListView() {
           jobOrderNumber: jo.jobOrderNumber || jo.id,
           salesOrderId: jo.salesOrderId || '',
           salesOrderNumber: jo.salesOrderNumber || 'N/A',
-          customerCode: jo.customerCode || 'N/A',
-          customerName: jo.customerName || 'Unknown Customer',
+          clientCode: jo.clientCode || 'N/A',
+          clientName: jo.clientName || 'Unknown Client',
           revisionNumber: jo.revisionNumber || 'R1',
           dueDate: jo.dueDate || new Date().toISOString(),
           dateCreated: jo.createdAt || new Date().toISOString(),
@@ -130,13 +130,13 @@ export function JobOrderListView() {
         'Content-Type': 'application/json'
       };
 
-      const [customersRes] = await Promise.all([
-        fetch('/api/customers', { headers })
+      const [clientsRes] = await Promise.all([
+          fetch('/api/clients', { headers })
       ]);
 
-      if (customersRes.ok) {
-        const customersData = await customersRes.json();
-        setCustomers(customersData || []);
+      if (clientsRes.ok) {
+          const clientsData = await clientsRes.json();
+          setClients(clientsData || []);
       }
     } catch (error) {
       console.error('Error loading filter data:', error);
@@ -229,8 +229,8 @@ export function JobOrderListView() {
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
       if (!order.jobOrderNumber.toLowerCase().includes(searchTerm) &&
-          !order.customerName.toLowerCase().includes(searchTerm) &&
-          !order.customerCode.toLowerCase().includes(searchTerm) &&
+          !order.clientName.toLowerCase().includes(searchTerm) &&
+          !order.clientCode.toLowerCase().includes(searchTerm) &&
           !order.salesOrderNumber.toLowerCase().includes(searchTerm)) {
         return false;
       }
@@ -371,19 +371,19 @@ export function JobOrderListView() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Customer</Label>
+                  <Label>Client</Label>
                   <Select 
-                    value={filters.customerCode} 
-                    onValueChange={(value) => setFilters(prev => ({ ...prev, customerCode: value }))}
+                    value={filters.clientCode} 
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, clientCode: value }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="All customers" />
+                      <SelectValue placeholder="All clients" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All Customers</SelectItem>
-                      {customers.map((customer) => (
-                        <SelectItem key={customer.code} value={customer.code}>
-                          {customer.code} - {customer.name}
+                      <SelectItem value="">All Clients</SelectItem>
+                      {clients.map((client) => (
+                        <SelectItem key={client.code} value={client.code}>
+                          {client.code} - {client.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -421,7 +421,7 @@ export function JobOrderListView() {
               <TableRow>
                 <TableHead>Job Order #</TableHead>
                 <TableHead>Sales Order</TableHead>
-                <TableHead>Customer</TableHead>
+                <TableHead>Client</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Priority</TableHead>
                 <TableHead>Progress</TableHead>
@@ -454,9 +454,9 @@ export function JobOrderListView() {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{order.customerName}</div>
+                        <div className="font-medium">{order.clientName}</div>
                         <div className="text-sm text-muted-foreground">
-                          {order.customerCode}
+                          {order.clientCode}
                         </div>
                       </div>
                     </TableCell>

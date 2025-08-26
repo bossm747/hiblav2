@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { eq, desc, and, like, gte, lte, sql } from "drizzle-orm";
 import {
-  customers,
+  clients,
   categories,
   products,
   quotations,
@@ -22,7 +22,7 @@ import {
 } from "@shared/schema";
 
 import type {
-  Customer,
+  Client,
   Product,
   Quotation,
   QuotationItem,
@@ -32,7 +32,7 @@ import type {
   JobOrderItem,
   PriceList,
   Warehouse,
-  InsertCustomer,
+  InsertClient,
   InsertProduct,
   InsertQuotation,
   InsertQuotationItem,
@@ -57,12 +57,12 @@ import type {
 } from "@shared/schema";
 
 export interface IStorage {
-  // Customer Management
-  getCustomers(): Promise<Customer[]>;
-  getCustomerById(id: string): Promise<Customer | null>;
-  createCustomer(customer: InsertCustomer): Promise<Customer>;
-  updateCustomer(id: string, customer: Partial<InsertCustomer>): Promise<Customer>;
-  deleteCustomer(id: string): Promise<void>;
+  // Client Management
+  getClients(): Promise<Client[]>;
+  getClientById(id: string): Promise<Client | null>;
+  createClient(client: InsertClient): Promise<Client>;
+  updateClient(id: string, client: Partial<InsertClient>): Promise<Client>;
+  deleteClient(id: string): Promise<void>;
   
   // Staff Management
   getStaff(): Promise<Staff[]>;
@@ -159,28 +159,28 @@ export interface IStorage {
 
 // Manufacturing-focused storage implementation
 export class Storage implements IStorage {
-  // Customer Management
-  async getCustomers(): Promise<Customer[]> {
-    return await db.select().from(customers).orderBy(desc(customers.createdAt));
+  // Client Management
+  async getClients(): Promise<Client[]> {
+    return await db.select().from(clients).orderBy(desc(clients.createdAt));
   }
   
-  async getCustomerById(id: string): Promise<Customer | null> {
-    const result = await db.select().from(customers).where(eq(customers.id, id)).limit(1);
+  async getClientById(id: string): Promise<Client | null> {
+    const result = await db.select().from(clients).where(eq(clients.id, id)).limit(1);
     return result[0] || null;
   }
   
-  async createCustomer(customer: InsertCustomer): Promise<Customer> {
-    const [newCustomer] = await db.insert(customers).values(customer).returning();
-    return newCustomer;
+  async createClient(client: InsertClient): Promise<Client> {
+    const [newClient] = await db.insert(clients).values(client).returning();
+    return newClient;
   }
   
-  async updateCustomer(id: string, customer: Partial<InsertCustomer>): Promise<Customer> {
-    const [updatedCustomer] = await db.update(customers).set(customer).where(eq(customers.id, id)).returning();
-    return updatedCustomer;
+  async updateClient(id: string, client: Partial<InsertClient>): Promise<Client> {
+    const [updatedClient] = await db.update(clients).set(client).where(eq(clients.id, id)).returning();
+    return updatedClient;
   }
   
-  async deleteCustomer(id: string): Promise<void> {
-    await db.delete(customers).where(eq(customers.id, id));
+  async deleteClient(id: string): Promise<void> {
+    await db.delete(clients).where(eq(clients.id, id));
   }
   
   // Staff Management
@@ -524,14 +524,14 @@ export class Storage implements IStorage {
 
   // Dashboard Analytics
   async getDashboardStats(): Promise<any> {
-    const [customerCount] = await db.select({ count: sql<number>`count(*)` }).from(customers);
+    const [clientCount] = await db.select({ count: sql<number>`count(*)` }).from(clients);
     const [productCount] = await db.select({ count: sql<number>`count(*)` }).from(products);
     const [quotationCount] = await db.select({ count: sql<number>`count(*)` }).from(quotations);
     const [salesOrderCount] = await db.select({ count: sql<number>`count(*)` }).from(salesOrders);
     const [jobOrderCount] = await db.select({ count: sql<number>`count(*)` }).from(jobOrders);
     
     return {
-      customers: customerCount.count,
+      clients: clientCount.count,
       products: productCount.count,
       quotations: quotationCount.count,
       salesOrders: salesOrderCount.count,

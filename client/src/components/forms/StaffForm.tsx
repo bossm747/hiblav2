@@ -57,7 +57,7 @@ const availablePermissions = [
   { id: 'manage_sales_orders', label: 'Manage Sales Orders' },
   { id: 'manage_job_orders', label: 'Manage Job Orders' },
   { id: 'manage_inventory', label: 'Manage Inventory' },
-  { id: 'manage_customers', label: 'Manage Customers' },
+  { id: 'manage_clients', label: 'Manage Clients' },
   { id: 'manage_staff', label: 'Manage Staff' },
   { id: 'view_reports', label: 'View Reports' },
   { id: 'manage_warehouses', label: 'Manage Warehouses' },
@@ -128,20 +128,20 @@ export function StaffForm({ staffId, onSuccess }: StaffFormProps) {
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <UserCheck className="h-5 w-5 mr-2" />
+    <Card className="border-border shadow-sm">
+      <CardHeader className="pb-6 border-b border-border">
+        <CardTitle className="text-xl font-semibold flex items-center gap-2 text-foreground">
+          <UserCheck className="h-5 w-5 text-primary" />
           {staffId ? 'Update Staff Member' : 'Add New Staff Member'}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((data) => createOrUpdateStaffMutation.mutate(data))} className="space-y-6">
+          <form onSubmit={form.handleSubmit((data) => createOrUpdateStaffMutation.mutate(data))} className="space-y-8">
             {/* Personal Information */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">Personal Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
                   name="name"
@@ -171,7 +171,7 @@ export function StaffForm({ staffId, onSuccess }: StaffFormProps) {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
                   name="phone"
@@ -203,9 +203,9 @@ export function StaffForm({ staffId, onSuccess }: StaffFormProps) {
             </div>
 
             {/* Job Information */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Job Information</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">Job Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
                   name="position"
@@ -246,7 +246,7 @@ export function StaffForm({ staffId, onSuccess }: StaffFormProps) {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <FormField
                   control={form.control}
                   name="role"
@@ -304,9 +304,9 @@ export function StaffForm({ staffId, onSuccess }: StaffFormProps) {
             </div>
 
             {/* Contact Information */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Additional Contact Information</h3>
-              <div className="space-y-4">
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">Additional Contact Information</h3>
+              <div className="space-y-6">
                 <FormField
                   control={form.control}
                   name="address"
@@ -325,7 +325,7 @@ export function StaffForm({ staffId, onSuccess }: StaffFormProps) {
                   )}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
                     name="emergencyContact"
@@ -358,14 +358,14 @@ export function StaffForm({ staffId, onSuccess }: StaffFormProps) {
             </div>
 
             {/* Permissions */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">System Permissions</h3>
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">System Permissions</h3>
               <FormField
                 control={form.control}
                 name="permissions"
                 render={() => (
                   <FormItem>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {availablePermissions.map((permission) => (
                         <FormField
                           key={permission.id}
@@ -407,7 +407,8 @@ export function StaffForm({ staffId, onSuccess }: StaffFormProps) {
             </div>
 
             {/* Additional Notes */}
-            <div>
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">Additional Notes</h3>
               <FormField
                 control={form.control}
                 name="notes"
@@ -427,15 +428,24 @@ export function StaffForm({ staffId, onSuccess }: StaffFormProps) {
               />
             </div>
 
-            <div className="flex gap-4">
-              <Button type="submit" disabled={createOrUpdateStaffMutation.isPending}>
+            <div className="flex justify-end gap-3 pt-6 border-t border-border">
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="h-10 px-6 font-medium"
+                onClick={() => form.reset()}
+              >
+                Reset Form
+              </Button>
+              <Button 
+                type="submit" 
+                className="h-10 px-6 font-medium"
+                disabled={createOrUpdateStaffMutation.isPending}
+              >
                 {createOrUpdateStaffMutation.isPending 
                   ? (staffId ? 'Updating...' : 'Creating...') 
                   : (staffId ? 'Update Staff Member' : 'Create Staff Member')
                 }
-              </Button>
-              <Button type="button" variant="outline" onClick={() => form.reset()}>
-                Reset Form
               </Button>
             </div>
           </form>

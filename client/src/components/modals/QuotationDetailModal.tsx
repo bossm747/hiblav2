@@ -415,18 +415,18 @@ export function QuotationDetailModal({
 
         <div className="space-y-6">
 
-          {/* Customer and Order Information */}
+          {/* Client and Order Information */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card className="md:col-span-1">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center text-base">
                   <User className="h-4 w-4 mr-2" />
-                  Customer Details
+                  Client Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <div>
-                  <div className="text-xs text-muted-foreground">Customer Code</div>
+                  <div className="text-xs text-muted-foreground">Client Code</div>
                   <div className="font-semibold">{safeQuotation.customerCode || 'N/A'}</div>
                 </div>
                 <div>
@@ -683,13 +683,13 @@ export function QuotationDetailModal({
             </Card>
           </div>
 
-          {/* Customer Service Instructions */}
+          {/* Client Service Instructions */}
           {safeQuotation.customerServiceInstructions && (
             <Card className="border-l-4 border-l-blue-500">
               <CardHeader>
                 <CardTitle className="flex items-center text-base">
                   <MessageSquare className="h-5 w-5 mr-2" />
-                  Customer Service Instructions
+                  Client Service Instructions
                 </CardTitle>
               </CardHeader>
               <CardContent>

@@ -17,10 +17,10 @@ export class TieredPricingService {
    */
   async calculatePrice(params: {
     productId: string;
-    customerCode?: string;
+    clientCode?: string;
     priceListId?: string;
   }): Promise<PricingResult> {
-    const { productId, customerCode, priceListId } = params;
+    const { productId, clientCode, priceListId } = params;
 
     // Get product
     const product = await storage.getProduct(productId);
@@ -31,16 +31,16 @@ export class TieredPricingService {
     // Default to base price if no basePrice is set
     let basePrice = parseFloat(product.basePrice || (product as any).priceListB || "0.00");
     let price = basePrice;
-    let priceListName = "Regular Customer";
+    let priceListName = "Regular Client";
     let priceMultiplier = 1.0;
     let finalPriceListId = "REGULAR";
 
     // Determine pricing based on parameters
-    if (customerCode) {
-      // Get customer's price category
-      const customer = await storage.getCustomerByCode(customerCode);
-      if (customer && customer.priceListId) {
-        const priceList = await storage.getPriceList(customer.priceListId);
+    if (clientCode) {
+      // Get client's price category
+      const client = await storage.getClientByCode(clientCode);
+      if (client && client.priceListId) {
+        const priceList = await storage.getPriceList(client.priceListId);
         if (priceList) {
           priceMultiplier = parseFloat(priceList.priceMultiplier || "1.0000");
           price = basePrice * priceMultiplier;
@@ -117,27 +117,27 @@ export class TieredPricingService {
   }
 
   /**
-   * Get pricing for a customer's price category
+   * Get pricing for a client's price category
    */
-  async getCustomerPricing(customerCode: string): Promise<{ priceCategory: string; priceListName: string; multiplier: number } | null> {
+  async getClientPricing(clientCode: string): Promise<{ priceCategory: string; priceListName: string; multiplier: number } | null> {
     try {
-      const customer = await storage.getCustomerByCode(customerCode);
-      if (!customer || !customer.priceListId) {
+      const client = await storage.getClientByCode(clientCode);
+      if (!client || !client.priceListId) {
         return null;
       }
 
-      const priceList = await storage.getPriceList(customer.priceListId);
+      const priceList = await storage.getPriceList(client.priceListId);
       if (!priceList) {
         return null;
       }
 
       return {
-        priceCategory: customer.priceCategory || "REGULAR",
+        priceCategory: client.priceCategory || "REGULAR",
         priceListName: priceList.name,
         multiplier: parseFloat(priceList.priceMultiplier || "1.0000")
       };
     } catch (error) {
-      console.error('Error getting customer pricing:', error);
+      console.error('Error getting client pricing:', error);
       return null;
     }
   }

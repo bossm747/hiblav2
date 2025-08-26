@@ -501,7 +501,7 @@ export function JobOrderDetailModal({
                   <div className="font-semibold">{safeJobOrder.salesOrderId || 'Direct Entry'}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-muted-foreground">Customer Code</div>
+                  <div className="text-xs text-muted-foreground">Client Code</div>
                   <div className="font-semibold text-lg">{safeJobOrder.customerCode || 'N/A'}</div>
                 </div>
                 <div>

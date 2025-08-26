@@ -8,10 +8,10 @@ import { relations } from "drizzle-orm";
 // CORE MANUFACTURING BUSINESS ENTITIES
 // ========================================
 
-// B2B Manufacturing Customers
-export const customers = pgTable("customers", {
+// B2B Manufacturing Clients
+export const clients = pgTable("clients", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  customerCode: text("customer_code").notNull().unique(), // e.g., ABA, ABC, etc.
+  clientCode: text("client_code").notNull().unique(), // e.g., ABA, ABC, etc.
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
   phone: text("phone"),
@@ -175,8 +175,8 @@ export const quotations = pgTable("quotations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   quotationNumber: text("quotation_number").notNull().unique(),
   revisionNumber: text("revision_number").default("R0"),
-  customerId: varchar("customer_id").references(() => customers.id).notNull(),
-  customerCode: text("customer_code").notNull(),
+  clientId: varchar("client_id").references(() => clients.id).notNull(),
+  clientCode: text("client_code").notNull(),
   country: text("country").notNull(),
   priceListId: varchar("price_list_id").references(() => priceLists.id),
   subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
@@ -187,7 +187,7 @@ export const quotations = pgTable("quotations", {
   total: decimal("total", { precision: 12, scale: 2 }).notNull(),
   paymentMethod: text("payment_method"), // bank, agent, money transfer, cash
   shippingMethod: text("shipping_method"), // DHL, UPS, Fed Ex, Agent, Pick Up
-  customerServiceInstructions: text("customer_service_instructions"),
+  clientServiceInstructions: text("client_service_instructions"),
   status: text("status").default("draft"), // draft, sent, accepted, expired
   createdBy: varchar("created_by").references(() => staff.id).notNull(),
   createdByInitials: text("created_by_initials"),
@@ -217,8 +217,8 @@ export const salesOrders = pgTable("sales_orders", {
   salesOrderNumber: text("sales_order_number").notNull().unique(), // Format: 2025.08.001
   revisionNumber: text("revision_number").default("R1"),
   quotationId: varchar("quotation_id").references(() => quotations.id),
-  customerId: varchar("customer_id").references(() => customers.id).notNull(),
-  customerCode: text("customer_code").notNull(),
+  clientId: varchar("client_id").references(() => clients.id).notNull(),
+  clientCode: text("client_code").notNull(),
   country: text("country").notNull(),
   orderDate: timestamp("order_date").defaultNow(),
   dueDate: timestamp("due_date").notNull(),
@@ -232,7 +232,7 @@ export const salesOrders = pgTable("sales_orders", {
   discountUsd: decimal("discount_usd", { precision: 12, scale: 2 }).default("0"),
   others: decimal("others", { precision: 12, scale: 2 }).default("0"),
   pleasePayThisAmountUsd: decimal("please_pay_this_amount_usd", { precision: 12, scale: 2 }).notNull(),
-  customerServiceInstructions: text("customer_service_instructions"),
+  clientServiceInstructions: text("client_service_instructions"),
   status: text("status").default("draft"), // draft, confirmed, cancelled
   isConfirmed: boolean("is_confirmed").default(false),
   confirmedAt: timestamp("confirmed_at"),
@@ -259,8 +259,8 @@ export const jobOrders = pgTable("job_orders", {
   jobOrderNumber: text("job_order_number").notNull().unique(), // Format: 2025.08.001
   revisionNumber: text("revision_number").default("R1"),
   salesOrderId: varchar("sales_order_id").references(() => salesOrders.id).notNull(),
-  customerId: varchar("customer_id").references(() => customers.id).notNull(),
-  customerCode: text("customer_code").notNull(),
+  clientId: varchar("client_id").references(() => clients.id).notNull(),
+  clientCode: text("client_code").notNull(),
   date: timestamp("date").defaultNow(),
   dueDate: timestamp("due_date").notNull(),
   createdBy: text("created_by").notNull(),
@@ -361,8 +361,8 @@ export const invoices = pgTable("invoices", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   invoiceNumber: text("invoice_number").notNull().unique(),
   salesOrderId: varchar("sales_order_id").references(() => salesOrders.id).notNull(),
-  customerId: varchar("customer_id").references(() => customers.id).notNull(),
-  customerCode: text("customer_code").notNull(),
+  clientId: varchar("client_id").references(() => clients.id).notNull(),
+  clientCode: text("client_code").notNull(),
   country: text("country").notNull(),
   dueDate: timestamp("due_date").notNull(),
   subtotal: decimal("subtotal", { precision: 12, scale: 2 }).notNull(),
@@ -387,8 +387,8 @@ export const paymentRecords = pgTable("payment_records", {
   paymentNumber: text("payment_number").notNull().unique(),
   invoiceId: varchar("invoice_id").references(() => invoices.id).notNull(),
   salesOrderId: varchar("sales_order_id").references(() => salesOrders.id),
-  customerId: varchar("customer_id").references(() => customers.id).notNull(),
-  customerCode: text("customer_code").notNull(),
+  clientId: varchar("client_id").references(() => clients.id).notNull(),
+  clientCode: text("client_code").notNull(),
   // Payment Details
   amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
   paymentMethod: text("payment_method").notNull(), // bank_transfer, agent, cash, mobile_payment
@@ -446,7 +446,7 @@ export const emailSettings = pgTable("email_settings", {
 // ========================================
 
 // Insert Schemas
-export const insertCustomerSchema = createInsertSchema(customers).omit({
+export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
   totalOrders: true,
   totalSpent: true,
@@ -550,8 +550,8 @@ export const insertPaymentRecordSchema = createInsertSchema(paymentRecords).omit
 });
 
 // Type Exports
-export type Customer = typeof customers.$inferSelect;
-export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
+export type Client = typeof clients.$inferSelect;
+export type InsertClient = z.infer<typeof insertClientSchema>;
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Staff = typeof staff.$inferSelect;
@@ -594,7 +594,7 @@ export type InsertEmailSettings = typeof emailSettings.$inferInsert;
 // RELATIONS
 // ========================================
 
-export const customersRelations = relations(customers, ({ many }) => ({
+export const clientsRelations = relations(clients, ({ many }) => ({
   quotations: many(quotations),
   salesOrders: many(salesOrders),
   paymentRecords: many(paymentRecords),
@@ -652,9 +652,9 @@ export const suppliersRelations = relations(suppliers, ({ many }) => ({
 }));
 
 export const quotationsRelations = relations(quotations, ({ one, many }) => ({
-  customer: one(customers, {
-    fields: [quotations.customerId],
-    references: [customers.id],
+  client: one(clients, {
+    fields: [quotations.clientId],
+    references: [clients.id],
   }),
   priceList: one(priceLists, {
     fields: [quotations.priceListId],
@@ -669,9 +669,9 @@ export const quotationsRelations = relations(quotations, ({ one, many }) => ({
 }));
 
 export const salesOrdersRelations = relations(salesOrders, ({ one, many }) => ({
-  customer: one(customers, {
-    fields: [salesOrders.customerId],
-    references: [customers.id],
+  client: one(clients, {
+    fields: [salesOrders.clientId],
+    references: [clients.id],
   }),
   quotation: one(quotations, {
     fields: [salesOrders.quotationId],
@@ -683,9 +683,9 @@ export const salesOrdersRelations = relations(salesOrders, ({ one, many }) => ({
 }));
 
 export const jobOrdersRelations = relations(jobOrders, ({ one, many }) => ({
-  customer: one(customers, {
-    fields: [jobOrders.customerId],
-    references: [customers.id],
+  client: one(clients, {
+    fields: [jobOrders.clientId],
+    references: [clients.id],
   }),
   salesOrder: one(salesOrders, {
     fields: [jobOrders.salesOrderId],

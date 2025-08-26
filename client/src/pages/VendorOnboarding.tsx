@@ -269,33 +269,35 @@ export function VendorOnboarding() {
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Vendor & Rider Onboarding</h1>
-        <p className="text-muted-foreground mt-2">
+      <div className="mb-8 text-center">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">Vendor & Rider Onboarding</h1>
+        <p className="text-muted-foreground mt-2 text-lg">
           Complete your registration to start working with Hibla Manufacturing
         </p>
       </div>
 
       {/* Progress Bar */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between text-sm mb-2">
-          <span className="font-medium">Registration Progress</span>
-          <span className="text-muted-foreground">{getStepProgress()}% Complete</span>
-        </div>
-        <Progress value={getStepProgress()} className="h-2" />
-      </div>
+      <Card className="mb-8 border-border shadow-sm">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between text-sm mb-3">
+            <span className="font-semibold text-foreground">Registration Progress</span>
+            <span className="text-muted-foreground font-medium">{getStepProgress()}% Complete</span>
+          </div>
+          <Progress value={getStepProgress()} className="h-3" />
+        </CardContent>
+      </Card>
 
       {/* Stepper Tabs */}
       <Tabs value={currentStep} onValueChange={setCurrentStep}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="account" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-3 h-12 bg-muted/50">
+          <TabsTrigger value="account" className="flex items-center gap-2 h-10 font-medium">
             <User className="h-4 w-4" />
             Account Setup
           </TabsTrigger>
           <TabsTrigger 
             value="documents" 
             disabled={!accountForm.formState.isSubmitSuccessful}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 h-10 font-medium"
           >
             <Upload className="h-4 w-4" />
             Document Upload
@@ -303,7 +305,7 @@ export function VendorOnboarding() {
           <TabsTrigger 
             value="verification" 
             disabled={currentStep !== 'verification'}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 h-10 font-medium"
           >
             <Shield className="h-4 w-4" />
             Verification
@@ -312,17 +314,17 @@ export function VendorOnboarding() {
 
         {/* Account Setup Tab */}
         <TabsContent value="account" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Information</CardTitle>
-              <CardDescription>
+          <Card className="border-border shadow-sm">
+            <CardHeader className="bg-muted/30 border-b">
+              <CardTitle className="text-foreground">Account Information</CardTitle>
+              <CardDescription className="text-muted-foreground">
                 Provide your basic information to create your vendor account
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <Form {...accountForm}>
                 <form onSubmit={accountForm.handleSubmit((data) => accountMutation.mutate(data))} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={accountForm.control}
                       name="name"
@@ -370,10 +372,10 @@ export function VendorOnboarding() {
                       name="vendorType"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Vendor Type</FormLabel>
+                          <FormLabel className="text-foreground font-medium">Vendor Type</FormLabel>
                           <FormControl>
                             <select 
-                              className="w-full h-10 px-3 border rounded-md"
+                              className="w-full h-10 px-3 border border-input rounded-md bg-background text-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
                               {...field}
                             >
                               <option value="supplier">Supplier</option>
@@ -446,11 +448,11 @@ export function VendorOnboarding() {
                     />
                   </div>
                   
-                  <div className="flex justify-end">
+                  <div className="flex justify-end pt-6 border-t">
                     <Button 
                       type="submit" 
                       disabled={accountMutation.isPending}
-                      className="min-w-[150px]"
+                      className="min-w-[150px] h-10 px-6 font-medium"
                     >
                       {accountMutation.isPending ? (
                         <>
@@ -473,14 +475,14 @@ export function VendorOnboarding() {
 
         {/* Document Upload Tab */}
         <TabsContent value="documents" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Document Upload</CardTitle>
-              <CardDescription>
+          <Card className="border-border shadow-sm">
+            <CardHeader className="bg-muted/30 border-b">
+              <CardTitle className="text-foreground">Document Upload</CardTitle>
+              <CardDescription className="text-muted-foreground">
                 Upload required documents for verification. Supported formats: PDF, JPG, PNG (Max 10MB)
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 p-6">
               {/* Document upload areas */}
               {[
                 { key: 'idDocument', label: 'Government ID', icon: FileText, required: true },
@@ -492,7 +494,7 @@ export function VendorOnboarding() {
                 const Icon = doc.icon;
                 
                 return (
-                  <div key={doc.key} className="border-2 border-dashed rounded-lg p-4">
+                  <div key={doc.key} className="border-2 border-dashed border-border rounded-lg p-6 hover:border-ring/50 transition-colors">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Icon className="h-5 w-5 text-muted-foreground" />
@@ -508,16 +510,17 @@ export function VendorOnboarding() {
                     </div>
                     
                     {uploadedFile ? (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between p-2 bg-muted rounded">
-                          <span className="text-sm truncate">{uploadedFile.name}</span>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border">
+                          <span className="text-sm font-medium truncate">{uploadedFile.name}</span>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-muted-foreground font-medium">
                               {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
                             </span>
                             <Button
                               size="sm"
                               variant="ghost"
+                              className="h-8 w-8 p-0 hover:bg-destructive/10"
                               onClick={() => {
                                 setUploadedFiles(prev => {
                                   const { [doc.key]: removed, ...rest } = prev;
@@ -530,12 +533,12 @@ export function VendorOnboarding() {
                           </div>
                         </div>
                         {uploadedFile.uploadProgress !== undefined && uploadedFile.uploadProgress < 100 && (
-                          <Progress value={uploadedFile.uploadProgress} className="h-2" />
+                          <Progress value={uploadedFile.uploadProgress} className="h-3" />
                         )}
                       </div>
                     ) : (
-                      <div className="text-center py-6">
-                        <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
+                      <div className="text-center py-8">
+                        <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
                         <input
                           type="file"
                           accept=".pdf,.jpg,.jpeg,.png"
@@ -558,11 +561,11 @@ export function VendorOnboarding() {
                         />
                         <label
                           htmlFor={`file-${doc.key}`}
-                          className="cursor-pointer text-sm text-primary hover:underline"
+                          className="cursor-pointer text-sm text-primary hover:underline font-medium"
                         >
                           Click to upload or drag and drop
                         </label>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-2">
                           PDF, JPG or PNG (max 10MB)
                         </p>
                       </div>
@@ -572,14 +575,14 @@ export function VendorOnboarding() {
               })}
               
               {/* Submit button */}
-              <div className="flex justify-between items-center pt-4">
-                <p className="text-sm text-muted-foreground">
+              <div className="flex justify-between items-center pt-6 border-t">
+                <p className="text-sm text-muted-foreground font-medium">
                   * Required documents must be uploaded
                 </p>
                 <Button
                   onClick={() => documentsMutation.mutate()}
                   disabled={!uploadedFiles.idDocument || documentsMutation.isPending}
-                  className="min-w-[150px]"
+                  className="min-w-[150px] h-10 px-6 font-medium"
                 >
                   {documentsMutation.isPending ? (
                     <>
@@ -600,14 +603,14 @@ export function VendorOnboarding() {
 
         {/* Verification Status Tab */}
         <TabsContent value="verification" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Verification Status</CardTitle>
-              <CardDescription>
+          <Card className="border-border shadow-sm">
+            <CardHeader className="bg-muted/30 border-b">
+              <CardTitle className="text-foreground">Verification Status</CardTitle>
+              <CardDescription className="text-muted-foreground">
                 Your documents are being reviewed by our team
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <div className="text-center py-12">
                 {getVerificationIcon()}
                 
@@ -632,10 +635,10 @@ export function VendorOnboarding() {
                 
                 {verificationStatus === 'verified' && (
                   <div className="mt-8 space-y-3">
-                    <Button className="w-full max-w-xs">
+                    <Button className="w-full max-w-xs h-10 px-6 font-medium">
                       Go to Dashboard
                     </Button>
-                    <Button variant="outline" className="w-full max-w-xs">
+                    <Button variant="outline" className="w-full max-w-xs h-10 px-6 font-medium">
                       <Download className="h-4 w-4 mr-2" />
                       Download Certificate
                     </Button>
@@ -651,7 +654,7 @@ export function VendorOnboarding() {
                         setUploadedFiles({});
                         setVerificationStatus('pending');
                       }}
-                      className="w-full max-w-xs"
+                      className="w-full max-w-xs h-10 px-6 font-medium"
                     >
                       <RefreshCw className="h-4 w-4 mr-2" />
                       Re-upload Documents
@@ -662,8 +665,8 @@ export function VendorOnboarding() {
               
               {/* Status Timeline */}
               <div className="mt-8 border-t pt-8">
-                <h4 className="font-medium mb-4">Verification Timeline</h4>
-                <div className="space-y-4">
+                <h4 className="font-semibold text-foreground mb-6">Verification Timeline</h4>
+                <div className="space-y-6">
                   <div className="flex items-start gap-3">
                     <div className="mt-1">
                       <CheckCircle className="h-5 w-5 text-green-600" />

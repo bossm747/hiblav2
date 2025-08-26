@@ -62,7 +62,7 @@ const jobOrderItemSchema = z.object({
 const jobOrderFormSchema = z.object({
   hairTag: z.string().min(1, 'Hair Tag is required'),
   salesOrderId: z.string().optional(),
-  customerId: z.string().min(1, 'Customer is required'),
+  clientId: z.string().min(1, 'Client is required'),
   date: z.date().default(() => new Date()),
   dueDate: z.date(),
   createdBy: z.string().min(1, 'Creator initials required'),
@@ -90,7 +90,7 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
     defaultValues: {
       hairTag: '',
       salesOrderId: salesOrderId,
-      customerId: '',
+      clientId: '',
       date: new Date(),
       dueDate: new Date(),
       createdBy: '',
@@ -102,8 +102,8 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
     },
   });
 
-  const { data: customers = [] } = useQuery<any[]>({
-    queryKey: ['/api/customers'],
+  const { data: clients = [] } = useQuery<any[]>({
+    queryKey: ['/api/clients'],
   });
 
   const { data: salesOrders = [] } = useQuery<any[]>({
@@ -123,13 +123,13 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
 
   useEffect(() => {
     if (salesOrder) {
-      form.setValue('hairTag', salesOrder.customerCode || '');
-      form.setValue('customerId', salesOrder.customerId || '');
+      form.setValue('hairTag', salesOrder.clientCode || '');
+      form.setValue('clientId', salesOrder.clientId || '');
       form.setValue('createdBy', salesOrder.createdBy || '');
       if (salesOrder.dueDate) {
         form.setValue('dueDate', new Date(salesOrder.dueDate));
       }
-      form.setValue('orderInstructions', salesOrder.customerServiceInstructions || '');
+      form.setValue('orderInstructions', salesOrder.clientServiceInstructions || '');
       
       // Load items from sales order
       if (salesOrderItems && salesOrderItems.length > 0) {
@@ -166,8 +166,8 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
         body: JSON.stringify({
           jobOrder: {
             salesOrderId: data.salesOrderId,
-            customerId: data.customerId,
-            customerCode: data.hairTag,
+            clientId: data.clientId,
+            clientCode: data.hairTag,
             date: data.date.toISOString(),
             dueDate: data.dueDate.toISOString(),
             createdBy: data.createdBy,
@@ -245,9 +245,9 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
+    <Card className="w-full max-w-6xl mx-auto border-border shadow-sm">
+      <CardHeader className="bg-muted/30 border-b">
+        <CardTitle className="flex items-center text-foreground">
           <Factory className="h-5 w-5 mr-2" />
           {salesOrderId ? 'Create Job Order from Sales Order' : 'Create New Job Order'}
         </CardTitle>
@@ -257,23 +257,23 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
           </Badge>
         )}
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((data) => createJobOrderMutation.mutate(data))} className="space-y-6">
+          <form onSubmit={form.handleSubmit((data) => createJobOrderMutation.mutate(data))} className="space-y-8">
             
             {/* JOB ORDER FORM Header - Matching PDF Format */}
-            <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 p-6 rounded-lg border-2 border-orange-200 dark:border-orange-800">
+            <div className="bg-gradient-to-b from-muted/30 to-background border border-border shadow-sm p-6 rounded-lg">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold uppercase tracking-wide">JOB ORDER FORM</h2>
+                <h2 className="text-2xl font-bold uppercase tracking-wide text-foreground">JOB ORDER FORM</h2>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-4">
                 <FormField
                   control={form.control}
                   name="createdBy"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">Created By</FormLabel>
+                      <FormLabel className="text-muted-foreground">Created By</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter initials" {...field} className="uppercase" maxLength={10} />
                       </FormControl>
@@ -287,7 +287,7 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
                   name="productionDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">Production Date</FormLabel>
+                      <FormLabel className="text-muted-foreground">Production Date</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -322,7 +322,7 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
                   name="nameSignature"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">Name / Signature</FormLabel>
+                      <FormLabel className="text-muted-foreground">Name / Signature</FormLabel>
                       <FormControl>
                         <Input placeholder="Name" {...field} />
                       </FormControl>
@@ -336,7 +336,7 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
                   name="received"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">Received</FormLabel>
+                      <FormLabel className="text-muted-foreground">Received</FormLabel>
                       <FormControl>
                         <Input placeholder="Received by" {...field} />
                       </FormControl>
@@ -352,23 +352,23 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
                   name="hairTag"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">HAIR TAG</FormLabel>
+                      <FormLabel className="text-muted-foreground">HAIR TAG</FormLabel>
                       <Select onValueChange={(value) => {
                         field.onChange(value);
-                        const customer = customers.find((c: any) => c.customerCode === value);
-                        if (customer) {
-                          form.setValue('customerId', customer.id);
+                        const client = clients.find((c: any) => c.clientCode === value);
+                        if (client) {
+                          form.setValue('clientId', client.id);
                         }
                       }} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select customer" />
+                            <SelectValue placeholder="Select client" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {customers.map((customer: any) => (
-                            <SelectItem key={customer.id} value={customer.customerCode}>
-                              {customer.customerCode}
+                          {clients.map((client: any) => (
+                            <SelectItem key={client.id} value={client.clientCode}>
+                              {client.clientCode}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -379,8 +379,8 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
                 />
                 
                 <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-300">DATE</label>
-                  <div className="bg-white dark:bg-gray-800 p-2 rounded border font-semibold">
+                  <label className="text-muted-foreground">DATE</label>
+                  <div className="bg-background border border-input p-2 rounded text-foreground font-semibold">
                     {format(new Date(), 'MMMM dd, yyyy')}
                   </div>
                 </div>
@@ -390,7 +390,7 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
                   name="dueDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">DUE DATE</FormLabel>
+                      <FormLabel className="text-muted-foreground">DUE DATE</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -424,13 +424,13 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
             </div>
             
             {/* Order Instructions */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-6">
               <FormField
                 control={form.control}
                 name="orderInstructions"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-lg font-semibold lowercase">order instructions</FormLabel>
+                    <FormLabel className="text-foreground font-semibold border-b pb-2">order instructions</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Silky Bundles\nBrushed Back Closure/Frontal"
@@ -446,32 +446,32 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
             
             {/* Job Order Items Table - Exact PDF Format */}
             {items.length > 0 && (
-              <div className="mt-6">
-                <div className="border rounded-lg overflow-x-auto">
+              <div className="space-y-6">
+                <div className="border border-border rounded-lg overflow-x-auto shadow-sm">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50 dark:bg-gray-900">
-                        <TableHead className="font-semibold min-w-[200px]">order item</TableHead>
-                        <TableHead className="font-semibold min-w-[120px]">specification</TableHead>
-                        <TableHead className="text-center font-semibold w-20">quantity</TableHead>
-                        <TableHead className="text-center font-semibold w-12">1</TableHead>
-                        <TableHead className="text-center font-semibold w-12">2</TableHead>
-                        <TableHead className="text-center font-semibold w-12">3</TableHead>
-                        <TableHead className="text-center font-semibold w-12">4</TableHead>
-                        <TableHead className="text-center font-semibold w-12">5</TableHead>
-                        <TableHead className="text-center font-semibold w-12">6</TableHead>
-                        <TableHead className="text-center font-semibold w-12">7</TableHead>
-                        <TableHead className="text-center font-semibold w-12">8</TableHead>
-                        <TableHead className="text-center font-semibold w-20">order balance</TableHead>
-                        <TableHead className="text-center font-semibold w-20">shipped</TableHead>
-                        <TableHead className="text-center font-semibold w-20">reserved</TableHead>
-                        <TableHead className="text-center font-semibold w-20">ready</TableHead>
-                        <TableHead className="text-center font-semibold w-20">to produce</TableHead>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="font-semibold min-w-[200px] text-foreground">order item</TableHead>
+                        <TableHead className="font-semibold min-w-[120px] text-foreground">specification</TableHead>
+                        <TableHead className="text-center font-semibold w-20 text-foreground">quantity</TableHead>
+                        <TableHead className="text-center font-semibold w-12 text-foreground">1</TableHead>
+                        <TableHead className="text-center font-semibold w-12 text-foreground">2</TableHead>
+                        <TableHead className="text-center font-semibold w-12 text-foreground">3</TableHead>
+                        <TableHead className="text-center font-semibold w-12 text-foreground">4</TableHead>
+                        <TableHead className="text-center font-semibold w-12 text-foreground">5</TableHead>
+                        <TableHead className="text-center font-semibold w-12 text-foreground">6</TableHead>
+                        <TableHead className="text-center font-semibold w-12 text-foreground">7</TableHead>
+                        <TableHead className="text-center font-semibold w-12 text-foreground">8</TableHead>
+                        <TableHead className="text-center font-semibold w-20 text-foreground">order balance</TableHead>
+                        <TableHead className="text-center font-semibold w-20 text-foreground">shipped</TableHead>
+                        <TableHead className="text-center font-semibold w-20 text-foreground">reserved</TableHead>
+                        <TableHead className="text-center font-semibold w-20 text-foreground">ready</TableHead>
+                        <TableHead className="text-center font-semibold w-20 text-foreground">to produce</TableHead>
                       </TableRow>
-                      <TableRow className="bg-gray-100 dark:bg-gray-800">
-                        <TableHead colSpan={3} className="font-normal text-center italic">Shipments</TableHead>
-                        <TableHead colSpan={8} className="font-normal text-center italic">Real-time Monitoring</TableHead>
-                        <TableHead colSpan={4} className="font-normal text-center italic">Production Status</TableHead>
+                      <TableRow className="bg-muted/30">
+                        <TableHead colSpan={3} className="font-normal text-center italic text-muted-foreground">Shipments</TableHead>
+                        <TableHead colSpan={8} className="font-normal text-center italic text-muted-foreground">Real-time Monitoring</TableHead>
+                        <TableHead colSpan={4} className="font-normal text-center italic text-muted-foreground">Production Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -524,20 +524,20 @@ export function JobOrderForm({ salesOrderId, onSuccess }: JobOrderFormProps) {
                   </Table>
                 </div>
                 
-                <div className="mt-4 text-right">
-                  <div className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 p-4 rounded border font-bold">
+                <div className="mt-6 text-right">
+                  <div className="bg-gradient-to-r from-muted/30 to-primary/10 p-4 rounded-lg border border-border font-bold text-foreground shadow-sm">
                     JOB ORDER NO. Auto-Generated
                   </div>
                 </div>
               </div>
             )}
             
-            <div className="flex gap-4">
-              <Button type="submit" disabled={createJobOrderMutation.isPending || items.length === 0}>
-                {createJobOrderMutation.isPending ? 'Creating...' : 'Create Job Order'}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => form.reset()}>
+            <div className="flex justify-end gap-4 pt-6 border-t border-border">
+              <Button type="button" variant="outline" onClick={() => form.reset()} className="h-10 px-6 font-medium">
                 Cancel
+              </Button>
+              <Button type="submit" disabled={createJobOrderMutation.isPending || items.length === 0} className="h-10 px-6 font-medium">
+                {createJobOrderMutation.isPending ? 'Creating...' : 'Create Job Order'}
               </Button>
             </div>
           </form>

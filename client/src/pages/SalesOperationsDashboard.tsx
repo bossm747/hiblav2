@@ -75,7 +75,7 @@ export function SalesOperationsDashboard() {
   const totalQuotations = analytics ? parseInt(analytics.overview?.activeQuotations || '0') : 0;
   const totalSalesOrders = analytics ? parseInt(analytics.overview?.activeSalesOrders || '0') : 0;
   const totalJobOrders = analytics ? parseInt(analytics.overview?.activeJobOrders || '0') : 0;
-  const totalCustomers = analytics ? parseInt(analytics.overview?.totalCustomers || '0') : 0;
+  const totalClients = analytics ? parseInt(analytics.overview?.totalClients || '0') : 0;
   const conversionRate = totalQuotations > 0 ? ((totalSalesOrders / totalQuotations) * 100).toFixed(1) : '0.0';
   const totalRevenue = totalSalesOrders * 500;
 
@@ -99,12 +99,12 @@ export function SalesOperationsDashboard() {
     if (!quotation) return false;
     
     const number = quotation.number || quotation.quotationNumber || '';
-    const customerName = quotation.customerName || quotation.customerCode || '';
+    const clientName = quotation.clientName || quotation.clientCode || '';
     const status = quotation.status || 'draft';
     const createdAt = quotation.createdAt || new Date().toISOString();
     
     const matchesSearch = number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         customerName.toLowerCase().includes(searchTerm.toLowerCase());
+                         clientName.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesDateFrom = !dateFrom || new Date(createdAt) >= new Date(dateFrom);
     const matchesDateTo = !dateTo || new Date(createdAt) <= new Date(dateTo + 'T23:59:59');
@@ -174,7 +174,7 @@ export function SalesOperationsDashboard() {
       const quotationsWithDefaults = (data || []).map((q: any) => ({
         ...q,
         number: q.number || q.quotationNumber || q.id || 'N/A',
-        customerName: q.customerName || q.customerCode || 'Unknown Customer',
+        clientName: q.clientName || q.clientCode || 'Unknown Client',
         status: q.status || 'draft',
         total: Number(q.total || 0),
         createdAt: q.createdAt || new Date().toISOString()
@@ -305,8 +305,8 @@ export function SalesOperationsDashboard() {
     { month: 'Mar', quotations: totalQuotations, orders: totalSalesOrders, revenue: totalRevenue },
   ];
 
-  const customerTiers = [
-    { name: 'New Customer', value: 25, fill: '#3b82f6' },
+  const clientTiers = [
+    { name: 'New Client', value: 25, fill: '#3b82f6' },
     { name: 'Regular', value: 45, fill: '#10b981' },
     { name: 'Premier', value: 20, fill: '#f59e0b' },
     { name: 'Custom', value: 10, fill: '#ef4444' }
@@ -417,15 +417,15 @@ export function SalesOperationsDashboard() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Customer Distribution</CardTitle>
-                  <CardDescription>Customers by pricing tier</CardDescription>
+                  <CardTitle>Client Distribution</CardTitle>
+                  <CardDescription>Client accounts by pricing tier</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
-                          data={customerTiers}
+                          data={clientTiers}
                           cx="50%"
                           cy="50%"
                           labelLine={false}
@@ -434,7 +434,7 @@ export function SalesOperationsDashboard() {
                           fill="#8884d8"
                           dataKey="value"
                         >
-                          {customerTiers.map((entry, index) => (
+                          {clientTiers.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.fill} />
                           ))}
                         </Pie>
@@ -531,7 +531,7 @@ export function SalesOperationsDashboard() {
                 <div className="border rounded-lg">
                   <div className="grid grid-cols-6 gap-4 p-4 bg-gray-50 font-medium text-sm">
                     <div>Quote #</div>
-                    <div>Customer</div>
+                    <div>Client Code</div>
                     <div>Date</div>
                     <div>Amount</div>
                     <div>Status</div>
@@ -568,7 +568,7 @@ export function SalesOperationsDashboard() {
                               {quotation.number}
                             </div>
                             <div className="font-medium">
-                              {quotation.customerName || quotation.customerCode}
+                              {quotation.clientName || quotation.clientCode}
                             </div>
                             <div className="text-gray-600">
                               {new Date(quotation.createdAt).toLocaleDateString()}
@@ -703,7 +703,7 @@ export function SalesOperationsDashboard() {
                     <CardDescription>
                       {duplicatingQuotation 
                         ? 'Creating an editable copy of the selected quotation'
-                        : 'Generate a new quotation for customer inquiry'
+                        : 'Generate a new quotation for client inquiry'
                       }
                     </CardDescription>
                   </div>
@@ -779,7 +779,7 @@ export function SalesOperationsDashboard() {
                     if (navigator.share) {
                       navigator.share({
                         title: `Quotation ${selectedQuotation?.number}`,
-                        text: `Quotation details for ${selectedQuotation?.customerName}`,
+                        text: `Quotation details for ${selectedQuotation?.clientName}`,
                         url: window.location.href
                       });
                     } else {
@@ -819,22 +819,22 @@ export function SalesOperationsDashboard() {
                   </div>
                 </div>
 
-                {/* Customer & Quote Information */}
+                {/* Client & Quote Information */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8 bg-white">
                   <div className="space-y-4">
                     <h3 className="text-xl font-semibold text-gray-800 border-b border-gray-200 pb-2">
-                      Customer Information
+                      Client Information
                     </h3>
                     <div className="space-y-3">
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Customer Name</Label>
+                        <Label className="text-sm font-medium text-gray-500">Client Name</Label>
                         <p className="text-lg font-semibold text-gray-900">
-                          {selectedQuotation.customerName || selectedQuotation.customerCode}
+                          {selectedQuotation.clientName || selectedQuotation.clientCode}
                         </p>
                       </div>
                       <div>
-                        <Label className="text-sm font-medium text-gray-500">Customer Code</Label>
-                        <p className="text-lg text-gray-700">{selectedQuotation.customerCode}</p>
+                        <Label className="text-sm font-medium text-gray-500">Client Code</Label>
+                        <p className="text-lg text-gray-700">{selectedQuotation.clientCode}</p>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-gray-500">Country</Label>
@@ -991,10 +991,10 @@ export function SalesOperationsDashboard() {
                     </div>
                   </div>
                   
-                  {selectedQuotation.customerServiceInstructions && (
-                    <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <h4 className="font-semibold text-yellow-800 mb-2">Special Instructions</h4>
-                      <p className="text-yellow-700">{selectedQuotation.customerServiceInstructions}</p>
+                  {selectedQuotation.clientServiceInstructions && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <h4 className="font-semibold text-yellow-800 mb-1">Special Instructions</h4>
+                    <p className="text-yellow-700">{selectedQuotation.clientServiceInstructions}</p>
                     </div>
                   )}
                 </div>

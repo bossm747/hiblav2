@@ -135,109 +135,37 @@ interface ShippingUpdateEmailData {
 export async function sendQuotationNotification(data: QuotationEmailData): Promise<boolean> {
   const { getQuotationEmailTemplate } = await import('./email-templates');
   
-  const baseUrl = process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000';
-  const portalUrl = `https://${baseUrl}/customer-portal?token=${data.approvalToken}&quotation=${data.quotationId}`;
-  
-  const subject = `New Quotation #${data.quotationNumber} - Hibla Filipino Hair`;
-  
-  const quotationData = {
+  const subject = `Internal Quotation #${data.quotationNumber} - Hibla Manufacturing`;
+  const html = getQuotationEmailTemplate({
     quotationNumber: data.quotationNumber,
-    customerCode: data.customerName,
+    customerCode: data.customerCode,
     totalAmount: data.totalAmount,
-    status: data.status
-  };
-  
-  const html = getQuotationEmailTemplate(quotationData);
+    status: 'Created'
+  });
   
   const text = `
-Dear ${data.customerName},
-
-We have prepared a new quotation for your hair product requirements.
+Quotation #${data.quotationNumber} has been created.
 
 Quotation Details:
-- Quotation Number: ${data.quotationNumber}
+- Customer Code: ${data.customerCode}
 - Total Amount: $${data.totalAmount}
-- Status: ${data.status}
-- Created by: ${data.createdBy}
+- Status: Created
 
-Please review the quotation details and let us know if you have any questions.
-
-View Quotation: ${portalUrl}
+This is an internal notification for staff review.
 
 Best regards,
-Hibla Filipino Hair Team
-  `.trim();
-
-  return sendEmail({
-    to: data.customerEmail,
-    from: 'noreply@hibla.com',
-    subject,
-    text,
-    html,
-  });
-}
-
-export async function sendQuotationApprovalRequest(data: QuotationEmailData): Promise<boolean> {
-  const baseUrl = process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000';
-  const approvalUrl = `https://${baseUrl}/customer-portal?token=${data.approvalToken}&quotation=${data.quotationId}&action=approve`;
-  
-  const subject = `Action Required: Approve Quotation #${data.quotationNumber}`;
-  
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <div style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); padding: 40px 20px; text-align: center;">
-        <h1 style="color: white; margin: 0;">Quotation Approval Required</h1>
-        <p style="color: #e0e7ff; margin: 10px 0 0 0;">Hibla Filipino Hair</p>
-      </div>
-      
-      <div style="padding: 30px 20px;">
-        <p>Dear <strong>${data.customerName}</strong>,</p>
-        
-        <p>Your quotation is ready for approval. Please review the details and confirm your order.</p>
-        
-        <div style="background-color: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-          <h3 style="margin-top: 0; color: #92400e;">Quotation Details</h3>
-          <p><strong>Quotation Number:</strong> ${data.quotationNumber}</p>
-          <p><strong>Total Amount:</strong> $${data.totalAmount}</p>
-          <p><strong>Status:</strong> ${data.status}</p>
-        </div>
-        
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${approvalUrl}" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; display: inline-block;">
-            Review & Approve Quotation
-          </a>
-        </div>
-        
-        <p style="color: #6b7280; font-size: 14px;">
-          If you have any questions, please don't hesitate to contact us.
-        </p>
-      </div>
-    </div>
+Hibla Manufacturing System
   `;
   
-  const text = `
-Dear ${data.customerName},
-
-Your quotation #${data.quotationNumber} is ready for approval.
-
-Quotation Details:
-- Total Amount: $${data.totalAmount}
-- Status: ${data.status}
-
-Please review and approve: ${approvalUrl}
-
-Best regards,
-Hibla Filipino Hair Team
-  `.trim();
-
-  return sendEmail({
-    to: data.customerEmail,
-    from: 'noreply@hibla.com',
+  return await sendEmail({
+    to: data.customerEmail, // This should be staff email in internal system
     subject,
-    text,
     html,
+    text
   });
 }
+
+// Customer approval function removed - internal system only
 
 export async function sendOrderConfirmationNotification(data: OrderConfirmationEmailData): Promise<boolean> {
   const { getOrderConfirmationEmailTemplate } = await import('./email-templates');

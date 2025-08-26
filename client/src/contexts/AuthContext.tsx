@@ -7,7 +7,6 @@ export interface AuthUser {
   email: string;
   role: string;
   permissions: Permission[];
-  type: 'staff' | 'customer';
 }
 
 interface AuthContextType {

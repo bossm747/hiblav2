@@ -49,9 +49,9 @@ const salesOrderItemSchema = z.object({
 });
 
 const salesOrderFormSchema = z.object({
-  hairTag: z.string().min(1, 'Hair Tag (Customer Code) is required'),
-  customerId: z.string().min(1, 'Customer is required'),
-  shippingMethod: z.enum(['DHL', 'UPS', 'Fed Ex', 'Agent', 'Pick Up']),
+  hairTag: z.string().min(1, 'Hair Tag (Client Code) is required'),
+  clientId: z.string().min(1, 'Client is required'),
+  shippingMethod: z.enum(['DHL', 'UPS', 'Fed Ex', 'Agent', 'Client Pickup']),
   paymentMethod: z.enum(['bank', 'agent', 'money transfer', 'cash']),
   orderDate: z.date().default(() => new Date()),
   dueDate: z.date(),
@@ -63,7 +63,7 @@ const salesOrderFormSchema = z.object({
   discountUsd: z.string().default('0.00'),
   others: z.string().default('0.00'),
   pleasePayThisAmountUsd: z.string().default('0.00'),
-  customerServiceInstructions: z.string().optional(),
+  clientServiceInstructions: z.string().optional(),
   items: z.array(salesOrderItemSchema).min(1, 'At least one item is required'),
 });
 
@@ -93,7 +93,7 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
     resolver: zodResolver(salesOrderFormSchema),
     defaultValues: {
       hairTag: '',
-      customerId: '',
+      clientId: '',
       shippingMethod: 'DHL',
       paymentMethod: 'bank',
       orderDate: new Date(),
@@ -106,7 +106,7 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
       discountUsd: '0.00',
       others: '0.00',
       pleasePayThisAmountUsd: '0.00',
-      customerServiceInstructions: '',
+      clientServiceInstructions: '',
       items: items,
     },
   });
@@ -115,8 +115,8 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
     queryKey: ['/api/products'],
   });
 
-  const { data: customers = [] } = useQuery<any[]>({
-    queryKey: ['/api/customers'],
+  const { data: clients = [] } = useQuery<any[]>({
+    queryKey: ['/api/clients'],
   });
 
   const { data: priceLists = [] } = useQuery<any[]>({
@@ -131,9 +131,9 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
 
   useEffect(() => {
     if (quotation) {
-      const customer = customers.find((c: any) => c.customerCode === quotation.customerCode);
-      form.setValue('hairTag', quotation.customerCode || '');
-      form.setValue('customerId', customer?.id || '');
+      const client = clients.find((c: any) => c.clientCode === quotation.clientCode);
+      form.setValue('hairTag', quotation.clientCode || '');
+      form.setValue('clientId', client?.id || '');
       form.setValue('paymentMethod', quotation.paymentMethod || 'bank');
       form.setValue('shippingMethod', quotation.shippingMethod || 'DHL');
       form.setValue('subtotal', quotation.subtotal || '0.00');
@@ -141,7 +141,7 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
       form.setValue('bankChargeUsd', quotation.bankCharge || '0.00');
       form.setValue('discountUsd', quotation.discount || '0.00');
       form.setValue('others', quotation.others || '0.00');
-      form.setValue('customerServiceInstructions', quotation.customerServiceInstructions || '');
+      form.setValue('clientServiceInstructions', quotation.clientServiceInstructions || '');
       
       if (quotation.items && quotation.items.length > 0) {
         const formattedItems = quotation.items.map((item: any) => ({
@@ -154,20 +154,20 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
       
       calculateTotals(items);
     }
-  }, [quotation, customers, form, items]);
+  }, [quotation, clients, form, items]);
 
   const createSalesOrderMutation = useMutation({
     mutationFn: async (data: SalesOrderFormData) => {
-      const selectedCustomer = customers.find((c: any) => c.id === data.customerId);
+      const selectedClient = clients.find((c: any) => c.id === data.clientId);
       
       const response = await apiRequest('/api/sales-orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           salesOrder: {
-            customerId: data.customerId,
-            customerCode: data.hairTag,
-            country: selectedCustomer?.country || '',
+            clientId: data.clientId,
+            clientCode: data.hairTag,
+            country: selectedClient?.country || '',
             revisionNumber: data.revisionNumber,
             paymentMethod: data.paymentMethod,
             shippingMethod: data.shippingMethod,
@@ -180,7 +180,7 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
             discountUsd: data.discountUsd,
             others: data.others,
             pleasePayThisAmountUsd: data.pleasePayThisAmountUsd,
-            customerServiceInstructions: data.customerServiceInstructions,
+            clientServiceInstructions: data.clientServiceInstructions,
             quotationId: quotationId,
           },
           items: data.items,
@@ -297,9 +297,9 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
+    <Card className="border-border shadow-sm">
+      <CardHeader className="bg-muted/30 border-b">
+        <CardTitle className="flex items-center text-foreground">
           <ShoppingCart className="h-5 w-5 mr-2" />
           {quotationId ? 'Create Sales Order from Quotation' : 'Create New Sales Order'}
         </CardTitle>
@@ -309,19 +309,19 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
           </Badge>
         )}
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((data) => createSalesOrderMutation.mutate(data))} className="space-y-6">
+          <form onSubmit={form.handleSubmit((data) => createSalesOrderMutation.mutate(data))} className="space-y-8">
             {/* SALES ORDER Header - Matching PDF Format */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 p-6 rounded-lg border border-border shadow-sm">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold uppercase tracking-wide">SALES ORDER</h2>
+                <h2 className="text-2xl font-bold uppercase tracking-wide text-foreground">SALES ORDER</h2>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-300">NO.</label>
-                  <div className="bg-white dark:bg-gray-800 p-2 rounded border font-semibold">
+                  <label className="text-sm font-medium text-muted-foreground">NO.</label>
+                  <div className="bg-background border border-input p-2 rounded font-semibold text-foreground">
                     Auto-Generated
                   </div>
                 </div>
@@ -331,23 +331,23 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
                   name="hairTag"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">HAIR TAG</FormLabel>
+                      <FormLabel className="text-sm font-medium text-muted-foreground">HAIR TAG</FormLabel>
                       <Select onValueChange={(value) => {
                         field.onChange(value);
-                        const customer = customers.find((c: any) => c.customerCode === value);
-                        if (customer) {
-                          form.setValue('customerId', customer.id);
+                        const client = clients.find((c: any) => c.clientCode === value);
+                        if (client) {
+                          form.setValue('clientId', client.id);
                         }
                       }} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select customer" />
+                            <SelectValue placeholder="Select client" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {customers.map((customer: any) => (
-                            <SelectItem key={customer.id} value={customer.customerCode}>
-                              {customer.customerCode}
+                          {clients.map((client: any) => (
+                            <SelectItem key={client.id} value={client.clientCode}>
+                              {client.clientCode}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -362,7 +362,7 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
                   name="shippingMethod"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">Shipping Method</FormLabel>
+                      <FormLabel className="text-sm font-medium text-muted-foreground">Shipping Method</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -374,7 +374,7 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
                           <SelectItem value="UPS">UPS</SelectItem>
                           <SelectItem value="Fed Ex">Fed Ex</SelectItem>
                           <SelectItem value="Agent">Agent</SelectItem>
-                          <SelectItem value="Pick Up">Pick Up</SelectItem>
+                          <SelectItem value="Client Pickup">Client Pickup</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -387,7 +387,7 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
                   name="revisionNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">Revision</FormLabel>
+                      <FormLabel className="text-sm font-medium text-muted-foreground">Revision</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -408,10 +408,10 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
                 />
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
                 <div>
-                  <label className="text-sm font-medium text-gray-600 dark:text-gray-300">ORDER DATE</label>
-                  <div className="bg-white dark:bg-gray-800 p-2 rounded border font-semibold">
+                  <label className="text-sm font-medium text-muted-foreground">ORDER DATE</label>
+                  <div className="bg-background border border-input p-2 rounded font-semibold text-foreground">
                     {format(new Date(), 'MMMM dd, yyyy')}
                   </div>
                 </div>
@@ -421,7 +421,7 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
                   name="dueDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">DUE DATE</FormLabel>
+                      <FormLabel className="text-sm font-medium text-muted-foreground">DUE DATE</FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
@@ -457,7 +457,7 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
                   name="paymentMethod"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">Method of Payment</FormLabel>
+                      <FormLabel className="text-sm font-medium text-muted-foreground">Method of Payment</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
@@ -481,7 +481,7 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
                   name="createdBy"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-600 dark:text-gray-300">Created By</FormLabel>
+                      <FormLabel className="text-sm font-medium text-muted-foreground">Created By</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter initials" {...field} className="uppercase" maxLength={10} />
                       </FormControl>
@@ -493,21 +493,21 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
             </div>
 
             {/* Order Items Table - Matching PDF Format */}
-            <div className="mt-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold uppercase">Order Items</h3>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold uppercase text-foreground border-b pb-2">Order Items</h3>
                 {!quotationId && (
-                  <Button type="button" onClick={addItem} size="sm" variant="outline">
+                  <Button type="button" onClick={addItem} size="sm" variant="outline" className="h-10 px-4 font-medium">
                     <Plus className="h-4 w-4 mr-1" />
                     Add Item
                   </Button>
                 )}
               </div>
               
-              <div className="border rounded-lg overflow-hidden">
+              <div className="border border-border rounded-lg overflow-hidden shadow-sm">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gray-50 dark:bg-gray-900">
+                    <TableRow className="bg-muted/50">
                       <TableHead className="font-semibold">order item</TableHead>
                       <TableHead className="font-semibold">specification</TableHead>
                       <TableHead className="text-center font-semibold">quantity</TableHead>
@@ -606,14 +606,14 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
             </div>
 
             {/* Financial Summary - Exact PDF Format */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <FormField
                   control={form.control}
-                  name="customerServiceInstructions"
+                  name="clientServiceInstructions"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-lg font-semibold lowercase">customer service instructions</FormLabel>
+                      <FormLabel className="text-lg font-semibold lowercase text-foreground border-b pb-2">client service instructions</FormLabel>
                       <FormControl>
                         <Textarea
                           placeholder="Silky Bundles\nBrushed Back Closure/Frontal"
@@ -629,8 +629,8 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
               
               <div className="space-y-4">
                 {/* Financial Breakdown exactly matching PDF */}
-                <div className="bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-6 rounded-lg border-2">
-                  <div className="space-y-3">
+                <div className="bg-gradient-to-b from-muted/30 to-background border border-border p-6 rounded-lg shadow-sm">
+                  <div className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span className="text-right font-medium">sub total</span>
                       <span className="font-semibold text-lg">{form.watch('subtotal')}</span>
@@ -724,12 +724,12 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
                       </div>
                     </div>
                     
-                    <div className="border-t-2 border-gray-300 pt-3 mt-4">
+                    <div className="border-t border-border pt-4 mt-4">
                       <div className="flex justify-between items-center">
-                        <span className="text-right font-bold">please pay this amount.</span>
+                        <span className="text-right font-bold text-foreground">please pay this amount.</span>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold">USD</span>
-                          <span className="font-bold text-xl">{form.watch('pleasePayThisAmountUsd')}</span>
+                          <span className="font-bold text-foreground">USD</span>
+                          <span className="font-bold text-xl text-foreground">{form.watch('pleasePayThisAmountUsd')}</span>
                         </div>
                       </div>
                     </div>
@@ -738,12 +738,12 @@ export function SalesOrderForm({ quotationId, onSuccess }: SalesOrderFormProps) 
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <Button type="submit" disabled={createSalesOrderMutation.isPending}>
-                {createSalesOrderMutation.isPending ? 'Creating...' : 'Create Sales Order'}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => form.reset()}>
+            <div className="flex justify-end gap-4 pt-6 border-t">
+              <Button type="button" variant="outline" onClick={() => form.reset()} className="h-10 px-6 font-medium">
                 Cancel
+              </Button>
+              <Button type="submit" disabled={createSalesOrderMutation.isPending} className="h-10 px-6 font-medium">
+                {createSalesOrderMutation.isPending ? 'Creating...' : 'Create Sales Order'}
               </Button>
             </div>
           </form>

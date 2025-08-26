@@ -99,12 +99,12 @@ const statusConfigs: Record<StatusType, StatusConfig> = {
   // Draft states
   draft: {
     icon: Edit,
-    className: 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800',
+    className: 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900 dark:text-gray-400 dark:border-gray-800',
     label: 'Draft',
   },
   inactive: {
     icon: Edit,
-    className: 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800',
+    className: 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900 dark:text-gray-400 dark:border-gray-800',
     label: 'Inactive',
   },
   
@@ -181,7 +181,7 @@ export function StatusBadge({
   if (!config) {
     // Fallback for unknown statuses
     return (
-      <Badge className={`bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800 ${className}`}>
+      <Badge className={`bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900 dark:text-gray-400 dark:border-gray-800 ${className}`}>
         <Package className="h-3 w-3 mr-1" />
         {customLabel || status}
       </Badge>

@@ -282,7 +282,7 @@ export function PaymentRecordDetailModal({
                   <div className="font-semibold">{safePaymentRecord.salesOrderNumber || 'N/A'}</div>
                 </div>
                 <div>
-                  <div className="text-xs text-muted-foreground">Customer Code</div>
+                  <div className="text-xs text-muted-foreground">Client Code</div>
                   <div className="font-semibold text-lg">{safePaymentRecord.customerCode || 'N/A'}</div>
                 </div>
                 <div>
@@ -366,7 +366,7 @@ export function PaymentRecordDetailModal({
                     <div>
                       <div className="text-sm font-medium">Payment Screenshot</div>
                       <div className="text-xs text-muted-foreground">
-                        Uploaded by {safePaymentRecord.uploadedBy || 'Customer Support'}
+                        Uploaded by {safePaymentRecord.uploadedBy || 'Internal Staff'}
                       </div>
                     </div>
                     <div className="flex gap-2">

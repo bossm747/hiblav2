@@ -2,7 +2,7 @@ import { apiRequest } from '@/lib/queryClient';
 
 export interface DashboardAnalytics {
   overview: {
-    totalCustomers: number;
+    totalClients: number;
     totalProducts: number;
     activeQuotations: number;
     activeSalesOrders: number;

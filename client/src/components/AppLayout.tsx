@@ -115,7 +115,7 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
   };
 
   const NavItems = ({ mobile = false }: { mobile?: boolean }) => (
-    <div className={cn('space-y-3', mobile && 'px-0')}>
+    <div className={cn('space-y-2', mobile && 'px-0')}>
       {navigationModules.map((module) => {
         const Icon = module.icon;
         const isModuleActive = location === module.path;
@@ -124,30 +124,28 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
           <Link key={module.path} href={module.path}>
             <Button
               variant={isModuleActive ? 'default' : 'ghost'}
-              size={mobile ? 'lg' : 'sm'}
+              size={mobile ? 'lg' : 'default'}
               className={cn(
-                'w-full justify-start transition-all duration-200 h-auto relative group',
-                mobile ? 'min-h-[52px] text-left p-4 rounded-xl active:scale-[0.98] text-base' : 'py-2',
-                mobile && 'hover:bg-muted shadow-sm',
-                isModuleActive && 'bg-primary text-primary-foreground shadow-md',
-                !isModuleActive && 'text-foreground hover:bg-muted'
+                'w-full justify-start transition-all duration-200 relative group',
+                mobile ? 'h-14 text-left px-4 rounded-xl active:scale-[0.98] text-base font-medium' : 'h-11 px-3 rounded-lg font-medium',
+                mobile && 'hover:bg-muted/50 shadow-sm',
+                isModuleActive && 'bg-primary text-primary-foreground shadow-sm',
+                !isModuleActive && 'text-foreground hover:bg-muted/50 hover:text-foreground'
               )}
               onClick={() => mobile && setSidebarOpen(false)}
             >
               <Icon className={cn(
-                mobile ? "h-6 w-6 mr-4" : "h-4 w-4 mr-2",
+                mobile ? "h-5 w-5 mr-4" : "h-4 w-4 mr-3",
                 "flex-shrink-0 transition-transform duration-200",
                 mobile && "group-hover:scale-105"
               )} />
-              <div className="flex-1 text-left">
-                <div className={cn(
-                  "font-medium", 
-                  mobile ? "text-base" : "text-sm"
-                )}>{module.label}</div>
-              </div>
+              <span className={cn(
+                "truncate",
+                mobile ? "text-base" : "text-sm"
+              )}>{module.label}</span>
               {isModuleActive && mobile && (
                 <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                  <div className="w-3 h-3 bg-white rounded-full opacity-90 shadow-sm"></div>
+                  <div className="w-2 h-2 bg-white rounded-full opacity-90"></div>
                 </div>
               )}
             </Button>
@@ -160,10 +158,10 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
   return (
     <div className="flex min-h-screen bg-background">
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:bg-card md:border-r">
+      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 md:bg-card md:border-r md:border-border/40">
         <div className="flex flex-col flex-1">
           {/* Logo */}
-          <div className="flex items-center h-16 px-4 border-b bg-gradient-to-r from-primary/5 to-cyan-500/5">
+          <div className="flex items-center h-16 px-6 border-b border-border/40">
             <Link href="/" className="hover:opacity-90 transition-opacity">
               <HiblaLogo size="md" showText />
             </Link>
@@ -171,7 +169,17 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
           
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6">
-            <NavItems />
+            <div className="space-y-6">
+              <div>
+                <div className="flex items-center gap-2 px-3 mb-4">
+                  <Factory className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Manufacturing System
+                  </span>
+                </div>
+                <NavItems />
+              </div>
+            </div>
           </nav>
         </div>
       </div>
@@ -179,24 +187,24 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
       {/* Main Content */}
       <div className="flex-1 md:ml-64">
         {/* Header */}
-        <header className="h-16 border-b bg-card px-4 flex items-center justify-between sticky top-0 z-40">
+        <header className="h-16 border-b border-border/40 bg-card px-6 flex items-center justify-between sticky top-0 z-40">
           <div className="flex items-center">
             {/* Mobile Menu Button */}
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <SheetTrigger asChild>
                 <Button 
                   variant="outline" 
-                  size="lg" 
-                  className="md:hidden bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg border-primary min-h-[44px] px-4 rounded-xl"
+                  size="default" 
+                  className="md:hidden bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm border-primary h-10 px-4 rounded-lg font-medium"
                 >
-                  <Menu className="h-6 w-6 mr-2" />
-                  <span className="font-semibold">Menu</span>
+                  <Menu className="h-4 w-4 mr-2" />
+                  <span>Menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[90vw] p-0 h-full max-w-sm bg-gradient-to-b from-background via-background to-muted/20 overflow-hidden">
+              <SheetContent side="left" className="w-[90vw] p-0 h-full max-w-sm bg-background border-r overflow-hidden">
                 <div className="flex flex-col h-full">
                   {/* Enhanced Mobile Header */}
-                  <div className="flex items-center justify-between h-18 px-6 border-b bg-gradient-to-r from-primary/10 via-cyan-500/10 to-purple-500/10 backdrop-blur-sm flex-shrink-0">
+                  <div className="flex items-center justify-between h-18 px-6 border-b bg-card flex-shrink-0">
                     <Link href="/" onClick={() => setSidebarOpen(false)} className="hover:opacity-90 transition-opacity">
                       <HiblaLogo size="md" showText />
                     </Link>
@@ -204,7 +212,7 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
                       variant="ghost" 
                       size="icon" 
                       onClick={() => setSidebarOpen(false)}
-                      className="h-10 w-10 hover:bg-primary/10 transition-colors rounded-full min-h-[44px]"
+                      className="h-10 w-10 hover:bg-muted transition-colors rounded-lg min-h-[44px]"
                     >
                       <X className="h-5 w-5" />
                     </Button>
@@ -213,15 +221,15 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
                   {/* Enhanced Scrollable Navigation Content */}
                   <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
                     <nav className="p-6">
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-6 px-3">
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-3 text-sm font-semibold text-muted-foreground uppercase tracking-wider px-3">
                           <Factory className="h-4 w-4" />
                           Manufacturing System
                         </div>
                         <NavItems mobile />
                         
                         {/* Quick Actions Section */}
-                        <div className="mt-10 pt-8 border-t border-border/50">
+                        <div className="pt-6 border-t border-border/50">
                           <div className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 px-3">
                             Quick Actions
                           </div>
@@ -229,7 +237,7 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
                             <Button 
                               variant="outline" 
                               size="lg" 
-                              className="w-full justify-start h-12 rounded-xl text-base"
+                              className="w-full justify-start h-12 rounded-lg text-base border-0 bg-muted hover:bg-muted/80"
                               onClick={() => setSidebarOpen(false)}
                             >
                               <Plus className="h-5 w-5 mr-3" />
@@ -238,7 +246,7 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
                             <Button 
                               variant="outline" 
                               size="lg" 
-                              className="w-full justify-start h-12 rounded-xl text-base"
+                              className="w-full justify-start h-12 rounded-lg text-base border-0 bg-muted hover:bg-muted/80"
                               onClick={() => setSidebarOpen(false)}
                             >
                               <FileText className="h-5 w-5 mr-3" />
@@ -251,12 +259,12 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
                   </div>
                   
                   {/* Enhanced Mobile Footer with User Profile */}
-                  <div className="border-t bg-gradient-to-r from-muted/30 to-muted/20 backdrop-blur-sm flex-shrink-0">
+                  <div className="border-t bg-card flex-shrink-0">
                     <div className="p-6 space-y-4">
                       {/* User Profile Section */}
                       <div className="flex items-center space-x-4">
-                        <div className="h-12 w-12 bg-gradient-to-br from-primary via-cyan-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
-                          <User className="h-6 w-6 text-white" />
+                        <div className="h-12 w-12 bg-primary rounded-lg flex items-center justify-center shadow-sm">
+                          <User className="h-6 w-6 text-primary-foreground" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-base font-semibold truncate">
@@ -278,7 +286,7 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
                           <Button
                             variant="outline"
                             size="lg"
-                            className="flex-1 h-11 rounded-xl"
+                            className="flex-1 h-11 rounded-lg border-0 bg-muted hover:bg-muted/80"
                             onClick={() => {
                               setSidebarOpen(false);
                               // Add settings action
@@ -290,7 +298,7 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
                           <Button
                             variant="destructive"
                             size="lg"
-                            className="flex-1 h-11 rounded-xl"
+                            className="flex-1 h-11 rounded-lg"
                             onClick={handleLogout}
                           >
                             <LogOut className="h-4 w-4 mr-2" />
@@ -318,20 +326,20 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
             </div>
           </div>
 
-          <div className="flex items-center space-x-1 md:space-x-4">
-            <Badge variant="outline" className="hidden lg:flex">
+          <div className="flex items-center space-x-3">
+            <Badge variant="outline" className="hidden lg:flex text-xs font-medium">
               Production Ready
             </Badge>
-            <Button variant="ghost" size="icon" className="hidden sm:flex h-10 w-10">
+            <Button variant="ghost" size="icon" className="hidden sm:flex h-9 w-9 hover:bg-muted">
               <Bell className="h-4 w-4" />
             </Button>
             
             {/* Profile Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative h-10 w-10">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+                <Button variant="ghost" size="icon" className="relative h-9 w-9 hover:bg-muted">
+                  <Avatar className="h-7 w-7">
+                    <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
                       {user?.name?.charAt(0).toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
@@ -368,8 +376,8 @@ export function AppLayout({ children, onLogout }: AppLayoutProps) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8">
-          <div className="w-full max-w-none">
+        <main className="flex-1 p-6 lg:p-8">
+          <div className="w-full max-w-none space-y-6">
             {children}
           </div>
         </main>

@@ -1,6 +1,6 @@
 import { apiRequest } from '@/lib/queryClient';
 
-export interface Customer {
+export interface Client {
   id: string;
   code: string;
   name: string;
@@ -13,7 +13,7 @@ export interface Customer {
   updatedAt: Date;
 }
 
-export interface CreateCustomerData {
+export interface CreateClientData {
   code: string;
   name: string;
   email: string;
@@ -23,27 +23,29 @@ export interface CreateCustomerData {
   address?: string;
 }
 
-export const customersApi = {
-  getAll: (): Promise<Customer[]> => 
-    apiRequest('/api/customers'),
+const API_BASE = '/api/clients';
+
+export const clientsApi = {
+  getAll: (): Promise<Client[]> => 
+    apiRequest(API_BASE),
     
-  getById: (id: string): Promise<Customer> => 
-    apiRequest(`/api/customers/${id}`),
+  getById: (id: string): Promise<Client> => 
+    apiRequest(`${API_BASE}/${id}`),
     
-  create: (data: CreateCustomerData): Promise<Customer> => 
-    apiRequest('/api/customers', {
+  create: (data: CreateClientData): Promise<Client> => 
+    apiRequest(API_BASE, {
       method: 'POST',
       body: JSON.stringify(data),
     }),
     
-  update: (id: string, data: Partial<CreateCustomerData>): Promise<Customer> => 
-    apiRequest(`/api/customers/${id}`, {
+  update: (id: string, data: Partial<CreateClientData>): Promise<Client> => 
+    apiRequest(`${API_BASE}/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
     
   delete: (id: string): Promise<void> => 
-    apiRequest(`/api/customers/${id}`, {
+    apiRequest(`${API_BASE}/${id}`, {
       method: 'DELETE',
     }),
 };

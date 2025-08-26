@@ -38,7 +38,7 @@ const dataTypes = [
     id: 'customers', 
     name: 'Customers', 
     icon: Users,
-    description: 'Customer accounts and contact information',
+    description: 'Client accounts and contact information',
     fields: ['customerCode', 'name', 'email', 'phone', 'country', 'shippingAddress', 'city', 'province', 'postalCode', 'priceCategory']
   },
   { 

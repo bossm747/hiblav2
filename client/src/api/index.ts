@@ -1,6 +1,6 @@
 // Centralized API exports
 export * from './blog-posts';
-export * from './customers';
+export * from './clients';
 export * from './dashboard';
 export * from './jobOrders';
 export * from './products';

@@ -4,8 +4,8 @@ export interface SalesOrder {
   id: string;
   salesOrderNumber: string;
   quotationId?: string;
-  customerCode: string;
-  customerId: string;
+  clientCode: string;
+  clientId: string;
   country: string;
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   subtotal: number;
@@ -23,8 +23,8 @@ export interface SalesOrder {
 
 export interface CreateSalesOrderData {
   quotationId?: string;
-  customerCode: string;
-  customerId: string;
+  clientCode: string;
+  clientId: string;
   country: string;
   subtotal: number;
   discountUsd?: number;

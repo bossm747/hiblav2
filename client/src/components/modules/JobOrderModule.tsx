@@ -70,7 +70,7 @@ import {
 // Job order schema per client requirements
 const jobOrderSchema = z.object({
   salesOrderId: z.string().min(1, 'Sales order is required'),
-  customerCode: z.string().min(1, 'Customer code is required'),
+  clientCode: z.string().min(1, 'Client code is required'),
   dueDate: z.string().min(1, 'Due date is required'),
   orderInstructions: z.string().optional(),
   productionDate: z.string().optional(),
@@ -107,7 +107,7 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
     resolver: zodResolver(jobOrderSchema),
     defaultValues: {
       salesOrderId: '',
-      customerCode: '',
+      clientCode: '',
       dueDate: '',
       orderInstructions: '',
       productionDate: '',
@@ -196,7 +196,7 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
   // Filter job orders based on search
   const filteredJobOrders = jobOrders.filter((jobOrder: any) =>
     jobOrder?.jobOrderNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    jobOrder?.customerCode?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    jobOrder?.clientCode?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     jobOrder?.status?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -263,7 +263,7 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
                                 field.onChange(value);
                                 const selectedOrder = salesOrders.find((order: any) => order.id === value);
                                 if (selectedOrder) {
-                                  form.setValue('customerCode', selectedOrder.customerCode);
+                                  form.setValue('clientCode', selectedOrder.clientCode);
                                   form.setValue('dueDate', selectedOrder.dueDate?.split('T')[0] || '');
                                 }
                               }}
@@ -277,7 +277,7 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
                               <SelectContent>
                                 {salesOrders.map((order: any) => (
                                   <SelectItem key={order.id} value={order.id}>
-                                    {order.salesOrderNumber} - {order.customerCode}
+                                    {order.salesOrderNumber} - {order.clientCode}
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -288,18 +288,18 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
                       />
 
                       <FormField
-                        control={form.control}
-                        name="customerCode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Customer Code *</FormLabel>
-                            <FormControl>
-                              <Input {...field} readOnly className="bg-gray-50" data-testid="input-customer-code" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                          control={form.control}
+                          name="clientCode"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Client Code *</FormLabel>
+                              <FormControl>
+                                <Input {...field} readOnly className="bg-gray-50" data-testid="input-client-code" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
                       <FormField
                         control={form.control}
@@ -363,11 +363,11 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
                       name="orderInstructions"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Customer Instructions</FormLabel>
+                          <FormLabel>Client Instructions</FormLabel>
                           <FormControl>
                             <Textarea 
                               {...field} 
-                              placeholder="Enter customer-specific production instructions..."
+                              placeholder="Enter client-specific production instructions..."
                               rows={4}
                               data-testid="textarea-instructions"
                             />
@@ -507,7 +507,7 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Job Order #</TableHead>
-                      <TableHead>Customer</TableHead>
+                      <TableHead>Client</TableHead>
                       <TableHead>Due Date</TableHead>
                       <TableHead>Priority</TableHead>
                       <TableHead>Status</TableHead>
@@ -519,7 +519,7 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
                     {filteredJobOrders.map((jobOrder: any) => (
                       <TableRow key={jobOrder.id}>
                         <TableCell className="font-medium">{jobOrder.jobOrderNumber}</TableCell>
-                        <TableCell>{jobOrder.customerCode}</TableCell>
+                        <TableCell>{jobOrder.clientCode}</TableCell>
                         <TableCell>{new Date(jobOrder.dueDate).toLocaleDateString()}</TableCell>
                         <TableCell>{getPriorityBadge(jobOrder.dueDate)}</TableCell>
                         <TableCell>{getStatusBadge(jobOrder.status)}</TableCell>
@@ -576,10 +576,10 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Job Order #</TableHead>
-                      <TableHead>Customer</TableHead>
+                      <TableHead>Client</TableHead>
                       <TableHead>Due Date</TableHead>
                       <TableHead>Priority</TableHead>
-                      <TableHead>Customer Instructions</TableHead>
+                      <TableHead>Client Instructions</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -587,7 +587,7 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
                     {getJobOrdersByStatus('pending').map((jobOrder: any) => (
                       <TableRow key={jobOrder.id}>
                         <TableCell className="font-medium">{jobOrder.jobOrderNumber}</TableCell>
-                        <TableCell>{jobOrder.customerCode}</TableCell>
+                        <TableCell>{jobOrder.clientCode}</TableCell>
                         <TableCell>{new Date(jobOrder.dueDate).toLocaleDateString()}</TableCell>
                         <TableCell>{getPriorityBadge(jobOrder.dueDate)}</TableCell>
                         <TableCell className="max-w-xs truncate">
@@ -624,7 +624,7 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Job Order #</TableHead>
-                      <TableHead>Customer</TableHead>
+                      <TableHead>Client</TableHead>
                       <TableHead>Production Date</TableHead>
                       <TableHead>Due Date</TableHead>
                       <TableHead>Progress</TableHead>
@@ -635,7 +635,7 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
                     {getJobOrdersByStatus('in_production').map((jobOrder: any) => (
                       <TableRow key={jobOrder.id}>
                         <TableCell className="font-medium">{jobOrder.jobOrderNumber}</TableCell>
-                        <TableCell>{jobOrder.customerCode}</TableCell>
+                        <TableCell>{jobOrder.clientCode}</TableCell>
                         <TableCell>
                           {jobOrder.productionDate 
                             ? new Date(jobOrder.productionDate).toLocaleDateString() 
@@ -685,7 +685,7 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Job Order #</TableHead>
-                      <TableHead>Customer</TableHead>
+                      <TableHead>Client</TableHead>
                       <TableHead>Completed Date</TableHead>
                       <TableHead>Duration</TableHead>
                       <TableHead>Quality Status</TableHead>
@@ -696,7 +696,7 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
                     {getJobOrdersByStatus('completed').map((jobOrder: any) => (
                       <TableRow key={jobOrder.id}>
                         <TableCell className="font-medium">{jobOrder.jobOrderNumber}</TableCell>
-                        <TableCell>{jobOrder.customerCode}</TableCell>
+                        <TableCell>{jobOrder.clientCode}</TableCell>
                         <TableCell>
                           {jobOrder.completedAt 
                             ? new Date(jobOrder.completedAt).toLocaleDateString() 
@@ -748,7 +748,7 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Job Order #</TableHead>
-                      <TableHead>Customer</TableHead>
+                      <TableHead>Client</TableHead>
                       <TableHead>Due Date</TableHead>
                       <TableHead>Days Overdue</TableHead>
                       <TableHead>Status</TableHead>
@@ -761,7 +761,7 @@ export function JobOrderModule({ className }: JobOrderModuleProps) {
                       return (
                         <TableRow key={jobOrder.id} className="bg-red-50 dark:bg-red-950/20">
                           <TableCell className="font-medium">{jobOrder.jobOrderNumber}</TableCell>
-                          <TableCell>{jobOrder.customerCode}</TableCell>
+                          <TableCell>{jobOrder.clientCode}</TableCell>
                           <TableCell>{new Date(jobOrder.dueDate).toLocaleDateString()}</TableCell>
                           <TableCell className="text-red-600 font-medium">{daysOverdue} days</TableCell>
                           <TableCell>{getStatusBadge(jobOrder.status)}</TableCell>

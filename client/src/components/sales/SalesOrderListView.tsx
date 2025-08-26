@@ -19,8 +19,8 @@ interface SalesOrder {
   id: string;
   salesOrderNumber: string;
   quotationId?: string;
-  customerCode: string;
-  customerName: string;
+  clientCode: string;
+  clientName: string;
   country: string;
   revisionNumber: string;
   status: 'draft' | 'confirmed' | 'cancelled' | 'completed';
@@ -37,7 +37,7 @@ interface SalesOrderFilters {
   search: string;
   status: string;
   country: string;
-  customerCode: string;
+  clientCode: string;
   dateFrom: string;
   dateTo: string;
   minAmount: string;
@@ -56,7 +56,7 @@ export function SalesOrderListView() {
     search: '',
     status: '',
     country: '',
-    customerCode: '',
+    clientCode: '',
     dateFrom: '',
     dateTo: '',
     minAmount: '',
@@ -64,7 +64,7 @@ export function SalesOrderListView() {
   });
 
   const [countries, setCountries] = useState<string[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
 
   useEffect(() => {
     loadSalesOrders();
@@ -107,14 +107,14 @@ export function SalesOrderListView() {
         'Content-Type': 'application/json'
       };
 
-      const [customersRes] = await Promise.all([
-        fetch('/api/customers', { headers })
+      const [clientsRes] = await Promise.all([
+      fetch('/api/clients', { headers })
       ]);
 
-      if (customersRes.ok) {
-        const customersData = await customersRes.json();
-        setCustomers(customersData || []);
-        const uniqueCountries = Array.from(new Set(customersData.map((c: any) => c.country)));
+      if (clientsRes.ok) {
+      const clientsData = await clientsRes.json();
+      setClients(clientsData || []);
+      const uniqueCountries = Array.from(new Set(clientsData.map((c: any) => c.country)));
         setCountries(uniqueCountries);
       }
     } catch (error) {
@@ -289,11 +289,18 @@ export function SalesOrderListView() {
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase();
       if (!order.salesOrderNumber.toLowerCase().includes(searchTerm) &&
-          !order.customerName.toLowerCase().includes(searchTerm) &&
-          !order.customerCode.toLowerCase().includes(searchTerm)) {
+          !order.clientName.toLowerCase().includes(searchTerm) &&
+          !order.clientCode.toLowerCase().includes(searchTerm)) {
         return false;
       }
     }
+    if (filters.status && order.status !== filters.status) return false;
+    if (filters.country && order.country !== filters.country) return false;
+    if (filters.clientCode && order.clientCode !== filters.clientCode) return false;
+    if (filters.dateFrom && new Date(order.createdAt) < new Date(filters.dateFrom)) return false;
+    if (filters.dateTo && new Date(order.createdAt) > new Date(filters.dateTo)) return false;
+    if (filters.minAmount && order.total < parseFloat(filters.minAmount)) return false;
+    if (filters.maxAmount && order.total > parseFloat(filters.maxAmount)) return false;
     return true;
   });
 
@@ -319,7 +326,7 @@ export function SalesOrderListView() {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Search sales orders, customers, or numbers..."
+                placeholder="Search sales orders, clients, or numbers..."
                 value={filters.search}
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                 className="pl-10"
@@ -400,6 +407,48 @@ export function SalesOrderListView() {
                   />
                 </div>
               </div>
+
+              <div className="grid grid-cols-3 gap-4 mt-4">
+                <div className="space-y-2">
+                  <Label>Client</Label>
+                  <Select 
+                    value={filters.clientCode} 
+                    onValueChange={(value) => setFilters(prev => ({ ...prev, clientCode: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Clients" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All Clients</SelectItem>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.clientCode}>
+                          {client.clientCode} - {client.clientName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Min Amount</Label>
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    value={filters.minAmount}
+                    onChange={(e) => setFilters(prev => ({ ...prev, minAmount: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Max Amount</Label>
+                  <Input
+                    type="number"
+                    placeholder="No limit"
+                    value={filters.maxAmount}
+                    onChange={(e) => setFilters(prev => ({ ...prev, maxAmount: e.target.value }))}
+                  />
+                </div>
+              </div>
             </>
           )}
         </CardContent>
@@ -422,7 +471,7 @@ export function SalesOrderListView() {
             <TableHeader>
               <TableRow>
                 <TableHead>Order #</TableHead>
-                <TableHead>Customer</TableHead>
+                <TableHead>Client</TableHead>
                 <TableHead>Country</TableHead>
                 <TableHead>Revision</TableHead>
                 <TableHead>Items</TableHead>
@@ -455,9 +504,9 @@ export function SalesOrderListView() {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{order.customerName}</div>
+                        <div className="font-medium">{order.clientName}</div>
                         <div className="text-sm text-muted-foreground">
-                          {order.customerCode}
+                          {order.clientCode}
                         </div>
                       </div>
                     </TableCell>

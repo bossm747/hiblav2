@@ -264,7 +264,7 @@ export function AutoInvoiceGeneration() {
             <TableHeader>
               <TableRow>
                 <TableHead>Sales Order</TableHead>
-                <TableHead>Customer</TableHead>
+                <TableHead>Client</TableHead>
                 <TableHead>Order Date</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Payment Method</TableHead>
@@ -342,7 +342,7 @@ export function AutoInvoiceGeneration() {
             <TableHeader>
               <TableRow>
                 <TableHead>Invoice Number</TableHead>
-                <TableHead>Customer</TableHead>
+                <TableHead>Client</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Generated</TableHead>
                 <TableHead>Payment Status</TableHead>

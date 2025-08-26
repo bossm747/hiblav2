@@ -69,7 +69,7 @@ export function EnhancedSystemPage() {
           <CardContent>
             <div className="text-2xl font-bold">✓</div>
             <p className="text-xs text-muted-foreground">
-              WhatsApp workflow, customer support upload, finance verification
+              WhatsApp workflow, client support upload, finance verification
             </p>
           </CardContent>
         </Card>
@@ -145,7 +145,7 @@ export function EnhancedSystemPage() {
               <ul className="space-y-2 text-sm">
                 <li className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  Customer Code dropdown from database
+                  Client Code dropdown from database
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
@@ -175,7 +175,7 @@ export function EnhancedSystemPage() {
               </span>
             </div>
             <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-              WhatsApp workflow implementation with customer support upload and finance team verification process integrated.
+              WhatsApp workflow implementation with client support upload and finance team verification process integrated.
               Job order management with production tracking and shipment columns per PDF format requirements.
             </p>
           </div>
@@ -229,7 +229,7 @@ export function EnhancedSystemPage() {
                     <li>• Quantity input with 1 decimal place precision (e.g., 25.5)</li>
                     <li>• Multiple file upload support for attachments</li>
                     <li>• Revision lock after next day from creation</li>
-                    <li>• Customer code dropdown from customer database</li>
+                    <li>• Client code dropdown from client database</li>
                     <li>• Enhanced PDF generation with proper formatting</li>
                     <li>• Automatic calculation of line totals and pricing</li>
                   </ul>

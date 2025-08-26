@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { customersApi } from '@/api/customers';
+import { clientsApi } from '@/api/clients';
 import { productsApi } from '@/api/products';
 import { salesOrdersApi } from '@/api/sales-orders';
 import { dashboardApi } from '@/api/dashboard';
@@ -20,9 +20,9 @@ export function TestConnection() {
     retry: false,
   });
 
-  const { data: customers, isLoading: customersLoading, error: customersError, refetch: refetchCustomers } = useQuery({
-    queryKey: ['test', 'customers'],
-    queryFn: customersApi.getAll,
+  const { data: clients, isLoading: clientsLoading, error: clientsError, refetch: refetchClients } = useQuery({
+    queryKey: ['test', 'clients'],
+    queryFn: clientsApi.getAll,
     retry: false,
   });
 
@@ -47,11 +47,11 @@ export function TestConnection() {
       refetch: refetchAnalytics,
     },
     {
-      name: 'Customers API',
-      loading: customersLoading,
-      error: customersError,
-      data: customers,
-      refetch: refetchCustomers,
+      name: 'Clients API',
+      loading: clientsLoading,
+      error: clientsError,
+      data: clients,
+      refetch: refetchClients,
     },
     {
       name: 'Products API',

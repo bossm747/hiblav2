@@ -4,7 +4,7 @@ export interface Quotation {
   id: string;
   quotationNumber: string;
   revisionNumber?: string;
-  customerCode?: string;
+  clientCode?: string;
   country?: string;
   paymentMethod?: string;
   shippingMethod?: string;
@@ -18,7 +18,7 @@ export interface Quotation {
   discount?: string;
   others?: string;
   total?: string;
-  customerServiceInstructions?: string;
+  clientServiceInstructions?: string;
 }
 
 export interface QuotationItem {

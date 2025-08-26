@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { clientsApi } from '@/api/clients';
 import {
   Card,
   CardContent,
@@ -67,7 +68,7 @@ import {
 interface ReportFilter {
   dateFrom?: string;
   dateTo?: string;
-  customerCode?: string;
+  clientCode?: string;
   productCategory?: string;
   orderStatus?: string;
   warehouse?: string;
@@ -111,8 +112,9 @@ export function EnhancedReporting() {
     },
   });
 
-  const { data: customers = [] } = useQuery({
-    queryKey: ['/api/customers'],
+  const { data: clients = [] } = useQuery({
+    queryKey: ['/api/clients'],
+    queryFn: () => clientsApi.getAll(),
   });
 
   const { data: products = [] } = useQuery({
@@ -253,7 +255,7 @@ export function EnhancedReporting() {
               </Button>
             </div>
             <CardDescription>
-              Filter report data by date range, customer, product, and more
+              Filter report data by date range, client, product, and more
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -279,19 +281,19 @@ export function EnhancedReporting() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="customerCode">Customer</Label>
+                <Label htmlFor="clientCode">Client</Label>
                 <Select
-                  value={filters.customerCode || ''}
-                  onValueChange={(value) => setFilters({ ...filters, customerCode: value })}
+                  value={filters.clientCode || ''}
+                  onValueChange={(value) => setFilters({ ...filters, clientCode: value })}
                 >
-                  <SelectTrigger id="customerCode">
-                    <SelectValue placeholder="All Customers" />
+                  <SelectTrigger id="clientCode">
+                    <SelectValue placeholder="All Clients" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Customers</SelectItem>
-                    {customers.map((customer: any) => (
-                      <SelectItem key={customer.id} value={customer.code}>
-                        {customer.code} - {customer.name}
+                    <SelectItem value="">All Clients</SelectItem>
+                    {clients.map((client: any) => (
+                      <SelectItem key={client.id} value={client.code}>
+                        {client.code} - {client.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -441,7 +443,7 @@ export function EnhancedReporting() {
 
             <Card className="interactive-card">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Customers</CardTitle>
+                <CardTitle className="text-sm font-medium">Active Clients</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -450,7 +452,7 @@ export function EnhancedReporting() {
                 ) : (
                   <>
                     <div className="text-2xl font-bold">
-                      {salesData?.activeCustomers || 0}
+                      {salesData?.activeClients || 0}
                     </div>
                     <p className="text-xs text-muted-foreground">
                       <span className="text-green-600">+5 new</span> this week
@@ -597,7 +599,7 @@ export function EnhancedReporting() {
                     <TableRow>
                       <TableHead>Order #</TableHead>
                       <TableHead>Date</TableHead>
-                      <TableHead>Customer</TableHead>
+                      <TableHead>Client</TableHead>
                       <TableHead>Products</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Status</TableHead>
@@ -608,7 +610,7 @@ export function EnhancedReporting() {
                       <TableRow key={order.id}>
                         <TableCell className="font-medium">{order.orderNumber}</TableCell>
                         <TableCell>{new Date(order.date).toLocaleDateString()}</TableCell>
-                        <TableCell>{order.customerName}</TableCell>
+                        <TableCell>{order.clientName}</TableCell>
                         <TableCell>{order.productCount} items</TableCell>
                         <TableCell>${order.amount.toFixed(2)}</TableCell>
                         <TableCell>

@@ -82,7 +82,7 @@ export function SalesOperationsDashboard() {
   // Extract counts from analytics and calculate enhanced KPIs
   const totalQuotations = parseInt(analytics?.overview?.activeQuotations || '0');
   const totalSalesOrders = parseInt(analytics?.overview?.activeSalesOrders || '0');
-  const totalCustomers = parseInt(analytics?.overview?.totalCustomers || '0');
+  const totalClients = parseInt(analytics?.overview?.totalClients || '0');
   const totalJobOrders = parseInt(analytics?.overview?.activeJobOrders || '0');
   
   // Enhanced KPI calculations
@@ -90,10 +90,10 @@ export function SalesOperationsDashboard() {
   const totalRevenue = totalSalesOrders * 500; // Estimated revenue per order
   const avgDealSize = totalSalesOrders > 0 ? totalRevenue / totalSalesOrders : 0;
   const pipelineVelocity = totalQuotations > 0 ? (totalSalesOrders / totalQuotations) * 7 : 0; // Days to convert
-  const customerSegments = {
-    active: Math.floor(totalCustomers * 0.6),
-    dormant: Math.floor(totalCustomers * 0.3),
-    new: Math.floor(totalCustomers * 0.1)
+  const clientSegments = {
+    active: Math.floor(totalClients * 0.6),
+    dormant: Math.floor(totalClients * 0.3),
+    new: Math.floor(totalClients * 0.1)
   };
   const teamPerformance = {
     salesTeam: totalQuotations,
@@ -116,7 +116,7 @@ export function SalesOperationsDashboard() {
   console.log('🔍 Sales Operations Dashboard - Calculated Metrics:', {
     totalQuotations,
     totalSalesOrders,
-    totalCustomers,
+    totalClients,
     conversionRate: conversionRate.toFixed(1) + '%',
     totalRevenue,
     analyticsLoading,
@@ -580,10 +580,10 @@ export function SalesOperationsDashboard() {
                 <div className="relative w-32 h-32">
                   <div className="absolute inset-0 rounded-full border-8 border-blue-200 dark:border-blue-800"></div>
                   <div className="absolute inset-0 rounded-full border-8 border-blue-500 border-t-transparent border-r-transparent" 
-                       style={{ transform: `rotate(${(customerSegments.active / totalCustomers) * 360}deg)` }}></div>
+                       style={{ transform: `rotate(${(clientSegments.active / totalClients) * 360}deg)` }}></div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
-                      <div className="text-2xl font-bold">{totalCustomers}</div>
+                      <div className="text-2xl font-bold">{totalClients}</div>
                       <div className="text-xs text-muted-foreground">Total</div>
                     </div>
                   </div>
@@ -595,21 +595,21 @@ export function SalesOperationsDashboard() {
                     <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                     <span className="text-sm">Active</span>
                   </div>
-                  <div className="font-semibold">{customerSegments.active}</div>
+                  <div className="font-semibold">{clientSegments.active}</div>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                     <span className="text-sm">Dormant</span>
                   </div>
-                  <div className="font-semibold">{customerSegments.dormant}</div>
+                  <div className="font-semibold">{clientSegments.dormant}</div>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-green-500"></div>
                     <span className="text-sm">New</span>
                   </div>
-                  <div className="font-semibold">{customerSegments.new}</div>
+                  <div className="font-semibold">{clientSegments.new}</div>
                 </div>
               </div>
             </CardContent>
@@ -725,7 +725,6 @@ export function SalesOperationsDashboard() {
               </div>
             </CardContent>
           </Card>
-          </div>
         </div>
       </div>
 
@@ -784,9 +783,9 @@ export function SalesOperationsDashboard() {
                     <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">Customer base</p>
-                      <p className="text-xs text-muted-foreground">{totalCustomers} active customers</p>
+                      <p className="text-xs text-muted-foreground">{totalClients} active clients</p>
                     </div>
-                    <Badge variant="secondary">{totalCustomers}</Badge>
+                    <Badge variant="secondary">{totalClients}</Badge>
                   </div>
                 </div>
               </CardContent>
@@ -806,7 +805,7 @@ export function SalesOperationsDashboard() {
           <JobOrderListView />
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
     </TooltipProvider>
   );
 }

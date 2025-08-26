@@ -29,8 +29,8 @@ interface QuotationStatusCardProps {
   quotation: {
     id: string;
     quotationNumber: string;
-    customerCode: string;
-    customerName?: string;
+    clientCode: string;
+  clientName?: string;
     total: string | number;
     status: string;
     createdAt: string;
@@ -108,7 +108,7 @@ export function QuotationStatusCard({
                 {quotation.quotationNumber}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                {quotation.customerCode} • {quotation.customerName || 'Customer'}
+                {quotation.clientCode} • {quotation.clientName || 'Client'}
               </p>
             </div>
           </div>

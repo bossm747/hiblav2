@@ -45,7 +45,7 @@ import { apiRequest } from '@/lib/queryClient';
 const paymentRecordingSchema = z.object({
   paymentDate: z.date(),
   salesOrderId: z.string().min(1, 'Sales Order is required'),
-  customerCode: z.string().min(1, 'Customer Code is required'),
+  clientCode: z.string().min(1, 'Client Code is required'),
   amount: z.string().min(1, 'Payment amount is required'),
   paymentMethod: z.enum(['bank', 'agent', 'money transfer', 'cash']),
   status: z.enum(['pending', 'confirmed', 'rejected']),
@@ -60,7 +60,7 @@ type PaymentRecordingFormData = z.infer<typeof paymentRecordingSchema>;
 interface PaymentRecordingFormProps {
   salesOrderId?: string;
   onSuccess?: () => void;
-  mode?: 'upload' | 'verify'; // upload for customer support, verify for finance
+  mode?: 'upload' | 'verify'; // upload for client support, verify for finance
 }
 
 export function PaymentRecordingForm({ 
@@ -79,7 +79,7 @@ export function PaymentRecordingForm({
     defaultValues: {
       paymentDate: new Date(),
       salesOrderId: salesOrderId || '',
-      customerCode: '',
+      clientCode: '',
       amount: '',
       paymentMethod: 'bank',
       status: mode === 'upload' ? 'pending' : 'confirmed',
@@ -94,8 +94,8 @@ export function PaymentRecordingForm({
     queryKey: ['/api/sales-orders'],
   });
 
-  const { data: customers = [] } = useQuery<any[]>({
-    queryKey: ['/api/customers'],
+  const { data: clients = [] } = useQuery<any[]>({
+    queryKey: ['/api/clients'],
   });
 
   // Load sales order data if salesOrderId is provided
@@ -106,7 +106,7 @@ export function PaymentRecordingForm({
 
   React.useEffect(() => {
     if (salesOrder) {
-      form.setValue('customerCode', salesOrder.customerCode || '');
+      form.setValue('clientCode', salesOrder.clientCode || '');
       form.setValue('amount', salesOrder.pleasePayThisAmountUsd || '0.00');
     }
   }, [salesOrder, form]);
@@ -221,7 +221,7 @@ export function PaymentRecordingForm({
           <CreditCard className="h-5 w-5 mr-2" />
           {mode === 'upload' ? 'Payment Proof Upload' : 'Payment Verification'}
           {mode === 'upload' ? (
-            <Badge variant="outline" className="ml-2">Customer Support</Badge>
+            <Badge variant="outline" className="ml-2">Internal Staff</Badge>
           ) : (
             <Badge variant="secondary" className="ml-2">Finance Team</Badge>
           )}
@@ -289,7 +289,7 @@ export function PaymentRecordingForm({
                         field.onChange(value);
                         const order = salesOrders.find((so: any) => so.id === value);
                         if (order) {
-                          form.setValue('customerCode', order.customerCode);
+                          form.setValue('clientCode', order.clientCode);
                           form.setValue('amount', order.pleasePayThisAmountUsd || '0.00');
                         }
                       }} value={field.value}>
@@ -313,12 +313,12 @@ export function PaymentRecordingForm({
                 
                 <FormField
                   control={form.control}
-                  name="customerCode"
+                  name="clientCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Customer Code</FormLabel>
+                      <FormLabel>Client Code</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Customer code" readOnly className="bg-muted" />
+                        <Input {...field} placeholder="Client code" readOnly className="bg-muted" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

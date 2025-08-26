@@ -11,8 +11,8 @@ import { Download, Share, Printer, FileText, X } from 'lucide-react';
 interface QuotationDetail {
   id: string;
   number: string;
-  customerName: string;
-  customerCode: string;
+  clientName: string;
+  clientCode: string;
   country: string;
   priceListName: string;
   revisionNumber: string;
@@ -28,7 +28,7 @@ interface QuotationDetail {
   createdByInitials: string;
   paymentMethod: string;
   shippingMethod: string;
-  customerServiceInstructions: string;
+  clientServiceInstructions: string;
   items: Array<{
     id: string;
     productName: string;
@@ -138,7 +138,7 @@ export function QuotationDetailModal({ quotationId, isOpen, onClose }: Quotation
     try {
       const shareData = {
         title: `Quotation ${quotation.number}`,
-        text: `Quotation ${quotation.number} for ${quotation.customerName} - Total: $${quotation.total.toLocaleString()}`,
+        text: `Quotation ${quotation.number} for ${quotation.clientName} - Total: $${quotation.total.toLocaleString()}`,
         url: window.location.href
       };
 
@@ -266,10 +266,10 @@ export function QuotationDetailModal({ quotationId, isOpen, onClose }: Quotation
             <div className="grid grid-cols-3 gap-6">
               <Card>
                 <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2">Customer Information</h3>
-                  <div className="space-y-1 text-sm">
-                    <div><strong>Name:</strong> {quotation.customerName}</div>
-                    <div><strong>Code:</strong> {quotation.customerCode}</div>
+                  <h3 className="font-semibold mb-2">Client Information</h3>
+                <div className="space-y-1 text-sm">
+                  <div><strong>Name:</strong> {quotation.clientName}</div>
+                  <div><strong>Code:</strong> {quotation.clientCode}</div>
                     <div><strong>Country:</strong> {quotation.country}</div>
                     <div><strong>Price List:</strong> {quotation.priceListName}</div>
                   </div>
@@ -378,9 +378,9 @@ export function QuotationDetailModal({ quotationId, isOpen, onClose }: Quotation
                   </div>
 
                   <div className="space-y-2">
-                    <h4 className="font-semibold">Customer Service Instructions</h4>
+                    <h4 className="font-semibold">Client Service Instructions</h4>
                     <div className="text-sm text-muted-foreground p-3 bg-muted/20 rounded">
-                      {quotation.customerServiceInstructions || 'No special instructions'}
+                      {quotation.clientServiceInstructions || 'No special instructions'}
                     </div>
                   </div>
                 </div>

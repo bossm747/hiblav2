@@ -142,18 +142,20 @@ export function InventoryForm({ productId, onSuccess }: InventoryFormProps) {
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Package className="h-5 w-5 mr-2" />
+    <Card className="border-border shadow-sm">
+      <CardHeader className="pb-6 border-b border-border">
+        <CardTitle className="text-xl font-semibold flex items-center gap-2 text-foreground">
+          <Package className="h-5 w-5 text-primary" />
           {productId ? 'Update Product' : 'Add New Product'}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit((data) => createOrUpdateProductMutation.mutate(data))} className="space-y-6">
+          <form onSubmit={form.handleSubmit((data) => createOrUpdateProductMutation.mutate(data))} className="space-y-8">
             {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">Basic Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="name"
@@ -181,25 +183,26 @@ export function InventoryForm({ productId, onSuccess }: InventoryFormProps) {
                   </FormItem>
                 )}
               />
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Product description..."
+                        className="min-h-[80px] resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Product description..."
-                      className="min-h-[80px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <FormField
@@ -289,9 +292,9 @@ export function InventoryForm({ productId, onSuccess }: InventoryFormProps) {
             </div>
 
             {/* Pricing */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Pricing</h3>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">Pricing</h3>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                 <FormField
                   control={form.control}
                   name="priceListA"
@@ -365,9 +368,9 @@ export function InventoryForm({ productId, onSuccess }: InventoryFormProps) {
             </div>
 
             {/* Warehouse Stock */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Warehouse Stock</h3>
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">Warehouse Stock</h3>
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
                 <FormField
                   control={form.control}
                   name="ngWarehouse"
@@ -454,15 +457,24 @@ export function InventoryForm({ productId, onSuccess }: InventoryFormProps) {
               </div>
             </div>
 
-            <div className="flex gap-4">
-              <Button type="submit" disabled={createOrUpdateProductMutation.isPending}>
+            <div className="flex justify-end gap-3 pt-6 border-t border-border">
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="h-10 px-6 font-medium"
+                onClick={() => form.reset()}
+              >
+                Reset Form
+              </Button>
+              <Button 
+                type="submit" 
+                className="h-10 px-6 font-medium"
+                disabled={createOrUpdateProductMutation.isPending}
+              >
                 {createOrUpdateProductMutation.isPending 
                   ? (productId ? 'Updating...' : 'Creating...') 
                   : (productId ? 'Update Product' : 'Create Product')
                 }
-              </Button>
-              <Button type="button" variant="outline" onClick={() => form.reset()}>
-                Reset Form
               </Button>
             </div>
           </form>
