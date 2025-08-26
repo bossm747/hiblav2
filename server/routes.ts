@@ -223,19 +223,6 @@ export function registerRoutes(app: Express): void {
     }
   });
 
-  // ==============================================
-  // PRICE LIST MANAGEMENT
-  // ==============================================
-  
-  app.get("/api/price-lists", requireAuth, async (req, res) => {
-    try {
-      const priceLists = await storage.getPriceLists();
-      res.json(priceLists);
-    } catch (error) {
-      console.error("Error fetching price lists:", error);
-      res.status(500).json({ error: "Failed to fetch price lists" });
-    }
-  });
 
   // ==============================================
   // PRODUCT MANAGEMENT
