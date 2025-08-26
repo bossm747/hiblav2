@@ -15,6 +15,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -157,7 +158,8 @@ export function AssetsManagementPage() {
 
   // Type-safe data
   const safeAssets = assets as Asset[];
-  const assetCategories = categories.filter((cat: any) => 
+  const categoriesArray = (categories as any[]) || [];
+  const assetCategories = categoriesArray.filter((cat: any) => 
     ['equipment', 'asset', 'tool', 'supply'].includes(cat.type)
   );
 
@@ -536,11 +538,14 @@ export function AssetsManagementPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Add New Asset</DialogTitle>
+            <DialogDescription>
+              Add a new asset to your inventory management system
+            </DialogDescription>
           </DialogHeader>
           <AssetForm
-            categories={assetCategories}
-            staff={staff}
-            warehouses={warehouses}
+            categories={assetCategories as any[]}
+            staff={staff as any[]}
+            warehouses={warehouses as any[]}
             onSuccess={() => {
               setShowCreateDialog(false);
               queryClient.invalidateQueries({ queryKey: ['/api/assets'] });
@@ -558,13 +563,16 @@ export function AssetsManagementPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Edit Asset</DialogTitle>
+            <DialogDescription>
+              Update the asset information and details
+            </DialogDescription>
           </DialogHeader>
           {editingAsset && (
             <AssetForm
               asset={editingAsset}
-              categories={assetCategories}
-              staff={staff}
-              warehouses={warehouses}
+              categories={assetCategories as any[]}
+              staff={staff as any[]}
+              warehouses={warehouses as any[]}
               onSuccess={() => {
                 setShowEditDialog(false);
                 setEditingAsset(null);

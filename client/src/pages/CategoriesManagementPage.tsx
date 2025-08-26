@@ -15,6 +15,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -423,6 +424,9 @@ export function CategoriesManagementPage() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Add New Category</DialogTitle>
+            <DialogDescription>
+              Create a new category for organizing your assets
+            </DialogDescription>
           </DialogHeader>
           <CategoryForm
             onSuccess={() => {
@@ -442,6 +446,9 @@ export function CategoriesManagementPage() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
+            <DialogDescription>
+              Update the category details
+            </DialogDescription>
           </DialogHeader>
           {editingCategory && (
             <CategoryForm
