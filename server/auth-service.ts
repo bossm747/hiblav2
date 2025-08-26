@@ -57,7 +57,7 @@ class AuthService {
           permissions: staff.permissions 
         },
         productionConfig.auth.jwtSecret,
-        { expiresIn: productionConfig.auth.jwtExpiresIn }
+        { expiresIn: productionConfig.auth.jwtExpiresIn as string | number }
       );
       
       console.log('Authentication successful for:', email);

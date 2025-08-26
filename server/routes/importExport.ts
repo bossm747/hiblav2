@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
+import crypto from 'crypto';
 import { db } from '../db';
 import { FileParser } from '../utils/fileParser';
 import * as schema from '../../shared/schema';
@@ -230,14 +231,16 @@ router.post('/import', upload.single('file'), async (req, res) => {
       try {
         switch (type) {
           case 'customers':
-            // Set default password for imported customers
+            // Generate a secure random password for imported customers
+            const randomPassword = crypto.randomBytes(16).toString('hex');
             const customerData = {
               ...row,
-              password: row.password || 'defaultPass123',
+              password: row.password || randomPassword,
               emailVerified: false,
               status: 'active'
             };
             await db.insert(schema.customers).values(customerData);
+            // Note: In production, send password reset email to customer
             break;
             
           case 'products':
